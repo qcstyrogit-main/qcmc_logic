@@ -1,0 +1,886 @@
+[
+ {
+  "amended_from": null,
+  "date_received": null,
+  "date_transferred": "2025-07-25",
+  "docstatus": 0,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-07-29 15:21:52.523378",
+  "name": "35WT25-00001",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [
+   {
+    "parent": "35WT25-00001",
+    "parentfield": "reference_details",
+    "parenttype": "Warehouse Transfer",
+    "reference_name": "QC0000249954",
+    "reference_type": "Sales Order"
+   }
+  ],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG_FG - QC",
+  "target_company": "Multiplast Corporation",
+  "target_warehouse": "MULTI - MC",
+  "transfer_items": [
+   {
+    "issued_qty": 1000.0,
+    "item_code": "EFC8SC",
+    "item_name": "8 OZ STYRO CUPS PLAIN",
+    "parent": "35WT25-00001",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": null,
+    "uom": "Piece"
+   }
+  ],
+  "transfer_status": "Draft",
+  "transfer_type": "Warehouse Transfer",
+  "wh_code": "35"
+ },
+ {
+  "amended_from": null,
+  "date_received": null,
+  "date_transferred": "2025-07-30",
+  "docstatus": 1,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-07-30 08:17:55.014263",
+  "name": "35WT25-00002",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [
+   {
+    "parent": "35WT25-00002",
+    "parentfield": "reference_details",
+    "parenttype": "Warehouse Transfer",
+    "reference_name": "QC0000249945",
+    "reference_type": "Sales Order"
+   }
+  ],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG_FG - QC",
+  "target_company": "Multiplast Corporation",
+  "target_warehouse": "MC1 RMFS - MC",
+  "transfer_items": [
+   {
+    "issued_qty": 30.0,
+    "item_code": "EIXPICS",
+    "item_name": "POLAR ICE CHEST SMALL",
+    "parent": "35WT25-00002",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249945",
+    "uom": "Set"
+   },
+   {
+    "issued_qty": 30.0,
+    "item_code": "EIXPICL",
+    "item_name": "POLAR ICE CHEST LARGE",
+    "parent": "35WT25-00002",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249945",
+    "uom": "Set"
+   },
+   {
+    "issued_qty": 50.0,
+    "item_code": "EIXSBWC",
+    "item_name": "SINGLE BOX W/ COVER",
+    "parent": "35WT25-00002",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249945",
+    "uom": "Set"
+   },
+   {
+    "issued_qty": 40.0,
+    "item_code": "EIXBBWC",
+    "item_name": "BIG BOX W/ COVER",
+    "parent": "35WT25-00002",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249945",
+    "uom": "Set"
+   },
+   {
+    "issued_qty": 30.0,
+    "item_code": "EIXPICXLBC",
+    "item_name": "POLAR ICE CHEST XL WITH COVER",
+    "parent": "35WT25-00002",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249945",
+    "uom": "Set"
+   },
+   {
+    "issued_qty": 30.0,
+    "item_code": "EIXPICM",
+    "item_name": "POLAR ICE CHEST MEDIUM",
+    "parent": "35WT25-00002",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249945",
+    "uom": "Set"
+   }
+  ],
+  "transfer_status": "Transferred",
+  "transfer_type": "Intercompany Warehouse Transfer",
+  "wh_code": "35"
+ },
+ {
+  "amended_from": null,
+  "date_received": null,
+  "date_transferred": "2025-08-28",
+  "docstatus": 1,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-08-28 11:32:37.369205",
+  "name": "35WT25-00005",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [
+   {
+    "parent": "35WT25-00005",
+    "parentfield": "reference_details",
+    "parenttype": "Warehouse Transfer",
+    "reference_name": "QC0000249946",
+    "reference_type": "Sales Order"
+   }
+  ],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG RMWH - QC",
+  "target_company": "Multiplast Corporation",
+  "target_warehouse": "MC1 RMFS - MC",
+  "transfer_items": [
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12S377",
+    "item_name": "EGGTRAY X 12 F PS \"SM BONUS FARM FRESH EGGS\" M (S-0377-0) 4C",
+    "parent": "35WT25-00005",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12R237",
+    "item_name": "EGGTRAY X 12 FLAT (PS) \"ROBINSON FRESH EGGS\" L (R-0237-0) 2C",
+    "parent": "35WT25-00005",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VET12S359",
+    "item_name": "EGGTRAY X 12 PET \"SUREBUY FRESH EGGS\" (S-0359-0) 2 CLRS",
+    "parent": "35WT25-00005",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   }
+  ],
+  "transfer_status": "Received",
+  "transfer_type": "Warehouse Transfer",
+  "wh_code": "35"
+ },
+ {
+  "amended_from": null,
+  "date_received": null,
+  "date_transferred": "2025-09-03",
+  "docstatus": 0,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-09-03 17:09:38.555316",
+  "name": "35WT25-00009",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG RMWH - QC",
+  "target_company": "Multiplast Corporation",
+  "target_warehouse": "MC1 RMFS - MC",
+  "transfer_items": [],
+  "transfer_status": "Draft",
+  "transfer_type": "Warehouse Transfer",
+  "wh_code": "35"
+ },
+ {
+  "amended_from": null,
+  "date_received": "2025-07-30",
+  "date_transferred": "2025-07-29",
+  "docstatus": 1,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-07-30 13:20:24.502216",
+  "name": "35WT25-00003",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [
+   {
+    "parent": "35WT25-00003",
+    "parentfield": "reference_details",
+    "parenttype": "Warehouse Transfer",
+    "reference_name": "QC0000249946",
+    "reference_type": "Sales Order"
+   }
+  ],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG_FG - QC",
+  "target_company": "Multiplast Corporation",
+  "target_warehouse": "MC1 RMFS - MC",
+  "transfer_items": [
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12S377",
+    "item_name": "EGGTRAY X 12 F PS \"SM BONUS FARM FRESH EGGS\" M (S-0377-0) 4C",
+    "parent": "35WT25-00003",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12R237",
+    "item_name": "EGGTRAY X 12 FLAT (PS) \"ROBINSON FRESH EGGS\" L (R-0237-0) 2C",
+    "parent": "35WT25-00003",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VET12S359",
+    "item_name": "EGGTRAY X 12 PET \"SUREBUY FRESH EGGS\" (S-0359-0) 2 CLRS",
+    "parent": "35WT25-00003",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   }
+  ],
+  "transfer_status": "Transferred",
+  "transfer_type": "Warehouse Transfer",
+  "wh_code": "35"
+ },
+ {
+  "amended_from": null,
+  "date_received": null,
+  "date_transferred": "2025-08-14",
+  "docstatus": 1,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-08-14 15:22:13.665729",
+  "name": "35WT25-00004",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [
+   {
+    "parent": "35WT25-00004",
+    "parentfield": "reference_details",
+    "parenttype": "Warehouse Transfer",
+    "reference_name": "QC0000249945",
+    "reference_type": "Sales Order"
+   }
+  ],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG RMWH - QC",
+  "target_company": "Multiplast Corporation",
+  "target_warehouse": "MC1 RMFS - MC",
+  "transfer_items": [
+   {
+    "issued_qty": 30.0,
+    "item_code": "EIXPICS",
+    "item_name": "POLAR ICE CHEST SMALL",
+    "parent": "35WT25-00004",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249945",
+    "uom": "Set"
+   },
+   {
+    "issued_qty": 30.0,
+    "item_code": "EIXPICL",
+    "item_name": "POLAR ICE CHEST LARGE",
+    "parent": "35WT25-00004",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249945",
+    "uom": "Set"
+   },
+   {
+    "issued_qty": 50.0,
+    "item_code": "EIXSBWC",
+    "item_name": "SINGLE BOX W/ COVER",
+    "parent": "35WT25-00004",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249945",
+    "uom": "Set"
+   },
+   {
+    "issued_qty": 40.0,
+    "item_code": "EIXBBWC",
+    "item_name": "BIG BOX W/ COVER",
+    "parent": "35WT25-00004",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249945",
+    "uom": "Set"
+   },
+   {
+    "issued_qty": 30.0,
+    "item_code": "EIXPICXLBC",
+    "item_name": "POLAR ICE CHEST XL WITH COVER",
+    "parent": "35WT25-00004",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249945",
+    "uom": "Set"
+   },
+   {
+    "issued_qty": 30.0,
+    "item_code": "EIXPICM",
+    "item_name": "POLAR ICE CHEST MEDIUM",
+    "parent": "35WT25-00004",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249945",
+    "uom": "Set"
+   }
+  ],
+  "transfer_status": "Transferred",
+  "transfer_type": "Intercompany Warehouse Transfer",
+  "wh_code": "35"
+ },
+ {
+  "amended_from": null,
+  "date_received": null,
+  "date_transferred": "2025-09-01",
+  "docstatus": 0,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-09-01 14:27:10.877512",
+  "name": "35WT25-00006",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [
+   {
+    "parent": "35WT25-00006",
+    "parentfield": "reference_details",
+    "parenttype": "Warehouse Transfer",
+    "reference_name": "QC0000249946",
+    "reference_type": "Sales Order"
+   }
+  ],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG RMWH - QC",
+  "target_company": "QC Styropackaging Corporation",
+  "target_warehouse": "EDSA RMWH - QC",
+  "transfer_items": [
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12S377",
+    "item_name": "EGGTRAY X 12 F PS \"SM BONUS FARM FRESH EGGS\" M (S-0377-0) 4C",
+    "parent": "35WT25-00006",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12R237",
+    "item_name": "EGGTRAY X 12 FLAT (PS) \"ROBINSON FRESH EGGS\" L (R-0237-0) 2C",
+    "parent": "35WT25-00006",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VET12S359",
+    "item_name": "EGGTRAY X 12 PET \"SUREBUY FRESH EGGS\" (S-0359-0) 2 CLRS",
+    "parent": "35WT25-00006",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   }
+  ],
+  "transfer_status": "Transferred",
+  "transfer_type": "Warehouse Transfer",
+  "wh_code": "35"
+ },
+ {
+  "amended_from": null,
+  "date_received": null,
+  "date_transferred": "2025-09-01",
+  "docstatus": 1,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-09-01 14:30:00.220206",
+  "name": "35WT25-00007",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [
+   {
+    "parent": "35WT25-00007",
+    "parentfield": "reference_details",
+    "parenttype": "Warehouse Transfer",
+    "reference_name": "QC0000249946",
+    "reference_type": "Sales Order"
+   }
+  ],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG RMWH - QC",
+  "target_company": "Multiplast Corporation",
+  "target_warehouse": "MC1 RMFS - MC",
+  "transfer_items": [
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12S377",
+    "item_name": "EGGTRAY X 12 F PS \"SM BONUS FARM FRESH EGGS\" M (S-0377-0) 4C",
+    "parent": "35WT25-00007",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12R237",
+    "item_name": "EGGTRAY X 12 FLAT (PS) \"ROBINSON FRESH EGGS\" L (R-0237-0) 2C",
+    "parent": "35WT25-00007",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VET12S359",
+    "item_name": "EGGTRAY X 12 PET \"SUREBUY FRESH EGGS\" (S-0359-0) 2 CLRS",
+    "parent": "35WT25-00007",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   }
+  ],
+  "transfer_status": "Transferred",
+  "transfer_type": "Warehouse Transfer",
+  "wh_code": "35"
+ },
+ {
+  "amended_from": null,
+  "date_received": null,
+  "date_transferred": "2025-09-05",
+  "docstatus": 1,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-09-04 13:11:44.213032",
+  "name": "35WT25-00010",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [
+   {
+    "parent": "35WT25-00010",
+    "parentfield": "reference_details",
+    "parenttype": "Warehouse Transfer",
+    "reference_name": "QC0000249954",
+    "reference_type": "Sales Order"
+   }
+  ],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG RMWH - QC",
+  "target_company": "Multiplast Corporation",
+  "target_warehouse": "MC1 RMFS - MC",
+  "transfer_items": [
+   {
+    "issued_qty": 30000.0,
+    "item_code": "PPL32H",
+    "item_name": "32 OZ FRUIT JUICE CUP LIDS W/ HOLE",
+    "parent": "35WT25-00010",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249954",
+    "uom": "Piece"
+   }
+  ],
+  "transfer_status": "Transferred",
+  "transfer_type": "Warehouse Transfer",
+  "wh_code": "35"
+ },
+ {
+  "amended_from": null,
+  "date_received": null,
+  "date_transferred": "2025-09-04",
+  "docstatus": 1,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-09-04 13:19:40.882649",
+  "name": "35WT25-00011",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [
+   {
+    "parent": "35WT25-00011",
+    "parentfield": "reference_details",
+    "parenttype": "Warehouse Transfer",
+    "reference_name": "QC0000249946",
+    "reference_type": "Sales Order"
+   }
+  ],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG RMWH - QC",
+  "target_company": "Multiplast Corporation",
+  "target_warehouse": "MC1 RMFS - MC",
+  "transfer_items": [
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12S377",
+    "item_name": "EGGTRAY X 12 F PS \"SM BONUS FARM FRESH EGGS\" M (S-0377-0) 4C",
+    "parent": "35WT25-00011",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12R237",
+    "item_name": "EGGTRAY X 12 FLAT (PS) \"ROBINSON FRESH EGGS\" L (R-0237-0) 2C",
+    "parent": "35WT25-00011",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VET12S359",
+    "item_name": "EGGTRAY X 12 PET \"SUREBUY FRESH EGGS\" (S-0359-0) 2 CLRS",
+    "parent": "35WT25-00011",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   }
+  ],
+  "transfer_status": "Transferred",
+  "transfer_type": "Intercompany Warehouse Transfer",
+  "wh_code": "35"
+ },
+ {
+  "amended_from": null,
+  "date_received": null,
+  "date_transferred": "2025-09-04",
+  "docstatus": 1,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-09-04 13:27:56.456015",
+  "name": "35WT25-00012",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [
+   {
+    "parent": "35WT25-00012",
+    "parentfield": "reference_details",
+    "parenttype": "Warehouse Transfer",
+    "reference_name": "QC0000249946",
+    "reference_type": "Sales Order"
+   }
+  ],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG RMWH - QC",
+  "target_company": "Multiplast Corporation",
+  "target_warehouse": "MC1 RMFS - MC",
+  "transfer_items": [
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12S377",
+    "item_name": "EGGTRAY X 12 F PS \"SM BONUS FARM FRESH EGGS\" M (S-0377-0) 4C",
+    "parent": "35WT25-00012",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12R237",
+    "item_name": "EGGTRAY X 12 FLAT (PS) \"ROBINSON FRESH EGGS\" L (R-0237-0) 2C",
+    "parent": "35WT25-00012",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VET12S359",
+    "item_name": "EGGTRAY X 12 PET \"SUREBUY FRESH EGGS\" (S-0359-0) 2 CLRS",
+    "parent": "35WT25-00012",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   }
+  ],
+  "transfer_status": "Transferred",
+  "transfer_type": "Warehouse Transfer",
+  "wh_code": "35"
+ },
+ {
+  "amended_from": null,
+  "date_received": null,
+  "date_transferred": "2025-09-04",
+  "docstatus": 1,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-09-04 13:29:21.150241",
+  "name": "35WT25-00013",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [
+   {
+    "parent": "35WT25-00013",
+    "parentfield": "reference_details",
+    "parenttype": "Warehouse Transfer",
+    "reference_name": "QC0000249946",
+    "reference_type": "Sales Order"
+   }
+  ],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG RMWH - QC",
+  "target_company": "Multiplast Corporation",
+  "target_warehouse": "MC1 RMFS - MC",
+  "transfer_items": [
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12S377",
+    "item_name": "EGGTRAY X 12 F PS \"SM BONUS FARM FRESH EGGS\" M (S-0377-0) 4C",
+    "parent": "35WT25-00013",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12R237",
+    "item_name": "EGGTRAY X 12 FLAT (PS) \"ROBINSON FRESH EGGS\" L (R-0237-0) 2C",
+    "parent": "35WT25-00013",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VET12S359",
+    "item_name": "EGGTRAY X 12 PET \"SUREBUY FRESH EGGS\" (S-0359-0) 2 CLRS",
+    "parent": "35WT25-00013",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 0.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   }
+  ],
+  "transfer_status": "Transferred",
+  "transfer_type": "Warehouse Transfer",
+  "wh_code": "35"
+ },
+ {
+  "amended_from": null,
+  "date_received": null,
+  "date_transferred": "2025-09-04",
+  "docstatus": 1,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-09-04 15:09:08.882969",
+  "name": "35WT25-00015",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [
+   {
+    "parent": "35WT25-00015",
+    "parentfield": "reference_details",
+    "parenttype": "Warehouse Transfer",
+    "reference_name": "QC0000249946",
+    "reference_type": "Sales Order"
+   }
+  ],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG RMWH - QC",
+  "target_company": "Multiplast Corporation",
+  "target_warehouse": "MC1 RMFS - MC",
+  "transfer_items": [
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12S377",
+    "item_name": "EGGTRAY X 12 F PS \"SM BONUS FARM FRESH EGGS\" M (S-0377-0) 4C",
+    "parent": "35WT25-00015",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 15000.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12R237",
+    "item_name": "EGGTRAY X 12 FLAT (PS) \"ROBINSON FRESH EGGS\" L (R-0237-0) 2C",
+    "parent": "35WT25-00015",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 15000.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VET12S359",
+    "item_name": "EGGTRAY X 12 PET \"SUREBUY FRESH EGGS\" (S-0359-0) 2 CLRS",
+    "parent": "35WT25-00015",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 15000.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   }
+  ],
+  "transfer_status": "Received",
+  "transfer_type": "Intercompany Warehouse Transfer",
+  "wh_code": "35"
+ },
+ {
+  "amended_from": null,
+  "date_received": null,
+  "date_transferred": "2025-09-01",
+  "docstatus": 1,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-09-01 17:55:01.870000",
+  "name": "35WT25-00008",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [
+   {
+    "parent": "35WT25-00008",
+    "parentfield": "reference_details",
+    "parenttype": "Warehouse Transfer",
+    "reference_name": "QC0000249946",
+    "reference_type": "Sales Order"
+   }
+  ],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG RMWH - QC",
+  "target_company": "Multiplast Corporation",
+  "target_warehouse": "MC1 RMFS - MC",
+  "transfer_items": [
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12S377",
+    "item_name": "EGGTRAY X 12 F PS \"SM BONUS FARM FRESH EGGS\" M (S-0377-0) 4C",
+    "parent": "35WT25-00008",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 15000.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VFT12R237",
+    "item_name": "EGGTRAY X 12 FLAT (PS) \"ROBINSON FRESH EGGS\" L (R-0237-0) 2C",
+    "parent": "35WT25-00008",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 15000.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 15000.0,
+    "item_code": "VET12S359",
+    "item_name": "EGGTRAY X 12 PET \"SUREBUY FRESH EGGS\" (S-0359-0) 2 CLRS",
+    "parent": "35WT25-00008",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 15000.0,
+    "reference_doc": "QC0000249946",
+    "uom": "Piece"
+   },
+   {
+    "issued_qty": 0.0,
+    "item_code": null,
+    "item_name": "8 OZ STYRO CUP \"CONG. ERNIX DIONISIO\" (C-0255-0) 2C",
+    "parent": "35WT25-00008",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 2500.0,
+    "reference_doc": "",
+    "uom": null
+   }
+  ],
+  "transfer_status": "Received",
+  "transfer_type": "Intercompany Warehouse Transfer",
+  "wh_code": "35"
+ },
+ {
+  "amended_from": null,
+  "date_received": "2025-09-05",
+  "date_transferred": "2025-09-04",
+  "docstatus": 1,
+  "doctype": "Warehouse Transfer",
+  "modified": "2025-09-04 14:49:51.530914",
+  "name": "35WT25-00014",
+  "naming_series": ".{wh_code}.WT.YY.-.#####",
+  "reference_details": [
+   {
+    "parent": "35WT25-00014",
+    "parentfield": "reference_details",
+    "parenttype": "Warehouse Transfer",
+    "reference_name": "QC0000249951",
+    "reference_type": "Sales Order"
+   }
+  ],
+  "source_company": "QC Styropackaging Corporation",
+  "source_warehouse": "GUYONG RMWH - QC",
+  "target_company": "Multiplast Corporation",
+  "target_warehouse": "MC1 RMFS - MC",
+  "transfer_items": [
+   {
+    "issued_qty": 150000.0,
+    "item_code": "EFC8SC",
+    "item_name": "8 OZ STYRO CUPS PLAIN",
+    "parent": "35WT25-00014",
+    "parentfield": "transfer_items",
+    "parenttype": "Warehouse Transfer",
+    "received_qty": 150000.0,
+    "reference_doc": "QC0000249951",
+    "uom": "Piece"
+   }
+  ],
+  "transfer_status": "Received",
+  "transfer_type": "Warehouse Transfer",
+  "wh_code": "35"
+ }
+]

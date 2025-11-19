@@ -7,7 +7,98 @@ app_license = "mit"
 
 # Apps
 # ------------------
+override_whitelisted_methods = {}
 
+doc_events = {
+    "Warehouse Transfer": {   # 👈 name of your GUI Doctype
+        "on_submit": "qcmc_logic.customs.warehouse_transfer_events.on_submit",
+        "on_update_after_submit": "qcmc_logic.customs.warehouse_transfer_events.on_update_after_submit",
+        "on_cancel": "qcmc_logic.customs.warehouse_transfer_events.on_cancel",
+        "on_trash": "qcmc_logic.customs.warehouse_transfer_events.on_trash"
+    },
+    "Job Requisition": {
+        "before_save": "qcmc_logic.customs.MRFApprovers.mrf_approver_before_save"
+    }
+}
+
+# override_doctype_class = {
+    
+#    # ,"Stock Entry": "qcmc_logic.overrides.stock_entry_override.CustomStockEntry"
+# }
+
+
+# override_whitelisted_methods = {
+#     "hrms.hr.doctype.staffing_plan.staffing_plan.get_designations": "qcmc_logic.overrides.staffing_plan.get_designations"
+# }
+
+
+
+override_whitelisted_methods = {
+    "frappe.desk.printing.get_print_format": "qcmc_logic.overrides.POPrint_Override.get_po_print_format"
+}
+
+
+override_doctype_class = {
+    # (Optional, only if overriding full controller)
+    "Asset": "qcmc_logic.overrides.asset_override.CustomAsset",
+    "Job Requisition": "qcmc_logic.overrides.MRFApprovers.MRFApproverSetCustomFields",
+    "Staffing Plan": "qcmc_logic.overrides.StaffingPlanOverrides.CustomStaffingPlan",
+    "Payment Entry": "qcmc_logic.overrides.payment_entry.CustomPaymentEntry"
+}
+
+override_print_format = {
+    "Purchase Order": "qcmc_logic.overrides.POPrint_Override.get_po_print_format"
+}
+
+fixtures = [
+    {"doctype": "Custom Field"},
+    {"doctype": "Client Script"},
+    {"doctype": "Server Script"},
+    {"doctype": "List View Settings"},
+    {"doctype": "Workflow"},
+    {"doctype": "Workflow State"},
+    {"doctype": "Workflow Action Master"},
+    {"doctype": "Email Template"},
+    {"doctype": "Letter Head"},
+    {"doctype": "User Permission"},
+    {"doctype": "Role Profile"},
+    {"doctype": "Custom Role"},
+    {"doctype": "Custom DocPerm"},
+    {"doctype": "User"},
+    {"doctype": "Account"},
+    {"doctype": "Role"},
+    {"doctype": "Module Def"},
+    {"doctype": "Module Profile"},
+    {"doctype": "Translation"},  # Added for translations
+
+    {"doctype": "Property Setter"},
+    {
+        "doctype": "DocType",
+        "filters": [["custom", "=", 1]]
+    },
+    {
+        "doctype": "Report",
+        "filters": [["is_standard", "=", 0]]
+    },
+    "Notification",
+    {
+        "doctype": "Print Format",
+       "filters": [["custom_format", "=", 1]]
+    },
+    "Letter Head",
+    {
+        "doctype": "Role",
+       "filters": [["is_custom", "=", 1]]
+    }
+]
+after_migrate = [
+    "qcmc_logic.patches.monkey_patches"
+]
+
+# Or ensure it loads at boot
+app_include = [
+    "qcmc_logic.patches.monkey_patches"
+]
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
