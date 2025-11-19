@@ -1,0 +1,11 @@
+{
+  "report_name": "Booklet Monitoring Report",
+  "ref_doctype": "Stock Entry", 
+  "report_type": "Script Report",
+  "is_standard": "Yes",
+  "roles": [
+    {
+      "role": "System Manager"
+    }
+  ]
+}
