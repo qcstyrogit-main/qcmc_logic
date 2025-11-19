@@ -16,7 +16,7 @@ def convert_pr_to_partner(source_pr, target_company,target_warehouse, selected_i
             else:
                 selected_items_list = json.loads(json.loads(selected_items))
         except Exception as e:
-            frappe.throw(f"Error decoding selected items test again: {e}")
+            frappe.throw(f"Error decoding selected items: {e}")
     else:
         selected_items_list = selected_items
 
