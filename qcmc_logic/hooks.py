@@ -92,7 +92,7 @@ fixtures = [
     }
 ]
 after_migrate = [
-    "qcmc_logic.patches.monkey_patches"
+    "qcmc_logic.patches.monkey_patches.execute"
 ]
 
 # Or ensure it loads at boot
