@@ -127,3 +127,4 @@ class CustomPaymentEntry(PaymentEntry):
             frappe.throw(_("Totals do not balance. Debit: {0}, Credit: {1}").format(total_debit, total_credit))
 
         return gl_entries
+    
