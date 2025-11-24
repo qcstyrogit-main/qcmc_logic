@@ -65,7 +65,7 @@ fixtures = [
     {"doctype": "Custom Role"},
     {"doctype": "Custom DocPerm"},
     {"doctype": "User"},
-    {"doctype": "Account"},
+    # {"doctype": "Account"},
     {"doctype": "Role"},
     {"doctype": "Module Def"},
     {"doctype": "Module Profile"},
