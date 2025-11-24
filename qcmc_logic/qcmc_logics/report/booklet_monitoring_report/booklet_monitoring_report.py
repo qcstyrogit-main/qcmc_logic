@@ -14,7 +14,10 @@ def execute(filters=None):
         {"label": "Out Document", "fieldname": "out_document", "fieldtype": "Data", "width": 160},
         {"label": "Out Doctype", "fieldname": "out_doctype", "fieldtype": "Data", "width": 120},
         {"label": "Out Date", "fieldname": "out_date", "fieldtype": "Date", "width": 100},
-        {"label": "Warehouse", "fieldname": "warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 160},
+        {"label": "Warehouse", "fieldname": "warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 160} ,
+        {"label": "Date Return", "fieldname": "date_return", "fieldtype": "Date", "width": 100 },
+        {"label": "Note","fieldname": "note", "fieldtype": "Data", "width": 100},
+        {"label": "Date Completed","fieldname": "date_completed", "fieldtype": "Date", "width": 100}
     ]
 
     # --- Incoming rows ---
@@ -75,7 +78,19 @@ def execute(filters=None):
             continue
             
     # --- Return ---
+    return_query = """
+    SELECT parent as item_code, series_from, date_return, note, date_completed
+    FROM `tabBooklet Monitoring Item`
+    """
+    return_rows = frappe.db.sql(return_query, as_dict=True)
 
+    return_map = {}
+    for rr in return_rows:
+        try:
+            key = (rr.get('item_code'), int(rr.get('series_from')))
+            return_map[key] = rr
+        except Exception:
+            continue
 
 
     # --- Merge ---
@@ -83,6 +98,8 @@ def execute(filters=None):
     for r in series_rows:
         key = (r['item_code'], int(r['series_from']))
         out = outgoing_map.get(key)
+        ret = return_map.get(key)
+
         if out:
             r.update({
                 'out_document': out.get('out_document'),
@@ -97,6 +114,19 @@ def execute(filters=None):
                 'out_date': None,
                 'warehouse': None,
             })
+        if ret:
+            r.update({
+                'date_return': ret.get('date_return'),
+                'note': ret.get('note'),
+                'date_completed': ret.get('date_completed'),
+            })
+        else:
+            r.update({
+                'date_return': None,
+                'note': None,
+                'date_completed': None,
+            })
+                      
         data.append(r)
 
     data = sorted(data, key=lambda x: (x.get('item_code') or '', x.get('series_from') or 0))

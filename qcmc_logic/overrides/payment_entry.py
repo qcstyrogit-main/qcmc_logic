@@ -31,7 +31,7 @@ class CustomPaymentEntry(PaymentEntry):
         total_input_tax = sum(flt(row.input_tax) for row in self.get("custom_expense_details") or [])
         total_ewt_payable = sum(flt(row.ewt_payable) for row in self.get("custom_expense_details") or [])
 
-        expected_paid_amount = total_base_amt + total_input_tax - total_ewt_payable
+        expected_paid_amount = total_base_amt ###+ total_input_tax - total_ewt_payable
 
         precision = self.precision("base_paid_amount")
         if flt(self.base_paid_amount, precision) != flt(expected_paid_amount, precision):
@@ -51,8 +51,8 @@ class CustomPaymentEntry(PaymentEntry):
         total_debit = 0.0
         total_credit = 0.0
 
-        # --- Bank Credit (main account) ---
-        bank_credit = flt(self.base_paid_amount)
+        # --- Bank Credit (main account) --- Base - total EWT 
+        bank_credit = flt(self.base_paid_amount) - total_ewt_payable
 
         gl_entries.append(
             self.get_gl_dict({
@@ -70,7 +70,7 @@ class CustomPaymentEntry(PaymentEntry):
         summary = defaultdict(lambda: {"debit": 0.0, "input_tax": 0.0, "ewt": 0.0})
         for row in self.get("custom_expense_details") or []:
             key = (row.expense_account, row.cost_center or self.cost_center, getattr(row, "location", None))
-            summary[key]["debit"] += flt(row.base_amt)
+            summary[key]["debit"] += flt(row.taxable_amount or 0)
             summary[key]["input_tax"] += flt(row.input_tax or 0)
             summary[key]["ewt"] += flt(row.ewt_payable or 0)
 
