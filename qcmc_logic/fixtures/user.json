@@ -3,6 +3,2630 @@
   "allowed_in_mentions": 1,
   "api_key": null,
   "api_secret": null,
+  "attire": "Casual Wear",
+  "banner_image": null,
+  "bio": null,
+  "birth_date": null,
+  "block_modules": [
+   {
+    "module": "Selling",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Accounts",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Assets",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Automation",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Bulk Transaction",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Communication",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Contacts",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Core",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "CRM",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Custom",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Desk",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "EDI",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Email",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "ERPNext Integrations",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Geo",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "HR",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Integrations",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Job",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "LMS",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Loan Management",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Maintenance",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Manufacturing",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payment Gateways",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payments",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payroll",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "PH Localization",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Portal",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Print Designer",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Printing",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "QCMC Logics",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Quality Management",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Regional",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Setup",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Social",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Subcontracting",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Support",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Telephony",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Utilities",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Website",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Workflow",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "XSI Payroll",
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   }
+  ],
+  "branch": null,
+  "bulk_actions": 1,
+  "bypass_restrict_ip_check_if_2fa_enabled": 0,
+  "certification": [],
+  "city": null,
+  "collaboration": "Individual Work",
+  "college": null,
+  "company_type": "Corporate Organization",
+  "country": "Philippines",
+  "cover_image": null,
+  "dashboard": 1,
+  "default_app": null,
+  "default_workspace": null,
+  "defaults": [],
+  "desk_theme": "Light",
+  "docstatus": 0,
+  "doctype": "User",
+  "document_follow_frequency": "Daily",
+  "document_follow_notify": 0,
+  "dream_companies": null,
+  "education": [],
+  "email": "Reyzie@qcedsa.local",
+  "email_signature": null,
+  "enabled": 1,
+  "first_name": "Reyzie De Leon",
+  "follow_assigned_documents": 0,
+  "follow_commented_documents": 0,
+  "follow_created_documents": 0,
+  "follow_liked_documents": 0,
+  "follow_shared_documents": 0,
+  "form_sidebar": 1,
+  "full_name": "Reyzie De Leon",
+  "gender": null,
+  "github": null,
+  "headline": null,
+  "hide_private": 0,
+  "home_settings": null,
+  "interest": null,
+  "internship": [],
+  "language": "en",
+  "last_active": "2025-09-01 18:00:22.145171",
+  "last_ip": null,
+  "last_known_versions": "{\"frappe\": {\"title\": \"Frappe Framework\", \"description\": \"Full stack web framework with Python, Javascript, MariaDB, Redis, Node\", \"branch\": \"version-15\", \"version\": \"15.55.2\"}, \"payments\": {\"title\": \"Payments\", \"description\": \"Payments app for frappe\", \"branch\": \"version-15\", \"version\": \"0.0.1\"}, \"erpnext\": {\"title\": \"ERPNext\", \"description\": \"ERP made simple\", \"branch\": \"version-15\", \"version\": \"15.51.2\"}, \"phbir\": {\"title\": \"PH Localization\", \"description\": \"This app is for Philippine-specific features.\", \"branch\": \"master\", \"version\": \"1.2.28\"}, \"print_designer\": {\"title\": \"Print Designer\", \"description\": \"Frappe App to Design Print Formats using interactive UI.\", \"branch\": \"develop\", \"branch_version\": \"1.x.x-develop ()\", \"version\": \"1.0.0-dev\"}, \"hrms\": {\"title\": \"Frappe HR\", \"description\": \"Modern HR and Payroll Software\", \"branch\": \"HEAD\", \"version\": \"15.42.2\"}, \"lending\": {\"title\": \"Frappe Lending\", \"description\": \"Open Source Lending software\", \"branch\": \"version-15\", \"version\": \"0.0.1\"}, \"xsi_payroll\": {\"title\": \"XSI Payroll\", \"description\": \"XSI Philippine localized payroll\", \"branch\": \"release\", \"version\": \"1.0.4\"}, \"lms\": {\"title\": \"Frappe LMS\", \"description\": \"Frappe LMS App\", \"branch\": \"develop\", \"version\": \"2.31.0\"}, \"qcmc_logic\": {\"title\": \"QCMC Logics\", \"description\": \"Company Business Rules and Logics\", \"branch\": \"develop\", \"version\": \"0.0.1\"}, \"qcmc_customs\": {\"title\": \"QCMC Customizations\", \"description\": \"All ERPNext customizations\", \"branch\": \"develop\", \"version\": \"0.0.1\"}}",
+  "last_login": null,
+  "last_name": null,
+  "last_password_reset_date": null,
+  "last_reset_password_key_generated_on": "2025-11-19 14:24:29.941843",
+  "linkedin": null,
+  "list_sidebar": 1,
+  "location": null,
+  "location_preference": "Travel",
+  "login_after": 0,
+  "login_before": 0,
+  "logout_all_sessions": 1,
+  "looking_for_job": 0,
+  "medium": null,
+  "middle_name": null,
+  "mobile_no": null,
+  "modified": "2025-09-01 11:57:52.696254",
+  "module_profile": "Procurement",
+  "mute_sounds": 0,
+  "name": "Reyzie@qcedsa.local",
+  "new_password": "",
+  "notifications": 1,
+  "onboarding_status": "{}",
+  "phone": null,
+  "preferred_functions": [],
+  "preferred_industries": [],
+  "preferred_location": null,
+  "profession": null,
+  "redirect_url": null,
+  "reset_password_key": "ea28376bdc6ee4ef6fc3e0915015037050a5fb7c31eb05049af653c801e7ce0e",
+  "restrict_ip": null,
+  "role": "Clearly Defined Role",
+  "role_profile_name": null,
+  "roles": [
+   {
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "Purchase Manager"
+   },
+   {
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "Purchase Master Manager"
+   },
+   {
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "Stock Manager"
+   },
+   {
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
+   }
+  ],
+  "search_bar": 1,
+  "send_me_a_copy": 0,
+  "send_welcome_email": 1,
+  "simultaneous_sessions": 2,
+  "skill": [],
+  "social_logins": [
+   {
+    "parent": "Reyzie@qcedsa.local",
+    "parentfield": "social_logins",
+    "parenttype": "User",
+    "provider": "frappe",
+    "userid": "6b3a1205f17a67779690208c382f439a9695799",
+    "username": null
+   }
+  ],
+  "thread_notify": 1,
+  "time": "Flexible Time",
+  "time_zone": "Asia/Manila",
+  "timeline": 1,
+  "unsubscribed": 0,
+  "user_category": "Employee",
+  "user_emails": [],
+  "user_image": null,
+  "user_type": "System User",
+  "username": "REYZIE",
+  "verify_terms": 0,
+  "view_switcher": 1,
+  "work_experience": []
+ },
+ {
+  "allowed_in_mentions": 1,
+  "api_key": null,
+  "api_secret": null,
+  "attire": "Casual Wear",
+  "banner_image": null,
+  "bio": null,
+  "birth_date": null,
+  "block_modules": [
+   {
+    "module": "Selling",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Accounts",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Assets",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Automation",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Bulk Transaction",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Communication",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Contacts",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Core",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "CRM",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Custom",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Desk",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "EDI",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Email",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "ERPNext Integrations",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Geo",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "HR",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Integrations",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Job",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "LMS",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Loan Management",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Maintenance",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Manufacturing",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payment Gateways",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payments",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payroll",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "PH Localization",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Portal",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Print Designer",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Printing",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "QCMC Logics",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Quality Management",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Regional",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Setup",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Social",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Subcontracting",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Support",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Telephony",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Utilities",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Website",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Workflow",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "XSI Payroll",
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   }
+  ],
+  "branch": null,
+  "bulk_actions": 1,
+  "bypass_restrict_ip_check_if_2fa_enabled": 0,
+  "certification": [],
+  "city": null,
+  "collaboration": "Individual Work",
+  "college": null,
+  "company_type": "Corporate Organization",
+  "country": "Philippines",
+  "cover_image": null,
+  "dashboard": 1,
+  "default_app": null,
+  "default_workspace": null,
+  "defaults": [],
+  "desk_theme": "Light",
+  "docstatus": 0,
+  "doctype": "User",
+  "document_follow_frequency": "Daily",
+  "document_follow_notify": 0,
+  "dream_companies": null,
+  "education": [],
+  "email": "zeny@qcedsa.local",
+  "email_signature": null,
+  "enabled": 1,
+  "first_name": "Zeny Geron",
+  "follow_assigned_documents": 0,
+  "follow_commented_documents": 0,
+  "follow_created_documents": 0,
+  "follow_liked_documents": 0,
+  "follow_shared_documents": 0,
+  "form_sidebar": 1,
+  "full_name": "Zeny Geron",
+  "gender": null,
+  "github": null,
+  "headline": null,
+  "hide_private": 0,
+  "home_settings": null,
+  "interest": null,
+  "internship": [],
+  "language": "en",
+  "last_active": null,
+  "last_ip": null,
+  "last_known_versions": null,
+  "last_login": null,
+  "last_name": null,
+  "last_password_reset_date": null,
+  "last_reset_password_key_generated_on": "2025-11-19 14:24:30.844812",
+  "linkedin": null,
+  "list_sidebar": 1,
+  "location": null,
+  "location_preference": "Travel",
+  "login_after": 0,
+  "login_before": 0,
+  "logout_all_sessions": 1,
+  "looking_for_job": 0,
+  "medium": null,
+  "middle_name": null,
+  "mobile_no": null,
+  "modified": "2025-08-08 16:49:52.033367",
+  "module_profile": "Procurement",
+  "mute_sounds": 0,
+  "name": "zeny@qcedsa.local",
+  "new_password": "",
+  "notifications": 1,
+  "onboarding_status": "{}",
+  "phone": null,
+  "preferred_functions": [],
+  "preferred_industries": [],
+  "preferred_location": null,
+  "profession": null,
+  "redirect_url": null,
+  "reset_password_key": "7ebe11e062f545603197135d89eca8082811fc9a203a9e41efafa7569a9fb448",
+  "restrict_ip": null,
+  "role": "Clearly Defined Role",
+  "role_profile_name": null,
+  "roles": [
+   {
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "Purchase User"
+   },
+   {
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
+   }
+  ],
+  "search_bar": 1,
+  "send_me_a_copy": 0,
+  "send_welcome_email": 1,
+  "simultaneous_sessions": 2,
+  "skill": [],
+  "social_logins": [
+   {
+    "parent": "zeny@qcedsa.local",
+    "parentfield": "social_logins",
+    "parenttype": "User",
+    "provider": "frappe",
+    "userid": "1b10a626083565e6ee67498ed39290b68c1e177",
+    "username": null
+   }
+  ],
+  "thread_notify": 1,
+  "time": "Flexible Time",
+  "time_zone": "Asia/Manila",
+  "timeline": 1,
+  "unsubscribed": 0,
+  "user_category": "",
+  "user_emails": [],
+  "user_image": null,
+  "user_type": "System User",
+  "username": "zeny_geron",
+  "verify_terms": 0,
+  "view_switcher": 1,
+  "work_experience": []
+ },
+ {
+  "allowed_in_mentions": 1,
+  "api_key": null,
+  "api_secret": null,
+  "attire": "Casual Wear",
+  "banner_image": null,
+  "bio": null,
+  "birth_date": null,
+  "block_modules": [
+   {
+    "module": "Selling",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Accounts",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Assets",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Automation",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Bulk Transaction",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Communication",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Contacts",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Core",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "CRM",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Custom",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Desk",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "EDI",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Email",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "ERPNext Integrations",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Geo",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "HR",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Integrations",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Job",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "LMS",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Loan Management",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Maintenance",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Manufacturing",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payment Gateways",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payments",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payroll",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "PH Localization",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Portal",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Print Designer",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Printing",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "QCMC Logics",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Quality Management",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Regional",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Setup",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Social",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Subcontracting",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Support",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Telephony",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Utilities",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Website",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Workflow",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "XSI Payroll",
+    "parent": "monica@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   }
+  ],
+  "branch": null,
+  "bulk_actions": 1,
+  "bypass_restrict_ip_check_if_2fa_enabled": 0,
+  "certification": [],
+  "city": null,
+  "collaboration": "Individual Work",
+  "college": null,
+  "company_type": "Corporate Organization",
+  "country": "Philippines",
+  "cover_image": null,
+  "dashboard": 1,
+  "default_app": null,
+  "default_workspace": null,
+  "defaults": [],
+  "desk_theme": "Light",
+  "docstatus": 0,
+  "doctype": "User",
+  "document_follow_frequency": "Daily",
+  "document_follow_notify": 0,
+  "dream_companies": null,
+  "education": [],
+  "email": "monica@qcedsa.local",
+  "email_signature": null,
+  "enabled": 1,
+  "first_name": "Monica Marcelino",
+  "follow_assigned_documents": 0,
+  "follow_commented_documents": 0,
+  "follow_created_documents": 0,
+  "follow_liked_documents": 0,
+  "follow_shared_documents": 0,
+  "form_sidebar": 1,
+  "full_name": "Monica Marcelino",
+  "gender": null,
+  "github": null,
+  "headline": null,
+  "hide_private": 0,
+  "home_settings": null,
+  "interest": null,
+  "internship": [],
+  "language": "en",
+  "last_active": null,
+  "last_ip": null,
+  "last_known_versions": null,
+  "last_login": null,
+  "last_name": null,
+  "last_password_reset_date": null,
+  "last_reset_password_key_generated_on": "2025-11-19 14:24:31.306698",
+  "linkedin": null,
+  "list_sidebar": 1,
+  "location": null,
+  "location_preference": "Travel",
+  "login_after": 0,
+  "login_before": 0,
+  "logout_all_sessions": 1,
+  "looking_for_job": 0,
+  "medium": null,
+  "middle_name": null,
+  "mobile_no": null,
+  "modified": "2025-08-08 16:49:35.181690",
+  "module_profile": "Procurement",
+  "mute_sounds": 0,
+  "name": "monica@qcedsa.local",
+  "new_password": "",
+  "notifications": 1,
+  "onboarding_status": "{}",
+  "phone": null,
+  "preferred_functions": [],
+  "preferred_industries": [],
+  "preferred_location": null,
+  "profession": null,
+  "redirect_url": null,
+  "reset_password_key": "b08d59fbf1aa70dc45a257a014a7e8bce3a74386e43d694d23dd1c829b0d6cba",
+  "restrict_ip": null,
+  "role": "Clearly Defined Role",
+  "role_profile_name": null,
+  "roles": [
+   {
+    "parent": "monica@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "Purchase User"
+   },
+   {
+    "parent": "monica@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
+   }
+  ],
+  "search_bar": 1,
+  "send_me_a_copy": 0,
+  "send_welcome_email": 1,
+  "simultaneous_sessions": 2,
+  "skill": [],
+  "social_logins": [
+   {
+    "parent": "monica@qcedsa.local",
+    "parentfield": "social_logins",
+    "parenttype": "User",
+    "provider": "frappe",
+    "userid": "fd827f5d08dbf1730113585e02afaaffa0ab795",
+    "username": null
+   }
+  ],
+  "thread_notify": 1,
+  "time": "Flexible Time",
+  "time_zone": "Asia/Manila",
+  "timeline": 1,
+  "unsubscribed": 0,
+  "user_category": "",
+  "user_emails": [],
+  "user_image": null,
+  "user_type": "System User",
+  "username": "monica_marcelino",
+  "verify_terms": 0,
+  "view_switcher": 1,
+  "work_experience": []
+ },
+ {
+  "allowed_in_mentions": 1,
+  "api_key": null,
+  "api_secret": null,
+  "attire": "Casual Wear",
+  "banner_image": null,
+  "bio": null,
+  "birth_date": null,
+  "block_modules": [
+   {
+    "module": "Selling",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Assets",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Automation",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Bulk Transaction",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Communication",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Contacts",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Core",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "CRM",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Custom",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Desk",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "EDI",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Email",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "ERPNext Integrations",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Geo",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "HR",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Integrations",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Job",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "LMS",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Loan Management",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Maintenance",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Manufacturing",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payment Gateways",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payments",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payroll",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "PH Localization",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Portal",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Print Designer",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Printing",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "QCMC Logics",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Quality Management",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Regional",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Setup",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Social",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Subcontracting",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Support",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Telephony",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Utilities",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Website",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Workflow",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "XSI Payroll",
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   }
+  ],
+  "branch": null,
+  "bulk_actions": 1,
+  "bypass_restrict_ip_check_if_2fa_enabled": 0,
+  "certification": [],
+  "city": null,
+  "collaboration": "Individual Work",
+  "college": null,
+  "company_type": "Corporate Organization",
+  "country": "Philippines",
+  "cover_image": null,
+  "dashboard": 1,
+  "default_app": null,
+  "default_workspace": null,
+  "defaults": [],
+  "desk_theme": "Light",
+  "docstatus": 0,
+  "doctype": "User",
+  "document_follow_frequency": "Daily",
+  "document_follow_notify": 0,
+  "dream_companies": null,
+  "education": [],
+  "email": "ryanbuan@qcedsa.local",
+  "email_signature": null,
+  "enabled": 1,
+  "first_name": "Ryan Buan",
+  "follow_assigned_documents": 0,
+  "follow_commented_documents": 0,
+  "follow_created_documents": 0,
+  "follow_liked_documents": 0,
+  "follow_shared_documents": 0,
+  "form_sidebar": 1,
+  "full_name": "Ryan Buan",
+  "gender": null,
+  "github": null,
+  "headline": null,
+  "hide_private": 0,
+  "home_settings": null,
+  "interest": null,
+  "internship": [],
+  "language": "en",
+  "last_active": "2025-08-12 13:03:17.593227",
+  "last_ip": "172.71.124.203",
+  "last_known_versions": "{\"frappe\": {\"title\": \"Frappe Framework\", \"description\": \"Full stack web framework with Python, Javascript, MariaDB, Redis, Node\", \"branch\": \"version-15\", \"version\": \"15.55.2\"}, \"payments\": {\"title\": \"Payments\", \"description\": \"Payments app for frappe\", \"branch\": \"version-15\", \"version\": \"0.0.1\"}, \"erpnext\": {\"title\": \"ERPNext\", \"description\": \"ERP made simple\", \"branch\": \"version-15\", \"version\": \"15.51.2\"}, \"phbir\": {\"title\": \"PH Localization\", \"description\": \"This app is for Philippine-specific features.\", \"branch\": \"master\", \"version\": \"1.2.28\"}, \"print_designer\": {\"title\": \"Print Designer\", \"description\": \"Frappe App to Design Print Formats using interactive UI.\", \"branch\": \"develop\", \"branch_version\": \"1.x.x-develop ()\", \"version\": \"1.0.0-dev\"}, \"hrms\": {\"title\": \"Frappe HR\", \"description\": \"Modern HR and Payroll Software\", \"branch\": \"HEAD\", \"version\": \"15.42.2\"}, \"lending\": {\"title\": \"Frappe Lending\", \"description\": \"Open Source Lending software\", \"branch\": \"version-15\", \"version\": \"0.0.1\"}, \"xsi_payroll\": {\"title\": \"XSI Payroll\", \"description\": \"XSI Philippine localized payroll\", \"branch\": \"release\", \"version\": \"1.0.4\"}, \"lms\": {\"title\": \"Frappe LMS\", \"description\": \"Frappe LMS App\", \"branch\": \"develop\", \"version\": \"2.31.0\"}, \"qcmc_logic\": {\"title\": \"QCMC Logics\", \"description\": \"Company Business Rules and Logics\", \"branch\": \"develop\", \"version\": \"0.0.1\"}}",
+  "last_login": "2025-08-08 17:04:39.605807",
+  "last_name": null,
+  "last_password_reset_date": null,
+  "last_reset_password_key_generated_on": "2025-11-19 14:24:33.928582",
+  "linkedin": null,
+  "list_sidebar": 1,
+  "location": null,
+  "location_preference": "Travel",
+  "login_after": 0,
+  "login_before": 0,
+  "logout_all_sessions": 1,
+  "looking_for_job": 0,
+  "medium": null,
+  "middle_name": null,
+  "mobile_no": null,
+  "modified": "2025-08-08 16:48:40.520157",
+  "module_profile": "",
+  "mute_sounds": 0,
+  "name": "ryanbuan@qcedsa.local",
+  "new_password": "",
+  "notifications": 1,
+  "onboarding_status": "{}",
+  "phone": null,
+  "preferred_functions": [],
+  "preferred_industries": [],
+  "preferred_location": null,
+  "profession": null,
+  "redirect_url": null,
+  "reset_password_key": "04431c0b7f0fe4174b850de2a5aadc0968da309c14f95a0536315ff3134f8453",
+  "restrict_ip": null,
+  "role": "Clearly Defined Role",
+  "role_profile_name": null,
+  "roles": [
+   {
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "Purchase User"
+   },
+   {
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
+   }
+  ],
+  "search_bar": 1,
+  "send_me_a_copy": 0,
+  "send_welcome_email": 1,
+  "simultaneous_sessions": 2,
+  "skill": [],
+  "social_logins": [
+   {
+    "parent": "ryanbuan@qcedsa.local",
+    "parentfield": "social_logins",
+    "parenttype": "User",
+    "provider": "frappe",
+    "userid": "8a2796780e59547834ac9e581ffe010fb2a8d03",
+    "username": null
+   }
+  ],
+  "thread_notify": 1,
+  "time": "Flexible Time",
+  "time_zone": "Asia/Manila",
+  "timeline": 1,
+  "unsubscribed": 0,
+  "user_category": "",
+  "user_emails": [],
+  "user_image": null,
+  "user_type": "System User",
+  "username": "ryan_buan",
+  "verify_terms": 0,
+  "view_switcher": 1,
+  "work_experience": []
+ },
+ {
+  "allowed_in_mentions": 1,
+  "api_key": null,
+  "api_secret": null,
+  "attire": "Casual Wear",
+  "banner_image": null,
+  "bio": null,
+  "birth_date": null,
+  "block_modules": [
+   {
+    "module": "Selling",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Accounts",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Assets",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Automation",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Bulk Transaction",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Communication",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Contacts",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Core",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "CRM",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Custom",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Desk",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "EDI",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Email",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "ERPNext Integrations",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Geo",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "HR",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Integrations",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Job",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "LMS",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Loan Management",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Maintenance",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Manufacturing",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payment Gateways",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payments",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payroll",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "PH Localization",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Portal",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Print Designer",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Printing",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "QCMC Logics",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Quality Management",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Regional",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Setup",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Social",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Subcontracting",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Support",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Telephony",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Utilities",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Website",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Workflow",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "XSI Payroll",
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   }
+  ],
+  "branch": null,
+  "bulk_actions": 1,
+  "bypass_restrict_ip_check_if_2fa_enabled": 0,
+  "certification": [],
+  "city": null,
+  "collaboration": "Individual Work",
+  "college": null,
+  "company_type": "Corporate Organization",
+  "country": "Philippines",
+  "cover_image": null,
+  "dashboard": 1,
+  "default_app": null,
+  "default_workspace": null,
+  "defaults": [],
+  "desk_theme": "Light",
+  "docstatus": 0,
+  "doctype": "User",
+  "document_follow_frequency": "Daily",
+  "document_follow_notify": 0,
+  "dream_companies": null,
+  "education": [],
+  "email": "joshuasantos@qcedsa.local",
+  "email_signature": null,
+  "enabled": 1,
+  "first_name": "Joshua Santos",
+  "follow_assigned_documents": 0,
+  "follow_commented_documents": 0,
+  "follow_created_documents": 0,
+  "follow_liked_documents": 0,
+  "follow_shared_documents": 0,
+  "form_sidebar": 1,
+  "full_name": "Joshua Santos",
+  "gender": null,
+  "github": null,
+  "headline": null,
+  "hide_private": 0,
+  "home_settings": null,
+  "interest": null,
+  "internship": [],
+  "language": "en",
+  "last_active": null,
+  "last_ip": null,
+  "last_known_versions": null,
+  "last_login": null,
+  "last_name": null,
+  "last_password_reset_date": null,
+  "last_reset_password_key_generated_on": "2025-11-19 14:24:34.371274",
+  "linkedin": null,
+  "list_sidebar": 1,
+  "location": null,
+  "location_preference": "Travel",
+  "login_after": 0,
+  "login_before": 0,
+  "logout_all_sessions": 1,
+  "looking_for_job": 0,
+  "medium": null,
+  "middle_name": null,
+  "mobile_no": null,
+  "modified": "2025-08-08 16:49:16.702486",
+  "module_profile": "Procurement",
+  "mute_sounds": 0,
+  "name": "joshuasantos@qcedsa.local",
+  "new_password": "",
+  "notifications": 1,
+  "onboarding_status": "{}",
+  "phone": null,
+  "preferred_functions": [],
+  "preferred_industries": [],
+  "preferred_location": null,
+  "profession": null,
+  "redirect_url": null,
+  "reset_password_key": "ba2acac864f0e3c5fa986723e64aa42a4a7ec218fcd9532368b382c6ca733a75",
+  "restrict_ip": null,
+  "role": "Clearly Defined Role",
+  "role_profile_name": null,
+  "roles": [
+   {
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "Purchase User"
+   },
+   {
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
+   }
+  ],
+  "search_bar": 1,
+  "send_me_a_copy": 0,
+  "send_welcome_email": 1,
+  "simultaneous_sessions": 2,
+  "skill": [],
+  "social_logins": [
+   {
+    "parent": "joshuasantos@qcedsa.local",
+    "parentfield": "social_logins",
+    "parenttype": "User",
+    "provider": "frappe",
+    "userid": "9e9ba9888e3c0c29cc0ed18646f6338f8e8eea4",
+    "username": null
+   }
+  ],
+  "thread_notify": 1,
+  "time": "Flexible Time",
+  "time_zone": "Asia/Manila",
+  "timeline": 1,
+  "unsubscribed": 0,
+  "user_category": "Employee",
+  "user_emails": [],
+  "user_image": null,
+  "user_type": "System User",
+  "username": "joshua_santos",
+  "verify_terms": 0,
+  "view_switcher": 1,
+  "work_experience": []
+ },
+ {
+  "allowed_in_mentions": 1,
+  "api_key": null,
+  "api_secret": null,
+  "attire": "Casual Wear",
+  "banner_image": null,
+  "bio": null,
+  "birth_date": null,
+  "block_modules": [
+   {
+    "module": "Selling",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Accounts",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Assets",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Automation",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Bulk Transaction",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Communication",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Contacts",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Core",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "CRM",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Custom",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Desk",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "EDI",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Email",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "ERPNext Integrations",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Geo",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "HR",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Integrations",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Job",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "LMS",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Loan Management",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Maintenance",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Manufacturing",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payment Gateways",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payments",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payroll",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "PH Localization",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Portal",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Print Designer",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Printing",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "QCMC Logics",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Quality Management",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Regional",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Setup",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Social",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Subcontracting",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Support",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Telephony",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Utilities",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Website",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Workflow",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "XSI Payroll",
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   }
+  ],
+  "branch": null,
+  "bulk_actions": 1,
+  "bypass_restrict_ip_check_if_2fa_enabled": 0,
+  "certification": [],
+  "city": null,
+  "collaboration": "Individual Work",
+  "college": null,
+  "company_type": "Corporate Organization",
+  "country": "Philippines",
+  "cover_image": null,
+  "dashboard": 1,
+  "default_app": null,
+  "default_workspace": null,
+  "defaults": [],
+  "desk_theme": "Light",
+  "docstatus": 0,
+  "doctype": "User",
+  "document_follow_frequency": "Daily",
+  "document_follow_notify": 0,
+  "dream_companies": null,
+  "education": [],
+  "email": "jmgino@qcedsa.local",
+  "email_signature": null,
+  "enabled": 1,
+  "first_name": "Jezza Mae Gino",
+  "follow_assigned_documents": 0,
+  "follow_commented_documents": 0,
+  "follow_created_documents": 0,
+  "follow_liked_documents": 0,
+  "follow_shared_documents": 0,
+  "form_sidebar": 1,
+  "full_name": "Jezza Mae Gino",
+  "gender": null,
+  "github": null,
+  "headline": null,
+  "hide_private": 0,
+  "home_settings": null,
+  "interest": null,
+  "internship": [],
+  "language": "en",
+  "last_active": "2025-08-01 17:23:57.017913",
+  "last_ip": "108.162.226.164",
+  "last_known_versions": "{\"frappe\": {\"title\": \"Frappe Framework\", \"description\": \"Full stack web framework with Python, Javascript, MariaDB, Redis, Node\", \"branch\": \"version-15\", \"version\": \"15.55.2\"}, \"payments\": {\"title\": \"Payments\", \"description\": \"Payments app for frappe\", \"branch\": \"version-15\", \"version\": \"0.0.1\"}, \"erpnext\": {\"title\": \"ERPNext\", \"description\": \"ERP made simple\", \"branch\": \"version-15\", \"version\": \"15.51.2\"}, \"phbir\": {\"title\": \"PH Localization\", \"description\": \"This app is for Philippine-specific features.\", \"branch\": \"master\", \"version\": \"1.2.28\"}, \"print_designer\": {\"title\": \"Print Designer\", \"description\": \"Frappe App to Design Print Formats using interactive UI.\", \"branch\": \"develop\", \"branch_version\": \"1.x.x-develop ()\", \"version\": \"1.0.0-dev\"}, \"hrms\": {\"title\": \"Frappe HR\", \"description\": \"Modern HR and Payroll Software\", \"branch\": \"HEAD\", \"version\": \"15.42.2\"}, \"lending\": {\"title\": \"Frappe Lending\", \"description\": \"Open Source Lending software\", \"branch\": \"version-15\", \"version\": \"0.0.1\"}, \"xsi_payroll\": {\"title\": \"XSI Payroll\", \"description\": \"XSI Philippine localized payroll\", \"branch\": \"release\", \"version\": \"1.0.4\"}, \"lms\": {\"title\": \"Frappe LMS\", \"description\": \"Frappe LMS App\", \"branch\": \"develop\", \"version\": \"2.31.0\"}, \"qcmc_logic\": {\"title\": \"QCMC Logics\", \"description\": \"Company Business Rules and Logics\", \"branch\": \"develop\", \"version\": \"0.0.1\"}}",
+  "last_login": "2025-08-01 17:23:56.120570",
+  "last_name": null,
+  "last_password_reset_date": null,
+  "last_reset_password_key_generated_on": "2025-11-19 14:24:34.846008",
+  "linkedin": null,
+  "list_sidebar": 1,
+  "location": null,
+  "location_preference": "Travel",
+  "login_after": 0,
+  "login_before": 0,
+  "logout_all_sessions": 1,
+  "looking_for_job": 0,
+  "medium": null,
+  "middle_name": null,
+  "mobile_no": null,
+  "modified": "2025-08-08 16:50:02.428824",
+  "module_profile": "Procurement",
+  "mute_sounds": 0,
+  "name": "jmgino@qcedsa.local",
+  "new_password": "",
+  "notifications": 1,
+  "onboarding_status": "{}",
+  "phone": null,
+  "preferred_functions": [],
+  "preferred_industries": [],
+  "preferred_location": null,
+  "profession": null,
+  "redirect_url": null,
+  "reset_password_key": "c453c5f82b0de3efb6b57ee75936e9f6f64a25e865553e0d6dd38492d569094a",
+  "restrict_ip": null,
+  "role": "Clearly Defined Role",
+  "role_profile_name": null,
+  "roles": [
+   {
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "Purchase User"
+   },
+   {
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
+   }
+  ],
+  "search_bar": 1,
+  "send_me_a_copy": 0,
+  "send_welcome_email": 1,
+  "simultaneous_sessions": 2,
+  "skill": [],
+  "social_logins": [
+   {
+    "parent": "jmgino@qcedsa.local",
+    "parentfield": "social_logins",
+    "parenttype": "User",
+    "provider": "frappe",
+    "userid": "fcc8d64bc9c933c5cb90394871949a039352842",
+    "username": null
+   }
+  ],
+  "thread_notify": 1,
+  "time": "Flexible Time",
+  "time_zone": "Asia/Manila",
+  "timeline": 1,
+  "unsubscribed": 0,
+  "user_category": "",
+  "user_emails": [],
+  "user_image": null,
+  "user_type": "System User",
+  "username": "jezza_mae_gino",
+  "verify_terms": 0,
+  "view_switcher": 1,
+  "work_experience": []
+ },
+ {
+  "allowed_in_mentions": 1,
+  "api_key": null,
+  "api_secret": null,
+  "attire": "Casual Wear",
+  "banner_image": null,
+  "bio": null,
+  "birth_date": null,
+  "block_modules": [
+   {
+    "module": "Selling",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Accounts",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Assets",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Automation",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Bulk Transaction",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Communication",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Contacts",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Core",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "CRM",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Custom",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Desk",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "EDI",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Email",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "ERPNext Integrations",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Geo",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "HR",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Integrations",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Job",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "LMS",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Loan Management",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Maintenance",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Manufacturing",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payment Gateways",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payments",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Payroll",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "PH Localization",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Portal",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Print Designer",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Printing",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "QCMC Logics",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Quality Management",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Regional",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Setup",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Social",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Subcontracting",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Support",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Telephony",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Utilities",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Website",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "Workflow",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   },
+   {
+    "module": "XSI Payroll",
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "block_modules",
+    "parenttype": "User"
+   }
+  ],
+  "branch": null,
+  "bulk_actions": 1,
+  "bypass_restrict_ip_check_if_2fa_enabled": 0,
+  "certification": [],
+  "city": null,
+  "collaboration": "Individual Work",
+  "college": null,
+  "company_type": "Corporate Organization",
+  "country": "Philippines",
+  "cover_image": null,
+  "dashboard": 1,
+  "default_app": null,
+  "default_workspace": null,
+  "defaults": [],
+  "desk_theme": "Light",
+  "docstatus": 0,
+  "doctype": "User",
+  "document_follow_frequency": "Daily",
+  "document_follow_notify": 0,
+  "dream_companies": null,
+  "education": [],
+  "email": "babyjane@qcedsa.local",
+  "email_signature": null,
+  "enabled": 1,
+  "first_name": "Baby Jane Tamayo",
+  "follow_assigned_documents": 0,
+  "follow_commented_documents": 0,
+  "follow_created_documents": 0,
+  "follow_liked_documents": 0,
+  "follow_shared_documents": 0,
+  "form_sidebar": 1,
+  "full_name": "Baby Jane Tamayo",
+  "gender": null,
+  "github": null,
+  "headline": null,
+  "hide_private": 0,
+  "home_settings": null,
+  "interest": null,
+  "internship": [],
+  "language": "en",
+  "last_active": null,
+  "last_ip": null,
+  "last_known_versions": null,
+  "last_login": null,
+  "last_name": null,
+  "last_password_reset_date": null,
+  "last_reset_password_key_generated_on": "2025-11-19 14:24:35.328051",
+  "linkedin": null,
+  "list_sidebar": 1,
+  "location": null,
+  "location_preference": "Travel",
+  "login_after": 0,
+  "login_before": 0,
+  "logout_all_sessions": 1,
+  "looking_for_job": 0,
+  "medium": null,
+  "middle_name": null,
+  "mobile_no": null,
+  "modified": "2025-08-08 16:48:56.548042",
+  "module_profile": "Procurement",
+  "mute_sounds": 0,
+  "name": "babyjane@qcedsa.local",
+  "new_password": "",
+  "notifications": 1,
+  "onboarding_status": "{}",
+  "phone": null,
+  "preferred_functions": [],
+  "preferred_industries": [],
+  "preferred_location": null,
+  "profession": null,
+  "redirect_url": null,
+  "reset_password_key": "27d659e98e52a107a74165d3bd9c84953eeff401bef38674fbd21e295ede41cd",
+  "restrict_ip": null,
+  "role": "Clearly Defined Role",
+  "role_profile_name": null,
+  "roles": [
+   {
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "Purchase User"
+   },
+   {
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
+   }
+  ],
+  "search_bar": 1,
+  "send_me_a_copy": 0,
+  "send_welcome_email": 1,
+  "simultaneous_sessions": 2,
+  "skill": [],
+  "social_logins": [
+   {
+    "parent": "babyjane@qcedsa.local",
+    "parentfield": "social_logins",
+    "parenttype": "User",
+    "provider": "frappe",
+    "userid": "5aa8cb8554a420de3f3c487aaa13e35f998f0a1",
+    "username": null
+   }
+  ],
+  "thread_notify": 1,
+  "time": "Flexible Time",
+  "time_zone": "Asia/Manila",
+  "timeline": 1,
+  "unsubscribed": 0,
+  "user_category": "",
+  "user_emails": [],
+  "user_image": null,
+  "user_type": "System User",
+  "username": "baby_jane_tamayo",
+  "verify_terms": 0,
+  "view_switcher": 1,
+  "work_experience": []
+ },
+ {
+  "allowed_in_mentions": 1,
+  "api_key": null,
+  "api_secret": null,
   "attire": null,
   "banner_image": null,
   "bio": null,
@@ -48,10 +2672,10 @@
   "interest": null,
   "internship": [],
   "language": null,
-  "last_active": "2025-11-24 14:15:04.367424",
-  "last_ip": "172.70.143.174",
-  "last_known_versions": "{\"frappe\": {\"title\": \"Frappe Framework\", \"description\": \"Full stack web framework with Python, Javascript, MariaDB, Redis, Node\", \"branch\": \"version-15\", \"version\": \"15.55.2\"}, \"payments\": {\"title\": \"Payments\", \"description\": \"Payments app for frappe\", \"branch\": \"version-15\", \"version\": \"0.0.1\"}, \"erpnext\": {\"title\": \"ERPNext\", \"description\": \"ERP made simple\", \"branch\": \"version-15\", \"version\": \"15.51.2\"}, \"hrms\": {\"title\": \"Frappe HR\", \"description\": \"Modern HR and Payroll Software\", \"branch\": \"version-15\", \"version\": \"15.39.1\"}}",
-  "last_login": "2025-11-19 13:03:28.814426",
+  "last_active": "2025-12-01 09:07:50.861574",
+  "last_ip": "172.20.0.1",
+  "last_known_versions": "{\"frappe\": {\"title\": \"Frappe Framework\", \"description\": \"Full stack web framework with Python, Javascript, MariaDB, Redis, Node\", \"branch\": \"version-15\", \"version\": \"15.88.2\"}, \"payments\": {\"title\": \"Payments\", \"description\": \"Payments app for frappe\", \"branch\": \"develop\", \"version\": \"0.0.1\"}, \"erpnext\": {\"title\": \"ERPNext\", \"description\": \"ERP made simple\", \"branch\": \"version-15\", \"version\": \"15.88.1\"}, \"phbir\": {\"title\": \"PH Localization\", \"description\": \"This app is for Philippine-specific features.\", \"branch\": \"main-clean\", \"version\": \"1.2.28\"}, \"print_designer\": {\"title\": \"Print Designer\", \"description\": \"Frappe App to Design Print Formats using interactive UI.\", \"branch\": \"develop\", \"version\": \"1.6.2\"}, \"hrms\": {\"title\": \"Frappe HR\", \"description\": \"Modern HR and Payroll Software\", \"branch\": \"develop\", \"version\": \"16.0.0-dev\"}, \"lending\": {\"title\": \"Lending\", \"description\": \"Open Source Lending software\", \"branch\": \"develop\", \"version\": \"0.0.1\"}, \"xsi_payroll\": {\"title\": \"XSI Payroll\", \"description\": \"XSI Philippine localized payroll\", \"branch\": \"main-clean\", \"version\": \"1.0.4\"}, \"lms\": {\"title\": \"Frappe LMS\", \"description\": \"Frappe LMS App\", \"branch\": \"develop\", \"version\": \"2.40.0\"}, \"chat\": {\"title\": \"Frappe Chat\", \"description\": \"Chat application for frappe\", \"branch\": \"main\", \"version\": \"0.0.1\"}, \"frappe_pdf\": {\"title\": \"Frappe Pdf\", \"description\": \"Render PDF from server using google-chrome\", \"branch\": \"main-clean\", \"version\": \"0.0.1\"}, \"zkteco_integration\": {\"title\": \"zkteco_integration\", \"description\": \"zkteco fingerscan device integration for DTR\", \"branch\": \"\", \"version\": \"0.0.1\"}, \"qcmc_logic\": {\"title\": \"QCMC Logics\", \"description\": \"Company Business Rules and Logics\", \"branch\": \"\", \"version\": \"0.0.1\"}}",
+  "last_login": "2025-11-25 09:27:11.470866",
   "last_name": null,
   "last_password_reset_date": null,
   "last_reset_password_key_generated_on": null,
@@ -383,6 +3007,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Delivery Manager"
+   },
+   {
+    "parent": "Administrator",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -572,7 +3202,7 @@
   "last_login": "2025-11-12 13:51:12.790674",
   "last_name": "Diwata",
   "last_password_reset_date": "2025-10-14",
-  "last_reset_password_key_generated_on": "2025-10-14 08:13:21.627153",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:37.329032",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -597,7 +3227,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": "",
-  "reset_password_key": "",
+  "reset_password_key": "2b7d48f8338301327d37dd37b86b8f1fda8ea8bf49dc6a72dfe83633896345aa",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -1167,13 +3797,13 @@
   "interest": null,
   "internship": [],
   "language": "en",
-  "last_active": "2025-11-20 18:30:09.615645",
-  "last_ip": "172.71.215.196",
-  "last_known_versions": "{\"frappe\": {\"title\": \"Frappe Framework\", \"description\": \"Full stack web framework with Python, Javascript, MariaDB, Redis, Node\", \"branch\": \"version-15\", \"version\": \"15.55.2\"}, \"payments\": {\"title\": \"Payments\", \"description\": \"Payments app for frappe\", \"branch\": \"version-15\", \"version\": \"0.0.1\"}, \"erpnext\": {\"title\": \"ERPNext\", \"description\": \"ERP made simple\", \"branch\": \"version-15\", \"version\": \"15.51.2\"}, \"hrms\": {\"title\": \"Frappe HR\", \"description\": \"Modern HR and Payroll Software\", \"branch\": \"version-15\", \"version\": \"15.39.1\"}, \"phbir\": {\"title\": \"PH Localization\", \"description\": \"This app is for Philippine-specific features.\", \"branch\": \"master\", \"version\": \"1.2.28\"}}",
-  "last_login": "2025-11-14 22:07:50.472426",
+  "last_active": "2025-11-25 17:25:41.459373",
+  "last_ip": "172.20.0.1",
+  "last_known_versions": "{\"frappe\": {\"title\": \"Frappe Framework\", \"description\": \"Full stack web framework with Python, Javascript, MariaDB, Redis, Node\", \"branch\": \"version-15\", \"version\": \"15.88.2\"}, \"payments\": {\"title\": \"Payments\", \"description\": \"Payments app for frappe\", \"branch\": \"develop\", \"version\": \"0.0.1\"}, \"erpnext\": {\"title\": \"ERPNext\", \"description\": \"ERP made simple\", \"branch\": \"version-15\", \"version\": \"15.88.1\"}, \"phbir\": {\"title\": \"PH Localization\", \"description\": \"This app is for Philippine-specific features.\", \"branch\": \"main-clean\", \"version\": \"1.2.28\"}, \"print_designer\": {\"title\": \"Print Designer\", \"description\": \"Frappe App to Design Print Formats using interactive UI.\", \"branch\": \"develop\", \"version\": \"1.6.2\"}, \"hrms\": {\"title\": \"Frappe HR\", \"description\": \"Modern HR and Payroll Software\", \"branch\": \"develop\", \"version\": \"16.0.0-dev\"}, \"lending\": {\"title\": \"Lending\", \"description\": \"Open Source Lending software\", \"branch\": \"develop\", \"version\": \"0.0.1\"}, \"xsi_payroll\": {\"title\": \"XSI Payroll\", \"description\": \"XSI Philippine localized payroll\", \"branch\": \"main-clean\", \"version\": \"1.0.4\"}, \"lms\": {\"title\": \"Frappe LMS\", \"description\": \"Frappe LMS App\", \"branch\": \"develop\", \"version\": \"2.40.0\"}, \"chat\": {\"title\": \"Frappe Chat\", \"description\": \"Chat application for frappe\", \"branch\": \"main\", \"version\": \"0.0.1\"}, \"frappe_pdf\": {\"title\": \"Frappe Pdf\", \"description\": \"Render PDF from server using google-chrome\", \"branch\": \"main-clean\", \"version\": \"0.0.1\"}, \"zkteco_integration\": {\"title\": \"zkteco_integration\", \"description\": \"zkteco fingerscan device integration for DTR\", \"branch\": \"\", \"version\": \"0.0.1\"}, \"qcmc_logic\": {\"title\": \"QCMC Logics\", \"description\": \"Company Business Rules and Logics\", \"branch\": \"\", \"version\": \"0.0.1\"}}",
+  "last_login": "2025-11-25 09:28:26.822531",
   "last_name": "Guilalas",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-02-11 17:11:22.561074",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:39.651700",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -1185,7 +3815,7 @@
   "medium": null,
   "middle_name": null,
   "mobile_no": null,
-  "modified": "2025-09-24 11:57:26.578873",
+  "modified": "2025-11-25 09:27:53.211529",
   "module_profile": null,
   "mute_sounds": 0,
   "name": "eguilalas@qcstyro.com",
@@ -1198,7 +3828,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "0539141210340d1af1e456ccc7e782b5d16cfae7b85b539a49887b01dbdcb015",
+  "reset_password_key": "0e81759eb5e8859a167c2c5cd69470595fabc468aea9bb9d86f721f0c83a5bd3",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -1865,7 +4495,7 @@
   "last_login": "2025-11-18 09:25:13.507193",
   "last_name": "Castillo",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-07-01 09:28:14.877932",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:40.687739",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -1890,7 +4520,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "7980d89912f569182d46d3c194b06d81b5f3a55958e1e5e1058ac3ef6890ca1b",
+  "reset_password_key": "c6bf15cc25ba3e905a9d363c86a68d9e3d4820448d8a9a860912d19f49d96896",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "General Accounting Staff",
@@ -2010,7 +4640,7 @@
   "last_login": "2025-11-07 21:23:43.811042",
   "last_name": "Yabut",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-02-11 17:25:36.036395",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:41.765608",
   "linkedin": null,
   "list_sidebar": 1,
   "location": "EDSA",
@@ -2035,7 +4665,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "a235377dfc03608f759a80f248051a28ab2ca341cd3f3ea97bd20468c6b25746",
+  "reset_password_key": "2e80b0d0ed2b9459abdd30e35c38a8212883e500ad6625710c3b0d78e7ee04e4",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -2369,6 +4999,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "MRF User"
+   },
+   {
+    "parent": "kyabut@qcstyro.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -2455,7 +5091,7 @@
   "last_login": "2025-11-17 11:30:50.517322",
   "last_name": "Ramirez",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-02-11 17:26:57.762365",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:42.956185",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -2480,7 +5116,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "33a40e0f080474b1e5a39cb93fd1aa6582f440830d47e9a107752fc5f1169501",
+  "reset_password_key": "d599f4ce9675a10353af7d578f76ad6567d4246362b71651c876a90f2f9634f8",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -2772,6 +5408,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Workspace Manager"
+   },
+   {
+    "parent": "aljor@qcstyro.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -3069,7 +5711,7 @@
   "last_login": null,
   "last_name": "Dela Cruz",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-03-14 15:20:48.142317",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:43.970291",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -3094,7 +5736,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "f6677c73a12fc962fe66d7cc7c2bd21d708edb3e93dd280b3319a0ad4eaa91c2",
+  "reset_password_key": "b6b48f8102f9cb7ef1642ead681afad23ad3cfde16fcd1dcf084196981c65d0a",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -3110,6 +5752,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Plant Manager MC"
+   },
+   {
+    "parent": "ahdelacruz@qcstyro.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -3413,7 +6061,7 @@
   "last_login": null,
   "last_name": "Mandras",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-03-17 11:28:13.015458",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:44.850709",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -3438,7 +6086,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "7eed0fd2a5bc21891ace5c4a37061148358ce4d8dc4a2e19d7754fba0a1a8b70",
+  "reset_password_key": "b9c7d477429e1ae994dba0147a19569499e25bafb9860c0dc4383a4e94182a7d",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -3454,6 +6102,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Machine Shop User"
+   },
+   {
+    "parent": "engineering_foreman@qcstyro.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -3757,7 +6411,7 @@
   "last_login": null,
   "last_name": "Duran",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-03-17 12:53:54.707791",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:45.734540",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -3782,7 +6436,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "ce8fc9a6eb37d676cb6bee7223ca1b2432b448baa512416e28a901c2b9f6f8c5",
+  "reset_password_key": "609549d155c570dafe87d03811809480709da35cfe86bf9f53fd4f502fe3269f",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -3834,6 +6488,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Machine Shop Foreman"
+   },
+   {
+    "parent": "edduran@qcstyro.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -4053,7 +6713,7 @@
   "last_login": "2025-03-26 17:12:38.530250",
   "last_name": "Molina",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-03-25 13:42:19.309846",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:46.495975",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -4078,7 +6738,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "71cff52e6b72d79226078f78fce2f35fb3bf27da2b47486c409a43bcbe9d7e07",
+  "reset_password_key": "607d123447f5c4294c348f1eb61681986b5bdb7fa6b4ebd780c1662e80253653",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "",
@@ -4106,6 +6766,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Leave Approver"
+   },
+   {
+    "parent": "vcm@qcstyro.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -4192,7 +6858,7 @@
   "last_login": null,
   "last_name": null,
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-04-02 16:22:45.899271",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:47.055632",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -4217,7 +6883,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "68c777cda19564fff0b98177cb529669a9886aa1b88ec091a547812eb6d50a27",
+  "reset_password_key": "4a9066ec309144bca095b1340e374bd12aeead43af701f457ff4311a8ef20a69",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -4233,6 +6899,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Sales User"
+   },
+   {
+    "parent": "myra@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -4319,7 +6991,7 @@
   "last_login": "2025-04-02 16:39:52.206935",
   "last_name": null,
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-04-02 16:37:17.593573",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:47.625465",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -4344,7 +7016,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "386a93a18ee6f07ac12e29d840f8ca13782a5a28e428961497172de052409623",
+  "reset_password_key": "9cd5d9570fe66e97e2c7548528559c41ec9f087841b3275f543aae91f017af3e",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -4360,6 +7032,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Credit and Collection Section Head"
+   },
+   {
+    "parent": "eva@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -4386,7 +7064,7 @@
   "user_emails": [],
   "user_image": null,
   "user_type": "System User",
-  "username": "eva",
+  "username": "evaqcedsalocal",
   "verify_terms": 0,
   "view_switcher": 1,
   "work_experience": []
@@ -4669,7 +7347,7 @@
   "last_login": "2025-08-14 15:52:35.961297",
   "last_name": null,
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-04-03 09:39:44.226792",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:48.643119",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -4694,7 +7372,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "4a202c34a6481fb34ea28118498e61d4a42bec7401aeae37820c58b4c93ab1d8",
+  "reset_password_key": "29950bb3b1fe98ff21d8f72d80ed7e3a7ad30f08a1af606b1bb93b849b30033a",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -4734,6 +7412,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Stock User"
+   },
+   {
+    "parent": "may@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -4760,7 +7444,7 @@
   "user_emails": [],
   "user_image": null,
   "user_type": "System User",
-  "username": "may",
+  "username": "mayqcedsalocal",
   "verify_terms": 0,
   "view_switcher": 1,
   "work_experience": []
@@ -5043,7 +7727,7 @@
   "last_login": "2025-04-23 10:52:17.704313",
   "last_name": "Baliton",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-04-15 11:28:53.608265",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:49.661383",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -5068,7 +7752,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "d0ff9a6195e413930c7863d5fd277cd7ff5fb77f9b7ecc0f4a54f9131ae2e872",
+  "reset_password_key": "b7c18735f3180cd21cb747ccbdb265485c48ddd311425b7a0c15ffb5dcc60e4a",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -5102,6 +7786,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Purchase Manager"
+   },
+   {
+    "parent": "documentclerkmc@qcstyro.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -5411,7 +8101,7 @@
   "last_login": "2025-08-14 14:53:48.840627",
   "last_name": "Mendeguarin",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-04-15 11:41:24.239531",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:50.773174",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -5436,7 +8126,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "cfa03c17e40c930358567cda74ba10c7aabd70d03e451cd65f6685ab7b088806",
+  "reset_password_key": "ba94c6d11495b470e8d966456420452ae51ef774817daf898202bed6327ed133",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -5470,6 +8160,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Purchase Manager"
+   },
+   {
+    "parent": "documentclerk@qcstyro.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -5773,7 +8469,7 @@
   "last_login": "2025-04-16 14:41:45.220628",
   "last_name": null,
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-04-16 11:37:42.157320",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:51.644625",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -5798,7 +8494,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "cf513e6ac89e944530284c49c57aff8e8ec7ebb4d7716db9d0ecf20aeb8095ee",
+  "reset_password_key": "1a972835547fd24183dd8e5d1aed5f5be2a4876721e9a36cdf6b9550078a8dbf",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "Sales",
@@ -6141,7 +8837,7 @@
   "last_login": "2025-06-02 14:28:02.651005",
   "last_name": null,
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-04-30 16:51:45.675080",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:52.500154",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -6166,7 +8862,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "ff482dd593c6e769f94ca814b23412c4d1697d04de42ad00f5d176b5db27e16c",
+  "reset_password_key": "46004fef87da9e03f420ccb7f0d27f08736d6cb0a0c712e7621a256227baae50",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "",
@@ -6176,6 +8872,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Stock User"
+   },
+   {
+    "parent": "smbencoder@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -6262,7 +8964,7 @@
   "last_login": "2025-07-17 17:11:54.370280",
   "last_name": "Tubay",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-06-02 16:26:47.588110",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:53.092028",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -6287,7 +8989,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "71bf4288e87c79751d1487f7b9fef7f3cb1ecbbef0241ae7aea9b4219403b55a",
+  "reset_password_key": "a9e19e9f620aebeae52dfbca4c5ef9c0ab9e1d0d9f43f959205c434d31f8715f",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -6309,6 +9011,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "ITEM_Exempt_Workflow"
+   },
+   {
+    "parent": "mcsfp@qcstyro.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -6600,7 +9308,7 @@
   "last_login": null,
   "last_name": null,
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-06-03 08:52:36.264067",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:53.921308",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -6625,7 +9333,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "1d808336af684fcf637c6883257c52019eeaf71245cb2e2e25b76dccce28df68",
+  "reset_password_key": "af7f21c7b7c09300ef1522a6144dcc1ac7e03432466a743a592e24f9eac1bbb7",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "",
@@ -6647,6 +9355,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Maintenance User"
+   },
+   {
+    "parent": "paulcruz@qcstyro.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -6950,7 +9664,7 @@
   "last_login": "2025-07-22 13:59:28.815452",
   "last_name": null,
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-06-16 11:02:58.625642",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:54.788908",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -6975,7 +9689,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "ff1265f132b9d13058c48b47423e977f93426c6891ddd1fdd68d3f97f86cf9b3",
+  "reset_password_key": "d320f9679226e23e62a221d5a19a6378a559099dec0e10dfd72b4a99cb8e1335",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "Purchase",
@@ -7312,7 +10026,7 @@
   "last_login": null,
   "last_name": "Burila",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-06-24 18:08:57.872538",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:55.819554",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -7337,7 +10051,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "cf03feeaa99e97a30ee1cbbe8da69f81afdcf6723ead279ef9e7c51791e05a8d",
+  "reset_password_key": "8cc82eae9bbeb1cd8bf7b1f56b1bae859a8c2228d1cd4d17e72faac8e073a347",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -7377,6 +10091,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Item Manager"
+   },
+   {
+    "parent": "documentclerk@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -7856,7 +10576,7 @@
   "last_login": null,
   "last_name": "Mercado",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-06-26 16:16:04.575339",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:57.399517",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -7881,7 +10601,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "86fa758a9a358844369041483ee284d0f8b2381e1d1c1147c5c1d67bc8ce6b5f",
+  "reset_password_key": "2fca0118f728d21a0cc86ecba445165031f0d8a71de84bc7769b8e25b24c8ec6",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "PPIC",
@@ -8031,7 +10751,7 @@
   "last_login": "2025-06-27 09:46:49.864440",
   "last_name": "Borja",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-06-27 09:09:07.662179",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:58.054640",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -8056,7 +10776,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "d2aa68b3f7333073663c165e8d8cdd4433befb0d21b1ee278645306372e28ea0",
+  "reset_password_key": "81c3e71d14698de892c414477ab04c95a3ddea6346724de4a14a4d9224e43fa1",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "CandC",
@@ -8297,7 +11017,7 @@
   "user_emails": [],
   "user_image": null,
   "user_type": "System User",
-  "username": null,
+  "username": "candcgmaheadqcedsalocal",
   "verify_terms": 0,
   "view_switcher": 1,
   "work_experience": []
@@ -8460,7 +11180,7 @@
   "user_emails": [],
   "user_image": null,
   "user_type": "System User",
-  "username": "kim",
+  "username": "candcstaffprov3qcedsalocal",
   "verify_terms": 0,
   "view_switcher": 1,
   "work_experience": []
@@ -8569,7 +11289,7 @@
   "last_login": "2025-06-27 10:01:52.251103",
   "last_name": "Verocil",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-06-27 10:03:25.223035",
+  "last_reset_password_key_generated_on": "2025-11-24 15:02:59.750026",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -8594,7 +11314,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "491e87c6211aff1a29d687ad8364e17fc57ba37c4b7a14893d10f17ce53643e2",
+  "reset_password_key": "1c0e949a4426f3bb986b9c8b346c0198a73f0e2c043abaf139aad10b3bdc573f",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "CandC",
@@ -8672,7 +11392,7 @@
   "user_emails": [],
   "user_image": null,
   "user_type": "System User",
-  "username": "sam",
+  "username": "candcstaffprov2qcedsalocal",
   "verify_terms": 0,
   "view_switcher": 1,
   "work_experience": []
@@ -8944,7 +11664,7 @@
   "last_login": "2025-06-27 16:28:44.645951",
   "last_name": "Rallos",
   "last_password_reset_date": "2025-06-27",
-  "last_reset_password_key_generated_on": "2025-06-27 09:44:21.686903",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:00.995714",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -8969,7 +11689,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": "",
-  "reset_password_key": "",
+  "reset_password_key": "c34f465b699d97c5bb91e517a3951a7e63c149056e5f36ec3164c71e2f64d9b1",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "CandC",
@@ -9107,7 +11827,7 @@
   "last_login": "2025-06-27 09:58:44.881177",
   "last_name": "Emia",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-06-27 09:44:54.465515",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:01.693571",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -9132,7 +11852,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "b19fa24ea86ec9f137ad1387b8bfab1bb8b83c11b2250e882f6a4d225bc6d777",
+  "reset_password_key": "2cadea2f6804f7f2d2e14f9751a679073cc26811780f934fa2bfa3c5c7968455",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "CandC",
@@ -9319,7 +12039,7 @@
   "last_login": "2025-06-27 10:01:45.104760",
   "last_name": "Taborda",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-06-27 09:46:02.616572",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:02.472314",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -9344,7 +12064,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "1e85431e12c9192b502f43bb7e5050dd3ba6a02826650601297335c0bcf65a76",
+  "reset_password_key": "25cc976dec26c82ec260d196ba6dc1cbae1616db287c2cd305cb28891f32e4a4",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "CandC",
@@ -9531,7 +12251,7 @@
   "last_login": "2025-06-27 10:02:28.439195",
   "last_name": "Taduran",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-06-27 09:47:40.442173",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:03.215032",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -9556,7 +12276,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "ae0e31c801c1cd6de6d3b6c598b96f4438a1180d23d16ce1d4c5d2ac8bdd7b8d",
+  "reset_password_key": "90e2ff2ade3c754f283a231c492e7764682a25edd58bc6f1266141e347149299",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "CandC",
@@ -9935,7 +12655,7 @@
   "last_login": "2025-07-02 10:37:07.178844",
   "last_name": "Dacuycoy",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-06-30 08:32:04.088671",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:04.288646",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -9960,7 +12680,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "d219e3bda1fcd27469d43c1b78513f58f5f343be36541a4f7ba23952f62d6a73",
+  "reset_password_key": "b7635347063f0f05d381dde0cf5bbf0f9b038287b76f18a37aa276c7a5f903a8",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -9976,6 +12696,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Purchase User"
+   },
+   {
+    "parent": "edsa_toolkeeper1@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -10303,7 +13029,7 @@
   "last_login": null,
   "last_name": "Dechavez",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-07-01 16:47:21.024145",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:05.341820",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -10328,7 +13054,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "090d300770f70915635608094573383a09dfe5462fe2bae1e972d27b7a2e9176",
+  "reset_password_key": "a52dd7310b54dd8ab8e2ea2d0bf4a0e0e008895bb54899b3c500fa5a4dcab648",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "",
@@ -10350,6 +13076,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Machine Shop User"
+   },
+   {
+    "parent": "edsa_toolkeeper2@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -10677,7 +13409,7 @@
   "last_login": null,
   "last_name": "Guyong",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-07-01 17:24:02.815652",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:06.389769",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -10702,7 +13434,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "2132ebb925e64273684e1933312a0f9f66eb99bcc189d889aa4c0b0af204db4a",
+  "reset_password_key": "0873d2364284399ad011dcbbc5eacd7bcb76ac9d0630cafc14071c45d9b7470b",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -10718,6 +13450,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Machine Shop User"
+   },
+   {
+    "parent": "smbstockroom@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -11045,7 +13783,7 @@
   "last_login": null,
   "last_name": "Sta Clara",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-07-02 08:09:25.134182",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:07.419592",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -11070,7 +13808,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "4c61346d4a994c3150a992f0683f4b6c2f11d4cce77cf035fe65f04f571b4a4b",
+  "reset_password_key": "4c96ce7c1d5b9e6c53414926364d828a170cd14dc6fd8544e2690318089b03fe",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": null,
@@ -11086,6 +13824,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Purchase User"
+   },
+   {
+    "parent": "scstockroom@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -11112,7 +13856,7 @@
   "user_emails": [],
   "user_image": null,
   "user_type": "System User",
-  "username": null,
+  "username": "stockroom-sta-clara",
   "verify_terms": 0,
   "view_switcher": 1,
   "work_experience": []
@@ -11419,7 +14163,7 @@
   "last_login": "2025-10-29 16:51:00.173351",
   "last_name": "Valenzuela",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-07-02 09:04:18.206656",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:08.402527",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -11444,7 +14188,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "6d71bc0668f9df5de420d8fd4d5192645944d5cee8bb75f8864cce4dfcf990e6",
+  "reset_password_key": "d5a75107f36271811ac1ae6b9f377cb327be69e9959997fb651d212502d02af8",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "MC Toolroom",
@@ -11615,12 +14359,6 @@
     "parenttype": "User"
    },
    {
-    "module": "Maintenance",
-    "parent": "jsalandino@qcedsa.local",
-    "parentfield": "block_modules",
-    "parenttype": "User"
-   },
-   {
     "module": "Manufacturing",
     "parent": "jsalandino@qcedsa.local",
     "parentfield": "block_modules",
@@ -11775,7 +14513,7 @@
   "last_login": "2025-07-03 07:36:16.745752",
   "last_name": "Salandino",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-07-02 09:33:07.667691",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:09.442994",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -11800,7 +14538,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "58bdc89614e0e13800946994bdcb00ced2f65a0789fc1b191b614e9cd17ff9e6",
+  "reset_password_key": "e454d07893f2c5b99eaa179540fb106acb8681ff25bcd1719348234eb249f14e",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "General Accounting Staff",
@@ -11977,12 +14715,6 @@
     "parenttype": "User"
    },
    {
-    "module": "Maintenance",
-    "parent": "jvelasco@qcedsa.local",
-    "parentfield": "block_modules",
-    "parenttype": "User"
-   },
-   {
     "module": "Manufacturing",
     "parent": "jvelasco@qcedsa.local",
     "parentfield": "block_modules",
@@ -12137,7 +14869,7 @@
   "last_login": "2025-07-07 14:02:28.921942",
   "last_name": "Velasco",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-07-02 10:36:51.594804",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:10.434652",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -12162,7 +14894,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "6a1199ebea032b58933d767549ac03fd1c961daaee5c7dcb59e78b75acee863a",
+  "reset_password_key": "3ae47beee619afa5c73e9b126a9b33ce6a3f30752b66779ef6248eaceb369730",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "General Accounting Staff",
@@ -12339,12 +15071,6 @@
     "parenttype": "User"
    },
    {
-    "module": "Maintenance",
-    "parent": "mregino@qcedsa.local",
-    "parentfield": "block_modules",
-    "parenttype": "User"
-   },
-   {
     "module": "Manufacturing",
     "parent": "mregino@qcedsa.local",
     "parentfield": "block_modules",
@@ -12499,7 +15225,7 @@
   "last_login": "2025-07-03 07:55:02.970587",
   "last_name": "Regino",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-07-02 10:37:56.122685",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:11.501026",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -12524,7 +15250,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "c6b6fa541730e8b4cecc0f71326469a620bbb76ed17b64e4aa87487f6b2f53d0",
+  "reset_password_key": "003c6cb2048c2169d8e165c52de36d689bcd0a3ed52741de400553193274d275",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "General Accounting Staff",
@@ -12701,12 +15427,6 @@
     "parenttype": "User"
    },
    {
-    "module": "Maintenance",
-    "parent": "sbenito@qcedsa.local",
-    "parentfield": "block_modules",
-    "parenttype": "User"
-   },
-   {
     "module": "Manufacturing",
     "parent": "sbenito@qcedsa.local",
     "parentfield": "block_modules",
@@ -12861,7 +15581,7 @@
   "last_login": "2025-07-17 13:16:55.057001",
   "last_name": "Benito",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-07-02 10:38:51.757854",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:12.530416",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -12886,7 +15606,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "c285b4ca2085ee516a99264979335121c8770a5132247159368324bb013ef957",
+  "reset_password_key": "c434f9611b791ed4e53828a9578d1f9f336d6764165766229887d382337267f8",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "General Accounting Staff",
@@ -13063,12 +15783,6 @@
     "parenttype": "User"
    },
    {
-    "module": "Maintenance",
-    "parent": "pgonzales@qcedsa.local",
-    "parentfield": "block_modules",
-    "parenttype": "User"
-   },
-   {
     "module": "Manufacturing",
     "parent": "pgonzales@qcedsa.local",
     "parentfield": "block_modules",
@@ -13223,7 +15937,7 @@
   "last_login": null,
   "last_name": "Gonzales",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-07-02 10:39:58.231188",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:13.582400",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -13248,7 +15962,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "f81a50a93a4bd44c42f019a2b562a836934a79f4f160267aca32ef089e900b4b",
+  "reset_password_key": "4644f35cb3bab1301a72e0888ffcf93fee87a3e172ff308f05d6949ce0a0d3e3",
   "restrict_ip": null,
   "role": null,
   "role_profile_name": "General Accounting Staff",
@@ -13650,6 +16364,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Supplier"
+   },
+   {
+    "parent": "aljor.er@gmail.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -13803,7 +16523,7 @@
   "last_login": "2025-07-22 08:34:07.598523",
   "last_name": "Acedo",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-07-21 08:28:58.737153",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:15.162377",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -13828,7 +16548,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "dd1855549fb6512281f33a59ffc03babdec920c79e47434de93e848ffd07f817",
+  "reset_password_key": "3da79b6630d5990444dc8762b6e62f4f68bc9ee1fea2d1d4b82f01589673c57c",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "Sales",
@@ -14171,7 +16891,7 @@
   "last_login": null,
   "last_name": "Alcantara",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-07-22 14:01:15.766422",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:16.170116",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -14196,7 +16916,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "888d44f5118484039a61d331d7cffe4eec79e45cc9c67628eedd295a9d767b42",
+  "reset_password_key": "762047721521e2dbf34786b802df3c150c333e3059a57bba46c7f4b1930dc4d8",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "",
@@ -14230,6 +16950,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Purchase User"
+   },
+   {
+    "parent": "documentclerkmc@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -14316,7 +17042,7 @@
   "last_login": "2025-07-31 17:47:03.613719",
   "last_name": null,
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-07-31 16:22:07.152545",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:16.757078",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -14341,7 +17067,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "9d743bd352729db62e0ead5cccb5853e3b2a6307cba97144f740043e891916ab",
+  "reset_password_key": "fea3a31426156a9ee494e2197c018cc823f8838a6782f496248379c6fc2b32bb",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "HR",
@@ -14696,7 +17422,7 @@
   "last_login": "2025-10-29 16:32:04.220555",
   "last_name": "MANUEL",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-08-01 16:27:18.386484",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:17.892705",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -14721,7 +17447,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "3fa4f34f0c7c9851b671c007d69ca30db766c77456700ad11a2619e63fddb09e",
+  "reset_password_key": "915ccb6982bf8d1e61af5e05dc87746b19e836b87c8b041c4075c76d25f21f53",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": null,
@@ -14964,12 +17690,6 @@
     "parenttype": "User"
    },
    {
-    "module": "Buying",
-    "parent": "whouse@qcstyro.com",
-    "parentfield": "block_modules",
-    "parenttype": "User"
-   },
-   {
     "module": "Projects",
     "parent": "whouse@qcstyro.com",
     "parentfield": "block_modules",
@@ -15100,7 +17820,7 @@
   "last_login": "2025-08-11 10:38:28.075133",
   "last_name": "De Guzman",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-08-08 08:31:52.077210",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:18.991983",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -15125,7 +17845,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "9cc06aaf5ff7012c0263cb83f51c74f2ba1b92012a4be259881fdc1ea0d30c26",
+  "reset_password_key": "7e24bbce3c9ed9f845669688ecdcd4325e288f0c4ebbac5e2b721c98baf95c6e",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "Edsa Warehouse",
@@ -15480,7 +18200,7 @@
   "last_login": "2025-08-11 13:17:04.185914",
   "last_name": "PADERO",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-08-11 10:10:00.570878",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:20.047850",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -15505,7 +18225,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "7186fc733d1b640aaff1643cbf46a60d8350ea1bebef61cd3207c01500b0e27d",
+  "reset_password_key": "c9acd2fd6110b739a244b9b9747caa42749d1544813d1cdbaaf0ef9d2a7e6ba5",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "Motorpool",
@@ -15878,7 +18598,7 @@
   "last_login": "2025-09-10 10:05:46.932631",
   "last_name": "SANCHEZ",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-09-10 08:08:45.310242",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:21.050266",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -15903,7 +18623,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "07dc9500f2d526064a3186321a245817694f43028f8705e82c70b50631fd591c",
+  "reset_password_key": "aa5fb49811cca4079497f2f0ed81200623178cb31c0eaf4208dfaabf6b98fec8",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "",
@@ -15919,6 +18639,12 @@
     "parentfield": "roles",
     "parenttype": "User",
     "role": "Employee Self Service"
+   },
+   {
+    "parent": "francisdiwata@gmail.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
    }
   ],
   "search_bar": 1,
@@ -16252,7 +18978,7 @@
   "last_login": "2025-11-05 15:57:27.771055",
   "last_name": "Abrea",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-09-12 17:07:15.758515",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:22.141502",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -16277,7 +19003,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "efe6cf0ccaddd72abee443ee9dc9da598e1755abb680c2fcd721e86acbc1dbf7",
+  "reset_password_key": "66dded8c28ffa605937061cfc44807729657e4b038e4fca6a90c89d50823591d",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "HR",
@@ -16632,7 +19358,7 @@
   "last_login": "2025-11-04 08:54:32.480017",
   "last_name": "Usi",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-09-12 17:10:48.114822",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:23.197372",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -16657,7 +19383,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "8754f8fc68c35ab15bf9abe46d32e44575cb48bad4f029fbe265d0bed7632991",
+  "reset_password_key": "c5c977b393bd7f387ed5d059af16f3d4291f458eab3b74c99a4807eb2e063c11",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "HR",
@@ -17012,7 +19738,7 @@
   "last_login": "2025-11-04 08:59:43.812655",
   "last_name": "Gonzalez",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-09-12 17:15:57.408226",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:24.252438",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -17037,7 +19763,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "67d3543a7a81e469752be844f4d0f06d887cbb4907258ec62f3201bb2626c15c",
+  "reset_password_key": "e130c3dc244d9d6b4556a11d0d01e14b48c7641faaa91717aa418b69ce973b74",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "HR",
@@ -17392,7 +20118,7 @@
   "last_login": "2025-11-05 16:03:51.258430",
   "last_name": "Cabrillas-Quinlog",
   "last_password_reset_date": "2025-10-29",
-  "last_reset_password_key_generated_on": "2025-09-12 17:19:13.794639",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:25.519138",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -17417,7 +20143,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": "",
-  "reset_password_key": "",
+  "reset_password_key": "5731413a50231aa49b8ce047262c680419ae3dfe197caad592d09861bd57dcaf",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "HR Learning",
@@ -17802,7 +20528,7 @@
   "last_login": null,
   "last_name": "Hallare",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-09-12 17:21:45.647199",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:26.689000",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -17827,7 +20553,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "3c907330fd398ada316da395ab3f2c130946967541827d35d86ba546a11a2640",
+  "reset_password_key": "c4e305984428cd4659c3728cea7a6381a1fe4005d71b14d56a77aec0fc07fc48",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "HR",
@@ -17935,7 +20661,7 @@
   "last_login": "2025-09-18 08:51:58.171297",
   "last_name": "Insti",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-09-18 08:41:44.759722",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:27.275471",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -17960,7 +20686,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "1a61fef2d45e94a18b37867f1915d86b9b1806dcc50315670bacf99be3e3dfaf",
+  "reset_password_key": "80a0776415e39568a4b157e7047471e10547b32fe60bab69ae50fef0d2bbdbc9",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": null,
@@ -18327,7 +21053,7 @@
   "last_login": "2025-09-24 11:50:55.795476",
   "last_name": "Dela Cruz",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-09-24 10:37:43.758700",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:28.374335",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -18352,7 +21078,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "0bc878c0ef465b5213512aa2136cb82540b81c18beb48553aa4d9b4ab6da678b",
+  "reset_password_key": "0dee0b173f3a199d7594e71c11d83b81fc3bcfda89c6695b94dcd9f09996af24",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": null,
@@ -18448,7 +21174,7 @@
   "last_login": "2025-09-25 15:30:43.927600",
   "last_name": "Cadavez",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-09-25 15:27:16.846251",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:29.556105",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -18473,7 +21199,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "4c5dc1d3b25ffc1cfdf4583e5b0bd6b164fbd99e0cef75f6c1e00f9fc033cf1e",
+  "reset_password_key": "827dde578e4871128f05b32917fa69202d709763158650a54b91d4e4505a8de9",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": null,
@@ -19302,7 +22028,7 @@
   "last_login": "2025-10-01 16:19:19.338681",
   "last_name": "Tarin",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-10-01 16:12:25.464622",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:30.675668",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -19327,7 +22053,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "1bffce4aec03ceeb6ad7e73ce35e6ab9119713ebe6ddd4caac98aef49acc3cf8",
+  "reset_password_key": "4b4930b13c28bad50b07cfa6a1f5de48f3659e05c472dd73344977ece6c3253c",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "Edsa Warehouse",
@@ -20062,7 +22788,7 @@
   "last_login": "2025-11-06 07:38:19.884452",
   "last_name": "Casero",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-10-15 12:18:28.124774",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:32.782513",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -20087,7 +22813,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "4bce5d2facef6e7e5d2e6a83bb899f9043072eff970c65f2b35695ee93bfcd87",
+  "reset_password_key": "5d87325d010a839b4d825dd7fa3453205de97467e360052fb99ee68d63705153",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "HR",
@@ -20442,7 +23168,7 @@
   "last_login": "2025-10-30 11:50:08.693353",
   "last_name": "Hernandez",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-10-15 13:14:14.115268",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:33.858508",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -20467,7 +23193,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "4ed1d72ecb2e33d5754b98f414f36a5177f07a7bf0133e79f5a6bfdf0021ba1d",
+  "reset_password_key": "e6e2bbbf68caec5babeea211ae5517bfaaf8bfb8752150df84ff3b16e10b4008",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "HR",
@@ -20834,7 +23560,7 @@
   "medium": null,
   "middle_name": "SANCHEZ",
   "mobile_no": null,
-  "modified": "2025-10-27 14:34:22.479140",
+  "modified": "2025-11-24 15:05:36.315211",
   "module_profile": "HR",
   "mute_sounds": 0,
   "name": "qcwkedsa_001@qcedsa.local",
@@ -20851,7 +23577,14 @@
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "Employee",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "qcwkedsa_001@qcedsa.local",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
+   }
+  ],
   "search_bar": 1,
   "send_me_a_copy": 0,
   "send_welcome_email": 0,
@@ -20875,7 +23608,7 @@
   "user_category": "Employee",
   "user_emails": [],
   "user_image": null,
-  "user_type": "Website User",
+  "user_type": "System User",
   "username": "qcwkedsa_001@qcedsa.local",
   "verify_terms": 1,
   "view_switcher": 1,
@@ -21183,7 +23916,7 @@
   "last_login": "2025-10-28 10:49:13.866900",
   "last_name": "Gamboa",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-10-27 15:51:59.221774",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:35.852315",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -21208,7 +23941,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "96d423a305767eb2e9c9f1b1cc70fb0f9ece0924ed81d11f567542559788bec6",
+  "reset_password_key": "5c612d913a1a7e4560c06b8cf5eb1ea370b7fd61490728bf8ec8e8d4e142de48",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "Employee",
@@ -21557,7 +24290,7 @@
   "last_login": "2025-10-28 13:41:37.517393",
   "last_name": "Mendoza",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-10-28 11:22:33.659830",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:36.991929",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -21582,11 +24315,24 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "5d41951015ad55475cc453029cc9343961d2cc90225ab3f9c5b3d516252a0cc7",
+  "reset_password_key": "bd499afbf744f65c2eb641bc683efe88a3a53651b63921e041cdcdee9d64ed6a",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "Employee",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "hr-emp-00505@qcstyro.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
+   },
+   {
+    "parent": "hr-emp-00505@qcstyro.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "Employee"
+   }
+  ],
   "search_bar": 1,
   "send_me_a_copy": 0,
   "send_welcome_email": 1,
@@ -21610,7 +24356,7 @@
   "user_category": "Student",
   "user_emails": [],
   "user_image": null,
-  "user_type": "Website User",
+  "user_type": "System User",
   "username": "HR-EMP-00505",
   "verify_terms": 0,
   "view_switcher": 1,
@@ -21948,7 +24694,7 @@
   "last_login": "2025-11-04 13:28:28.949574",
   "last_name": "GABRIEL",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-10-28 11:56:41.617982",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:38.086738",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -21973,7 +24719,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "f1ae9fd3168983af7694fda030079a01c0bb77cd55d26cf610579b1e89217d51",
+  "reset_password_key": "dddf8c58726fac3b27dbcd78173a15d9c8c34e26e672a5060b7460ba5b60c87d",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "Employee",
@@ -22075,7 +24821,7 @@
   "last_login": "2025-11-04 11:56:41.895070",
   "last_name": "Mendoza",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-10-28 12:45:08.642399",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:38.787136",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -22100,11 +24846,24 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "c2b405219086eff6f6d641aa4bbb874c190b58681d5d352c4d10399d7734aaf5",
+  "reset_password_key": "92421302f368ea32fca26eb5c2df218092c294769d419c8613eda3cf314c042f",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "Employee",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "hr-emp-00504@qcstyro.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "LMS Student"
+   },
+   {
+    "parent": "hr-emp-00504@qcstyro.com",
+    "parentfield": "roles",
+    "parenttype": "User",
+    "role": "Employee"
+   }
+  ],
   "search_bar": 1,
   "send_me_a_copy": 0,
   "send_welcome_email": 1,
@@ -22128,7 +24887,7 @@
   "user_category": "",
   "user_emails": [],
   "user_image": null,
-  "user_type": "Website User",
+  "user_type": "System User",
   "username": "HR-EMP-00504",
   "verify_terms": 0,
   "view_switcher": 1,
@@ -22436,7 +25195,7 @@
   "last_login": null,
   "last_name": "SALAS",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-10-30 11:39:56.985820",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:39.973545",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -22461,7 +25220,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "80861893ffc12fdbea07dad9021f68c6724e6fd3f60fcca941abcb1fbce250e1",
+  "reset_password_key": "89b928b004f3aea3a33cb32002abb24e9d6ceb8bc6aced06d19499a146040e57",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "HR",
@@ -22816,7 +25575,7 @@
   "last_login": "2025-10-30 15:07:36.503688",
   "last_name": "Tobias",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-10-30 11:59:24.724940",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:41.268568",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -22841,7 +25600,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "9512a60c6fd8aef398d59a5d255c49141e27f4d849d1e1040993c1eb9b32c397",
+  "reset_password_key": "fdfcf959292d99f7245c05bc5ed5e0bdef0a94eb65c47e1bee5bf7d0e2650403",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "HR",
@@ -23196,7 +25955,7 @@
   "last_login": null,
   "last_name": "Gahuman",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-10-30 15:36:13.215309",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:42.566088",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -23221,7 +25980,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "5c5d10b2812fbe021b1e9b291ed80e86e9a36e1a7a531670a6da3609b33b0818",
+  "reset_password_key": "3399f182a56c6a21e8e60babcfad44edae725caafd371ef3445f77238b03d551",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "HR",
@@ -23576,7 +26335,7 @@
   "last_login": "2025-11-11 12:50:16.106163",
   "last_name": "AVELLANA",
   "last_password_reset_date": null,
-  "last_reset_password_key_generated_on": "2025-11-11 11:59:27.046384",
+  "last_reset_password_key_generated_on": "2025-11-24 15:03:43.556476",
   "linkedin": null,
   "list_sidebar": 1,
   "location": null,
@@ -23588,7 +26347,7 @@
   "medium": null,
   "middle_name": "BUSANG",
   "mobile_no": null,
-  "modified": "2025-11-11 12:04:30.771798",
+  "modified": "2025-11-24 15:05:27.592231",
   "module_profile": "",
   "mute_sounds": 0,
   "name": "hr-emp-00548@qcstyro.com",
@@ -23601,7 +26360,7 @@
   "preferred_location": null,
   "profession": null,
   "redirect_url": null,
-  "reset_password_key": "e6fd2a1feee67387b048dc66f9ccb487597562c26598b6ff4e0aa1ab8cb6828e",
+  "reset_password_key": "6fcc9c0210943aa85c267cab0a5739e992db0d3fb44ff0c4c9b66153908e3670",
   "restrict_ip": null,
   "role": "Clearly Defined Role",
   "role_profile_name": "Employee",

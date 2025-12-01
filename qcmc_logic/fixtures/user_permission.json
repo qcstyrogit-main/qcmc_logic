@@ -8,6 +8,32 @@
   "for_value": "QC Styropackaging Corporation",
   "hide_descendants": 0,
   "is_default": 1,
+  "modified": "2025-04-03 14:55:46.543397",
+  "name": "paanpeen18",
+  "user": "admin@qcstyro.com"
+ },
+ {
+  "allow": "Company",
+  "applicable_for": null,
+  "apply_to_all_doctypes": 1,
+  "docstatus": 0,
+  "doctype": "User Permission",
+  "for_value": "Multiplast Corporation",
+  "hide_descendants": 0,
+  "is_default": 0,
+  "modified": "2025-04-16 14:27:37.364815",
+  "name": "gr8t71ska2",
+  "user": "admin@qcstyro.com"
+ },
+ {
+  "allow": "Company",
+  "applicable_for": null,
+  "apply_to_all_doctypes": 1,
+  "docstatus": 0,
+  "doctype": "User Permission",
+  "for_value": "QC Styropackaging Corporation",
+  "hide_descendants": 0,
+  "is_default": 1,
   "modified": "2025-04-03 16:44:47.791504",
   "name": "mngpi3r0tk",
   "user": "may@qcedsa.local"

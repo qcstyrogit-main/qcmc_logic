@@ -4,10 +4,9 @@ from frappe.utils import flt
 from erpnext.accounts.doctype.payment_entry.payment_entry import PaymentEntry
 from erpnext.accounts.general_ledger import make_gl_entries, process_gl_map
 from collections import defaultdict
-
+#comment ako dito
 class CustomPaymentEntry(PaymentEntry):
     def make_gl_entries(self, cancel=0, adv_adj=0):
-        frappe.msgprint("Custom Payment Entry override is being called!")
         if self.get("custom_enable_manual_gl_entries") and self.payment_type == "Pay":
             if cancel:
                 return super().make_gl_entries(cancel=1)
@@ -68,11 +67,21 @@ class CustomPaymentEntry(PaymentEntry):
 
         # --- Summarize child rows ---
         summary = defaultdict(lambda: {"debit": 0.0, "input_tax": 0.0, "ewt": 0.0})
+        misc_summary = defaultdict(lambda: {"debit": 0.0})
+
         for row in self.get("custom_expense_details") or []:
             key = (row.expense_account, row.cost_center or self.cost_center, getattr(row, "location", None))
-            summary[key]["debit"] += flt(row.taxable_amount or 0)
+            summary[key]["debit"] += flt(row.taxable_amount - row.input_tax  or 0)
             summary[key]["input_tax"] += flt(row.input_tax or 0)
             summary[key]["ewt"] += flt(row.ewt_payable or 0)
+            
+            misc_amt = flt(row.misc_amt or 0)
+            if misc_amt > 0:
+                if not row.get("misc_exp"):
+                    frappe.throw(_("Row {0}: Misc Expense account is required when Base Amount is not equal to Taxable Amount.").format(row.idx))
+                
+                misc_key = (row.misc_exp, row.cost_center or self.cost_center, getattr(row, "location", None))
+                misc_summary[misc_key]["debit"] += misc_amt
 
         # --- Build GL entries from summary ---
         for (expense_account, cost_center, location), amounts in summary.items():
@@ -118,6 +127,20 @@ class CustomPaymentEntry(PaymentEntry):
                         "credit_in_account_currency": amounts["ewt"],
                         "credit": amounts["ewt"] * exchange_rate,
                         "against": expense_account,
+                    }, item=self)
+                )
+        
+        for (misc_account, cost_center, location), amounts in misc_summary.items():
+            exchange_rate = self.source_exchange_rate
+            if amounts["debit"] > 0:
+                total_debit += amounts["debit"] * exchange_rate
+                gl_entries.append(
+                    self.get_gl_dict({
+                        "account": misc_account,
+                        "cost_center": cost_center,
+                        "debit_in_account_currency": amounts["debit"],
+                        "debit": amounts["debit"] * exchange_rate,
+                        "against": self.paid_from,
                     }, item=self)
                 )
 
