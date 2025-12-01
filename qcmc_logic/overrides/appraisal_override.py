@@ -23,8 +23,8 @@ class CustomAppraisal(Appraisal):
                     table_name,
                     {
                         "kra": entry.key_result_area,
-                        "custom_kpi": entry.custom_performance_indicator,
-                        "custom_targetmeasure": entry.custom_targetmeasure,
+                        "custom_kpi": entry.custom_performance_indicator, #added custom fields 
+                        "custom_targetmeasure": entry.custom_targetmeasure, #add
                         "per_weightage": entry.per_weightage,
                     },
                 )
