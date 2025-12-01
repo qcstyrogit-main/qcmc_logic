@@ -4,7 +4,7 @@ from frappe.utils import flt
 from erpnext.accounts.doctype.payment_entry.payment_entry import PaymentEntry
 from erpnext.accounts.general_ledger import make_gl_entries, process_gl_map
 from collections import defaultdict
-
+#comment ako dito
 class CustomPaymentEntry(PaymentEntry):
     def make_gl_entries(self, cancel=0, adv_adj=0):
         if self.get("custom_enable_manual_gl_entries") and self.payment_type == "Pay":
