@@ -120,7 +120,7 @@ def execute(filters=None):
         {"label": "Warehouse", "fieldname": "warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 160} ,
         {"label": "Date Return", "fieldname": "date_return", "fieldtype": "Date", "width": 100 },
         {"label": "Note","fieldname": "note", "fieldtype": "Data", "width": 100},
-        {"label": "Date Completed","fieldname": "date_completed", "fieldtype": "Date", "width": 100}
+        {"label": "Date Completed","fieldname": "date_completed", "fieldtype": "Date", "width": 100},
     ]
 
     # --- Incoming rows ---
