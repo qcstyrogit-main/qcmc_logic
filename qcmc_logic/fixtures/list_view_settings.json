@@ -152,5 +152,19 @@
   "modified": "2025-10-20 15:36:19.804119",
   "name": "Job Applicant",
   "total_fields": "5"
+ },
+ {
+  "allow_edit": 0,
+  "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
+  "disable_comment_count": 0,
+  "disable_count": 0,
+  "disable_sidebar_stats": 0,
+  "docstatus": 0,
+  "doctype": "List View Settings",
+  "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Employee Name\",\"fieldname\":\"employee_name\"},{\"label\":\"Date Created\",\"fieldname\":\"date_created\"}]",
+  "modified": "2025-12-05 16:36:00.279033",
+  "name": "Salary Notice",
+  "total_fields": "4"
  }
 ]
