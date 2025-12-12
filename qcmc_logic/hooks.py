@@ -83,12 +83,12 @@ fixtures = [
     "Notification",
     {
         "doctype": "Print Format",
-       "filters": [["custom_format", "=", 1]]
+        "filters": [["custom_format", "=", 1]]
     },
     "Letter Head",
     {
         "doctype": "Role",
-       "filters": [["is_custom", "=", 1]]
+        "filters": [["is_custom", "=", 1]]
     }
 ]
 after_migrate = [
