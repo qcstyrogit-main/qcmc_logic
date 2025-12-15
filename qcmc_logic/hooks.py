@@ -63,10 +63,8 @@ fixtures = [
     {"doctype": "Letter Head"},
     {"doctype": "User Permission"},
     {"doctype": "Role Profile"},
-    {"doctype": "Custom Role"},
     {"doctype": "Custom DocPerm"},
     # {"doctype": "Account"},
-    {"doctype": "Role"},
     {"doctype": "Module Def"},
     {"doctype": "Module Profile"},
     {"doctype": "Translation"},  # Added for translations

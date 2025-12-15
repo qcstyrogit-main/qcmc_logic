@@ -2,12 +2,12 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
-  "dt": "LMS Enrollment",
+  "dt": "Appraisal Template",
   "enabled": 1,
-  "modified": "2025-12-12 15:52:19.306037",
+  "modified": "2025-12-04 09:11:30.389098",
   "module": "QCMC Logics",
-  "name": "AutoFillDateEnrolled",
-  "script": "frappe.ui.form.on(\"LMS Enrollment\", {\r\n    onload(frm) {\r\n        if (frm.is_new() && !frm.doc.custom_date_enrolled) {\r\n            frm.set_value(\"custom_date_enrolled\", frappe.datetime.now_datetime());\r\n        }\r\n    }\r\n});",
+  "name": "Appraisal Template KPI Filter",
+  "script": "frappe.ui.form.on('Appraisal Template', {\n\tonload: function(frm) {\n        if (frm.fields_dict.goals) {\n            frm.fields_dict.goals.grid.get_field(\"kra\").get_query = function(doc, cdt, cdn) {\n                let row = locals[cdt][cdn];\n\n                // Debug\n               // frappe.msgprint(\"Filtering by category: \" + row.custom_service_category);\n\n                return {\n                    filters: {\n                        custom_appraisal_group: frm.custom_appraisal_group\n                    }\n                };\n            };\n        }\n    }\n});\n \n",
   "view": "Form"
  },
  {
@@ -690,6 +690,17 @@
   "module": "QCMC Logics",
   "name": "Create Salary Notice",
   "script": "frappe.ui.form.on(\"Job Offer\", {\r\n    refresh(frm) {\r\n\r\n        if (frm.doc.docstatus === 1 && frm.doc.status === \"Accepted\") {\r\n\r\n            // Find if a Salary Notice already exists\r\n            frappe.db.get_list(\"Salary Notice\", {\r\n                filters: { job_offer: frm.doc.name },\r\n                limit_page_length: 1,\r\n                fields: [\"name\"]\r\n            }).then(result => {\r\n                if (result.length) {\r\n                    // Salary Notice exists, show button to open it\r\n                    frm.add_custom_button(\"Show Salary Notice\", function () {\r\n                        frappe.set_route(\"Form\", \"Salary Notice\", result[0].name);\r\n                    }, \"Actions\");\r\n                } else {\r\n                    // Salary Notice doesn't exist, show button to create\r\n                    frm.add_custom_button(\"Create Salary Notice\", function () {\r\n                        frappe.model.with_doctype(\"Salary Notice\", () => {\r\n                            let new_doc = frappe.model.get_new_doc(\"Salary Notice\");\r\n                            new_doc.job_offer = frm.doc.name;\r\n                            // new_doc.candidate_name = frm.doc.applicant_name;\r\n\r\n                            frappe.set_route(\"Form\", \"Salary Notice\", new_doc.name);\r\n                        });\r\n                    }, \"Actions\");\r\n                }\r\n            });\r\n\r\n        }\r\n\r\n    }\r\n});\r\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Appraisal",
+  "enabled": 1,
+  "modified": "2025-12-12 16:44:16.675265",
+  "module": "QCMC Logics",
+  "name": "Appraisal_TableView",
+  "script": "frappe.ui.form.on('Appraisal', {\r\n    refresh(frm) {\r\n        if (frm.get_field('goals') && frm.get_field('goals').grid.grid_rows.length > 0) {\r\n            display_multiline_goals(frm);\r\n        }\r\n    }\r\n});\r\n\r\nfrappe.ui.form.on('Appraisal Goal', {\r\n    form_render(frm, cdt, cdn) {\r\n        display_multiline_goals(frm);\r\n    },\r\n    appraisal_goal_on_grid_refresh(frm) {\r\n        display_multiline_goals(frm);\r\n    }\r\n});\r\n\r\n// -----------------------------------------------\r\n// Main formatting function\r\n// -----------------------------------------------\r\nfunction display_multiline_goals(frm) {\r\n    const multiline_fields = [\"custom_competency\", \"custom_kpi\", \"custom_targetmeasure\"];\r\n    const grid_field = frm.fields_dict[\"goals\"];\r\n    if (!grid_field) return;\r\n\r\n    // Format cells with multiline text\r\n    multiline_fields.forEach(fieldname => {\r\n        grid_field.grid.wrapper.find(`div[data-fieldname=\"${fieldname}\"]`).each(function() {\r\n            const $cell = $(this);\r\n            const $control = $cell.find(\".control-value\");\r\n\r\n            // Skip if editing\r\n            if ($cell.hasClass(\"editable\")) return;\r\n\r\n            const text = $control.length ? $control.text() : $cell.text();\r\n\r\n            if (text && $cell.find(\"pre\").length === 0) {\r\n                $cell.html(\r\n                    `<pre style=\"margin:0; white-space:pre-wrap; word-break:break-word; font-family:inherit; font-size: inherit;\">${text}</pre>`\r\n                );\r\n            }\r\n        });\r\n    });\r\n\r\n    // Expand rows after formatting\r\n    expand_grid_rows(frm);\r\n}\r\n\r\n// -----------------------------------------------\r\n// Expand entire row height based on content\r\n// -----------------------------------------------\r\nfunction expand_grid_rows(frm) {\r\n    const grid = frm.fields_dict[\"goals\"].grid;\r\n\r\n    grid.grid_rows.forEach(row => {\r\n        const $row = $(row.row);\r\n\r\n        // Allow height to grow\r\n        $row.css({\r\n            \"height\": \"auto\",\r\n            \"min-height\": \"50px\",\r\n            \"padding\": \"6px 0\"\r\n        });\r\n\r\n        // Adjust cell containers\r\n        $row.find(\"div.grid-static-col, div.grid-row\").css({\r\n            \"height\": \"auto\",\r\n            \"white-space\": \"normal\",\r\n            \"line-height\": \"1.3em\"\r\n        });\r\n\r\n        // Adjust content of the displayed values\r\n        $row.find(\"pre, .control-value\").css({\r\n            \"height\": \"auto\",\r\n            \"white-space\": \"pre-wrap\",\r\n            \"word-break\": \"break-word\"\r\n        });\r\n    });\r\n}\r\n",
   "view": "Form"
  }
 ]
