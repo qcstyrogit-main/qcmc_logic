@@ -327,15 +327,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-05-14 11:53:38.107266",
-  "name": "Cancelled",
-  "style": "",
-  "workflow_state_name": "Cancelled"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2025-03-19 10:02:55.739294",
   "name": "Sent Back for Modification",
   "style": "",
@@ -421,6 +412,15 @@
   "name": "Checked",
   "style": "",
   "workflow_state_name": "Checked"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-05-14 11:53:38.107266",
+  "name": "Cancelled",
+  "style": "",
+  "workflow_state_name": "Cancelled"
  },
  {
   "docstatus": 0,

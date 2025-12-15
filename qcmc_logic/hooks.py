@@ -63,10 +63,8 @@ fixtures = [
     {"doctype": "Letter Head"},
     {"doctype": "User Permission"},
     {"doctype": "Role Profile"},
-    {"doctype": "Custom Role"},
     {"doctype": "Custom DocPerm"},
     # {"doctype": "Account"},
-    {"doctype": "Role"},
     {"doctype": "Module Def"},
     {"doctype": "Module Profile"},
     {"doctype": "Translation"},  # Added for translations
@@ -83,12 +81,12 @@ fixtures = [
     "Notification",
     {
         "doctype": "Print Format",
-       "filters": [["custom_format", "=", 1]]
+        "filters": [["custom_format", "=", 1]]
     },
     "Letter Head",
     {
         "doctype": "Role",
-       "filters": [["is_custom", "=", 1]]
+        "filters": [["is_custom", "=", 1]]
     }
 ]
 after_migrate = [
