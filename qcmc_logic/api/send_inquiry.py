@@ -1,16 +1,9 @@
 import frappe
+from frappe.utils import now_datetime
 
 @frappe.whitelist(allow_guest=True)
 def send_inquiry():
-    """
-    Guest-safe inquiry submission.
-    CSRF check is disabled for this method.
-    """
-    # Ignore CSRF before doing anything else
-    frappe.local.flags.ignore_csrf = True
-
-    # Get request payload
-    data = frappe.request.get_json(silent=True) or frappe.form_dict
+    data = frappe.form_dict
 
     name = data.get("name") or "No Name"
     email = data.get("email") or ""
@@ -19,11 +12,11 @@ def send_inquiry():
     message = data.get("message") or ""
     hp = data.get("hp")
 
-    # Honeypot
+    # --- Honeypot (silent spam discard)
     if hp:
         return {"message": "OK"}
 
-    # Log missing fields
+    # --- Log missing fields (non-blocking)
     missing_fields = []
     if not email:
         missing_fields.append("email")
@@ -36,16 +29,72 @@ def send_inquiry():
             "Inquiry Missing Fields"
         )
 
-    subject = f"Product Inquiry: {product}"
+    # --- Timestamp
+    time = now_datetime().strftime("%Y-%m-%d %H:%M:%S")
+
+    # --- Email HTML template
     content = f"""
-    <p><strong>Product:</strong> {product}</p>
-    <p><strong>Name:</strong> {name}</p>
-    <p><strong>Email:</strong> {email or '(No email provided)'}</p>
-    <p><strong>Contact:</strong> {contact}</p>
-    <p><strong>Message:</strong><br>{message or '(No message provided)'}</p>
+    <div style="font-family: system-ui, sans-serif, Arial; font-size: 12px">
+      <div>
+        A new product inquiry has been received from <strong>{name}</strong>. Kindly respond at your earliest convenience.
+      </div>
+
+      <div
+        style="
+          margin-top: 20px;
+          padding: 15px 0;
+          border-width: 1px 0;
+          border-style: dashed;
+          border-color: lightgrey;
+        "
+      >
+        <table role="presentation">
+          <tr>
+            <td style="vertical-align: top">
+              <div
+                style="
+                  padding: 6px 10px;
+                  margin: 0 10px;
+                  background-color: aliceblue;
+                  border-radius: 5px;
+                  font-size: 26px;
+                "
+                role="img"
+              >
+                📦
+              </div>
+            </td>
+
+            <td style="vertical-align: top">
+              <div style="color: #2c3e50; font-size: 16px">
+                <strong>Name:</strong> {name}
+              </div>
+              <div style="color: #2c3e50; font-size: 16px; margin-top: 5px">
+                <strong>Product:</strong> {product}
+              </div>
+              <div style="color: #2c3e50; font-size: 14px; margin-top: 5px">
+                <strong>Contact Number:</strong> {contact}
+              </div>
+              <div style="color: #2c3e50; font-size: 14px; margin-top: 5px">
+                <strong>Email Address:</strong> {email}
+              </div>
+              <div style="color: #cccccc; font-size: 13px; margin-top: 5px">
+                {time}
+              </div>
+              <p style="font-size: 15px; margin-top: 10px">
+                <strong>Message:</strong><br />
+                {message}
+              </p>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
     """
 
-    # Send email via default outgoing account
+    subject = f"Product Inquiry: {product}"
+
+    # --- Send email to company
     frappe.sendmail(
         recipients="mmagbojos@qcstyro.com",
         sender=email if email else "noreply@qcstyro.com",
@@ -53,7 +102,20 @@ def send_inquiry():
         message=content
     )
 
-    # Log Communication
+    # --- Auto-reply to guest
+    if email:
+        frappe.sendmail(
+            recipients=email,
+            subject="We received your inquiry",
+            message=f"""
+                <p>Hi {name},</p>
+                <p>Thank you for your inquiry about <strong>{product}</strong>.</p>
+                <p>Our team has received your message and will contact you shortly.</p>
+                <p>— QC Styro Sales Team</p>
+            """
+        )
+
+    # --- Log Communication
     frappe.get_doc({
         "doctype": "Communication",
         "communication_type": "Communication",
