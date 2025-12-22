@@ -2,15 +2,17 @@ import frappe
 from frappe.utils import now_datetime
 
 @frappe.whitelist(allow_guest=True)
-def send_inquiry():
+def send_contact_inquiry():
     data = frappe.form_dict
 
+    # --- Fields ---
     name = data.get("name") or "No Name"
+    company = data.get("company") or "N/A"
+    contact_no = data.get("contact_no") or "N/A"
     email = data.get("email") or ""
-    contact = data.get("contact") or "N/A"
-    product = data.get("product") or "N/A"
-    message = data.get("message") or ""
-    hp = data.get("hp")
+    topic = data.get("topic") or "General Inquiry"
+    inquiry = data.get("inquiry") or ""
+    hp = data.get("hp")  # honeypot
 
     # --- Honeypot (silent spam discard)
     if hp:
@@ -20,23 +22,23 @@ def send_inquiry():
     missing_fields = []
     if not email:
         missing_fields.append("email")
-    if not message:
-        missing_fields.append("message")
+    if not inquiry:
+        missing_fields.append("inquiry")
 
     if missing_fields:
         frappe.log_error(
-            f"Missing fields in inquiry: {missing_fields}\nPayload: {data}",
-            "Inquiry Missing Fields"
+            f"Missing fields in contact inquiry: {missing_fields}\nPayload: {data}",
+            "Contact Inquiry Missing Fields"
         )
 
     # --- Timestamp
     time = now_datetime().strftime("%Y-%m-%d %H:%M:%S")
 
-    # --- Email HTML template
+    # --- Email HTML content
     content = f"""
     <div style="font-family: system-ui, sans-serif, Arial; font-size: 12px">
       <div>
-        A new product inquiry has been received from <strong>{name}</strong>. Kindly respond at your earliest convenience.
+        A new <strong>Contact Us</strong> inquiry has been received from <strong>{name}</strong>.
       </div>
 
       <div
@@ -61,7 +63,7 @@ def send_inquiry():
                 "
                 role="img"
               >
-                📦
+                📩
               </div>
             </td>
 
@@ -69,21 +71,25 @@ def send_inquiry():
               <div style="color: #2c3e50; font-size: 16px">
                 <strong>Name:</strong> {name}
               </div>
-              <div style="color: #2c3e50; font-size: 16px; margin-top: 5px">
-                <strong>Product:</strong> {product}
+              <div style="color: #2c3e50; font-size: 14px; margin-top: 5px">
+                <strong>Company:</strong> {company}
               </div>
               <div style="color: #2c3e50; font-size: 14px; margin-top: 5px">
-                <strong>Contact Number:</strong> {contact}
+                <strong>Contact No:</strong> {contact_no}
               </div>
               <div style="color: #2c3e50; font-size: 14px; margin-top: 5px">
-                <strong>Email Address:</strong> {email}
+                <strong>Email:</strong> {email}
+              </div>
+              <div style="color: #2c3e50; font-size: 14px; margin-top: 5px">
+                <strong>Topic:</strong> {topic}
               </div>
               <div style="color: #cccccc; font-size: 13px; margin-top: 5px">
                 {time}
               </div>
+
               <p style="font-size: 15px; margin-top: 10px">
-                <strong>Message:</strong><br />
-                {message}
+                <strong>Your Inquiry:</strong><br />
+                {inquiry}
               </p>
             </td>
           </tr>
@@ -92,9 +98,9 @@ def send_inquiry():
     </div>
     """
 
-    subject = f"Product Inquiry: {product}"
+    subject = f"Contact Us Inquiry: {topic}"
 
-    # --- Get Sales email from Email Account Doctype
+     # --- Get Sales email from Email Account Doctype
     sales_email = frappe.db.get_value("Email Account", "Sales", "email_id")
     if not sales_email:
         frappe.throw("Sales email account not found.")
@@ -107,15 +113,15 @@ def send_inquiry():
         message=content
     )
 
-    # --- Auto-reply to guest
+    # --- Auto-reply to sender
     if email:
         frappe.sendmail(
             recipients=email,
             subject="We received your inquiry",
             message=f"""
                 <p>Hi {name},</p>
-                <p>Thank you for your inquiry about <strong>{product}</strong>.</p>
-                <p>Our team has received your message and will contact you shortly.</p>
+                <p>Thank you for contacting <strong>QC StyroPackaging Corporation and MultiPlast Corporation</strong>.</p>
+                <p>We have received your inquiry regarding <strong>{topic}</strong> and will get back to you shortly.</p>
                 <p>— QC Styro Sales Team</p>
             """
         )
@@ -131,4 +137,4 @@ def send_inquiry():
         "sender": email if email else "noreply@qcstyro.com"
     }).insert(ignore_permissions=True)
 
-    return {"message": "Inquiry submitted successfully!"}
+    return {"message": "Thank you for contacting us. Your inquiry has been sent successfully!"}
