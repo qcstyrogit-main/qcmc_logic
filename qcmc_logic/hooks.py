@@ -41,6 +41,7 @@ override_whitelisted_methods = {
 override_doctype_class = {
     # (Optional, only if overriding full controller)
     "Appraisal": "qcmc_logic.overrides.appraisal_override.CustomAppraisal",
+    "Appraisal Cycle": "qcmc_logic.overrides.appraisalcycle_override.CustomAppraisalCycle",
     "Asset": "qcmc_logic.overrides.asset_override.CustomAsset",
     "Job Requisition": "qcmc_logic.overrides.MRFApprovers.MRFApproverSetCustomFields",
     "Staffing Plan": "qcmc_logic.overrides.StaffingPlanOverrides.CustomStaffingPlan",
