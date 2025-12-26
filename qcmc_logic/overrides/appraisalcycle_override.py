@@ -59,8 +59,7 @@ class CustomAppraisalCycle(AppraisalCycle):
             filters={"custom_appraisal_group": self.custom_appraisal_group},
             pluck="name"
         )
-        #add here console log to check if it is working
-        frappe.logger().debug(f"Departments for Appraisal Group '{self.custom_appraisal_group}': {departments}")
+ 
         if not departments:
             return []
 
