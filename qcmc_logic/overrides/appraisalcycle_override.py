@@ -59,7 +59,7 @@ class CustomAppraisalCycle(AppraisalCycle):
             filters={"custom_appraisal_group": self.custom_appraisal_group},
             pluck="name"
         )
-
+ 
         if not departments:
             return []
 
