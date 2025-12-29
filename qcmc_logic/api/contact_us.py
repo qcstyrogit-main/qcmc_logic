@@ -101,7 +101,7 @@ def send_contact_inquiry():
     subject = f"Contact Us Inquiry: {topic}"
 
      # --- Get Sales email from Email Account Doctype
-    sales_email = frappe.db.get_value("Email Account", "Sales", "email_id")
+    sales_email = frappe.db.get_value("Email Account", "Sales QC", "email_id")
     if not sales_email:
         frappe.throw("Sales email account not found.")
 
