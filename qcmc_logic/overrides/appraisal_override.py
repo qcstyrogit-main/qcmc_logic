@@ -1,4 +1,5 @@
 import frappe
+from frappe.utils import flt
 from hrms.hr.doctype.appraisal.appraisal import Appraisal
 
 class CustomAppraisal(Appraisal):
@@ -49,6 +50,13 @@ class CustomAppraisal(Appraisal):
         #    updated self.rate_goals_manually value.
         self.set_kras_and_rating_criteria()
 
+    def calculate_avg_feedback_score(self, update=False):
+         
+        self.avg_feedback_score = self.custom_development_plan or 0
+         
+        if update:
+            self.calculate_final_score()
+            self.db_update()
 
     @frappe.whitelist()
     def set_kras_and_rating_criteria(self):

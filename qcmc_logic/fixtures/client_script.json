@@ -4,6 +4,17 @@
   "doctype": "Client Script",
   "dt": "Appraisal Template",
   "enabled": 1,
+  "modified": "2025-12-16 15:41:17.250146",
+  "module": "QCMC Logics",
+  "name": "AppraisalTemplateTableView",
+  "script": "frappe.ui.form.on('Appraisal Template', {\n    refresh(frm) {\n        if (frm.get_field('goals') && frm.get_field('goals').grid.grid_rows.length > 0) {\n            display_multiline_goals(frm);\n        }\n    }\n});\n\nfrappe.ui.form.on('Appraisal Template Goal', {\n    form_render(frm, cdt, cdn) {\n        display_multiline_goals(frm);\n    },\n    appraisal_goal_on_grid_refresh(frm) {\n        display_multiline_goals(frm);\n    }\n});\n\n// -----------------------------------------------\n// Main formatting function\n// -----------------------------------------------\nfunction display_multiline_goals(frm) {\n    const multiline_fields = [\"custom_competency\", \"custom_performance_indicator\", \"custom_targetmeasure\"];\n    const grid_field = frm.fields_dict[\"goals\"];\n    if (!grid_field) return;\n\n    // Format cells with multiline text\n    multiline_fields.forEach(fieldname => {\n        grid_field.grid.wrapper.find(`div[data-fieldname=\"${fieldname}\"]`).each(function() {\n            const $cell = $(this);\n            const $control = $cell.find(\".control-value\");\n\n            // Skip if editing\n            if ($cell.hasClass(\"editable\")) return;\n\n            const text = $control.length ? $control.text() : $cell.text();\n\n            if (text && $cell.find(\"pre\").length === 0) {\n                $cell.html(\n                    `<pre style=\"margin:0; white-space:pre-wrap; word-break:break-word; font-family:inherit; font-size: inherit;\">${text}</pre>`\n                );\n            }\n        });\n    });\n\n    // Expand rows after formatting\n    expand_grid_rows(frm);\n}\n\n// -----------------------------------------------\n// Expand entire row height based on content\n// -----------------------------------------------\nfunction expand_grid_rows(frm) {\n    const grid = frm.fields_dict[\"goals\"].grid;\n\n    grid.grid_rows.forEach(row => {\n        const $row = $(row.row);\n\n        // Allow height to grow\n        $row.css({\n            \"height\": \"auto\",\n            \"min-height\": \"50px\",\n            \"padding\": \"6px 0\"\n        });\n\n        // Adjust cell containers\n        $row.find(\"div.grid-static-col, div.grid-row\").css({\n            \"height\": \"auto\",\n            \"white-space\": \"normal\",\n            \"line-height\": \"1.3em\"\n        });\n\n        // Adjust content of the displayed values\n        $row.find(\"pre, .control-value\").css({\n            \"height\": \"auto\",\n            \"white-space\": \"pre-wrap\",\n            \"word-break\": \"break-word\"\n        });\n    });\n}",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Appraisal Template",
+  "enabled": 1,
   "modified": "2025-12-04 09:11:30.389098",
   "module": "QCMC Logics",
   "name": "Appraisal Template KPI Filter",
