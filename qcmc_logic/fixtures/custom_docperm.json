@@ -9814,5 +9814,29 @@
   "share": 0,
   "submit": 0,
   "write": 0
+ },
+ {
+  "amend": 0,
+  "cancel": 0,
+  "create": 1,
+  "delete": 1,
+  "docstatus": 0,
+  "doctype": "Custom DocPerm",
+  "email": 1,
+  "export": 1,
+  "if_owner": 1,
+  "import": 0,
+  "modified": "2025-12-23 12:14:20.873955",
+  "name": "pp0uv1brv6",
+  "parent": "ClefinCode Chat Channel",
+  "permlevel": 0,
+  "print": 1,
+  "read": 1,
+  "report": 0,
+  "role": "Chat Administrator",
+  "select": 0,
+  "share": 1,
+  "submit": 0,
+  "write": 1
  }
 ]

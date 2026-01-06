@@ -354,15 +354,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-07-18 16:58:15.486500",
-  "name": "To Received",
-  "style": "",
-  "workflow_state_name": "To Received"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2025-05-27 13:11:36.687166",
   "name": "Pending PM Approval",
   "style": "",
@@ -430,5 +421,14 @@
   "name": "Approved",
   "style": "Success",
   "workflow_state_name": "Approved"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-07-18 16:58:15.486500",
+  "name": "To Received",
+  "style": "",
+  "workflow_state_name": "To Received"
  }
 ]
