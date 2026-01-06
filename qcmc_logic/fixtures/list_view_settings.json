@@ -8,6 +8,20 @@
   "disable_sidebar_stats": 0,
   "docstatus": 0,
   "doctype": "List View Settings",
+  "fields": "[{\"label\":\"Member Name\",\"fieldname\":\"member_name\"},{\"label\":\"Course\",\"fieldname\":\"course\"},{\"label\":\"Member\",\"fieldname\":\"member\"},{\"label\":\"Date Enrolled\",\"fieldname\":\"custom_date_enrolled\"}]",
+  "modified": "2025-12-11 17:51:48.009255",
+  "name": "LMS Enrollment",
+  "total_fields": "5"
+ },
+ {
+  "allow_edit": 0,
+  "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
+  "disable_comment_count": 0,
+  "disable_count": 0,
+  "disable_sidebar_stats": 0,
+  "docstatus": 0,
+  "doctype": "List View Settings",
   "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"type\":\"Status\",\"label\":\"Status\",\"fieldname\":\"status_field\"},{\"label\":\"Company\",\"fieldname\":\"company\"},{\"label\":\"Default In-Transit Warehouse\",\"fieldname\":\"default_in_transit_warehouse\"}]",
   "modified": "2025-09-22 13:34:49.371247",
   "name": "Warehouse",
@@ -166,5 +180,19 @@
   "modified": "2025-12-05 16:36:00.279033",
   "name": "Salary Notice",
   "total_fields": "4"
+ },
+ {
+  "allow_edit": 0,
+  "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
+  "disable_comment_count": 0,
+  "disable_count": 0,
+  "disable_sidebar_stats": 0,
+  "docstatus": 0,
+  "doctype": "List View Settings",
+  "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"custom_level_name\",\"label\":\"Level Name\"},{\"fieldname\":\"custom_min1\",\"label\":\"Min\"},{\"fieldname\":\"custom_max2\",\"label\":\"Max\"},{\"fieldname\":\"custom_salary_rate_type\",\"label\":\"Salary Rate Type\"}]",
+  "modified": "2026-01-06 10:59:02.043167",
+  "name": "Employee Grade",
+  "total_fields": "6"
  }
 ]
