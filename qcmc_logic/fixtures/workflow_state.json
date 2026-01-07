@@ -2,6 +2,33 @@
  {
   "docstatus": 0,
   "doctype": "Workflow State",
+  "icon": "remove",
+  "modified": "2025-02-11 13:07:54.037496",
+  "name": "Rejected",
+  "style": "Danger",
+  "workflow_state_name": "Rejected"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "question-sign",
+  "modified": "2025-02-11 13:07:54.032034",
+  "name": "Pending",
+  "style": "",
+  "workflow_state_name": "Pending"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "ok-sign",
+  "modified": "2025-02-11 13:07:54.034840",
+  "name": "Approved",
+  "style": "Success",
+  "workflow_state_name": "Approved"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
   "icon": "",
   "modified": "2025-06-27 14:55:16.695882",
   "name": "Initiated",
@@ -29,24 +56,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow State",
-  "icon": "remove",
-  "modified": "2025-02-11 13:07:54.037496",
-  "name": "Rejected",
-  "style": "Danger",
-  "workflow_state_name": "Rejected"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2024-04-15 21:21:38.208963",
-  "name": "Processed",
-  "style": "Success",
-  "workflow_state_name": "Processed"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
   "icon": "",
   "modified": "2025-09-15 13:15:31.788120",
   "name": "For Approval of Corp IE",
@@ -70,15 +79,6 @@
   "name": "For VP Procurement Approval",
   "style": "",
   "workflow_state_name": "For VP Procurement Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "question-sign",
-  "modified": "2025-02-11 13:07:54.032034",
-  "name": "Pending",
-  "style": "",
-  "workflow_state_name": "Pending"
  },
  {
   "docstatus": 0,
@@ -151,15 +151,6 @@
   "name": "HR Acknowledgement",
   "style": "",
   "workflow_state_name": "HR Acknowledgement"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-02-07 09:07:33.779764",
-  "name": "Submitted",
-  "style": "Success",
-  "workflow_state_name": "Submitted"
  },
  {
   "docstatus": 0,
@@ -354,6 +345,15 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "modified": "2025-07-18 16:58:15.486500",
+  "name": "To Received",
+  "style": "",
+  "workflow_state_name": "To Received"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "modified": "2025-05-27 13:11:36.687166",
   "name": "Pending PM Approval",
   "style": "",
@@ -381,15 +381,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-01-07 09:26:33.936333",
-  "name": "Draft",
-  "style": "",
-  "workflow_state_name": "Draft"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2025-04-23 11:50:47.366734",
   "name": "For Checking",
   "style": "",
@@ -408,27 +399,36 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-05-14 11:53:38.107266",
-  "name": "Cancelled",
-  "style": "",
-  "workflow_state_name": "Cancelled"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "ok-sign",
-  "modified": "2025-02-11 13:07:54.034840",
-  "name": "Approved",
+  "modified": "2024-04-15 21:21:38.208963",
+  "name": "Processed",
   "style": "Success",
-  "workflow_state_name": "Approved"
+  "workflow_state_name": "Processed"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-07-18 16:58:15.486500",
-  "name": "To Received",
+  "modified": "2025-02-07 09:07:33.779764",
+  "name": "Submitted",
+  "style": "Success",
+  "workflow_state_name": "Submitted"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-01-07 09:26:33.936333",
+  "name": "Draft",
   "style": "",
-  "workflow_state_name": "To Received"
+  "workflow_state_name": "Draft"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-05-14 11:53:38.107266",
+  "name": "Cancelled",
+  "style": "",
+  "workflow_state_name": "Cancelled"
  }
 ]

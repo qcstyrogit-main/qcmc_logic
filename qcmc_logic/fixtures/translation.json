@@ -111,19 +111,6 @@
   "docstatus": 0,
   "doctype": "Translation",
   "language": "en",
-  "modified": "2024-04-16 02:07:38.940565",
-  "name": "98019a9499",
-  "source_text": "Salary Register",
-  "translated_text": "Payroll Register"
- },
- {
-  "context": null,
-  "contributed": 0,
-  "contribution_docname": null,
-  "contribution_status": "",
-  "docstatus": 0,
-  "doctype": "Translation",
-  "language": "en",
   "modified": "2025-10-17 16:10:32.336020",
   "name": "a3ht0igvko",
   "source_text": "KRA",
@@ -167,5 +154,18 @@
   "name": "10urdiplsu",
   "source_text": "Appointment Letter Template",
   "translated_text": "Contract Template"
+ },
+ {
+  "context": null,
+  "contributed": 0,
+  "contribution_docname": null,
+  "contribution_status": "",
+  "docstatus": 0,
+  "doctype": "Translation",
+  "language": "en",
+  "modified": "2024-04-16 02:07:38.940565",
+  "name": "98019a9499",
+  "source_text": "Salary Register",
+  "translated_text": "Payroll Register"
  }
 ]
