@@ -513,19 +513,6 @@
   "doctype": "Role",
   "home_page": null,
   "is_custom": 1,
-  "modified": "2025-12-15 10:18:26.365218",
-  "name": "Payroll Master",
-  "restrict_to_domain": null,
-  "role_name": "Payroll Master",
-  "two_factor_auth": 0
- },
- {
-  "desk_access": 1,
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Role",
-  "home_page": null,
-  "is_custom": 1,
   "modified": "2025-06-27 17:10:35.469109",
   "name": "Employee Self Service",
   "restrict_to_domain": null,
@@ -556,6 +543,19 @@
   "name": "Appraisal Manager",
   "restrict_to_domain": null,
   "role_name": "Appraisal Manager",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "modified": "2025-12-15 10:18:26.365218",
+  "name": "Payroll Master",
+  "restrict_to_domain": null,
+  "role_name": "Payroll Master",
   "two_factor_auth": 0
  }
 ]

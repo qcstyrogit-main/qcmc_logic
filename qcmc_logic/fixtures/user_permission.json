@@ -1,83 +1,5 @@
 [
  {
-  "allow": "Employee",
-  "applicable_for": null,
-  "apply_to_all_doctypes": 1,
-  "docstatus": 0,
-  "doctype": "User Permission",
-  "for_value": "HR-EMP-00548",
-  "hide_descendants": 0,
-  "is_default": 0,
-  "modified": "2025-12-05 17:07:51.321209",
-  "name": "i898ki94vo",
-  "user": "hr-emp-00548@qcstyro.com"
- },
- {
-  "allow": "Company",
-  "applicable_for": null,
-  "apply_to_all_doctypes": 1,
-  "docstatus": 0,
-  "doctype": "User Permission",
-  "for_value": "QC Styropackaging Corporation",
-  "hide_descendants": 0,
-  "is_default": 0,
-  "modified": "2025-12-05 17:07:51.476364",
-  "name": "i8b5e9g4g9",
-  "user": "hr-emp-00548@qcstyro.com"
- },
- {
-  "allow": "Employee",
-  "applicable_for": null,
-  "apply_to_all_doctypes": 1,
-  "docstatus": 0,
-  "doctype": "User Permission",
-  "for_value": "HR-EMP-00550",
-  "hide_descendants": 0,
-  "is_default": 0,
-  "modified": "2025-12-23 13:48:41.431844",
-  "name": "h1ul37ifdb",
-  "user": "jd@email.com"
- },
- {
-  "allow": "Company",
-  "applicable_for": null,
-  "apply_to_all_doctypes": 1,
-  "docstatus": 0,
-  "doctype": "User Permission",
-  "for_value": "QC Styropackaging Corporation",
-  "hide_descendants": 0,
-  "is_default": 0,
-  "modified": "2025-12-23 13:48:41.518973",
-  "name": "h1vl4ks5qj",
-  "user": "jd@email.com"
- },
- {
-  "allow": "Employee",
-  "applicable_for": null,
-  "apply_to_all_doctypes": 1,
-  "docstatus": 0,
-  "doctype": "User Permission",
-  "for_value": "HR-EMP-00004",
-  "hide_descendants": 0,
-  "is_default": 0,
-  "modified": "2026-01-05 10:43:12.348923",
-  "name": "t43jfh2ehk",
-  "user": "diwata@sample.com"
- },
- {
-  "allow": "Company",
-  "applicable_for": null,
-  "apply_to_all_doctypes": 1,
-  "docstatus": 0,
-  "doctype": "User Permission",
-  "for_value": "QC Styropackaging Corporation",
-  "hide_descendants": 0,
-  "is_default": 0,
-  "modified": "2026-01-05 10:43:12.460952",
-  "name": "t44g8222ui",
-  "user": "diwata@sample.com"
- },
- {
   "allow": "Company",
   "applicable_for": null,
   "apply_to_all_doctypes": 1,
@@ -1298,5 +1220,18 @@
   "modified": "2025-10-29 16:40:12.180105",
   "name": "gbj0m20e82",
   "user": "epurchasing@qcstyro.com"
+ },
+ {
+  "allow": "Appraisal Section",
+  "applicable_for": null,
+  "apply_to_all_doctypes": 1,
+  "docstatus": 0,
+  "doctype": "User Permission",
+  "for_value": "MIS",
+  "hide_descendants": 0,
+  "is_default": 0,
+  "modified": "2026-01-07 11:45:43.983962",
+  "name": "p8fqqo529q",
+  "user": "admin@qcstyro.com"
  }
 ]
