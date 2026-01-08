@@ -79,7 +79,7 @@ fixtures = [
         "doctype": "Report",
         "filters": [["is_standard", "=", 0]]
     },
-    "Notification",
+    
     {
         "doctype": "Print Format",
         "filters": [["custom_format", "=", 1]]
