@@ -92,14 +92,14 @@ fixtures = [
         "filters": [["is_custom", "=", 1]]
     }
 ]
-after_migrate = [
-    "qcmc_logic.patches.monkey_patches.execute"
-]
+# after_migrate = [
+#     "qcmc_logic.patches.monkey_patches.execute"
+# ]
 
-# Or ensure it loads at boot
-app_include = [
-    "qcmc_logic.patches.monkey_patches"
-]
+# # Or ensure it loads at boot
+# app_include = [
+#     "qcmc_logic.patches.monkey_patches"
+# ]
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
