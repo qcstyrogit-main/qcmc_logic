@@ -378,5 +378,5 @@
   "reference_doctype": "Job Requisition",
   "script": "if not doc.custom_additional_manpower:\r\n    vacancies = int(doc.custom_vacancies or 0)\r\n    positions = int(doc.no_of_positions or 0)\r\n\r\n    if positions > vacancies:\r\n        frappe.throw(\r\n            f\"Number of Positions ({positions}) cannot be greater than available Vacancies ({vacancies}).\"\r\n        )\r\n",
   "script_type": "DocType Event"
- }
+ } 
 ]

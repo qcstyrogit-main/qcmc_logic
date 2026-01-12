@@ -47,7 +47,9 @@ override_doctype_class = {
     "Staffing Plan": "qcmc_logic.overrides.StaffingPlanOverrides.CustomStaffingPlan",
     "Payment Entry": "qcmc_logic.overrides.payment_entry.CustomPaymentEntry"
 }
-
+permission_query_conditions = {
+    "Appraisal": "qcmc_logic.customs.permissions.appraisal_permission_query"
+}
 override_print_format = {
     "Purchase Order": "qcmc_logic.overrides.POPrint_Override.get_po_print_format"
 }
