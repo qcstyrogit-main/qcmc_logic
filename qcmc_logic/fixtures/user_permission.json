@@ -1,5 +1,31 @@
 [
  {
+  "allow": "Company",
+  "applicable_for": null,
+  "apply_to_all_doctypes": 1,
+  "docstatus": 0,
+  "doctype": "User Permission",
+  "for_value": "QC Styropackaging Corporation",
+  "hide_descendants": 0,
+  "is_default": 0,
+  "modified": "2025-12-22 11:42:58.655452",
+  "name": "2k0h7qsiad",
+  "user": "mmagbojos@qcstyro.com"
+ },
+ {
+  "allow": "Company",
+  "applicable_for": null,
+  "apply_to_all_doctypes": 1,
+  "docstatus": 0,
+  "doctype": "User Permission",
+  "for_value": "QC Styropackaging Corporation",
+  "hide_descendants": 0,
+  "is_default": 0,
+  "modified": "2025-12-29 15:07:21.706868",
+  "name": "grc1vqs4jj",
+  "user": "test@user.com"
+ },
+ {
   "allow": "Employee",
   "applicable_for": null,
   "apply_to_all_doctypes": 1,
@@ -76,6 +102,19 @@
   "modified": "2026-01-05 10:43:12.460952",
   "name": "t44g8222ui",
   "user": "diwata@sample.com"
+ },
+ {
+  "allow": "Employee",
+  "applicable_for": null,
+  "apply_to_all_doctypes": 1,
+  "docstatus": 0,
+  "doctype": "User Permission",
+  "for_value": "HR-EMP-00554",
+  "hide_descendants": 0,
+  "is_default": 0,
+  "modified": "2026-01-07 14:54:34.922336",
+  "name": "6n8au1jln7",
+  "user": "mmagbojos@qcstyro.com"
  },
  {
   "allow": "Company",

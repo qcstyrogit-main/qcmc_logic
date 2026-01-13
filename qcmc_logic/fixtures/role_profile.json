@@ -1040,6 +1040,27 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2025-10-29 16:30:14.985269",
+  "name": "Employee",
+  "role_profile": "Employee",
+  "roles": [
+   {
+    "parent": "Employee",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "LMS Student"
+   },
+   {
+    "parent": "Employee",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
   "modified": "2025-09-12 17:24:24.148479",
   "name": "HR",
   "role_profile": "HR",
@@ -1061,27 +1082,6 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Expense Approver"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "modified": "2025-10-29 16:30:14.985269",
-  "name": "Employee",
-  "role_profile": "Employee",
-  "roles": [
-   {
-    "parent": "Employee",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "LMS Student"
-   },
-   {
-    "parent": "Employee",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Employee"
    }
   ]
  }
