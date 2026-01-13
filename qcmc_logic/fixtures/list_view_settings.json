@@ -2,7 +2,45 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
+  "disable_comment_count": 0,
+  "disable_count": 0,
+  "disable_sidebar_stats": 0,
+  "docstatus": 0,
+  "doctype": "List View Settings",
+  "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"template_title\",\"label\":\"Appraisal Template Title\"},{\"fieldname\":\"custom_appraisal_group\",\"label\":\"Appraisal Group\"}]",
+  "modified": "2025-12-17 08:47:51.641320",
+  "name": "Appraisal Template",
+  "total_fields": "4"
+ },
+ {
+  "allow_edit": 0,
+  "disable_auto_refresh": 0,
+  "disable_comment_count": 0,
+  "disable_count": 0,
+  "disable_sidebar_stats": 0,
+  "docstatus": 0,
+  "doctype": "List View Settings",
+  "fields": "[{\"label\":\"Title\",\"fieldname\":\"title\"},{\"label\":\"Status\",\"fieldname\":\"status\"},{\"label\":\"Published On\",\"fieldname\":\"published_on\"}]",
+  "modified": "2025-12-18 09:45:32.611524",
+  "name": "LMS Course",
+  "total_fields": "5"
+ },
+ {
+  "allow_edit": 0,
+  "disable_auto_refresh": 0,
+  "disable_comment_count": 0,
+  "disable_count": 0,
+  "disable_sidebar_stats": 0,
+  "docstatus": 0,
+  "doctype": "List View Settings",
+  "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"department_name\",\"label\":\"Department\"},{\"fieldname\":\"custom_appraisal_group\",\"label\":\"Appraisal Group\"}]",
+  "modified": "2025-12-22 13:23:09.177632",
+  "name": "Department",
+  "total_fields": "7"
+ },
+ {
+  "allow_edit": 0,
+  "disable_auto_refresh": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -16,7 +54,6 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -30,7 +67,6 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -44,7 +80,6 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 1,
@@ -58,7 +93,6 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -72,7 +106,6 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -86,7 +119,6 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -100,7 +132,6 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -114,7 +145,6 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -128,7 +158,6 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -142,7 +171,6 @@
  {
   "allow_edit": 1,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -156,7 +184,6 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -170,7 +197,6 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -184,7 +210,6 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -198,7 +223,6 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,

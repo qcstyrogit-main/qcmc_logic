@@ -417,18 +417,18 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-01-07 09:26:33.936333",
-  "name": "Draft",
+  "modified": "2025-05-14 11:53:38.107266",
+  "name": "Cancelled",
   "style": "",
-  "workflow_state_name": "Draft"
+  "workflow_state_name": "Cancelled"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-05-14 11:53:38.107266",
-  "name": "Cancelled",
+  "modified": "2025-01-07 09:26:33.936333",
+  "name": "Draft",
   "style": "",
-  "workflow_state_name": "Cancelled"
+  "workflow_state_name": "Draft"
  }
 ]
