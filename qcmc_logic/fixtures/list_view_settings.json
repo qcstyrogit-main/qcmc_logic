@@ -2,6 +2,21 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
+  "disable_comment_count": 0,
+  "disable_count": 1,
+  "disable_sidebar_stats": 0,
+  "docstatus": 0,
+  "doctype": "List View Settings",
+  "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Greetings\",\"fieldname\":\"greetings\"}]",
+  "modified": "2026-01-20 12:54:09.500371",
+  "name": "Chatbot Settings",
+  "total_fields": "4"
+ },
+ {
+  "allow_edit": 0,
+  "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -15,6 +30,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -28,6 +44,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -41,6 +58,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -54,6 +72,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -67,6 +86,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -80,6 +100,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 1,
@@ -93,6 +114,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -106,6 +128,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -119,6 +142,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -132,6 +156,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -145,6 +170,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -158,6 +184,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -171,6 +198,7 @@
  {
   "allow_edit": 1,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -184,6 +212,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -197,6 +226,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -210,6 +240,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
@@ -223,6 +254,7 @@
  {
   "allow_edit": 0,
   "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
   "disable_comment_count": 0,
   "disable_count": 0,
   "disable_sidebar_stats": 0,
