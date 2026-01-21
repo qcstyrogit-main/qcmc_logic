@@ -1350,5 +1350,18 @@
   "modified": "2026-01-07 11:45:43.983962",
   "name": "p8fqqo529q",
   "user": "admin@qcstyro.com"
+ },
+ {
+  "allow": "Employee",
+  "applicable_for": null,
+  "apply_to_all_doctypes": 1,
+  "docstatus": 0,
+  "doctype": "User Permission",
+  "for_value": "HR-EMP-00549",
+  "hide_descendants": 0,
+  "is_default": 0,
+  "modified": "2026-01-20 15:27:39.474462",
+  "name": "k1incfbq8p",
+  "user": "mmagbojos@qcstyro.com"
  }
 ]

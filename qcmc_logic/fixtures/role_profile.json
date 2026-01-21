@@ -746,7 +746,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-07-02 10:26:43.431824",
+  "modified": "2026-01-20 15:03:51.840579",
   "name": "General Accounting Staff",
   "role_profile": "General Accounting Staff",
   "roles": [
@@ -779,6 +779,12 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Purchase User"
+   },
+   {
+    "parent": "General Accounting Staff",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Chat Support"
    }
   ]
  },
