@@ -91,6 +91,10 @@ def submit_job_applicant_custom(
         "address": address,
         "email_id": email_id,
         "phone_number": phone_number,
+
+        # 🔴 THIS IS THE MISSING PIECE
+        "status": "Open",
+
         "custom_referrer": custom_referrer,
         "cover_letter": cover_letter,
         "resume_link": resume_link,
@@ -99,10 +103,18 @@ def submit_job_applicant_custom(
         "upper_range": upper_range,
         "custom_i_agree_to_the_data_privacy_statement": int(custom_i_agree_to_the_data_privacy_statement)
     })
+
     doc.flags.ignore_permissions = True
-    doc.insert()
+    doc.insert()          # triggers Notification (after_insert)
+    doc.notify_update()
     frappe.db.commit()
-    return {"message": "Saved", "docname": doc.name}
+    
+
+    return {
+        "message": "Saved",
+        "docname": doc.name
+    }
+
 
 
 
