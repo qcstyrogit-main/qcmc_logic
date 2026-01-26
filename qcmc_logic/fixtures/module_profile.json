@@ -1247,12 +1247,6 @@
     "parenttype": "Module Profile"
    },
    {
-    "module": "Communication",
-    "parent": "Procurement",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
-   },
-   {
     "module": "Contacts",
     "parent": "Procurement",
     "parentfield": "block_modules",
@@ -1465,7 +1459,7 @@
   ],
   "docstatus": 0,
   "doctype": "Module Profile",
-  "modified": "2025-08-01 17:16:32.734491",
+  "modified": "2026-01-22 07:38:40.786815",
   "module_profile_name": "Procurement",
   "name": "Procurement"
  },
