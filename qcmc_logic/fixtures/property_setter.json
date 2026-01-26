@@ -6478,5 +6478,37 @@
   "property_type": "Check",
   "row_name": null,
   "value": "1"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Testimonials",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocField",
+  "field_name": "employee",
+  "is_system_generated": 1,
+  "modified": "2026-01-26 14:07:23.372977",
+  "module": null,
+  "name": "Testimonials-employee-in_list_view",
+  "property": "in_list_view",
+  "property_type": "Check",
+  "row_name": null,
+  "value": "1"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Testimonials",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocField",
+  "field_name": "testimonial",
+  "is_system_generated": 1,
+  "modified": "2026-01-26 14:07:23.387310",
+  "module": null,
+  "name": "Testimonials-testimonial-in_list_view",
+  "property": "in_list_view",
+  "property_type": "Check",
+  "row_name": null,
+  "value": "1"
  }
 ]
