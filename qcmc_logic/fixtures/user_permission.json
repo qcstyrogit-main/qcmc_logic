@@ -104,19 +104,6 @@
   "user": "diwata@sample.com"
  },
  {
-  "allow": "Employee",
-  "applicable_for": null,
-  "apply_to_all_doctypes": 1,
-  "docstatus": 0,
-  "doctype": "User Permission",
-  "for_value": "HR-EMP-00554",
-  "hide_descendants": 0,
-  "is_default": 0,
-  "modified": "2026-01-07 14:54:34.922336",
-  "name": "6n8au1jln7",
-  "user": "mmagbojos@qcstyro.com"
- },
- {
   "allow": "Company",
   "applicable_for": null,
   "apply_to_all_doctypes": 1,
@@ -1313,19 +1300,6 @@
   "user": "hr_qcsmbrecruit2@qcstyro.com"
  },
  {
-  "allow": "Employee",
-  "applicable_for": null,
-  "apply_to_all_doctypes": 1,
-  "docstatus": 0,
-  "doctype": "User Permission",
-  "for_value": "HR-EMP-00012",
-  "hide_descendants": 0,
-  "is_default": 0,
-  "modified": "2025-10-29 16:40:12.146895",
-  "name": "alqeke0ldl",
-  "user": "epurchasing@qcstyro.com"
- },
- {
   "allow": "Company",
   "applicable_for": null,
   "apply_to_all_doctypes": 1,
@@ -1352,6 +1326,19 @@
   "user": "admin@qcstyro.com"
  },
  {
+  "allow": "Company",
+  "applicable_for": null,
+  "apply_to_all_doctypes": 1,
+  "docstatus": 0,
+  "doctype": "User Permission",
+  "for_value": "Multiplast Corporation",
+  "hide_descendants": 0,
+  "is_default": 0,
+  "modified": "2026-01-22 07:51:03.311231",
+  "name": "009qomi18b",
+  "user": "mmagbojos@qcstyro.com"
+ },
+ {
   "allow": "Employee",
   "applicable_for": null,
   "apply_to_all_doctypes": 1,
@@ -1360,8 +1347,8 @@
   "for_value": "HR-EMP-00549",
   "hide_descendants": 0,
   "is_default": 0,
-  "modified": "2026-01-20 15:27:39.474462",
-  "name": "k1incfbq8p",
+  "modified": "2026-01-22 08:00:10.138132",
+  "name": "5b5t1uuqtu",
   "user": "mmagbojos@qcstyro.com"
  }
 ]

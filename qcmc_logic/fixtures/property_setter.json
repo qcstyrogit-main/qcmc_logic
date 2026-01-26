@@ -6462,5 +6462,21 @@
   "property_type": "Data",
   "row_name": null,
   "value": "[\"workflow_state\", \"naming_series\", \"department\", \"custom_staffing_plan\", \"designation\", \"custom_employee\", \"custom_employee_name\", \"column_break_qkna\", \"no_of_positions\", \"expected_compensation\", \"custom_additional_manpower\", \"custom_vacancies\", \"column_break_4\", \"company\", \"status\", \"custom_abbr\", \"custom_section_break_l8gz7\", \"custom_employees\", \"section_break_7\", \"requested_by\", \"requested_by_name\", \"column_break_10\", \"requested_by_dept\", \"requested_by_designation\", \"timelines_tab\", \"posting_date\", \"completed_on\", \"column_break_15\", \"expected_by\", \"time_to_fill\", \"custom_approvers\", \"custom_approved_by_corp_ie\", \"custom_corp_ie_approve_date\", \"custom_column_break_mmkvu\", \"custom_approved_by_manager\", \"custom_manager_approve_date\", \"custom_column_break_sgl6q\", \"custom_approved_by_bcclt\", \"custom_bcclt_approve_date\", \"custom_column_break_q963f\", \"custom_acknowledged_by\", \"custom_hr_acknowledged_date\", \"job_description_tab\", \"description\", \"reason_for_requesting\", \"connections_tab\"]"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Announcements",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocField",
+  "field_name": "announcement",
+  "is_system_generated": 1,
+  "modified": "2026-01-26 10:56:35.546244",
+  "module": null,
+  "name": "Announcements-announcement-in_list_view",
+  "property": "in_list_view",
+  "property_type": "Check",
+  "row_name": null,
+  "value": "1"
  }
 ]
