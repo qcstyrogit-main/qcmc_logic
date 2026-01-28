@@ -1,4 +1,5 @@
 import frappe
+from frappe.utils.verified_command import get_signed_params
 
 
 @frappe.whitelist(allow_guest=True)
@@ -28,4 +29,10 @@ def _make_file_url(file_url):
         return None
     if file_url.startswith("http://") or file_url.startswith("https://"):
         return file_url
+    if file_url.startswith("/private/files/"):
+        return (
+            frappe.utils.get_url("/api/method/frappe.utils.file_manager.download_file")
+            + "?"
+            + get_signed_params({"file_url": file_url})
+        )
     return frappe.utils.get_url() + file_url
