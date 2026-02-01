@@ -10,8 +10,8 @@ def list_active_announcements(limit=10, start=0):
 
     Active rules:
       - published = 1
-      - publish_from is null OR publish_from <= now
-      - publish_to is null OR publish_to >= now
+      - publish_from is null OR publish_from <= today
+      - publish_to is null OR publish_to >= today
 
     Sorting:
       priority DESC, publish_from DESC (nulls last-ish), modified DESC
@@ -20,6 +20,7 @@ def list_active_announcements(limit=10, start=0):
     start = cint(start) if start else 0
 
     now = now_datetime()
+    today = now.date()  # ✅ ensures Date fields work correctly (whole day)
 
     # Using SQL for proper date window filtering + ordering
     items = frappe.db.sql(
@@ -36,15 +37,15 @@ def list_active_announcements(limit=10, start=0):
         FROM `tabAnnouncements`
         WHERE
             published = 1
-            AND (publish_from IS NULL OR publish_from <= %(now)s)
-            AND (publish_to   IS NULL OR publish_to   >= %(now)s)
+            AND (publish_from IS NULL OR DATE(publish_from) <= %(today)s)
+            AND (publish_to   IS NULL OR DATE(publish_to)   >= %(today)s)
         ORDER BY
             IFNULL(priority, 0) DESC,
             publish_from DESC,
             modified DESC
         LIMIT %(limit)s OFFSET %(start)s
         """,
-        {"now": now, "limit": limit, "start": start},
+        {"today": today, "limit": limit, "start": start},
         as_dict=True
     )
 
@@ -55,10 +56,10 @@ def list_active_announcements(limit=10, start=0):
         FROM `tabAnnouncements`
         WHERE
             published = 1
-            AND (publish_from IS NULL OR publish_from <= %(now)s)
-            AND (publish_to   IS NULL OR publish_to   >= %(now)s)
+            AND (publish_from IS NULL OR DATE(publish_from) <= %(today)s)
+            AND (publish_to   IS NULL OR DATE(publish_to)   >= %(today)s)
         """,
-        {"now": now},
+        {"today": today},
     )[0][0]
 
     for r in items:
