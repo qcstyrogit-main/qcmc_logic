@@ -20,11 +20,29 @@
  {
   "docstatus": 0,
   "doctype": "Workflow State",
-  "icon": "ok-sign",
-  "modified": "2025-02-11 13:07:54.034840",
-  "name": "Approved",
-  "style": "Success",
-  "workflow_state_name": "Approved"
+  "icon": "",
+  "modified": "2026-01-27 09:35:15.269575",
+  "name": "For RTC Approval",
+  "style": "",
+  "workflow_state_name": "For RTC Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-01-27 09:37:33.559547",
+  "name": "For KTC Approval",
+  "style": "",
+  "workflow_state_name": "For KTC Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-02 09:44:01.281591",
+  "name": "For Approval(PROC)",
+  "style": "",
+  "workflow_state_name": "For Approval(PROC)"
  },
  {
   "docstatus": 0,
@@ -430,5 +448,59 @@
   "name": "Draft",
   "style": "",
   "workflow_state_name": "Draft"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-02 09:26:57.193365",
+  "name": "Approved by VP Sales",
+  "style": "",
+  "workflow_state_name": "Approved by VP Sales"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-02 09:23:26.862689",
+  "name": "Approved by BCC",
+  "style": "",
+  "workflow_state_name": "Approved by BCC"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-02 09:27:54.009638",
+  "name": "Approved by VP Procurement",
+  "style": "",
+  "workflow_state_name": "Approved by VP Procurement"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-02 09:42:45.385506",
+  "name": "For Approval(SAL)",
+  "style": "",
+  "workflow_state_name": "For Approval(SAL)"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-02 09:42:18.948492",
+  "name": "For Approval(FIN)",
+  "style": "",
+  "workflow_state_name": "For Approval(FIN)"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "ok-sign",
+  "modified": "2025-02-11 13:07:54.034840",
+  "name": "Approved",
+  "style": "Success",
+  "workflow_state_name": "Approved"
  }
 ]

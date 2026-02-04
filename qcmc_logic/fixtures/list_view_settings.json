@@ -288,8 +288,8 @@
   "disable_sidebar_stats": 0,
   "docstatus": 0,
   "doctype": "List View Settings",
-  "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Testimonial\",\"fieldname\":\"testimonial_image\"}]",
-  "modified": "2026-01-26 15:25:08.288983",
+  "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Employee\",\"fieldname\":\"employee\"},{\"label\":\"Testimonial\",\"fieldname\":\"testimonial\"}]",
+  "modified": "2026-01-26 14:07:23.334328",
   "name": "Testimonials",
   "total_fields": "4"
  }
