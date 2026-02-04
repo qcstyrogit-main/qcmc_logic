@@ -1,4 +1,5 @@
 import frappe
+from frappe.utils import now_datetime
 
 
 @frappe.whitelist(allow_guest=True)
@@ -9,23 +10,35 @@ def get_website_events(limit=9):
     except (TypeError, ValueError):
         limit = 9
 
-    fields = [
-        "name",
-        "title",
-        "event_date",
-        "url",
-        "thumbnail",
-        "summary",
-        "sort_order",
-        "published"
-    ]
+    today = now_datetime().date()
 
-    events = frappe.get_all(
-        "Website Event",
-        filters={"published": 1},
-        fields=fields,
-        order_by="sort_order asc, event_date desc, modified desc",
-        limit_page_length=limit
+    events = frappe.db.sql(
+        """
+        SELECT
+            name,
+            title,
+            event_date,
+            url,
+            thumbnail,
+            summary,
+            sort_order,
+            published,
+            publish_from,
+            publish_to,
+            modified
+        FROM `tabWebsite Event`
+        WHERE
+            published = 1
+            AND (publish_from IS NULL OR DATE(publish_from) <= %(today)s)
+            AND (publish_to   IS NULL OR DATE(publish_to)   >= %(today)s)
+        ORDER BY
+            sort_order ASC,
+            event_date DESC,
+            modified DESC
+        LIMIT %(limit)s
+        """,
+        {"today": today, "limit": limit},
+        as_dict=True,
     )
 
     results = []
@@ -43,7 +56,9 @@ def get_website_events(limit=9):
             "url": url,
             "thumbnail": thumbnail,
             "summary": summary,
-            "sort_order": item.get("sort_order") or 0
+            "sort_order": item.get("sort_order") or 0,
+            "publish_from": item.get("publish_from"),
+            "publish_to": item.get("publish_to"),
         })
 
     return results

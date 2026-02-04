@@ -81,7 +81,7 @@ def submit_job_applicant_custom(
     job_title, applicant_name, address, email_id, phone_number,
     custom_referrer=None, cover_letter=None, resume_link=None,
     currency=None, lower_range=None, upper_range=None,
-    custom_i_agree_to_the_data_privacy_statement=1
+    custom_i_agree_to_the_data_privacy_statement=1, custom_current_job_position=None
 ):
     doc = frappe.get_doc({
         "doctype": "Job Applicant",
@@ -101,7 +101,8 @@ def submit_job_applicant_custom(
         "currency": currency,
         "lower_range": lower_range,
         "upper_range": upper_range,
-        "custom_i_agree_to_the_data_privacy_statement": int(custom_i_agree_to_the_data_privacy_statement)
+        "custom_i_agree_to_the_data_privacy_statement": int(custom_i_agree_to_the_data_privacy_statement),
+        "custom_current_job_position": custom_current_job_position
     })
 
     doc.flags.ignore_permissions = True
