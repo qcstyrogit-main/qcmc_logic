@@ -15,9 +15,6 @@ doc_events = {
         "on_update_after_submit": "qcmc_logic.customs.warehouse_transfer_events.on_update_after_submit",
         "on_cancel": "qcmc_logic.customs.warehouse_transfer_events.on_cancel",
         "on_trash": "qcmc_logic.customs.warehouse_transfer_events.on_trash"
-    },
-    "Job Requisition": {
-        "before_save": "qcmc_logic.customs.MRFApprovers.mrf_approver_before_save"
     }
 }
 
@@ -48,7 +45,9 @@ override_doctype_class = {
     "Payment Entry": "qcmc_logic.overrides.payment_entry.CustomPaymentEntry"
 }
 permission_query_conditions = {
-    "Appraisal": "qcmc_logic.customs.permissions.appraisal_permission_query"
+     "Appraisal": "qcmc_logic.customs.permissions.appraisal_permission_query",
+     "Job Requisition": "qcmc_logic.customs.staffingplan_permission.mrf_permission_query_condition"
+    
 }
 override_print_format = {
     "Purchase Order": "qcmc_logic.overrides.POPrint_Override.get_po_print_format"
@@ -69,7 +68,7 @@ fixtures = [
     {"doctype": "Custom DocPerm"},
     # {"doctype": "Account"},
     {"doctype": "Module Def"},
-    {"doctype": "Module Profile"},
+    #{"doctype": "Module Profile"},
     {"doctype": "Translation"},  # Added for translations
 
     {"doctype": "Property Setter"},

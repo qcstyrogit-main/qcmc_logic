@@ -351,13 +351,13 @@
   "doctype_event": "Before Save",
   "enable_rate_limit": 0,
   "event_frequency": "All",
-  "modified": "2025-10-28 10:21:37.650609",
+  "modified": "2026-02-02 10:39:55.560255",
   "module": null,
   "name": "MRF Approver Update",
   "rate_limit_count": 5,
   "rate_limit_seconds": 86400,
   "reference_doctype": "Job Requisition",
-  "script": "# Get user roles\r\nroles = [r.role for r in frappe.db.get_all(\"Has Role\", filters={\"parent\": frappe.session.user}, fields=[\"role\"])]\r\n\r\n# Define role groups\r\nbcclt_roles = ['Comptroller', 'VP Sales', 'VP Purchasing']\r\nhas_bcclt_role = any(role in bcclt_roles for role in roles)\r\nhas_corp_ie_role = 'Corporate IE Head' in roles\r\n\r\n# Based on workflow state\r\nif doc.workflow_state == \"Approved\":\r\n    if has_corp_ie_role:\r\n        doc.custom_approved_by_corp_ie = frappe.session.user_fullname\r\n        doc.custom_corp_ie_approve_date = frappe.utils.now_datetime()\r\n    elif has_bcclt_role:\r\n        doc.custom_approved_by_bcclt = frappe.session.user_fullname\r\n        doc.custom_bcclt_approve_date = frappe.utils.now_datetime()\r\n    else:\r\n        doc.custom_approved_by_manager = frappe.session.user_fullname\r\n        doc.custom_manager_approve_date = frappe.utils.now_datetime()\r\n\r\nelif doc.workflow_state in [\"For BCC Approval\", \"Acknowledged\"]:\r\n    doc.custom_approved_by_manager = frappe.session.user_fullname\r\n    doc.custom_manager_approve_date = frappe.utils.now_datetime()\r\n",
+  "script": "# Get user roles\r\nroles = [r.role for r in frappe.db.get_all(\"Has Role\", filters={\"parent\": frappe.session.user}, fields=[\"role\"])]\r\n\r\n# Define role groups\r\nbcclt_roles = ['Comptroller', 'VP Sales', 'VP Procurement']\r\nhas_bcclt_role = any(role in bcclt_roles for role in roles)\r\n\r\n# Based on workflow state\r\nif doc.workflow_state == \"Approved\":\r\n    if has_bcclt_role:\r\n        doc.custom_approved_by_bcclt = frappe.session.user_fullname\r\n        doc.custom_bcclt_approve_date = frappe.utils.now_datetime()\r\n    else:\r\n        doc.custom_approved_by_manager = frappe.session.user_fullname\r\n        doc.custom_manager_approve_date = frappe.utils.now_datetime()\r\n\r\nelif doc.workflow_state in [\"For BCC Approval\", \"Acknowledged\"]:\r\n    doc.custom_approved_by_manager = frappe.session.user_fullname\r\n    doc.custom_manager_approve_date = frappe.utils.now_datetime()\r\n",
   "script_type": "DocType Event"
  },
  {

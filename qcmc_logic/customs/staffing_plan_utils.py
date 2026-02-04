@@ -66,6 +66,12 @@ def recalculate_staffing_plan(staffing_plan):
                 "department": doc.department,
                 "company": doc.company,
                 "status": "Active",
+                "name": ["not in", frappe.db.sql_list("""
+                SELECT employee
+                FROM `tabEmployee Separation`
+                WHERE docstatus != 2
+                """)]
+
             }
         )
         

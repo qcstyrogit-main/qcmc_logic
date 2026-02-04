@@ -16,9 +16,23 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-02-11 13:07:54.102923",
-  "name": "Approve",
-  "workflow_action_name": "Approve"
+  "modified": "2026-01-27 09:35:01.060128",
+  "name": "For RTC Approval",
+  "workflow_action_name": "For RTC Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-01-27 09:37:20.770626",
+  "name": "For KTC Approval",
+  "workflow_action_name": "For KTC Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-01-27 09:39:55.517121",
+  "name": "For VP Procurement",
+  "workflow_action_name": "For VP Procurement"
  },
  {
   "docstatus": 0,
@@ -236,5 +250,26 @@
   "modified": "2025-05-14 13:36:08.460123",
   "name": "Cancel",
   "workflow_action_name": "Cancel"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-01-27 09:38:14.612225",
+  "name": "For VP Sales Approval",
+  "workflow_action_name": "For VP Sales Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-01-27 09:40:26.291720",
+  "name": "For VP Procurement Approval",
+  "workflow_action_name": "For VP Procurement Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-02-11 13:07:54.102923",
+  "name": "Approve",
+  "workflow_action_name": "Approve"
  }
 ]
