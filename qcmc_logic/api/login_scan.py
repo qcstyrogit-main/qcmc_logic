@@ -25,13 +25,6 @@ def login(username, password):
             "message": "Invalid username or password"
         }
 
-
-
-
-
-import frappe
-from frappe.utils import now_datetime
-
 @frappe.whitelist()
 def create_employee_checkin(
     log_type="IN",
