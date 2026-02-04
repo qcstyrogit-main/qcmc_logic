@@ -68,7 +68,7 @@ fixtures = [
     {"doctype": "Custom DocPerm"},
     # {"doctype": "Account"},
     {"doctype": "Module Def"},
-    {"doctype": "Module Profile"},
+    #{"doctype": "Module Profile"},
     {"doctype": "Translation"},  # Added for translations
 
     {"doctype": "Property Setter"},
