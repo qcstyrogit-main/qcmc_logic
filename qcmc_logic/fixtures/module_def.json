@@ -4,21 +4,6 @@
   "_comments": null,
   "_liked_by": null,
   "_user_tags": null,
-  "app_name": "clefincode_chat",
-  "custom": 0,
-  "docstatus": 0,
-  "doctype": "Module Def",
-  "modified": "2026-01-13 09:26:47.027302",
-  "module_name": "ClefinCode Chat",
-  "name": "ClefinCode Chat",
-  "package": null,
-  "restrict_to_domain": null
- },
- {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "custom_theme",
   "custom": 0,
   "docstatus": 0,
@@ -776,6 +761,21 @@
   "modified": "2026-01-26 14:50:29.054269",
   "module_name": "custom_theme",
   "name": "custom_theme",
+  "package": null,
+  "restrict_to_domain": null
+ },
+ {
+  "_assign": null,
+  "_comments": null,
+  "_liked_by": null,
+  "_user_tags": null,
+  "app_name": "clefincode_chat",
+  "custom": 0,
+  "docstatus": 0,
+  "doctype": "Module Def",
+  "modified": "2026-02-04 14:59:54.225206",
+  "module_name": "ClefinCode Chat",
+  "name": "ClefinCode Chat",
   "package": null,
   "restrict_to_domain": null
  }
