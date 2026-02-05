@@ -8,21 +8,53 @@ def login(username, password):
         login_manager = LoginManager()
         login_manager.authenticate(user=username, pwd=password)
         login_manager.post_login()
-
         frappe.db.commit()
+
+        user_id = frappe.session.user
+
+        user_doc = frappe.db.get_value(
+            "User",
+            user_id,
+            ["name", "email", "full_name"],
+            as_dict=True
+        ) or {}
+
+        emp = frappe.db.get_value(
+            "Employee",
+            {"user_id": user_id},
+            ["name", "employee_name", "company", "custom_location", "department", "designation"],
+            as_dict=True
+        ) or {}
 
         return {
             "success": True,
             "message": "Login successful",
-            "user": frappe.session.user,
-            "sid": frappe.session.sid
+            "sid": frappe.session.sid,
+            "user": {
+                "name": user_id,
+                "email": user_doc.get("email") or username,
+                "full_name": emp.get("employee_name") or user_doc.get("full_name") or user_id,
+                "company": emp.get("company"),
+                "custom_location": emp.get("custom_location"),
+                "department": emp.get("department"),
+                "designation": emp.get("designation"),
+            }
         }
 
     except frappe.AuthenticationError:
         frappe.clear_messages()
+        frappe.local.response["http_status_code"] = 401
         return {
             "success": False,
             "message": "Invalid username or password"
+        }
+
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "login_scan.login")
+        frappe.local.response["http_status_code"] = 500
+        return {
+            "success": False,
+            "message": "Login failed"
         }
 
 @frappe.whitelist()
