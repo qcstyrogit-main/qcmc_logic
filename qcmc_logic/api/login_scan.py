@@ -98,3 +98,69 @@ def create_employee_checkin(
         "latitude": latitude,
         "longitude": longitude
     }
+
+@frappe.whitelist()
+def get_checkin_history(employee=None, limit=100):
+    """
+    Returns employee check-in/out history for the logged-in user.
+
+    Args:
+        employee (str, optional): Employee ID. If not provided, resolves from current session user.
+        limit (int, optional): Max rows to return. Default 100.
+
+    Returns:
+        dict: { success: bool, checkins: list }
+    """
+    try:
+        if frappe.session.user == "Guest":
+            frappe.local.response["http_status_code"] = 401
+            return {"success": False, "message": "Not authenticated"}
+
+        # Resolve employee from logged-in user if not passed
+        if not employee:
+            employee = frappe.db.get_value(
+                "Employee",
+                {"user_id": frappe.session.user},
+                "name"
+            )
+
+        if not employee:
+            return {"success": True, "checkins": []}
+
+        try:
+            limit = int(limit)
+        except Exception:
+            limit = 100
+        limit = max(1, min(limit, 500))
+
+        rows = frappe.get_all(
+            "Employee Checkin",
+            filters={"employee": employee},
+            fields=[
+                "name",
+                "employee",
+                "log_type",          # IN / OUT
+                "time",
+                "custom_location",   # optional custom field
+                "creation",
+            ],
+            order_by="time desc",
+            limit_page_length=limit,
+        )
+
+        checkins = []
+        for row in rows:
+            checkins.append({
+                "name": row.get("name"),
+                "employee": row.get("employee"),
+                "log_type": row.get("log_type"),
+                "time": row.get("time") or row.get("creation"),
+                "location": row.get("custom_location") or "Main Office",
+            })
+
+        return {"success": True, "checkins": checkins}
+
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "login_scan.get_checkin_history")
+        frappe.local.response["http_status_code"] = 500
+        return {"success": False, "message": "Unable to load check-in history"}
