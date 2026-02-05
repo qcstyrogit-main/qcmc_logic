@@ -141,7 +141,6 @@ def get_checkin_history(employee=None, limit=100):
                 "employee",
                 "log_type",          # IN / OUT
                 "time",
-                "custom_location",   # optional custom field
                 "creation",
             ],
             order_by="time desc",
@@ -155,7 +154,6 @@ def get_checkin_history(employee=None, limit=100):
                 "employee": row.get("employee"),
                 "log_type": row.get("log_type"),
                 "time": row.get("time") or row.get("creation"),
-                "location": row.get("custom_location") or "Main Office",
             })
 
         return {"success": True, "checkins": checkins}
