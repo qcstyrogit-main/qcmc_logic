@@ -1,6 +1,111 @@
+import math
 import frappe
 from frappe.auth import LoginManager
 from frappe.utils import now_datetime
+
+
+def _to_float(value, field_name):
+    try:
+        return float(value)
+    except Exception:
+        frappe.throw(f"Invalid {field_name}")
+
+
+def _haversine_m(lat1, lon1, lat2, lon2):
+    r = 6371000.0
+    p1 = math.radians(lat1)
+    p2 = math.radians(lat2)
+    dp = math.radians(lat2 - lat1)
+    dl = math.radians(lon2 - lon1)
+    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * r * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+@frappe.whitelist()
+def validate_checkin_radius(latitude=None, longitude=None, allowed_radius_meters=50):
+    try:
+        user = frappe.session.user
+        if user == "Guest":
+            frappe.throw("Not allowed", frappe.PermissionError)
+
+        if latitude is None or longitude is None:
+            return {"success": False, "allowed": False, "message": "Location is required"}
+
+        app_lat = _to_float(latitude, "latitude")
+        app_lon = _to_float(longitude, "longitude")
+
+        emp = frappe.db.get_value(
+            "Employee",
+            {"user_id": user},
+            ["name", "custom_location"],
+            as_dict=True
+        )
+        if not emp:
+            return {"success": False, "allowed": False, "message": "No Employee linked to this user"}
+
+        location_name = emp.get("custom_location")
+        if not location_name:
+            return {"success": False, "allowed": False, "message": "No branch/location assigned to employee"}
+
+        loc = frappe.db.get_value(
+            "Location",
+            location_name,  # matches location_name as record id
+            ["location_name", "latitude", "longitude", "area", "area_uom"],
+            as_dict=True
+        )
+        if not loc:
+            return {"success": False, "allowed": False, "message": f"Location '{location_name}' not found"}
+
+        if loc.get("latitude") is None or loc.get("longitude") is None:
+            return {
+                "success": False,
+                "allowed": False,
+                "message": f"Location '{location_name}' missing latitude/longitude"
+            }
+
+        loc_lat = _to_float(loc.get("latitude"), "Location.latitude")
+        loc_lon = _to_float(loc.get("longitude"), "Location.longitude")
+
+        # Default radius fallback: 50m
+        radius_m = _to_float(allowed_radius_meters, "allowed_radius_meters")
+
+        # If area is provided, derive radius from area (circle):
+        # radius = sqrt(area / pi)
+        area_val = loc.get("area")
+        area_uom = (loc.get("area_uom") or "").strip().lower()
+        if area_val not in (None, ""):
+            area_numeric = _to_float(area_val, "Location.area")
+
+            # normalize area to square meters
+            if area_uom in ("meter", "m2", "sqm", "sq meter", "square meter", "square meters"):
+                area_m2 = area_numeric
+            elif area_uom in ("km2", "sq km", "square kilometer", "square kilometers"):
+                area_m2 = area_numeric * 1_000_000.0
+            elif area_uom in ("ft2", "sq ft", "square foot", "square feet"):
+                area_m2 = area_numeric * 0.09290304
+            else:
+                area_m2 = area_numeric  # assume m² if unknown
+
+            if area_m2 > 0:
+                radius_m = math.sqrt(area_m2 / math.pi)
+
+        distance_m = _haversine_m(app_lat, app_lon, loc_lat, loc_lon)
+        allowed = distance_m <= radius_m
+
+        return {
+            "success": True,
+            "allowed": allowed,
+            "distance_meters": round(distance_m, 2),
+            "allowed_radius_meters": round(radius_m, 2),
+            "location_name": loc.get("location_name") or location_name,
+            "message": "Inside allowed area" if allowed else "Outside allowed area",
+        }
+
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "login_scan.validate_checkin_radius")
+        frappe.local.response["http_status_code"] = 500
+        return {"success": False, "allowed": False, "message": "Unable to validate check-in radius"}
+
+
 
 @frappe.whitelist(allow_guest=True)
 def login(username, password):
@@ -44,18 +149,13 @@ def login(username, password):
     except frappe.AuthenticationError:
         frappe.clear_messages()
         frappe.local.response["http_status_code"] = 401
-        return {
-            "success": False,
-            "message": "Invalid username or password"
-        }
+        return {"success": False, "message": "Invalid username or password"}
 
     except Exception:
         frappe.log_error(frappe.get_traceback(), "login_scan.login")
         frappe.local.response["http_status_code"] = 500
-        return {
-            "success": False,
-            "message": "Login failed"
-        }
+        return {"success": False, "message": "Login failed"}
+
 
 @frappe.whitelist()
 def create_employee_checkin(
@@ -63,7 +163,8 @@ def create_employee_checkin(
     latitude=None,
     longitude=None,
     device_id=None,
-    skip_auto_attendance=0
+    skip_auto_attendance=0,
+    allowed_radius_meters=50
 ):
     user = frappe.session.user
     if user == "Guest":
@@ -73,19 +174,60 @@ def create_employee_checkin(
     if log_type not in ("IN", "OUT"):
         frappe.throw("Invalid log_type. Use IN or OUT.")
 
-    employee = frappe.db.get_value("Employee", {"user_id": user}, "name")
+    employee = frappe.db.get_value(
+        "Employee",
+        {"user_id": user},
+        ["name", "custom_location"],
+        as_dict=True
+    )
     if not employee:
         frappe.throw("No Employee linked to this user")
 
+    # Require app coordinates for geofence check
+    if latitude is None or longitude is None:
+        frappe.throw("Location is required for check in/check out")
+
+    app_lat = _to_float(latitude, "latitude")
+    app_lon = _to_float(longitude, "longitude")
+    radius_m = _to_float(allowed_radius_meters, "allowed_radius_meters")
+
+    location_name = employee.get("custom_location")
+    if not location_name:
+        frappe.throw("No branch/location assigned to employee")
+
+    # IMPORTANT: adjust field names if your Location doctype uses different ones
+    loc = frappe.db.get_value(
+        "Location",
+        location_name,
+        ["latitude", "longitude"],
+        as_dict=True
+    )
+    if not loc:
+        frappe.throw(f"Location '{location_name}' not found")
+
+    if loc.get("latitude") is None or loc.get("longitude") is None:
+        frappe.throw(f"Location '{location_name}' is missing latitude/longitude")
+
+    loc_lat = _to_float(loc.get("latitude"), "Location.latitude")
+    loc_lon = _to_float(loc.get("longitude"), "Location.longitude")
+
+    distance_m = _haversine_m(app_lat, app_lon, loc_lat, loc_lon)
+    if distance_m > radius_m:
+        frappe.throw(f"Outside allowed area ({distance_m:.1f}m > {radius_m:.0f}m).")
+
     doc = frappe.new_doc("Employee Checkin")
-    doc.employee = employee
+    doc.employee = employee.get("name")
     doc.log_type = log_type
     doc.time = now_datetime()
     doc.device_id = device_id
     doc.skip_auto_attendance = int(skip_auto_attendance)
 
-    doc.latitude = latitude
-    doc.longitude = longitude
+    # Set only if fields exist in Employee Checkin
+    valid_columns = doc.meta.get_valid_columns()
+    if "latitude" in valid_columns:
+        doc.latitude = app_lat
+    if "longitude" in valid_columns:
+        doc.longitude = app_lon
 
     doc.insert()
     frappe.db.commit()
@@ -93,30 +235,22 @@ def create_employee_checkin(
     return {
         "success": True,
         "checkin": doc.name,
-        "employee": employee,
+        "employee": employee.get("name"),
         "time": doc.time,
-        "latitude": latitude,
-        "longitude": longitude
+        "latitude": app_lat,
+        "longitude": app_lon,
+        "distance_meters": round(distance_m, 2),
+        "allowed_radius_meters": radius_m
     }
+
 
 @frappe.whitelist()
 def get_checkin_history(employee=None, limit=100):
-    """
-    Returns employee check-in/out history for the logged-in user.
-
-    Args:
-        employee (str, optional): Employee ID. If not provided, resolves from current session user.
-        limit (int, optional): Max rows to return. Default 100.
-
-    Returns:
-        dict: { success: bool, checkins: list }
-    """
     try:
         if frappe.session.user == "Guest":
             frappe.local.response["http_status_code"] = 401
             return {"success": False, "message": "Not authenticated"}
 
-        # Resolve employee from logged-in user if not passed
         if not employee:
             employee = frappe.db.get_value(
                 "Employee",
@@ -136,13 +270,7 @@ def get_checkin_history(employee=None, limit=100):
         rows = frappe.get_all(
             "Employee Checkin",
             filters={"employee": employee},
-            fields=[
-                "name",
-                "employee",
-                "log_type",          # IN / OUT
-                "time",
-                "creation",
-            ],
+            fields=["name", "employee", "log_type", "time", "creation"],
             order_by="time desc",
             limit_page_length=limit,
         )
