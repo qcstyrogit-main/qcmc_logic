@@ -4,6 +4,22 @@ from frappe.auth import LoginManager
 from frappe.utils import now_datetime
 
 
+GEOFENCE_EXEMPT_DESIGNATIONS = {
+    "account manager",
+    "regional sales manager - (gma terr)",
+    "regional sales manager - provincial",
+    "regional sales manager - (ind/insti/sup)",
+}
+
+
+def _normalize_text(value):
+    return " ".join(str(value or "").strip().lower().split())
+
+
+def _is_geofence_exempt(designation):
+    return _normalize_text(designation) in GEOFENCE_EXEMPT_DESIGNATIONS
+
+
 def _to_float(value, field_name):
     try:
         return float(value)
@@ -19,6 +35,7 @@ def _haversine_m(lat1, lon1, lat2, lon2):
     dl = math.radians(lon2 - lon1)
     a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
     return 2 * r * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
 
 @frappe.whitelist()
 def validate_checkin_radius(latitude=None, longitude=None, allowed_radius_meters=50):
@@ -36,11 +53,22 @@ def validate_checkin_radius(latitude=None, longitude=None, allowed_radius_meters
         emp = frappe.db.get_value(
             "Employee",
             {"user_id": user},
-            ["name", "custom_location"],
+            ["name", "custom_location", "designation"],
             as_dict=True
         )
         if not emp:
             return {"success": False, "allowed": False, "message": "No Employee linked to this user"}
+
+        # Bypass geofence for exempt designations
+        if _is_geofence_exempt(emp.get("designation")):
+            return {
+                "success": True,
+                "allowed": True,
+                "distance_meters": 0,
+                "allowed_radius_meters": 0,
+                "location_name": emp.get("custom_location"),
+                "message": "Geofencing bypassed for designation",
+            }
 
         location_name = emp.get("custom_location")
         if not location_name:
@@ -48,7 +76,7 @@ def validate_checkin_radius(latitude=None, longitude=None, allowed_radius_meters
 
         loc = frappe.db.get_value(
             "Location",
-            location_name,  # matches location_name as record id
+            location_name,
             ["location_name", "latitude", "longitude", "area", "area_uom"],
             as_dict=True
         )
@@ -65,13 +93,12 @@ def validate_checkin_radius(latitude=None, longitude=None, allowed_radius_meters
         loc_lat = _to_float(loc.get("latitude"), "Location.latitude")
         loc_lon = _to_float(loc.get("longitude"), "Location.longitude")
 
-        # Default radius fallback: 50m
+        # Default radius fallback: value from app/request (50m)
         radius_m = _to_float(allowed_radius_meters, "allowed_radius_meters")
 
-        # If area is provided, derive radius from area (circle):
-        # radius = sqrt(area / pi)
+        # If area is provided, derive radius from area (circle): radius = sqrt(area/pi)
         area_val = loc.get("area")
-        area_uom = (loc.get("area_uom") or "").strip().lower()
+        area_uom = _normalize_text(loc.get("area_uom"))
         if area_val not in (None, ""):
             area_numeric = _to_float(area_val, "Location.area")
 
@@ -106,7 +133,6 @@ def validate_checkin_radius(latitude=None, longitude=None, allowed_radius_meters
         return {"success": False, "allowed": False, "message": "Unable to validate check-in radius"}
 
 
-
 @frappe.whitelist(allow_guest=True)
 def login(username, password):
     try:
@@ -131,6 +157,8 @@ def login(username, password):
             as_dict=True
         ) or {}
 
+        designation = emp.get("designation")
+
         return {
             "success": True,
             "message": "Login successful",
@@ -142,7 +170,8 @@ def login(username, password):
                 "company": emp.get("company"),
                 "custom_location": emp.get("custom_location"),
                 "department": emp.get("department"),
-                "designation": emp.get("designation"),
+                "designation": designation,
+                "geofence_exempt": _is_geofence_exempt(designation),
             }
         }
 
@@ -177,43 +206,49 @@ def create_employee_checkin(
     employee = frappe.db.get_value(
         "Employee",
         {"user_id": user},
-        ["name", "custom_location"],
+        ["name", "custom_location", "designation"],
         as_dict=True
     )
     if not employee:
         frappe.throw("No Employee linked to this user")
 
-    # Require app coordinates for geofence check
-    if latitude is None or longitude is None:
-        frappe.throw("Location is required for check in/check out")
+    is_exempt = _is_geofence_exempt(employee.get("designation"))
 
-    app_lat = _to_float(latitude, "latitude")
-    app_lon = _to_float(longitude, "longitude")
-    radius_m = _to_float(allowed_radius_meters, "allowed_radius_meters")
+    if not is_exempt:
+        if latitude is None or longitude is None:
+            frappe.throw("Location is required for check in/check out")
 
-    location_name = employee.get("custom_location")
-    if not location_name:
-        frappe.throw("No branch/location assigned to employee")
+        app_lat = _to_float(latitude, "latitude")
+        app_lon = _to_float(longitude, "longitude")
+        radius_m = _to_float(allowed_radius_meters, "allowed_radius_meters")
 
-    # IMPORTANT: adjust field names if your Location doctype uses different ones
-    loc = frappe.db.get_value(
-        "Location",
-        location_name,
-        ["latitude", "longitude"],
-        as_dict=True
-    )
-    if not loc:
-        frappe.throw(f"Location '{location_name}' not found")
+        location_name = employee.get("custom_location")
+        if not location_name:
+            frappe.throw("No branch/location assigned to employee")
 
-    if loc.get("latitude") is None or loc.get("longitude") is None:
-        frappe.throw(f"Location '{location_name}' is missing latitude/longitude")
+        loc = frappe.db.get_value(
+            "Location",
+            location_name,
+            ["latitude", "longitude"],
+            as_dict=True
+        )
+        if not loc:
+            frappe.throw(f"Location '{location_name}' not found")
 
-    loc_lat = _to_float(loc.get("latitude"), "Location.latitude")
-    loc_lon = _to_float(loc.get("longitude"), "Location.longitude")
+        if loc.get("latitude") is None or loc.get("longitude") is None:
+            frappe.throw(f"Location '{location_name}' is missing latitude/longitude")
 
-    distance_m = _haversine_m(app_lat, app_lon, loc_lat, loc_lon)
-    if distance_m > radius_m:
-        frappe.throw(f"Outside allowed area ({distance_m:.1f}m > {radius_m:.0f}m).")
+        loc_lat = _to_float(loc.get("latitude"), "Location.latitude")
+        loc_lon = _to_float(loc.get("longitude"), "Location.longitude")
+
+        distance_m = _haversine_m(app_lat, app_lon, loc_lat, loc_lon)
+        if distance_m > radius_m:
+            frappe.throw(f"Outside allowed area ({distance_m:.1f}m > {radius_m:.0f}m).")
+    else:
+        app_lat = _to_float(latitude, "latitude") if latitude is not None else None
+        app_lon = _to_float(longitude, "longitude") if longitude is not None else None
+        radius_m = 0
+        distance_m = 0
 
     doc = frappe.new_doc("Employee Checkin")
     doc.employee = employee.get("name")
@@ -222,11 +257,10 @@ def create_employee_checkin(
     doc.device_id = device_id
     doc.skip_auto_attendance = int(skip_auto_attendance)
 
-    # Set only if fields exist in Employee Checkin
     valid_columns = doc.meta.get_valid_columns()
-    if "latitude" in valid_columns:
+    if "latitude" in valid_columns and app_lat is not None:
         doc.latitude = app_lat
-    if "longitude" in valid_columns:
+    if "longitude" in valid_columns and app_lon is not None:
         doc.longitude = app_lon
 
     doc.insert()
@@ -240,7 +274,8 @@ def create_employee_checkin(
         "latitude": app_lat,
         "longitude": app_lon,
         "distance_meters": round(distance_m, 2),
-        "allowed_radius_meters": radius_m
+        "allowed_radius_meters": radius_m,
+        "geofence_exempt": is_exempt,
     }
 
 
