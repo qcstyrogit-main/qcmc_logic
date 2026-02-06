@@ -73,67 +73,71 @@ def validate_checkin_radius(latitude=None, longitude=None, allowed_radius_meters
                 "message": "Geofencing bypassed for designation",
             }
 
-        location_name = emp.get("custom_location")
-        if not location_name:
-            return {"success": False, "allowed": False, "message": "No branch/location assigned to employee"}
-
-        loc = frappe.db.get_value(
+        # Load all locations with coordinates
+        locations = frappe.get_all(
             "Location",
-            location_name,
-            ["location_name", "latitude", "longitude", "area", "area_uom"],
-            as_dict=True
+            fields=["name", "location_name", "latitude", "longitude", "area", "area_uom"],
         )
-        if not loc:
-            return {"success": False, "allowed": False, "message": f"Location '{location_name}' not found"}
 
-        if loc.get("latitude") is None or loc.get("longitude") is None:
+        valid_locations = []
+        for loc in locations:
+            if loc.get("latitude") is None or loc.get("longitude") is None:
+                continue
+
+            loc_lat = _to_float(loc.get("latitude"), "Location.latitude")
+            loc_lon = _to_float(loc.get("longitude"), "Location.longitude")
+
+            # Default radius fallback: value from app/request (50m)
+            radius_m = _to_float(allowed_radius_meters, "allowed_radius_meters")
+
+            # If area is provided, derive radius from area (circle): radius = sqrt(area/pi)
+            area_val = loc.get("area")
+            area_uom = _normalize_text(loc.get("area_uom"))
+            if area_val not in (None, ""):
+                area_numeric = _to_float(area_val, "Location.area")
+
+                if area_uom in ("meter", "m2", "sqm", "sq meter", "square meter", "square meters"):
+                    area_m2 = area_numeric
+                elif area_uom in ("km2", "sq km", "square kilometer", "square kilometers"):
+                    area_m2 = area_numeric * 1_000_000.0
+                elif area_uom in ("ft2", "sq ft", "square foot", "square feet"):
+                    area_m2 = area_numeric * 0.09290304
+                else:
+                    area_m2 = area_numeric  # assume m² if unknown
+
+                if area_m2 > 0:
+                    radius_m = math.sqrt(area_m2 / math.pi)
+
+            distance_m = _haversine_m(app_lat, app_lon, loc_lat, loc_lon)
+            if distance_m <= radius_m:
+                valid_locations.append({
+                    "name": loc.get("location_name") or loc.get("name"),
+                    "distance_m": round(distance_m, 2),
+                    "allowed_radius_meters": round(radius_m, 2),
+                })
+
+        if valid_locations:
+            closest = sorted(valid_locations, key=lambda x: x["distance_m"])[0]
             return {
-                "success": False,
-                "allowed": False,
-                "message": f"Location '{location_name}' missing latitude/longitude"
+                "success": True,
+                "allowed": True,
+                "distance_meters": closest["distance_m"],
+                "allowed_radius_meters": closest["allowed_radius_meters"],
+                "location_name": closest["name"],
+                "message": "Inside allowed area",
             }
-
-        loc_lat = _to_float(loc.get("latitude"), "Location.latitude")
-        loc_lon = _to_float(loc.get("longitude"), "Location.longitude")
-
-        # Default radius fallback: value from app/request (50m)
-        radius_m = _to_float(allowed_radius_meters, "allowed_radius_meters")
-
-        # If area is provided, derive radius from area (circle): radius = sqrt(area/pi)
-        area_val = loc.get("area")
-        area_uom = _normalize_text(loc.get("area_uom"))
-        if area_val not in (None, ""):
-            area_numeric = _to_float(area_val, "Location.area")
-
-            # normalize area to square meters
-            if area_uom in ("meter", "m2", "sqm", "sq meter", "square meter", "square meters"):
-                area_m2 = area_numeric
-            elif area_uom in ("km2", "sq km", "square kilometer", "square kilometers"):
-                area_m2 = area_numeric * 1_000_000.0
-            elif area_uom in ("ft2", "sq ft", "square foot", "square feet"):
-                area_m2 = area_numeric * 0.09290304
-            else:
-                area_m2 = area_numeric  # assume m² if unknown
-
-            if area_m2 > 0:
-                radius_m = math.sqrt(area_m2 / math.pi)
-
-        distance_m = _haversine_m(app_lat, app_lon, loc_lat, loc_lon)
-        allowed = distance_m <= radius_m
 
         return {
             "success": True,
-            "allowed": allowed,
-            "distance_meters": round(distance_m, 2),
-            "allowed_radius_meters": round(radius_m, 2),
-            "location_name": loc.get("location_name") or location_name,
-            "message": "Inside allowed area" if allowed else "Outside allowed area",
+            "allowed": False,
+            "message": "Outside allowed area",
         }
 
     except Exception:
         frappe.log_error(frappe.get_traceback(), "login_scan.validate_checkin_radius")
         frappe.local.response["http_status_code"] = 500
         return {"success": False, "allowed": False, "message": "Unable to validate check-in radius"}
+
 
 
 @frappe.whitelist(allow_guest=True)
@@ -225,28 +229,51 @@ def create_employee_checkin(
         app_lon = _to_float(longitude, "longitude")
         radius_m = _to_float(allowed_radius_meters, "allowed_radius_meters")
 
-        location_name = employee.get("custom_location")
-        if not location_name:
-            frappe.throw("No branch/location assigned to employee")
-
-        loc = frappe.db.get_value(
+        locations = frappe.get_all(
             "Location",
-            location_name,
-            ["latitude", "longitude"],
-            as_dict=True
+            fields=["name", "location_name", "latitude", "longitude", "area", "area_uom"],
         )
-        if not loc:
-            frappe.throw(f"Location '{location_name}' not found")
 
-        if loc.get("latitude") is None or loc.get("longitude") is None:
-            frappe.throw(f"Location '{location_name}' is missing latitude/longitude")
+        nearest = None
 
-        loc_lat = _to_float(loc.get("latitude"), "Location.latitude")
-        loc_lon = _to_float(loc.get("longitude"), "Location.longitude")
+        for loc in locations:
+            if loc.get("latitude") is None or loc.get("longitude") is None:
+                continue
 
-        distance_m = _haversine_m(app_lat, app_lon, loc_lat, loc_lon)
-        if distance_m > radius_m:
-            frappe.throw(f"Outside allowed area ({distance_m:.1f}m > {radius_m:.0f}m).")
+            loc_lat = _to_float(loc.get("latitude"), "Location.latitude")
+            loc_lon = _to_float(loc.get("longitude"), "Location.longitude")
+
+            # Default radius fallback: value from app/request (50m)
+            radius_m = _to_float(allowed_radius_meters, "allowed_radius_meters")
+
+            area_val = loc.get("area")
+            area_uom = _normalize_text(loc.get("area_uom"))
+            if area_val not in (None, ""):
+                area_numeric = _to_float(area_val, "Location.area")
+
+                if area_uom in ("meter", "m2", "sqm", "sq meter", "square meter", "square meters"):
+                    area_m2 = area_numeric
+                elif area_uom in ("km2", "sq km", "square kilometer", "square kilometers"):
+                    area_m2 = area_numeric * 1_000_000.0
+                elif area_uom in ("ft2", "sq ft", "square foot", "square feet"):
+                    area_m2 = area_numeric * 0.09290304
+                else:
+                    area_m2 = area_numeric
+
+                if area_m2 > 0:
+                    radius_m = math.sqrt(area_m2 / math.pi)
+
+            distance_m = _haversine_m(app_lat, app_lon, loc_lat, loc_lon)
+            if distance_m <= radius_m:
+                if nearest is None or distance_m < nearest["distance_m"]:
+                    nearest = {
+                        "name": loc.get("location_name") or loc.get("name"),
+                        "distance_m": distance_m,
+                        "radius_m": radius_m,
+                    }
+
+        if not nearest:
+            frappe.throw("Outside allowed area.")
     else:
         app_lat = _to_float(latitude, "latitude") if latitude is not None else None
         app_lon = _to_float(longitude, "longitude") if longitude is not None else None
@@ -280,6 +307,7 @@ def create_employee_checkin(
         "allowed_radius_meters": radius_m,
         "geofence_exempt": is_exempt,
     }
+
 
 
 @frappe.whitelist()
