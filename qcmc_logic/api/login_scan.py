@@ -221,6 +221,8 @@ def create_employee_checkin(
 
     is_exempt = _is_geofence_exempt(employee.get("designation"))
 
+    matched_location = None
+
     if not is_exempt:
         if latitude is None or longitude is None:
             frappe.throw("Location is required for check in/check out")
@@ -274,6 +276,10 @@ def create_employee_checkin(
 
         if not nearest:
             frappe.throw("Outside allowed area.")
+
+        matched_location = nearest["name"]
+        distance_m = nearest["distance_m"]
+        radius_m = nearest["radius_m"]
     else:
         app_lat = _to_float(latitude, "latitude") if latitude is not None else None
         app_lon = _to_float(longitude, "longitude") if longitude is not None else None
@@ -292,6 +298,8 @@ def create_employee_checkin(
         doc.latitude = app_lat
     if "longitude" in valid_columns and app_lon is not None:
         doc.longitude = app_lon
+    if "location_name" in valid_columns and matched_location:
+        doc.location_name = matched_location
 
     doc.insert()
     frappe.db.commit()
@@ -303,10 +311,12 @@ def create_employee_checkin(
         "time": doc.time,
         "latitude": app_lat,
         "longitude": app_lon,
+        "location_name": matched_location,
         "distance_meters": round(distance_m, 2),
         "allowed_radius_meters": radius_m,
         "geofence_exempt": is_exempt,
     }
+
 
 
 
@@ -336,7 +346,8 @@ def get_checkin_history(employee=None, limit=100):
         rows = frappe.get_all(
             "Employee Checkin",
             filters={"employee": employee},
-            fields=["name", "employee", "log_type", "time", "creation", "latitude", "longitude"],
+            fields=["name", "employee", "log_type", "time", "creation",
+                    "latitude", "longitude", "location_name"],
             order_by="time desc",
             limit_page_length=limit,
         )
@@ -350,8 +361,8 @@ def get_checkin_history(employee=None, limit=100):
                 "time": row.get("time") or row.get("creation"),
                 "latitude": row.get("latitude"),
                 "longitude": row.get("longitude"),
+                "location_name": row.get("location_name"),
             })
-
 
         return {"success": True, "checkins": checkins}
 
@@ -359,6 +370,7 @@ def get_checkin_history(employee=None, limit=100):
         frappe.log_error(frappe.get_traceback(), "login_scan.get_checkin_history")
         frappe.local.response["http_status_code"] = 500
         return {"success": False, "message": "Unable to load check-in history"}
+
     
 
 
