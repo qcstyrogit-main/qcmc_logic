@@ -222,6 +222,7 @@ def create_employee_checkin(
     is_exempt = _is_geofence_exempt(employee.get("designation"))
 
     matched_location = None
+    custom_address = None
 
     if not is_exempt:
         if latitude is None or longitude is None:
@@ -280,11 +281,28 @@ def create_employee_checkin(
         matched_location = nearest["name"]
         distance_m = nearest["distance_m"]
         radius_m = nearest["radius_m"]
+
+        # Reverse-geocode address
+        try:
+            addr_res = reverse_geocode(app_lat, app_lon, 18)
+            if addr_res and addr_res.get("success"):
+                custom_address = addr_res.get("display_name")
+        except Exception:
+            custom_address = None
     else:
         app_lat = _to_float(latitude, "latitude") if latitude is not None else None
         app_lon = _to_float(longitude, "longitude") if longitude is not None else None
         radius_m = 0
         distance_m = 0
+
+        # Optional: still resolve address for exempt users
+        try:
+            if app_lat is not None and app_lon is not None:
+                addr_res = reverse_geocode(app_lat, app_lon, 18)
+                if addr_res and addr_res.get("success"):
+                    custom_address = addr_res.get("display_name")
+        except Exception:
+            custom_address = None
 
     doc = frappe.new_doc("Employee Checkin")
     doc.employee = employee.get("name")
@@ -300,6 +318,8 @@ def create_employee_checkin(
         doc.longitude = app_lon
     if "custom_location_name" in valid_columns and matched_location:
         doc.custom_location_name = matched_location
+    if "custom_address" in valid_columns and custom_address:
+        doc.custom_address = custom_address
 
     doc.insert()
     frappe.db.commit()
@@ -312,6 +332,7 @@ def create_employee_checkin(
         "latitude": app_lat,
         "longitude": app_lon,
         "custom_location_name": matched_location,
+        "custom_address": custom_address,
         "distance_meters": round(distance_m, 2),
         "allowed_radius_meters": radius_m,
         "geofence_exempt": is_exempt,
