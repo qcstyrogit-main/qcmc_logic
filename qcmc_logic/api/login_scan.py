@@ -1,7 +1,10 @@
 import math
 import frappe
+import requests
 from frappe.auth import LoginManager
 from frappe.utils import now_datetime
+from frappe.utils import cint
+
 
 
 GEOFENCE_EXEMPT_DESIGNATIONS = {
@@ -328,3 +331,55 @@ def get_checkin_history(employee=None, limit=100):
         frappe.log_error(frappe.get_traceback(), "login_scan.get_checkin_history")
         frappe.local.response["http_status_code"] = 500
         return {"success": False, "message": "Unable to load check-in history"}
+    
+
+
+
+
+
+@frappe.whitelist()
+def reverse_geocode(latitude=None, longitude=None, zoom=18):
+    if latitude is None or longitude is None:
+        return {"success": False, "message": "Latitude and longitude are required"}
+
+    try:
+        lat = float(latitude)
+        lon = float(longitude)
+    except Exception:
+        return {"success": False, "message": "Invalid latitude/longitude"}
+
+    zoom = cint(zoom) or 18
+    zoom = max(5, min(zoom, 20))
+
+    url = "https://nominatim.openstreetmap.org/reverse"
+    params = {
+        "format": "jsonv2",
+        "lat": f"{lat:.6f}",
+        "lon": f"{lon:.6f}",
+        "zoom": zoom,
+        "addressdetails": 1,
+    }
+    headers = {
+        "Accept": "application/json",
+        "User-Agent": "GeoTime-QCMC/1.0 (support@yourdomain.com)",
+        "Accept-Language": "en",
+    }
+
+    try:
+        res = requests.get(url, params=params, headers=headers, timeout=8)
+        res.raise_for_status()
+        data = res.json()
+        display_name = (data.get("display_name") or "").strip()
+
+        return {
+            "success": True,
+            "display_name": display_name,
+            "address": data.get("address") or {},
+            "lat": data.get("lat"),
+            "lon": data.get("lon"),
+        }
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "login_scan.reverse_geocode")
+        frappe.local.response["http_status_code"] = 500
+        return {"success": False, "message": "Unable to reverse geocode"}
+
