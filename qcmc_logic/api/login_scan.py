@@ -305,7 +305,7 @@ def get_checkin_history(employee=None, limit=100):
         rows = frappe.get_all(
             "Employee Checkin",
             filters={"employee": employee},
-            fields=["name", "employee", "log_type", "time", "creation"],
+            fields=["name", "employee", "log_type", "time", "creation", "latitude", "longitude"],
             order_by="time desc",
             limit_page_length=limit,
         )
@@ -317,7 +317,10 @@ def get_checkin_history(employee=None, limit=100):
                 "employee": row.get("employee"),
                 "log_type": row.get("log_type"),
                 "time": row.get("time") or row.get("creation"),
+                "latitude": row.get("latitude"),
+                "longitude": row.get("longitude"),
             })
+
 
         return {"success": True, "checkins": checkins}
 
