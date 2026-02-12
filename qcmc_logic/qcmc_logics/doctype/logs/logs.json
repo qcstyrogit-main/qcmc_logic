@@ -1,0 +1,72 @@
+{
+  "actions": [],
+  "allow_copy": 0,
+  "allow_guest_to_view": 0,
+  "allow_import": 0,
+  "allow_rename": 0,
+  "autoname": "hash",
+  "beta": 0,
+  "creation": "2026-02-11 00:00:00.000000",
+  "custom": 0,
+  "description": "",
+  "docstatus": 0,
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": [
+    "area",
+    "employee_name",
+    "log_type",
+    "log_time",
+    "location"
+  ],
+  "fields": [
+    {
+      "fieldname": "area",
+      "fieldtype": "Data",
+      "label": "Area",
+      "read_only": 1
+    },
+    {
+      "fieldname": "employee_name",
+      "fieldtype": "Data",
+      "label": "Employee Name",
+      "read_only": 1
+    },
+    {
+      "fieldname": "log_type",
+      "fieldtype": "Data",
+      "label": "Log Type",
+      "read_only": 1
+    },
+    {
+      "fieldname": "log_time",
+      "fieldtype": "Datetime",
+      "label": "Log Time",
+      "read_only": 1
+    },
+    {
+      "fieldname": "location",
+      "fieldtype": "Data",
+      "label": "Location",
+      "read_only": 1
+    }
+  ],
+  "has_web_view": 0,
+  "icon": "",
+  "idx": 0,
+  "in_create": 0,
+  "is_submittable": 0,
+  "istable": 1,
+  "link_field": "",
+  "make_attachments_public": 0,
+  "module": "QCMC Logics",
+  "name": "Logs",
+  "owner": "Administrator",
+  "permissions": [],
+  "quick_entry": 0,
+  "read_only": 0,
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "track_changes": 1
+}
