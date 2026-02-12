@@ -76,11 +76,21 @@ def validate_checkin_radius(latitude=None, longitude=None, allowed_radius_meters
         # Load all locations with coordinates
         locations = frappe.get_all(
             "Location",
-            fields=["name", "location_name", "latitude", "longitude", "area", "area_uom"],
+            fields=[
+                "name",
+                "location_name",
+                "latitude",
+                "longitude",
+                "area",
+                "area_uom",
+                "custom_is_customer",
+            ],
         )
 
         valid_locations = []
         for loc in locations:
+            if loc.get("custom_is_customer"):
+                continue
             if loc.get("latitude") is None or loc.get("longitude") is None:
                 continue
 
@@ -234,12 +244,14 @@ def create_employee_checkin(
 
         locations = frappe.get_all(
             "Location",
-            fields=["name", "latitude", "longitude", "area", "area_uom"],
+            fields=["name", "latitude", "longitude", "area", "area_uom", "custom_is_customer"],
         )
 
         nearest = None
 
         for loc in locations:
+            if loc.get("custom_is_customer"):
+                continue
             if loc.get("latitude") is None or loc.get("longitude") is None:
                 continue
 
