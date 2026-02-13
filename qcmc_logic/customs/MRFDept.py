@@ -62,15 +62,34 @@ def get_staffing_plans_by_department(doctype, txt, searchfield, start, page_len,
     # 👑 System Manager sees all
     if "System Manager" in frappe.get_roles(frappe.session.user):
         return frappe.db.sql("""
-            SELECT name
-            FROM `tabStaffing Plan`
-            WHERE department = %(department)s
-              AND name LIKE %(txt)s
-            ORDER BY name
-            LIMIT %(start)s, %(page_len)s
-        """, {
-            "department": filters.get("department"),
-            "txt": f"%{txt}%",
-            "start": start,
-            "page_len": page_len
-        })
+        SELECT name
+        FROM `tabStaffing Plan` 
+        WHERE department = %(department)s
+        AND name LIKE %(txt)s
+        AND docstatus = 1
+        ORDER BY name
+        LIMIT %(start)s, %(page_len)s
+    """, {
+        "department": filters.get("department"),
+        "txt": f"%{txt}%",
+        "start": start,
+        "page_len": page_len
+    })
+    
+    
+    return frappe.db.sql("""
+        SELECT name
+        FROM `tabStaffing Plan` 
+        WHERE department = %(department)s
+        AND name LIKE %(txt)s
+        AND name in (SELECT staffing_plan from `tabStaffing Plan Assignment Details` where parent = %(user)s)
+        ORDER BY name
+        LIMIT %(start)s, %(page_len)s
+    """, {
+        "user": frappe.session.user,
+        "department": filters.get("department"),
+        "txt": f"%{txt}%",
+        "start": start,
+        "page_len": page_len
+    })
+
