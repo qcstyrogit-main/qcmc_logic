@@ -19,7 +19,9 @@ def get_Employee(doctype, txt, searchfield, start, page_len, filters):
         values["department"] = filters["department"]
 
     if filters.get("designation"):
-        conditions.append("designation = %(designation)s")
+        conditions.append("(designation = %(designation)s or " \
+        " name in (select employee from `tabEmployee Promotion` " \
+        "where department = %(department)s AND company = %(company)s AND name in (select parent from `tabEmployee Property History` where fieldname = 'designation' and current = %(designation)s ))  )")
         values["designation"] = filters["designation"]
 
     condition_sql = ""

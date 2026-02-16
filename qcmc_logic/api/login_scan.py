@@ -184,6 +184,7 @@ def login(username, password):
                 "name": user_id,
                 "email": user_doc.get("email") or username,
                 "full_name": emp.get("employee_name") or user_doc.get("full_name") or user_id,
+                "employee": emp.get("name"),
                 "company": emp.get("company"),
                 "custom_location": emp.get("custom_location"),
                 "department": emp.get("department"),
