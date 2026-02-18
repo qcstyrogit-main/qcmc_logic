@@ -1,4 +1,5 @@
 import math
+import json
 import frappe
 import requests
 from frappe.auth import LoginManager
@@ -38,6 +39,65 @@ def _haversine_m(lat1, lon1, lat2, lon2):
     dl = math.radians(lon2 - lon1)
     a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
     return 2 * r * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def _radius_from_area(area_val, area_uom):
+    if area_val in (None, ""):
+        return None
+    try:
+        area_numeric = float(area_val)
+    except Exception:
+        return None
+
+    area_uom = _normalize_text(area_uom)
+    if area_uom in ("meter", "m2", "sqm", "sq meter", "square meter", "square meters"):
+        area_m2 = area_numeric
+    elif area_uom in ("km2", "sq km", "square kilometer", "square kilometers"):
+        area_m2 = area_numeric * 1_000_000.0
+    elif area_uom in ("ft2", "sq ft", "square foot", "square feet"):
+        area_m2 = area_numeric * 0.09290304
+    else:
+        area_m2 = area_numeric
+
+    if area_m2 <= 0:
+        return None
+
+    return math.sqrt(area_m2 / math.pi)
+
+
+def _radius_from_geolocation(geojson_value):
+    if not geojson_value:
+        return None
+
+    try:
+        payload = json.loads(geojson_value) if isinstance(geojson_value, str) else geojson_value
+    except Exception:
+        return None
+
+    features = []
+    if isinstance(payload, dict):
+        if payload.get("type") == "FeatureCollection":
+            features = payload.get("features") or []
+        elif payload.get("type") == "Feature":
+            features = [payload]
+
+    radius_values = []
+    for feature in features:
+        if not isinstance(feature, dict):
+            continue
+        props = feature.get("properties") or {}
+        point_type = (props.get("point_type") or "").lower().strip()
+        radius = props.get("radius")
+        if point_type in ("circle", "circlemarker") and radius not in (None, ""):
+            try:
+                radius_values.append(float(radius))
+            except Exception:
+                continue
+
+    if radius_values:
+        return max(radius_values)
+
+    return None
 
 
 @frappe.whitelist()
@@ -81,6 +141,7 @@ def validate_checkin_radius(latitude=None, longitude=None, allowed_radius_meters
                 "location_name",
                 "latitude",
                 "longitude",
+                "location",
                 "area",
                 "area_uom",
                 "custom_is_customer",
@@ -100,24 +161,13 @@ def validate_checkin_radius(latitude=None, longitude=None, allowed_radius_meters
             # Default radius fallback: value from app/request (50m)
             radius_m = _to_float(allowed_radius_meters, "allowed_radius_meters")
 
-            # If area is provided, derive radius from area (circle): radius = sqrt(area/pi)
-            area_val = loc.get("area")
-            area_uom = _normalize_text(loc.get("area_uom"))
-            if area_val not in (None, ""):
-                area_numeric = _to_float(area_val, "Location.area")
-
-                if area_uom in ("meter", "m2", "sqm", "sq meter", "square meter", "square meters"):
-                    area_m2 = area_numeric
-                elif area_uom in ("km2", "sq km", "square kilometer", "square kilometers"):
-                    area_m2 = area_numeric * 1_000_000.0
-                elif area_uom in ("ft2", "sq ft", "square foot", "square feet"):
-                    area_m2 = area_numeric * 0.09290304
-                else:
-                    area_m2 = area_numeric  # assume m² if unknown
-
-                if area_m2 > 0:
-                    radius_m = math.sqrt(area_m2 / math.pi)
-
+            geo_radius = _radius_from_geolocation(loc.get("location"))
+            if geo_radius is not None:
+                radius_m = geo_radius
+            else:
+                area_radius = _radius_from_area(loc.get("area"), loc.get("area_uom"))
+                if area_radius is not None:
+                    radius_m = area_radius
             distance_m = _haversine_m(app_lat, app_lon, loc_lat, loc_lon)
             if distance_m <= radius_m:
                 valid_locations.append({
@@ -245,7 +295,7 @@ def create_employee_checkin(
 
         locations = frappe.get_all(
             "Location",
-            fields=["name", "latitude", "longitude", "area", "area_uom", "custom_is_customer"],
+            fields=["name", "latitude", "longitude", "location", "area", "area_uom", "custom_is_customer"],
         )
 
         nearest = None
@@ -262,23 +312,13 @@ def create_employee_checkin(
             # Default radius fallback: value from app/request (50m)
             radius_m = _to_float(allowed_radius_meters, "allowed_radius_meters")
 
-            area_val = loc.get("area")
-            area_uom = _normalize_text(loc.get("area_uom"))
-            if area_val not in (None, ""):
-                area_numeric = _to_float(area_val, "Location.area")
-
-                if area_uom in ("meter", "m2", "sqm", "sq meter", "square meter", "square meters"):
-                    area_m2 = area_numeric
-                elif area_uom in ("km2", "sq km", "square kilometer", "square kilometers"):
-                    area_m2 = area_numeric * 1_000_000.0
-                elif area_uom in ("ft2", "sq ft", "square foot", "square feet"):
-                    area_m2 = area_numeric * 0.09290304
-                else:
-                    area_m2 = area_numeric
-
-                if area_m2 > 0:
-                    radius_m = math.sqrt(area_m2 / math.pi)
-
+            geo_radius = _radius_from_geolocation(loc.get("location"))
+            if geo_radius is not None:
+                radius_m = geo_radius
+            else:
+                area_radius = _radius_from_area(loc.get("area"), loc.get("area_uom"))
+                if area_radius is not None:
+                    radius_m = area_radius
             distance_m = _haversine_m(app_lat, app_lon, loc_lat, loc_lon)
             if distance_m <= radius_m:
                 if nearest is None or distance_m < nearest["distance_m"]:
@@ -458,4 +498,5 @@ def reverse_geocode(latitude=None, longitude=None, zoom=18):
         frappe.log_error(frappe.get_traceback(), "login_scan.reverse_geocode")
         frappe.local.response["http_status_code"] = 500
         return {"success": False, "message": "Unable to reverse geocode"}
+
 
