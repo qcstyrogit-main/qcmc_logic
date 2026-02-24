@@ -25,29 +25,34 @@ class MRFApproverSetCustomFields(OriginalJobRequisition):
             #     self.custom_corp_ie_approve_date = frappe.utils.now_datetime()
 
             # el
-            if has_bcclt_role:
-                self.custom_approved_by_bcclt = frappe.utils.get_fullname(frappe.session.user)
-                self.custom_bcclt_approve_date = frappe.utils.now_datetime()
+            #comment muna kay ma'am abe
+            # if has_bcclt_role:
+            #     self.custom_approved_by_bcclt = frappe.utils.get_fullname(frappe.session.user)
+            #     self.custom_bcclt_approve_date = frappe.utils.now_datetime()
 
-            else:
+            # else:
+            if not self.custom_approved_by_manager:
                 self.custom_approved_by_manager = frappe.utils.get_fullname(frappe.session.user)
                 self.custom_manager_approve_date = frappe.utils.now_datetime()
 
-        elif self.workflow_state in ["For BCC Approval","For VP Procurement","For VP Sales Approval"]:
-            self.custom_approved_by_manager = frappe.utils.get_fullname(frappe.session.user)
-            self.custom_manager_approve_date = frappe.utils.now_datetime()
+        # elif self.workflow_state in ["For BCC Approval","For VP Procurement","For VP Sales Approval"]:
+        #     self.custom_approved_by_manager = frappe.utils.get_fullname(frappe.session.user)
+        #     self.custom_manager_approve_date = frappe.utils.now_datetime()
 
         elif self.workflow_state == "Acknowledged":
             # HR acknowledgement
-            if has_hr_manager:
-                self.custom_approved_by_manager = frappe.utils.get_fullname(frappe.session.user)
-                self.custom_manager_approve_date = frappe.utils.now_datetime()
 
-                self.custom_acknowledged_by = frappe.utils.get_fullname(frappe.session.user)
-                self.custom_hr_acknowledged_date = frappe.utils.now_datetime()
+            if has_hr_manager:
+                if not self.custom_approved_by_manager:
+                    self.custom_approved_by_manager = frappe.utils.get_fullname(frappe.session.user)
+                    self.custom_manager_approve_date = frappe.utils.now_datetime()
+
+                    self.custom_acknowledged_by = frappe.utils.get_fullname(frappe.session.user)
+                    self.custom_hr_acknowledged_date = frappe.utils.now_datetime()
             else:
-                self.custom_acknowledged_by = frappe.utils.get_fullname(frappe.session.user)
-                self.custom_hr_acknowledged_date = frappe.utils.now_datetime()
+                if not self.custom_acknowledged_by:
+                    self.custom_acknowledged_by = frappe.utils.get_fullname(frappe.session.user)
+                    self.custom_hr_acknowledged_date = frappe.utils.now_datetime()
 
 
 
