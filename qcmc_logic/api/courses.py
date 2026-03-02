@@ -1,6 +1,7 @@
 import frappe
 
 def get_context(context):
+    """Check if user is logged in and has appropriate roles to access the courses page."""
     user = frappe.session.user
 
     # Allow System Managers & LMS Managers

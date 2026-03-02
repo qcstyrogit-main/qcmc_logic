@@ -3,6 +3,7 @@ import frappe
 
 @frappe.whitelist(allow_guest=True)
 def check_log_user():
+    """Check if the user is logged in and return user information."""
     if frappe.session.user == "Guest":
         return {"logged_in": False}
     return {

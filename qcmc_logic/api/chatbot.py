@@ -2,6 +2,7 @@ import frappe
 
 @frappe.whitelist(allow_guest=True)
 def get_bot_topics():
+    """Fetch chatbot greetings and active topics."""
     greetings = frappe.db.get_single_value("Chatbot Settings", "greetings") or ""
     topics = frappe.get_all(
         "Chatbot Topic",

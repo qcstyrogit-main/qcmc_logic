@@ -3,6 +3,7 @@ from frappe.utils import now_datetime
 
 @frappe.whitelist(allow_guest=True)
 def get_job_openings():
+    """Fetch open job listings with details and applicant counts."""
     jobs = frappe.get_all(
         "Job Opening",
         fields=[
@@ -64,6 +65,7 @@ def get_job_openings():
 
 @frappe.whitelist(allow_guest=True)
 def get_job_applicant_counts():
+    """Fetch counts of applicants grouped by job title."""
     # This groups applicants by the 'job_title' field (which links to the Job Opening ID)
     counts = frappe.db.sql("""
         SELECT job_title, COUNT(*) as count 

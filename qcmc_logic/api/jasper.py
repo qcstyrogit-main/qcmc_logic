@@ -6,6 +6,7 @@ from datetime import date, datetime
 
 @frappe.whitelist()
 def generate_purchase_receipt_report(doc_name=None):
+    """Generate a PDF report for a Purchase Receipt using JasperReports and attach it to the document."""
     try:
         jasper_folder = "/home/frappe/jasper_reports"
         template_file = os.path.join(jasper_folder, "Test.jrxml")  # JRXML file
@@ -26,6 +27,7 @@ def generate_purchase_receipt_report(doc_name=None):
 
         # Serialize dates to ISO format
         def default_serializer(obj):
+            """Convert date/datetime objects to ISO format for JSON serialization."""
             if isinstance(obj, (datetime, date)):
                 return obj.isoformat()
             raise TypeError(f"Type {obj.__class__.__name__} not serializable")
