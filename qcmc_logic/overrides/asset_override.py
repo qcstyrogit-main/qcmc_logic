@@ -25,6 +25,33 @@ class CustomAsset(Asset):
 
         if item.is_stock_item and not item.get("custom_is_asset_item"): #not item.custom_is_asset_item:
             frappe.throw("Stock Item must also be marked as Custom Asset Item")
+
+    def before_save(self):
+
+        if not self.custodian:
+            self.custom_custodian_name = ""
+            self.department = ""
+
+        else:
+            employee = frappe.db.get_value(
+                "Employee",
+                self.custodian,
+                ["employee_name", "custom_location", "department"],
+                as_dict=True
+            )
+
+            if employee:
+                self.custom_custodian_name = employee.employee_name
+                self.location = employee.custom_location
+                self.department = employee.department
+
+        # Scrapped logic
+        if self.status == "Scrapped":
+            old_doc = self.get_doc_before_save()
+            if old_doc and old_doc.status != "Scrapped":
+                self.workflow_state = "Scrapped"
+
+                
     #def custom_validate_item(self):
         # Instead of this:
         # self.validate_item()
