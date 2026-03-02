@@ -3,6 +3,7 @@ from frappe.utils import now_datetime
 
 @frappe.whitelist(allow_guest=True)
 def send_contact_inquiry():
+    """Handle 'Contact Us' form submission, send email to sales, auto-reply to sender, and log communication."""
     data = frappe.form_dict
 
     # --- Fields ---
