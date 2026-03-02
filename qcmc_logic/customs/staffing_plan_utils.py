@@ -56,38 +56,68 @@ def recalculate_staffing_plan(staffing_plan):
 
     from_date = doc.from_date
     to_date = doc.to_date
+    is_edsa = doc.custom_located_to_edsa
 
     for d in doc.staffing_details:
         # example: count active employees with matching designation, section, etc.
-        current_count = frappe.db.count(
-            "Employee",
-            filters={
-                "designation": d.designation,
-                "department": doc.department,
-                "company": doc.company,
-                "status": "Active",
-                "name": ["not in", frappe.db.sql_list("""
-                SELECT employee
-                FROM `tabEmployee Separation`
-                WHERE docstatus != 2
-                """)]
+        if is_edsa:
+            current_count = frappe.db.count(
+                "Employee",
+                filters={
+                    "designation": d.designation,
+                    "custom_location": "EDSA",
+                    "status": "Active",
+                    "name": ["not in", frappe.db.sql_list("""
+                    SELECT employee
+                    FROM `tabEmployee Separation`
+                    WHERE docstatus != 2
+                    """)]
 
-            }
-        )
+                }
+            )
+                
+            additional_count = frappe.db.sql(
+                """
+                SELECT COALESCE(SUM(no_of_positions), 0)
+                FROM `tabJob Requisition`
+                WHERE `custom_staffing_plan` = %s
+                AND `custom_additional_manpower` = 1
+                AND `status` = 'Open & Approved'
+                AND `posting_date` BETWEEN %s AND %s
+                """,
+                (staffing_plan, from_date, to_date),
+            )[0][0]
+
+        else:
+            current_count = frappe.db.count(
+                "Employee",
+                filters={
+                    "designation": d.designation,
+                    "department": doc.department,
+                    "company": doc.company,
+                    "status": "Active",
+                    "name": ["not in", frappe.db.sql_list("""
+                    SELECT employee
+                    FROM `tabEmployee Separation`
+                    WHERE docstatus != 2
+                    """)]
+
+                }
+            )
         
-        additional_count = frappe.db.sql(
-            """
-            SELECT COALESCE(SUM(no_of_positions), 0)
-            FROM `tabJob Requisition`
-            WHERE `custom_staffing_plan` = %s
-              AND `custom_additional_manpower` = 1
-              AND `designation` = %s
-              AND `department` = %s
-              AND `status` = 'Open & Approved'
-              AND `posting_date` BETWEEN %s AND %s
-            """,
-            (staffing_plan, d.designation, doc.department, from_date, to_date),
-        )[0][0]
+            additional_count = frappe.db.sql(
+                """
+                SELECT COALESCE(SUM(no_of_positions), 0)
+                FROM `tabJob Requisition`
+                WHERE `custom_staffing_plan` = %s
+                AND `custom_additional_manpower` = 1
+                AND `designation` = %s
+                AND `department` = %s
+                AND `status` = 'Open & Approved'
+                AND `posting_date` BETWEEN %s AND %s
+                """,
+                (staffing_plan, d.designation, doc.department, from_date, to_date),
+            )[0][0]
 
         
         vacancies = d.vacancies
@@ -96,7 +126,16 @@ def recalculate_staffing_plan(staffing_plan):
         frappe.db.set_value("Staffing Plan Detail", d.name, "current_count", current_count)
         if doc.docstatus == 1:
             number_of_positions = d.number_of_positions
-            vacancies = (d.number_of_positions - current_count) + additional_count
+            if d.number_of_positions > current_count:
+                vacancies = (d.number_of_positions - current_count) + additional_count
+            # else:
+            #     vacancies = 0
+            if number_of_positions < current_count:
+                number_of_positions = current_count
+                vacancies = 0
+                frappe.db.set_value("Staffing Plan Detail", d.name, "number_of_positions", number_of_positions)
+
+
             if number_of_positions < vacancies and additional_count > 0 and doc.docstatus == 1:
                 number_of_positions = vacancies + current_count + additional_count
                 frappe.db.set_value("Staffing Plan Detail", d.name, "number_of_positions", number_of_positions)
