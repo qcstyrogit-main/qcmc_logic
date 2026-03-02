@@ -4,6 +4,7 @@ import json
 
 @frappe.whitelist()
 def convert_pr_to_partner(source_pr, target_company,target_warehouse, selected_items=None):
+    """Convert a Material Request to a new one for a different company, keeping only selected items."""
     frappe.logger().info(f"Raw selected_items: {repr(selected_items)}")
 
     if not selected_items:

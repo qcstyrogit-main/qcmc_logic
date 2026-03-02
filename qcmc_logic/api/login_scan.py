@@ -17,14 +17,17 @@ GEOFENCE_EXEMPT_DESIGNATIONS = {
 
 
 def _normalize_text(value):
+    """Normalize text for consistent comparison: strip, lowercase, and collapse whitespace."""
     return " ".join(str(value or "").strip().lower().split())
 
 
 def _is_geofence_exempt(designation):
+    """Check if the given designation is exempt from geofencing."""
     return _normalize_text(designation) in GEOFENCE_EXEMPT_DESIGNATIONS
 
 
 def _to_float(value, field_name):
+    """Convert a value to float, throwing a user-friendly error if conversion fails."""
     try:
         return float(value)
     except Exception:
@@ -32,6 +35,7 @@ def _to_float(value, field_name):
 
 
 def _haversine_m(lat1, lon1, lat2, lon2):
+    """Calculate the great circle distance in meters between two points on the Earth."""
     r = 6371000.0
     p1 = math.radians(lat1)
     p2 = math.radians(lat2)
@@ -42,6 +46,7 @@ def _haversine_m(lat1, lon1, lat2, lon2):
 
 
 def _radius_from_area(area_val, area_uom):
+    """Calculate an approximate radius in meters from an area value and its unit of measure."""
     if area_val in (None, ""):
         return None
     try:
@@ -66,6 +71,7 @@ def _radius_from_area(area_val, area_uom):
 
 
 def _radius_from_geolocation(geojson_value):
+    """Extract radius in meters from a GeoJSON string if it contains a circle or circlemarker feature."""
     if not geojson_value:
         return None
 
@@ -102,6 +108,7 @@ def _radius_from_geolocation(geojson_value):
 
 @frappe.whitelist()
 def validate_checkin_radius(latitude=None, longitude=None, allowed_radius_meters=50):
+    """Validate if the given latitude and longitude are within the allowed radius of any defined Location for the logged-in employee."""
     try:
         user = frappe.session.user
         if user == "Guest":
@@ -202,6 +209,7 @@ def validate_checkin_radius(latitude=None, longitude=None, allowed_radius_meters
 
 @frappe.whitelist(allow_guest=True)
 def login(username, password):
+    """Authenticate user and return session details along with employee info and geofence exemption status."""
     try:
         login_manager = LoginManager()
         login_manager.authenticate(user=username, pwd=password)
@@ -263,6 +271,7 @@ def create_employee_checkin(
     skip_auto_attendance=0,
     allowed_radius_meters=50
 ):
+    """Create an Employee Checkin record for the logged-in user, validating geofence if applicable."""
     user = frappe.session.user
     if user == "Guest":
         frappe.throw("Not allowed", frappe.PermissionError)
@@ -397,6 +406,7 @@ def create_employee_checkin(
 
 @frappe.whitelist()
 def get_checkin_history(employee=None, limit=100):
+    """Fetch recent check-in history for the logged-in employee, with optional employee filter and limit."""
     try:
         if frappe.session.user == "Guest":
             frappe.local.response["http_status_code"] = 401
@@ -455,6 +465,7 @@ def get_checkin_history(employee=None, limit=100):
 
 @frappe.whitelist()
 def reverse_geocode(latitude=None, longitude=None, zoom=18):
+    """Reverse geocode latitude and longitude to a human-readable address using OpenStreetMap's Nominatim API."""
     if latitude is None or longitude is None:
         return {"success": False, "message": "Latitude and longitude are required"}
 

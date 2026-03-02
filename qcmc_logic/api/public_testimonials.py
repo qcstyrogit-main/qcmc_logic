@@ -25,6 +25,7 @@ def list_active_testimonials():
 
 
 def _make_file_url(file_url):
+    """Converts a file URL (which may be relative or absolute) into an absolute URL."""
     if not file_url:
         return None
     if file_url.startswith("http://") or file_url.startswith("https://"):
