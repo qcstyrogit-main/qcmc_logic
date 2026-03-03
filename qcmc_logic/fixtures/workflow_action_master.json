@@ -233,13 +233,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-03-19 10:05:52.014185",
-  "name": "Submit for Approval",
-  "workflow_action_name": "Submit for Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2026-01-27 09:38:14.612225",
   "name": "For VP Sales Approval",
   "workflow_action_name": "For VP Sales Approval"
@@ -264,6 +257,20 @@
   "modified": "2025-05-14 13:23:14.108790",
   "name": "Submit",
   "workflow_action_name": "Submit"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-03-03 16:41:40.572957",
+  "name": "Complete",
+  "workflow_action_name": "Complete"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-03-19 10:05:52.014185",
+  "name": "Submit for Approval",
+  "workflow_action_name": "Submit for Approval"
  },
  {
   "docstatus": 0,
