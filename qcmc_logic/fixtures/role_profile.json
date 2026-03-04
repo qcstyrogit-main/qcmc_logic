@@ -2,6 +2,39 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-03-03 08:22:30.679799",
+  "name": "Delivery Driver",
+  "role_profile": "Delivery Driver",
+  "roles": [
+   {
+    "parent": "Delivery Driver",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Delivery User"
+   },
+   {
+    "parent": "Delivery Driver",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "LMS Student"
+   },
+   {
+    "parent": "Delivery Driver",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Customer"
+   },
+   {
+    "parent": "Delivery Driver",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
   "modified": "2025-02-11 13:17:12.399402",
   "name": "Manufacturing",
   "role_profile": "Manufacturing",
