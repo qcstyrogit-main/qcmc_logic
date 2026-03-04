@@ -18,7 +18,9 @@
     "employee_name",
     "log_type",
     "log_time",
-    "location"
+    "location",
+    "custom_customer",
+    "custom_activities"
   ],
   "fields": [
     {
@@ -49,6 +51,20 @@
       "fieldname": "location",
       "fieldtype": "Data",
       "label": "Location",
+      "read_only": 1
+    },
+    {
+      "fieldname": "custom_customer",
+      "fieldtype": "Data",
+      "label": "Customer",
+      "in_list_view": 1,
+      "read_only": 1
+    },
+    {
+      "fieldname": "custom_activities",
+      "fieldtype": "Data",
+      "label": "Activities",
+      "in_list_view": 1,
       "read_only": 1
     }
   ],

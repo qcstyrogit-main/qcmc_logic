@@ -7,6 +7,15 @@ class GenerateLogs(Document):
     def generate_logs(self):
         self.set("logs", [])
 
+        def _first_existing_column(*candidates):
+            for col in candidates:
+                if frappe.db.has_column("Employee Checkin", col):
+                    return f"ec.{col}"
+            return "NULL"
+
+        customer_expr = _first_existing_column("custom_customer", "customer")
+        activities_expr = _first_existing_column("custom_activities", "activities", "custom_activity")
+
         conditions = []
         params = {}
 
@@ -34,7 +43,9 @@ class GenerateLogs(Document):
                 ec.log_type AS log_type,
                 ec.time AS time,
                 ec.creation AS creation,
-                COALESCE(ec.custom_address, ec.custom_location_name) AS location
+                COALESCE(ec.custom_address, ec.custom_location_name) AS location,
+                {customer_expr} AS custom_customer,
+                {activities_expr} AS custom_activities
             FROM `tabEmployee Checkin` ec
             INNER JOIN `tabSales Person` sp ON sp.employee = ec.employee
             LEFT JOIN `tabEmployee` e ON e.name = ec.employee
@@ -55,6 +66,8 @@ class GenerateLogs(Document):
                     "log_type": row.get("log_type"),
                     "log_time": time_value,
                     "location": row.get("location"),
+                    "custom_customer": row.get("custom_customer"),
+                    "custom_activities": row.get("custom_activities"),
                 },
             )
 
