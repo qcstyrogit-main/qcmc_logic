@@ -268,6 +268,8 @@ def create_employee_checkin(
     latitude=None,
     longitude=None,
     device_id=None,
+    custom_customer=None,
+    custom_activities=None,
     skip_auto_attendance=0,
     allowed_radius_meters=50
 ):
@@ -382,6 +384,10 @@ def create_employee_checkin(
         doc.custom_location_name = matched_location
     if "custom_address" in valid_columns and custom_address:
         doc.custom_address = custom_address
+    if "custom_customer" in valid_columns and custom_customer:
+        doc.custom_customer = custom_customer
+    if "custom_activities" in valid_columns and custom_activities:
+        doc.custom_activities = custom_activities
 
     doc.insert()
     frappe.db.commit()
