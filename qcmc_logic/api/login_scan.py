@@ -438,7 +438,7 @@ def get_checkin_history(employee=None, limit=100):
             "Employee Checkin",
             filters={"employee": employee},
             fields=["name", "employee", "log_type", "time", "creation",
-                    "latitude", "longitude", "custom_location_name"],
+                    "latitude", "longitude", "custom_location_name", "custom_activities"],
             order_by="time desc",
             limit_page_length=limit,
         )
@@ -453,6 +453,7 @@ def get_checkin_history(employee=None, limit=100):
                 "latitude": row.get("latitude"),
                 "longitude": row.get("longitude"),
                 "custom_location_name": row.get("custom_location_name"),
+                "custom_activities": row.get("custom_activities"),
             })
 
         return {"success": True, "checkins": checkins}
@@ -515,5 +516,53 @@ def reverse_geocode(latitude=None, longitude=None, zoom=18):
         frappe.log_error(frappe.get_traceback(), "login_scan.reverse_geocode")
         frappe.local.response["http_status_code"] = 500
         return {"success": False, "message": "Unable to reverse geocode"}
+
+
+@frappe.whitelist()
+def update_checkin_activities(checkin_id=None, custom_activities=None):
+    """Update custom_activities field for an Employee Checkin record."""
+    try:
+        if frappe.session.user == "Guest":
+            frappe.local.response["http_status_code"] = 401
+            return {"success": False, "message": "Not authenticated"}
+
+        if not checkin_id:
+            return {"success": False, "message": "Checkin ID is required"}
+
+        # Verify the checkin belongs to the current user's employee record
+        employee = frappe.db.get_value(
+            "Employee",
+            {"user_id": frappe.session.user},
+            "name",
+            as_dict=True
+        )
+        if not employee:
+            return {"success": False, "message": "No Employee linked to this user"}
+
+        # Check if the checkin exists and belongs to this employee
+        checkin = frappe.db.get_value(
+            "Employee Checkin",
+            {"name": checkin_id, "employee": employee.name},
+            "name",
+            as_dict=True
+        )
+        if not checkin:
+            return {"success": False, "message": "Checkin not found or access denied"}
+
+        # Update the custom_activities field
+        frappe.db.set_value("Employee Checkin", checkin_id, "custom_activities", custom_activities)
+        frappe.db.commit()
+
+        return {
+            "success": True,
+            "message": "Activities updated successfully",
+            "checkin_id": checkin_id,
+            "custom_activities": custom_activities,
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "login_scan.update_checkin_activities")
+        frappe.local.response["http_status_code"] = 500
+        return {"success": False, "message": f"Unable to update activities: {str(e)}"}
 
 
