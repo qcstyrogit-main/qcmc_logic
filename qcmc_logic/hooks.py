@@ -43,7 +43,8 @@ override_doctype_class = {
     "Asset": "qcmc_logic.overrides.asset_override.CustomAsset",
     "Job Requisition": "qcmc_logic.overrides.MRFApprovers.MRFApproverSetCustomFields",
     "Staffing Plan": "qcmc_logic.overrides.StaffingPlanOverrides.CustomStaffingPlan",
-    "Payment Entry": "qcmc_logic.overrides.payment_entry.CustomPaymentEntry"
+    "Payment Entry": "qcmc_logic.overrides.payment_entry.CustomPaymentEntry",
+    "Job Opening": "qcmc_logic.overrides.jobopening_overrides.CustomJobOpening"
 }
 permission_query_conditions = {
      "Appraisal": "qcmc_logic.customs.permissions.appraisal_permission_query",
