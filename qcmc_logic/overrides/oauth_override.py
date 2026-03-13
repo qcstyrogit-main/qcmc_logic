@@ -1,7 +1,7 @@
 import frappe
 
 @frappe.whitelist(allow_guest=True)
-def oauth_protected_resource():
+def protected_resource_metadata():
     base = frappe.utils.get_url()
 
     return {
