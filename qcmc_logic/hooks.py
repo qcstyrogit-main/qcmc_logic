@@ -32,7 +32,8 @@ doc_events = {
 
 override_whitelisted_methods = {
     "frappe.desk.printing.get_print_format": "qcmc_logic.overrides.POPrint_Override.get_po_print_format",
-    "lms.lms.utils.get_courses": "qcmc_logic.overrides.lms_overrides.get_courses"
+    "lms.lms.utils.get_courses": "qcmc_logic.overrides.lms_overrides.get_courses",
+    "frappe_assistant_core.api.oauth_discovery.oauth_protected_resource":"qcmc_logic.overrides.oauth_override.oauth_protected_resource"
 }
 
 
