@@ -5,6 +5,7 @@ import requests
 from frappe.auth import LoginManager
 from frappe.utils import now_datetime
 from frappe.utils import cint
+from frappe.utils import today
 
 
 
@@ -428,15 +429,23 @@ def get_checkin_history(employee=None, limit=100):
         if not employee:
             return {"success": True, "checkins": []}
 
+        employee_designation = frappe.db.get_value("Employee", employee, "designation")
+        apply_today_only_filter = _is_geofence_exempt(employee_designation)
+
         try:
             limit = int(limit)
         except Exception:
             limit = 100
         limit = max(1, min(limit, 500))
 
+        filters = {"employee": employee}
+        if apply_today_only_filter:
+            current_day = today()
+            filters["time"] = ["between", [f"{current_day} 00:00:00", f"{current_day} 23:59:59"]]
+
         rows = frappe.get_all(
             "Employee Checkin",
-            filters={"employee": employee},
+            filters=filters,
             fields=["name", "employee", "log_type", "time", "creation",
                     "latitude", "longitude", "custom_location_name", "custom_activities"],
             order_by="time desc",

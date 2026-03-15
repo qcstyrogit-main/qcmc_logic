@@ -73,8 +73,6 @@ fixtures = [
     {"doctype": "Email Template"},
     {"doctype": "Letter Head"},
     # {"doctype": "User Permission"},
-    {"doctype": "Role Profile"},
-    {"doctype": "Custom DocPerm"},
     # {"doctype": "Account"},
     {"doctype": "Module Def"},
     #{"doctype": "Module Profile"},
