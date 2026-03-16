@@ -38,7 +38,8 @@ override_whitelisted_methods = {
     "frappe.desk.printing.get_print_format": "qcmc_logic.overrides.POPrint_Override.get_po_print_format",
     "lms.lms.utils.get_courses": "qcmc_logic.overrides.lms_overrides.get_courses",
      "frappe_assistant_core.api.oauth_discovery.protected_resource_metadata":"qcmc_logic.overrides.oauth_override.protected_resource_metadata",
-     "frappe_assistant_core.api.oauth_registration.register_client":"qcmc_logic.overrides.oauth_override.register_client"
+     "frappe_assistant_core.api.oauth_registration.register_client":"qcmc_logic.overrides.oauth_override.register_client",
+      "frappe_assistant_core.api.oauth_discovery.oauth_authorization_server":"qcmc_logic.overrides.oauth_override.oauth_authorization_server",
 
 }
 
