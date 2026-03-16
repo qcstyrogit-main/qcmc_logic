@@ -107,7 +107,7 @@ def _radius_from_geolocation(geojson_value):
     return None
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def validate_checkin_radius(latitude=None, longitude=None, allowed_radius_meters=50):
     """Validate if the given latitude and longitude are within the allowed radius of any defined Location for the logged-in employee."""
     try:
@@ -263,7 +263,7 @@ def login(username, password):
         return {"success": False, "message": "Login failed"}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def create_employee_checkin(
     log_type="IN",
     latitude=None,
@@ -411,7 +411,7 @@ def create_employee_checkin(
 
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_checkin_history(employee=None, limit=100):
     """Fetch recent check-in history for the logged-in employee, with optional employee filter and limit."""
     try:
@@ -527,7 +527,7 @@ def reverse_geocode(latitude=None, longitude=None, zoom=18):
         return {"success": False, "message": "Unable to reverse geocode"}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def update_checkin_activities(checkin_id=None, custom_activities=None):
     """Update custom_activities field for an Employee Checkin record."""
     try:

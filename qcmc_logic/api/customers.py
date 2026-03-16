@@ -18,7 +18,7 @@ def _ensure_can_read_customer(doc=None):
         frappe.throw("Not permitted", frappe.PermissionError)
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def list_customers(limit=20, start=0, search=None, customer_group=None, territory=None, include_disabled=0):
     """
     List customers with optional search and filters.
@@ -89,7 +89,7 @@ def list_customers(limit=20, start=0, search=None, customer_group=None, territor
     }
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_customer(name):
     """Return a single customer by name (requires read permission)."""
     if not name:
@@ -129,7 +129,7 @@ def _ensure_can_write_customer(doc=None):
         frappe.throw("Not permitted", frappe.PermissionError)
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def create_customer(data):
     """
     Create a new Customer.
@@ -148,7 +148,7 @@ def create_customer(data):
     return {"name": doc.name}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def update_customer(name, data):
     """
     Update an existing Customer.
