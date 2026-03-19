@@ -4,12 +4,46 @@ import frappe
 from pydantic import BaseModel, HttpUrl, ValidationError
 from werkzeug import Response
 from werkzeug.exceptions import NotFound
-
+from urllib.parse import urlencode
 from frappe_assistant_core.utils.oauth_compat import (
     create_oauth_client,
     get_oauth_settings,
     validate_dynamic_client_metadata,
 )
+
+@frappe.whitelist(allow_guest=True)
+def oauth_authorization_server():
+    data = frappe.call("frappe_assistant_core.api.oauth_discovery.oauth_authorization_server")
+
+    data["authorization_endpoint"] = (
+        "https://erp.qcstyro.com/api/method/"
+        "fac_oauth_patch.api.oauth_authorize.authorize_entry"
+    )
+
+    return data
+
+@frappe.whitelist(allow_guest=True)
+def authorize_entry(**kwargs):
+    """
+    Wrapper for Frappe OAuth authorize that preserves query parameters through login.
+    """
+
+    # Capture the original OAuth parameters
+    params = dict(frappe.form_dict)
+
+    # Remove frappe RPC command if present
+    params.pop("cmd", None)
+
+    # If user is not logged in, redirect to login preserving the full query
+    if frappe.session.user == "Guest":
+        redirect_url = "/api/method/fac_oauth_patch.api.oauth_authorize.authorize_entry?" + urlencode(params)
+
+        frappe.local.response["type"] = "redirect"
+        frappe.local.response["location"] = f"/login?redirect-to={redirect_url}"
+        return
+
+    # User is logged in → forward to real OAuth authorize
+    return frappe.call("frappe.integrations.oauth2.authorize", **params)
 
 
 class OAuth2DynamicClientMetadata(BaseModel):
