@@ -372,15 +372,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-04-23 11:50:47.366734",
-  "name": "For Checking",
-  "style": "",
-  "workflow_state_name": "For Checking"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2025-04-23 11:51:36.904324",
   "name": "Checked",
   "style": "",
@@ -502,5 +493,14 @@
   "name": "Approved",
   "style": "Success",
   "workflow_state_name": "Approved"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-04-23 11:50:47.366734",
+  "name": "For Checking",
+  "style": "",
+  "workflow_state_name": "For Checking"
  }
 ]

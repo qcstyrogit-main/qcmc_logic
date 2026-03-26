@@ -2,6 +2,83 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
+  "dt": "Asset",
+  "enabled": 0,
+  "modified": "2025-04-16 09:45:35.889548",
+  "module": null,
+  "name": "AssetCompanyEmployeeOnly",
+  "script": "frappe.ui.form.on('Asset', {\r\n    onload: function(frm) {\r\n        frm.set_query('custodian', function() {\r\n            if (frm.doc.company) {\r\n                return {\r\n                    filters: {\r\n                        company: frm.doc.company\r\n                    }\r\n                };\r\n            }\r\n        });\r\n    },\r\n    company: function(frm) {\r\n        frm.set_query('custodian', function() {\r\n            if (frm.doc.company) {\r\n                return {\r\n                    filters: {\r\n                        company: frm.doc.company\r\n                    }\r\n                };\r\n            }\r\n        });\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Vehicle Log",
+  "enabled": 0,
+  "modified": "2025-08-07 10:37:35.810553",
+  "module": null,
+  "name": "Vehicle Log based on Location",
+  "script": "frappe.ui.form.on('Vehicle Log', {\r\n  onload: function(frm) {\r\n    frappe.call({\r\n      method: \"frappe.client.get\",\r\n      args: {\r\n        doctype: \"User\",\r\n        name: frappe.session.user,\r\n      },\r\n      callback: function(r) {\r\n        if (r.message && r.message.location) {\r\n          const user_location = r.message.location;\r\n\r\n          frm.set_query(\"license_plate\", function() {\r\n            let allowed_locations = [];\r\n\r\n           if (user_location === \"GUYONG\") {\r\n              allowed_locations = [\"GUYONG\", \"EDSA\", \"MC1\"];\r\n            } else {\r\n              allowed_locations = [user_location];\r\n            }\r\n\r\n            return {\r\n              filters: [\r\n                [\"Vehicle\", \"location\", \"in\", allowed_locations]\r\n              ]\r\n            };\r\n          });\r\n        }\r\n      }\r\n    });\r\n  }\r\n});\r\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Asset",
+  "enabled": 0,
+  "modified": "2025-08-13 13:56:27.621646",
+  "module": null,
+  "name": "Asset Section Filter",
+  "script": "frappe.ui.form.on('Asset', {\r\n    refresh: function(frm) {\r\n        frm.set_query('custom_section', function() {\r\n            return {\r\n                filters: {\r\n                    location: frm.doc.location // adjust if different fieldname\r\n                }\r\n            };\r\n        });\r\n    },\r\n\r\n    location: function(frm) {\r\n        frm.trigger('refresh');  // Refresh the query when location changes\r\n    }\r\n});\r\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Asset",
+  "enabled": 0,
+  "modified": "2025-07-14 07:40:56.899029",
+  "module": null,
+  "name": "Asset Tag Button",
+  "script": "frappe.listview_settings['Asset'] = {\r\n    onload(listview) {\r\n        listview.page.add_inner_button('Print Asset Tags', () => {\r\n            const selected = listview.get_checked_items();\r\n\r\n            if (selected.length === 0) {\r\n                frappe.msgprint(__('Please select at least one asset.'));\r\n                return;\r\n            }\r\n\r\n            const asset_names = selected.map(row => row.name);\r\n\r\n            frappe.call({\r\n                method: 'frappe.desk.page.server_script.server_script.run',\r\n                args: {\r\n                    script_name: 'Multiple Asset Tag',\r\n                    asset_names: JSON.stringify(asset_names)\r\n                },\r\n                callback: function(r) {\r\n                    const data = r.message;\r\n\r\n                    let html = '';\r\n                    data.forEach(asset => {\r\n                        html += `\r\n                            <div style=\"border:1px solid #000; padding:10px; margin:5px; width:45%; display:inline-block;\">\r\n                                <b>${asset.name}</b><br>\r\n                                ${asset.item_name}<br>\r\n                                Brand: ${asset.custom_brand_name}<br>\r\n                                Model: ${asset.custom_model}<br>\r\n                                Serial: ${asset.custom_serial_no}<br>\r\n                                Cost: ₱${asset.gross_purchase_amount}\r\n                            </div>\r\n                        `;\r\n                    });\r\n\r\n                    const win = window.open('', '_blank');\r\n                    win.document.write(`<html><head><title>Asset Tags</title></head><body>${html}</body></html>`);\r\n                    win.document.close();\r\n                    win.print();\r\n                }\r\n            });\r\n        });\r\n    }\r\n};\r\n",
+  "view": "List"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Booklet Monitoring",
+  "enabled": 0,
+  "modified": "2025-09-18 17:52:36.445246",
+  "module": null,
+  "name": "Booklet Disable Add and Delete row",
+  "script": "frappe.ui.form.on(\"Booklet Monitoring\", {\n    refresh: function(frm) {\n        let grid = frm.fields_dict[\"booklet_items\"].grid;\n        grid.cannot_add_rows = true;\n        grid.cannot_delete_rows = true;\n        grid.refresh();\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Job Requisition",
+  "enabled": 0,
+  "modified": "2026-02-04 07:58:43.779472",
+  "module": null,
+  "name": "MRF Action Buttons",
+  "script": "frappe.ui.form.on('Job Requisition', {\r\n    refresh(frm) {\r\n        // Delay to ensure ERPNext adds workflow buttons first\r\n        setTimeout(() => {\r\n            set_dynamic_workflow_actions(frm);\r\n        }, 50);\r\n    },\r\n\r\n    department(frm) {\r\n        // Recalculate buttons whenever department changes\r\n        set_dynamic_workflow_actions(frm);\r\n    },\r\n\r\n    workflow_state(frm) {\r\n        // Recalculate buttons when workflow state changes\r\n        set_dynamic_workflow_actions(frm);\r\n    }\r\n});\r\n\r\n// ================================\r\n// Helper functions\r\n// ================================\r\nfunction set_dynamic_workflow_actions(frm) {\r\n    // Remove all existing action buttons first\r\n    frm.page.clear_actions();\r\n\r\n    // Track which custom buttons we already added\r\n    frm.custom_action_added = new Set();\r\n\r\n    const dept = frm.doc.department || \"\";\r\n    const state = frm.doc.workflow_state || \"\";\r\n\r\n    if (!state) return;\r\n\r\n    // Define department groups\r\n    const finance_depts = [\"Finance - MC\", \"Finance CANDC - MC\", \"Finance Cost - MC\", \r\n                \"Finance General - MC\", \"Finance Audit - MC\", \"Finance Asset - MC\", \r\n                \"Finance MIS - MC\", \"Finance Provincial - MC\", \"Finance - QC\", \r\n                \"Finance CANDC - QC\", \"Finance Cost - QC\", \"Finance General - QC\", \r\n                \"Finance Audit - QC\", \"Finance Asset - QC\", \"Finance MIS - QC\", \r\n                \"Finance Provincial - QC\"];\r\n    const sales_depts = [\"Sales - QC\", \"Sales - MC\", \"Sales Provincial - MC\"];\r\n    const proc_depts = [\"Procurement - QC\", \"Procurement - MC\"];\r\n\r\n    // -------------------\r\n    // Add buttons per workflow state\r\n    // -------------------\r\n    if (state === \"Draft\") {\r\n        add_custom_action(frm, \"Submit for Approval\");\r\n    }\r\n\r\n    else if (state === \"For Approval\") {\r\n        if (finance_depts.includes(dept)) {\r\n            add_custom_action(frm, \"For BCC Approval\");\r\n        } else if (sales_depts.includes(dept)) {\r\n            add_custom_action(frm, \"For VP Sales Approval\");\r\n        } else if (proc_depts.includes(dept)) {\r\n            add_custom_action(frm, \"For VP Procurement Approval\");\r\n        } else {\r\n            add_custom_action(frm, \"Approve\");\r\n        }\r\n    }\r\n\r\n    else if (state === \"For BCC Approval\") {\r\n        add_custom_action(frm, \"Approve\");\r\n    }\r\n\r\n    else if (state === \"For VP Sales Approval\") {\r\n        add_custom_action(frm, \"Approve\");\r\n    }\r\n\r\n    else if (state === \"For VP Procurement Approval\") {\r\n        add_custom_action(frm, \"Approve\");\r\n    }\r\n\r\n    else if (state === \"Approved\") {\r\n        add_custom_action(frm, \"Acknowledge\");\r\n    }\r\n\r\n    else if (state === \"Acknowledged\") {\r\n        add_custom_action(frm, \"Cancel\");\r\n    }\r\n}\r\n\r\n// ================================\r\n// Function to add a custom workflow button\r\n// ================================\r\nfunction add_custom_action(frm, action_name) {\r\n    if (frm.custom_action_added.has(action_name)) return;\r\n\r\n    frm.page.add_action_item(action_name, () => {\r\n        frappe.xcall(\"frappe.model.workflow.apply_workflow\", {\r\n            doc: frm.doc,\r\n            action: action_name\r\n        }).then(() => frm.reload_doc());\r\n    });\r\n\r\n    frm.custom_action_added.add(action_name);\r\n}\r\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Staffing Plan",
+  "enabled": 0,
+  "modified": "2025-11-18 18:07:48.796284",
+  "module": null,
+  "name": "Staffing Plan current count",
+  "script": "frappe.ui.form.on(\"Staffing Plan\", {\r\n    refresh: function(frm) {\r\n        // Only run if there are child rows\r\n        if(frm.doc.staffing_details && frm.doc.staffing_details.length > 0) {\r\n            frm.doc.staffing_details.forEach(function(d, idx) {\r\n                frappe.call({\r\n                    method: \"qcmc_logic.overrides.StaffingPlanOverrides.get_current_count\",\r\n                    args: {\r\n                        docname: frm.doc.name,     // may be \"new-xxxx\" for unsaved docs\r\n                        child_idx: idx,\r\n                        data: frm.doc              // send entire doc JSON so Python can read it\r\n                    },\r\n                    callback: function(r) {\r\n                        if (r.message !== undefined) {\r\n                            frappe.model.set_value(d.doctype, d.name, \"current_count\", r.message);\r\n                            frappe.show_alert(`Current count: ${r.message}`);\r\n                        }\r\n                    }\r\n                });\r\n            });\r\n        }\r\n    }\r\n});\r\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
   "dt": "Delivery Trip",
   "enabled": 1,
   "modified": "2026-02-19 09:15:14.460323",
