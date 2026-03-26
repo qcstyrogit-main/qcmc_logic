@@ -199,13 +199,13 @@
   "doctype_event": "After Submit",
   "enable_rate_limit": 0,
   "event_frequency": "All",
-  "modified": "2025-10-01 17:06:22.909548",
+  "modified": "2026-03-26 07:56:48.209336",
   "module": null,
   "name": "WRR Received",
   "rate_limit_count": 5,
   "rate_limit_seconds": 86400,
   "reference_doctype": "Purchase Receipt",
-  "script": "# Server Script: Document Event\r\nif doc.workflow_state == \"Received\":\r\n    from frappe.utils import now_datetime\r\n    doc.custom_date_received = now_datetime()\r\n    doc.custom_received_by = frappe.session.user\r\n",
+  "script": "# Server Script: Document Event\r\nif doc.workflow_state == \"Received\" :\r\n    doc.custom_date_received = frappe.utils.now_datetime()\r\n    doc.custom_received_by = frappe.session.user",
   "script_type": "DocType Event"
  },
  {
