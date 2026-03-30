@@ -233,13 +233,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-07-31 13:39:59.864970",
-  "name": "Submit for Machine Supervisor Approval",
-  "workflow_action_name": "Submit for Machine Supervisor Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2025-07-24 16:56:26.502880",
   "name": "Submit for Initial Approval",
   "workflow_action_name": "Submit for Initial Approval"
@@ -278,5 +271,12 @@
   "modified": "2025-03-19 10:05:52.014185",
   "name": "Submit for Approval",
   "workflow_action_name": "Submit for Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-03-30 16:47:28.397383",
+  "name": "Submit for Machine Shop Supervisor Approval",
+  "workflow_action_name": "Submit for Machine Shop Supervisor Approval"
  }
 ]
