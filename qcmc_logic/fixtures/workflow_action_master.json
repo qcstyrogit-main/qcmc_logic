@@ -16,13 +16,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-02-11 13:07:54.102923",
-  "name": "Approve",
-  "workflow_action_name": "Approve"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2026-01-27 09:35:01.060128",
   "name": "For RTC Approval",
   "workflow_action_name": "For RTC Approval"
@@ -79,20 +72,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-07-31 15:00:38.428209",
-  "name": "Submit for MIS Supervisor",
-  "workflow_action_name": "Submit for MIS Supervisor"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-07-31 13:39:59.864970",
-  "name": "Submit for Machine Supervisor Approval",
-  "workflow_action_name": "Submit for Machine Supervisor Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2025-10-23 08:21:06.267156",
   "name": "Submit to Corp IE",
   "workflow_action_name": "Submit to Corp IE"
@@ -142,13 +121,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-07-24 16:56:26.502880",
-  "name": "Submit for Initial Approval",
-  "workflow_action_name": "Submit for Initial Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2025-04-21 12:57:38.843403",
   "name": "Transfer",
   "workflow_action_name": "Transfer"
@@ -173,13 +145,6 @@
   "modified": "2025-10-20 15:59:53.086519",
   "name": "Acknowledge",
   "workflow_action_name": "Acknowledge"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-07-21 11:43:02.752283",
-  "name": "To Receive",
-  "workflow_action_name": "To Receive"
  },
  {
   "docstatus": 0,
@@ -226,13 +191,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-06-26 11:41:12.434883",
-  "name": "Receive",
-  "workflow_action_name": "Receive"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2026-01-27 09:38:14.612225",
   "name": "For VP Sales Approval",
   "workflow_action_name": "For VP Sales Approval"
@@ -254,13 +212,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-05-14 13:23:14.108790",
-  "name": "Submit",
-  "workflow_action_name": "Submit"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2026-03-03 16:41:40.572957",
   "name": "Complete",
   "workflow_action_name": "Complete"
@@ -268,15 +219,64 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-03-19 10:05:52.014185",
-  "name": "Submit for Approval",
-  "workflow_action_name": "Submit for Approval"
+  "modified": "2025-05-14 13:36:08.460123",
+  "name": "Cancel",
+  "workflow_action_name": "Cancel"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-05-14 13:36:08.460123",
-  "name": "Cancel",
-  "workflow_action_name": "Cancel"
+  "modified": "2025-07-31 15:00:38.428209",
+  "name": "Submit for MIS Supervisor",
+  "workflow_action_name": "Submit for MIS Supervisor"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-07-31 13:39:59.864970",
+  "name": "Submit for Machine Supervisor Approval",
+  "workflow_action_name": "Submit for Machine Supervisor Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-07-24 16:56:26.502880",
+  "name": "Submit for Initial Approval",
+  "workflow_action_name": "Submit for Initial Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-07-21 11:43:02.752283",
+  "name": "To Receive",
+  "workflow_action_name": "To Receive"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-06-26 11:41:12.434883",
+  "name": "Receive",
+  "workflow_action_name": "Receive"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-05-14 13:23:14.108790",
+  "name": "Submit",
+  "workflow_action_name": "Submit"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-02-11 13:07:54.102923",
+  "name": "Approve",
+  "workflow_action_name": "Approve"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-03-19 10:05:52.014185",
+  "name": "Submit for Approval",
+  "workflow_action_name": "Submit for Approval"
  }
 ]

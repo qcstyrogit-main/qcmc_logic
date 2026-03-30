@@ -58,5 +58,25 @@
   "response_html": null,
   "subject": "Your order is out for delivery!",
   "use_html": 0
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Email Template",
+  "modified": "2026-03-26 15:47:56.368175",
+  "name": "Random Template",
+  "response": null,
+  "response_html": "<p>Dear {{ customer_name }},</p><p>Thank you for joining us. We're excited to have you on board.</p><p>Best regards,<br/>The Team</p>",
+  "subject": "Welcome to Our Platform!",
+  "use_html": 1
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Email Template",
+  "modified": "2026-03-26 15:21:30.510006",
+  "name": "Request For Qoutation",
+  "response": "<div class=\"ql-editor read-mode\"><p>Dear {{ supplier_name }},</p><p><br></p><p>Please provide your quotation for the following:</p><p><br></p><p>{% for item in items %}</p><p><br></p><p>{{ item.item_name }} | Qty: {{ item.qty }} {{ item.uom }}</p><p><br></p><p>{% endfor %}</p><p><br></p><p>Required By: {{ schedule_date or \"\" }}</p><p><br></p><p>Kindly include price, lead time, and payment terms.</p><p><br></p><p>Thank you.</p><p><br></p><p>Best regards,</p><p>{{ company }}</p></div>",
+  "response_html": "",
+  "subject": "Request for Quotation (RFQ) – {{ name }}",
+  "use_html": 0
  }
 ]
