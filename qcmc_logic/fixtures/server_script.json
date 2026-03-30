@@ -1,25 +1,6 @@
 [
  {
   "allow_guest": 0,
-  "api_method": null,
-  "cron_format": null,
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Server Script",
-  "doctype_event": "Before Insert",
-  "enable_rate_limit": 0,
-  "event_frequency": "All",
-  "modified": "2026-02-09 11:24:20.633923",
-  "module": null,
-  "name": "LMS Course Enrollment Filter",
-  "rate_limit_count": 5,
-  "rate_limit_seconds": 86400,
-  "reference_doctype": "LMS Course",
-  "script": "if \"LMS Student\" in frappe.get_roles(user) and \"System Manager\" not in frappe.get_roles(user):\n    # Only show courses where the user has an active enrollment\n    conditions = f\"name in (select course from `tabLMS Enrollment` where member = '{user}')\"",
-  "script_type": "Permission Query"
- },
- {
-  "allow_guest": 0,
   "api_method": "fix_asset_Set",
   "cron_format": null,
   "disabled": 1,
