@@ -453,28 +453,10 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-06-26 11:40:38.894485",
-  "name": "Received",
-  "style": "",
-  "workflow_state_name": "Received"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2025-02-07 09:07:33.779764",
   "name": "Submitted",
   "style": "Success",
   "workflow_state_name": "Submitted"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-05-27 13:11:36.687166",
-  "name": "Pending PM Approval",
-  "style": "",
-  "workflow_state_name": "Pending PM Approval"
  },
  {
   "docstatus": 0,
@@ -502,5 +484,23 @@
   "name": "Draft",
   "style": "",
   "workflow_state_name": "Draft"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-26 11:40:38.894485",
+  "name": "Received",
+  "style": "",
+  "workflow_state_name": "Received"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-05-27 13:11:36.687166",
+  "name": "Pending PM Approval",
+  "style": "",
+  "workflow_state_name": "Pending PM Approval"
  }
 ]
