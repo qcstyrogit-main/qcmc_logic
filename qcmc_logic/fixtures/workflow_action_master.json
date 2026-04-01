@@ -100,6 +100,13 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "modified": "2025-07-31 13:39:59.864970",
+  "name": "Submit for Machine Supervisor Approval",
+  "workflow_action_name": "Submit for Machine Supervisor Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "modified": "2025-06-02 15:02:57.731993",
   "name": "Submit For DR Printing",
   "workflow_action_name": "Submit For DR Printing"
@@ -271,13 +278,6 @@
   "modified": "2025-03-19 10:05:52.014185",
   "name": "Submit for Approval",
   "workflow_action_name": "Submit for Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-07-31 13:39:59.864970",
-  "name": "Submit for Machine Supervisor Approval",
-  "workflow_action_name": "Submit for Machine Supervisor Approval"
  },
  {
   "docstatus": 0,

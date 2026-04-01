@@ -22,3 +22,17 @@ def get_asset_items(doctype, txt, searchfield, start, page_len, filters):
         "start": start,
         "page_len": page_len
     })
+@frappe.whitelist()
+def get_active_mr_states(doctype, txt, searchfield, start, page_len, filters):
+    # Runs a lightning-fast SQL query to find only the workflow states actually being used
+    states = frappe.db.sql("""
+        SELECT DISTINCT workflow_state 
+        FROM `tabMaterial Request` 
+        WHERE workflow_state IS NOT NULL 
+        AND workflow_state != ''
+        AND workflow_state LIKE %(txt)s
+    """, {'txt': f"%{txt}%"})
+    
+    return states
+
+    

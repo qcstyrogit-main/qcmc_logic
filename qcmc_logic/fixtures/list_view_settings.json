@@ -8,34 +8,6 @@
   "disable_sidebar_stats": 0,
   "docstatus": 0,
   "doctype": "List View Settings",
-  "fields": "[{\"label\":\"Employee Name\",\"fieldname\":\"employee_name\"},{\"type\":\"Status\",\"label\":\"Status\",\"fieldname\":\"status_field\"},{\"label\":\"Appraisal Cycle\",\"fieldname\":\"appraisal_cycle\"},{\"label\":\"Final Score\",\"fieldname\":\"final_score\"},{\"label\":\"Appraisal Section\",\"fieldname\":\"custom_appraisal_section\"}]",
-  "modified": "2026-01-20 10:32:48.393046",
-  "name": "Appraisal",
-  "total_fields": "7"
- },
- {
-  "allow_edit": 0,
-  "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
-  "disable_comment_count": 0,
-  "disable_count": 0,
-  "disable_sidebar_stats": 0,
-  "docstatus": 0,
-  "doctype": "List View Settings",
-  "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Delivery Trip\",\"fieldname\":\"delivery_trip\"},{\"label\":\"Date and Time\",\"fieldname\":\"date_and_time\"},{\"label\":\"Status\",\"fieldname\":\"status\"}]",
-  "modified": "2026-02-13 14:09:50.620589",
-  "name": "Delivery Monitoring",
-  "total_fields": "7"
- },
- {
-  "allow_edit": 0,
-  "disable_auto_refresh": 0,
-  "disable_automatic_recency_filters": 0,
-  "disable_comment_count": 0,
-  "disable_count": 0,
-  "disable_sidebar_stats": 0,
-  "docstatus": 0,
-  "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"is_group\",\"label\":\"Is Group\"},{\"fieldname\":\"parent_sales_person\",\"label\":\"Parent Sales Person\"},{\"fieldname\":\"employee\",\"label\":\"Employee\"}]",
   "modified": "2026-02-11 11:10:44.213181",
   "name": "Sales Person",
@@ -334,5 +306,33 @@
   "modified": "2026-01-26 14:07:23.334328",
   "name": "Testimonials",
   "total_fields": "4"
+ },
+ {
+  "allow_edit": 0,
+  "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
+  "disable_comment_count": 0,
+  "disable_count": 0,
+  "disable_sidebar_stats": 0,
+  "docstatus": 0,
+  "doctype": "List View Settings",
+  "fields": "[{\"label\":\"Employee Name\",\"fieldname\":\"employee_name\"},{\"type\":\"Status\",\"label\":\"Status\",\"fieldname\":\"status_field\"},{\"label\":\"Appraisal Cycle\",\"fieldname\":\"appraisal_cycle\"},{\"label\":\"Final Score\",\"fieldname\":\"final_score\"},{\"label\":\"Appraisal Section\",\"fieldname\":\"custom_appraisal_section\"}]",
+  "modified": "2026-01-20 10:32:48.393046",
+  "name": "Appraisal",
+  "total_fields": "7"
+ },
+ {
+  "allow_edit": 0,
+  "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
+  "disable_comment_count": 0,
+  "disable_count": 0,
+  "disable_sidebar_stats": 0,
+  "docstatus": 0,
+  "doctype": "List View Settings",
+  "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Delivery Trip\",\"fieldname\":\"delivery_trip\"},{\"label\":\"Date and Time\",\"fieldname\":\"date_and_time\"},{\"label\":\"Status\",\"fieldname\":\"status\"}]",
+  "modified": "2026-02-13 14:09:50.620589",
+  "name": "Delivery Monitoring",
+  "total_fields": "7"
  }
 ]

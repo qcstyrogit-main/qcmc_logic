@@ -417,6 +417,15 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "modified": "2025-06-26 11:40:38.894485",
+  "name": "Received",
+  "style": "",
+  "workflow_state_name": "Received"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "modified": "2025-07-31 14:49:11.567305",
   "name": "Pending MIS Supervisor Approval",
   "style": "",
@@ -435,19 +444,37 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-07-31 13:50:14.387468",
-  "name": "Pending Machine Shop Supervisor Approval",
+  "modified": "2025-07-24 16:37:52.771949",
+  "name": "Pending PPIC Supervisor",
   "style": "",
-  "workflow_state_name": "Pending Machine Shop Supervisor Approval"
+  "workflow_state_name": "Pending PPIC Supervisor"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-07-24 16:37:52.771949",
-  "name": "Pending PPIC Supervisor",
+  "modified": "2025-06-19 17:22:55.011080",
+  "name": "Pending Approval",
   "style": "",
-  "workflow_state_name": "Pending PPIC Supervisor"
+  "workflow_state_name": "Pending Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-05-27 13:11:36.687166",
+  "name": "Pending PM Approval",
+  "style": "",
+  "workflow_state_name": "Pending PM Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-07-31 13:50:14.387468",
+  "name": "Pending Machine Shop Supervisor Approval",
+  "style": "",
+  "workflow_state_name": "Pending Machine Shop Supervisor Approval"
  },
  {
   "docstatus": 0,
@@ -471,36 +498,9 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-06-19 17:22:55.011080",
-  "name": "Pending Approval",
-  "style": "",
-  "workflow_state_name": "Pending Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2025-01-07 09:26:33.936333",
   "name": "Draft",
   "style": "",
   "workflow_state_name": "Draft"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-06-26 11:40:38.894485",
-  "name": "Received",
-  "style": "",
-  "workflow_state_name": "Received"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-05-27 13:11:36.687166",
-  "name": "Pending PM Approval",
-  "style": "",
-  "workflow_state_name": "Pending PM Approval"
  }
 ]

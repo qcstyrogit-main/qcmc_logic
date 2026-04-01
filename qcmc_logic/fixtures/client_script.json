@@ -812,5 +812,16 @@
   "name": "JOB OPENING CLOSED STATUS",
   "script": "frappe.ui.form.on(\"Job Opening\", {\r\n  status(frm) {\r\n    // Run only when set to Closed\r\n    if (frm.doc.status !== \"Closed\") return;\r\n\r\n    const req = frm.doc.job_requisition; // <-- change if your field name is different\r\n    if (!req) {\r\n      frappe.msgprint(\"No Job Requisition linked to this Job Opening.\");\r\n      return;\r\n    }\r\n\r\n    frappe.call({\r\n      method: \"frappe.client.set_value\",\r\n      args: {\r\n        doctype: \"Job Requisition\",\r\n        name: req,\r\n        fieldname: {\r\n          status: \"Filled\",\r\n          completed_on: frappe.datetime.nowdate(),\r\n          workflow_state: \"Completed\"\r\n        }\r\n      },\r\n      callback(r) {\r\n        if (!r.exc) {\r\n          frappe.show_alert({\r\n            message: `Job Requisition ${req} updated to Filled / Completed.`,\r\n            indicator: \"green\"\r\n          });\r\n        }\r\n      }\r\n    });\r\n  }\r\n});",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Material Request",
+  "enabled": 1,
+  "modified": "2026-04-01 15:57:16.548006",
+  "module": "QCMC Logics",
+  "name": "PR Status Filter",
+  "script": "frappe.listview_settings['Material Request'] = {\r\n    onload: function(listview) {\r\n        listview.page.fields_dict['workflow_state'].get_query = function() {\r\n            return {\r\n                // This points directly to the whitelisted function in your custom app\r\n                query: \"qcmc_logic.queries.item.get_active_mr_states\"\r\n            };\r\n        };\r\n    }\r\n};",
+  "view": "List"
  }
 ]
