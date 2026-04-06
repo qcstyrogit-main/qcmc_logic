@@ -824,4 +824,15 @@
   "script": "frappe.listview_settings['Material Request'] = {\r\n    onload: function(listview) {\r\n        listview.page.fields_dict['workflow_state'].get_query = function() {\r\n            return {\r\n                // This points directly to the whitelisted function in your custom app\r\n                query: \"qcmc_logic.queries.item.get_active_mr_states\"\r\n            };\r\n        };\r\n    }\r\n};",
   "view": "List"
  }
+,
+ {
+ "docstatus": 0,
+ "doctype": "Client Script",
+ "dt": "Sales Order",
+ "enabled": 1,
+ "modified": "2026-04-06 17:39:30.205897",
+ "module": "QCMC Logics",
+ "name": "Sales Order - PO Duplicate Warn",
+ "script": "frappe.ui.form.on(\"Sales Order\", {\r\n    po_no(frm) {\r\n        // Reset confirmation if PO changes\r\n        frm.__po_confirmed = false;\r\n    },\r\n\r\n    validate(frm) {\r\n        if (!frm.doc.po_no || !frm.doc.customer) return;\r\n        if (frm.__po_confirmed) return;\r\n\r\n        // Block save while we check duplicates\r\n        frappe.validated = false;\r\n\r\n        frappe.call({\r\n            method: \"qcmc_logic.utils.check_duplicate_customer_po\",\r\n            args: {\r\n                customer: frm.doc.customer,\r\n                po_no: frm.doc.po_no,\r\n                current_name: frm.doc.name\r\n            },\r\n            callback: function(r) {\r\n                const duplicates = r.message || [];\r\n\r\n                if (!duplicates.length) {\r\n                    // No duplicates found, proceed with save\r\n                    frm.__po_confirmed = true;\r\n                    frm.save();\r\n                    return;\r\n                }\r\n\r\n                const list = duplicates.slice(0, 5).join(', ');\r\n                const msg = __(\"PO No. {0} was already used for this customer in: {1}. Proceed anyway?\", [frm.doc.po_no, list]);\r\n\r\n                frappe.confirm(msg,\r\n                    () => {\r\n                        frm.__po_confirmed = true;\r\n                        frm.save();\r\n                    },\r\n                    () => {\r\n                        frm.set_value(\"po_no\", \"\");\r\n                    }\r\n                );\r\n            }\r\n        });\r\n    }\r\n});\r\n"
+}
 ]

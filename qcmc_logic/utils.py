@@ -45,3 +45,29 @@ def check_warehouse_access(user, warehouse):
         }
     )
     return True if allowed else False
+
+@frappe.whitelist()
+def check_duplicate_customer_po(customer, po_no, current_name=None):
+    """
+    Return a list of Sales Orders for the same Customer with the same PO No.
+    Excludes the current document if provided.
+    """
+    if not customer or not po_no:
+        return []
+
+    filters = {
+        "customer": customer,
+        "po_no": po_no,
+        "docstatus": ["<", 2],  # exclude cancelled
+    }
+    if current_name:
+        filters["name"] = ["!=", current_name]
+
+    duplicates = frappe.get_all(
+        "Sales Order",
+        filters=filters,
+        fields=["name"],
+        limit=20,
+        order_by="modified desc",
+    )
+    return [d.name for d in duplicates]
