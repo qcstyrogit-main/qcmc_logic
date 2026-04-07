@@ -16,118 +16,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-02-11 13:07:54.106675",
-  "name": "Review",
-  "workflow_action_name": "Review"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-01-27 09:35:01.060128",
-  "name": "For RTC Approval",
-  "workflow_action_name": "For RTC Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-01-27 09:37:20.770626",
-  "name": "For KTC Approval",
-  "workflow_action_name": "For KTC Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-01-27 09:39:55.517121",
-  "name": "For VP Procurement",
-  "workflow_action_name": "For VP Procurement"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-06-27 16:13:36.773584",
-  "name": "Initiate",
-  "workflow_action_name": "Initiate"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-06-27 16:28:02.106474",
-  "name": "Complete KYC",
-  "workflow_action_name": "Complete KYC"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-04-23 11:52:21.191479",
-  "name": "Checked",
-  "workflow_action_name": "Checked"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-04-21 12:57:05.905786",
-  "name": "Dispose",
-  "workflow_action_name": "Dispose"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-09-08 10:29:51.474534",
-  "name": "For Recon",
-  "workflow_action_name": "For Recon"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-10-23 08:21:06.267156",
-  "name": "Submit to Corp IE",
-  "workflow_action_name": "Submit to Corp IE"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-03-14 14:11:21.707117",
-  "name": "Active",
-  "workflow_action_name": "Active"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-06-02 15:02:12.989050",
-  "name": "Submit for Stock Confirmation",
-  "workflow_action_name": "Submit for Stock Confirmation"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-07-31 13:39:59.864970",
-  "name": "Submit for Machine Supervisor Approval",
-  "workflow_action_name": "Submit for Machine Supervisor Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-06-02 15:02:57.731993",
-  "name": "Submit For DR Printing",
-  "workflow_action_name": "Submit For DR Printing"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-06-02 15:04:06.291450",
-  "name": "Submit for Delivery",
-  "workflow_action_name": "Submit for Delivery"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-06-02 15:05:11.755955",
-  "name": "Tag To Active",
-  "workflow_action_name": "Tag To Active"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2025-04-28 12:45:39.363046",
   "name": "Sold",
   "workflow_action_name": "Sold"
@@ -285,5 +173,117 @@
   "modified": "2025-06-26 11:41:12.434883",
   "name": "Receive",
   "workflow_action_name": "Receive"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-02-11 13:07:54.106675",
+  "name": "Review",
+  "workflow_action_name": "Review"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-01-27 09:35:01.060128",
+  "name": "For RTC Approval",
+  "workflow_action_name": "For RTC Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-01-27 09:37:20.770626",
+  "name": "For KTC Approval",
+  "workflow_action_name": "For KTC Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-01-27 09:39:55.517121",
+  "name": "For VP Procurement",
+  "workflow_action_name": "For VP Procurement"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-06-27 16:13:36.773584",
+  "name": "Initiate",
+  "workflow_action_name": "Initiate"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-06-27 16:28:02.106474",
+  "name": "Complete KYC",
+  "workflow_action_name": "Complete KYC"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-04-23 11:52:21.191479",
+  "name": "Checked",
+  "workflow_action_name": "Checked"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-04-21 12:57:05.905786",
+  "name": "Dispose",
+  "workflow_action_name": "Dispose"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-09-08 10:29:51.474534",
+  "name": "For Recon",
+  "workflow_action_name": "For Recon"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-10-23 08:21:06.267156",
+  "name": "Submit to Corp IE",
+  "workflow_action_name": "Submit to Corp IE"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-03-14 14:11:21.707117",
+  "name": "Active",
+  "workflow_action_name": "Active"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-06-02 15:02:12.989050",
+  "name": "Submit for Stock Confirmation",
+  "workflow_action_name": "Submit for Stock Confirmation"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-07-31 13:39:59.864970",
+  "name": "Submit for Machine Supervisor Approval",
+  "workflow_action_name": "Submit for Machine Supervisor Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-06-02 15:02:57.731993",
+  "name": "Submit For DR Printing",
+  "workflow_action_name": "Submit For DR Printing"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-06-02 15:04:06.291450",
+  "name": "Submit for Delivery",
+  "workflow_action_name": "Submit for Delivery"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-06-02 15:05:11.755955",
+  "name": "Tag To Active",
+  "workflow_action_name": "Tag To Active"
  }
 ]
