@@ -70,6 +70,7 @@ fixtures = [
     {"doctype": "List View Settings"},
     {"doctype": "Workflow"},
     {"doctype": "Workflow State"},
+    {"doctype": "Report"},
     {"doctype": "Workflow Action Master"},
     {"doctype": "Email Template"},
     {"doctype": "Letter Head"},
@@ -83,12 +84,7 @@ fixtures = [
     {
         "doctype": "DocType",
         "filters": [["custom", "=", 1]]
-    },
-    {
-        "doctype": "Report",
-        "filters": [["is_standard", "=", 0]]
-    },
-    
+    },    
     {
         "doctype": "Print Format",
         "filters": [["custom_format", "=", 1]]
