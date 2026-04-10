@@ -7,6 +7,552 @@
   "docstatus": 0,
   "doctype": "Report",
   "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": null,
+  "letter_head": "BOA Letterhead",
+  "modified": "2026-02-11 10:00:41.389947",
+  "module": "HR",
+  "name": "Employee Checkin Area Report",
+  "prepared_report": 0,
+  "query": "SELECT\r\n    sp.name AS area,\r\n    e.employee_name AS employee_name,\r\n    ec.log_type AS log_type,\r\n    COALESCE(ec.time, ec.creation) AS time,\r\n    COALESCE(ec.custom_address, ec.custom_location_name) AS location\r\nFROM `tabEmployee Checkin` ec\r\nINNER JOIN `tabSales Person` sp ON sp.employee = ec.employee\r\nLEFT JOIN `tabEmployee` e ON e.name = ec.employee\r\nORDER BY sp.name, e.employee_name, ec.time, ec.creation\r\n",
+  "ref_doctype": "Employee Checkin",
+  "reference_report": null,
+  "report_name": "Employee Checkin Area Report",
+  "report_script": "",
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Employee Checkin Area Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "System Manager"
+   },
+   {
+    "parent": "Employee Checkin Area Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "HR Manager"
+   },
+   {
+    "parent": "Employee Checkin Area Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "HR User"
+   },
+   {
+    "parent": "Employee Checkin Area Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Employee"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": "{\"columns\": [{\"label\": \"Employee ID\", \"fieldname\": \"employee\", \"width\": 120, \"fieldtype\": \"Data\"}, {\"label\": \"Employee Name\", \"fieldname\": \"employee_name\", \"width\": 200, \"fieldtype\": \"Data\"}, {\"label\": \"Company\", \"fieldname\": \"company\", \"width\": 150, \"fieldtype\": \"Link\"}, {\"label\": \"Department\", \"fieldname\": \"department\", \"width\": 150, \"fieldtype\": \"Link\"}, {\"label\": \"Designation\", \"fieldname\": \"designation\", \"width\": 150, \"fieldtype\": \"Link\"}, {\"label\": \"Branch\", \"fieldname\": \"branch\", \"width\": 120, \"fieldtype\": \"Link\"}, {\"label\": \"Employment Type\", \"fieldname\": \"employment_type\", \"width\": 120, \"fieldtype\": \"Link\"}, {\"label\": \"Status\", \"fieldname\": \"status\", \"width\": 100, \"fieldtype\": \"Select\"}, {\"label\": \"Email\", \"fieldname\": \"prefered_email\", \"width\": 150, \"fieldtype\": \"Data\"}, {\"label\": \"Mobile\", \"fieldname\": \"cell_number\", \"width\": 120, \"fieldtype\": \"Data\"}], \"filters\": []}",
+  "letter_head": "BOA Letterhead",
+  "modified": "2026-03-10 08:07:39.098724",
+  "module": "Setup",
+  "name": "Employee List Complete",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Employee",
+  "reference_report": null,
+  "report_name": "Employee List Complete",
+  "report_script": null,
+  "report_type": "Report Builder",
+  "roles": [
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Employee"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "HR User"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "HR Manager"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management Head"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management User"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Fleet Manager"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "MRF Manager"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "VP Procurement"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "VP Sales"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Comptroller"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "MRF Sales Manager"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "MRF User"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "MRF Sales User"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "MRF Procurement User"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "MRF Finance Manager"
+   },
+   {
+    "parent": "Employee List Complete",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "MRF Finance User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [
+   {
+    "fieldname": "name",
+    "fieldtype": "Check",
+    "label": "Employee ID",
+    "options": null,
+    "parent": "Employee List Export",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "employee_name",
+    "fieldtype": "Check",
+    "label": "Employee Name",
+    "options": null,
+    "parent": "Employee List Export",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "department",
+    "fieldtype": "Check",
+    "label": "Department",
+    "options": null,
+    "parent": "Employee List Export",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "designation",
+    "fieldtype": "Check",
+    "label": "Designation",
+    "options": null,
+    "parent": "Employee List Export",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "company",
+    "fieldtype": "Check",
+    "label": "Company",
+    "options": null,
+    "parent": "Employee List Export",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   }
+  ],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": "{}",
+  "letter_head": "BOA Letterhead",
+  "modified": "2026-03-13 14:52:12.014656",
+  "module": "Setup",
+  "name": "Employee List Export",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Employee",
+  "reference_report": null,
+  "report_name": "Employee List Export",
+  "report_script": null,
+  "report_type": "Report Builder",
+  "roles": [
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Employee"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "HR User"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "HR Manager"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management Head"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management User"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Fleet Manager"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "MRF Manager"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "VP Procurement"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "VP Sales"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Comptroller"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "MRF Sales Manager"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "MRF User"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "MRF Sales User"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "MRF Procurement User"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "MRF Finance Manager"
+   },
+   {
+    "parent": "Employee List Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "MRF Finance User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [
+   {
+    "fieldname": "Sales Invoice",
+    "fieldtype": "Link",
+    "label": "Sales Invoice",
+    "options": "Sales Invoice",
+    "parent": "Detailed Overdues in Sales Invoice",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Customer",
+    "fieldtype": "Link",
+    "label": "Customer",
+    "options": "Customer",
+    "parent": "Detailed Overdues in Sales Invoice",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Due Date",
+    "fieldtype": "Date",
+    "label": "Due Date",
+    "options": null,
+    "parent": "Detailed Overdues in Sales Invoice",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Outstanding Amount",
+    "fieldtype": "Currency",
+    "label": "Outstanding Amount",
+    "options": null,
+    "parent": "Detailed Overdues in Sales Invoice",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Days Overdue",
+    "fieldtype": "Int",
+    "label": "Days Overdue",
+    "options": null,
+    "parent": "Detailed Overdues in Sales Invoice",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   }
+  ],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [
+   {
+    "default": null,
+    "fieldname": "customer",
+    "fieldtype": "Link",
+    "label": "Customer",
+    "mandatory": 0,
+    "options": "Customer",
+    "parent": "Detailed Overdues in Sales Invoice",
+    "parentfield": "filters",
+    "parenttype": "Report",
+    "wildcard_filter": 0
+   },
+   {
+    "default": null,
+    "fieldname": "company",
+    "fieldtype": "Link",
+    "label": "Company",
+    "mandatory": 0,
+    "options": "Company",
+    "parent": "Detailed Overdues in Sales Invoice",
+    "parentfield": "filters",
+    "parenttype": "Report",
+    "wildcard_filter": 0
+   }
+  ],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": "BOA Letterhead",
+  "modified": "2026-03-18 13:58:18.139888",
+  "module": "Selling",
+  "name": "Detailed Overdues in Sales Invoice",
+  "prepared_report": 0,
+  "query": "SELECT si.name as \"Sales Invoice\", si.customer_name as \"Customer\", si.due_date as \"Due Date\", si.outstanding_amount as \"Outstanding Amount\", DATEDIFF(CURDATE(), si.due_date) as \"Days Overdue\" FROM `tabSales Invoice` si WHERE si.outstanding_amount > 0 AND si.due_date < CURDATE() ORDER BY si.due_date ASC",
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "Detailed Overdues in Sales Invoice",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": null,
+  "letter_head": "BOA Letterhead",
+  "modified": "2026-03-24 09:36:51.256362",
+  "module": "Selling",
+  "name": "Custom Sales Invoice Export",
+  "prepared_report": 0,
+  "query": "SELECT name AS `Invoice ID`, posting_date AS `Date`, customer AS `Customer`, grand_total AS `Total Amount`, status AS `Status`, due_date AS `Due Date`, outstanding_amount AS `Outstanding` FROM `tabSales Invoice` WHERE docstatus = 1",
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "Custom Sales Invoice Export",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Custom Sales Invoice Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Custom Sales Invoice Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Custom Sales Invoice Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management User"
+   },
+   {
+    "parent": "Custom Sales Invoice Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management Head"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": null,
+  "letter_head": "BOA Letterhead",
+  "modified": "2026-03-24 16:56:54.137490",
+  "module": "Accounts",
+  "name": "Annual Sales Report",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "Annual Sales Report",
+  "report_script": "def execute(filters=None):\n    data = frappe.db.sql(\"\"\"SELECT YEAR(posting_date) as year, SUM(grand_total) as total_sales\n                           FROM `tabSales Invoice`\n                           WHERE docstatus = 1\n                           GROUP BY YEAR(posting_date)\n                           ORDER BY year\"\"\", as_dict=True)\n    columns = [\n        {\"fieldname\": \"year\", \"label\": \"Year\", \"fieldtype\": \"Int\", \"width\": 100},\n        {\"fieldname\": \"total_sales\", \"label\": \"Total Sales\", \"fieldtype\": \"Currency\", \"width\": 150}\n    ]\n    return columns, data",
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Annual Sales Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Annual Sales Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Annual Sales Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management User"
+   },
+   {
+    "parent": "Annual Sales Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management Head"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
   "is_standard": "Yes",
   "javascript": null,
   "json": null,
