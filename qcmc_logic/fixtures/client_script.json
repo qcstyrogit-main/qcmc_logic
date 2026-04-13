@@ -2,6 +2,17 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
+  "dt": "Stock Entry",
+  "enabled": 1,
+  "modified": "2026-04-07 10:10:40.132849",
+  "module": "QCMC Logics",
+  "name": "Hide Figure",
+  "script": "frappe.ui.form.on(\"Stock Entry\", {\r\n\tsetup(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t},\r\n\r\n\tonload(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t},\r\n\r\n\trefresh(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t}\r\n});\r\n\r\nfunction apply_rate_field_visibility(frm) {\r\n\tconst is_administrator = frappe.session.user === \"Administrator\";\r\n\tconst has_allow_rate = (frappe.user_roles || []).includes(\"Allow Rate\");\r\n\tconst can_see_rates = is_administrator || has_allow_rate;\r\n\r\n\ttoggle_rate_fields(frm, can_see_rates);\r\n}\r\n\r\nfunction toggle_rate_fields(frm, show) {\r\n\tconst hide = !show;\r\n\tconst fields = [\r\n\t\t\"basic_rate\",\r\n\t\t\"basic_amount\",\r\n\t\t\"amount\",\r\n\t\t\"additional_cost\",\r\n\t\t\"valuation_rate\"\r\n\t];\r\n\r\n\t// Parent field\r\n\tfrm.set_df_property(\"section_break_19\", \"hidden\", hide ? 1 : 0);\r\n\r\n\t// Child table: Stock Entry Detail\r\n\tconst grid = frm.fields_dict.items && frm.fields_dict.items.grid;\r\n\tif (grid) {\r\n\t\tfields.forEach((fieldname) => {\r\n\t\t\t// Hide in grid/list view immediately\r\n\t\t\tgrid.set_column_disp(fieldname, show ? true : false);\r\n\r\n\t\t\t// Hide in row form/dialog also\r\n\t\t\tgrid.update_docfield_property(fieldname, \"hidden\", hide ? 1 : 0);\r\n\t\t\tgrid.update_docfield_property(fieldname, \"in_list_view\", show ? 1 : 0);\r\n\t\t});\r\n\r\n\t\tfrm.refresh_field(\"items\");\r\n\t}\r\n}",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
   "dt": "Material Request",
   "enabled": 1,
   "modified": "2026-04-01 15:57:16.548006",
@@ -26,10 +37,6 @@
   "doctype": "Client Script",
   "dt": "Stock Entry",
   "enabled": 1,
-  "modified": "2026-04-07 10:10:40.132849",
-  "module": "QCMC Logics",
-  "name": "Hide Figure",
-  "script": "frappe.ui.form.on(\"Stock Entry\", {\r\n\tsetup(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t},\r\n\r\n\tonload(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t},\r\n\r\n\trefresh(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t}\r\n});\r\n\r\nfunction apply_rate_field_visibility(frm) {\r\n\tconst is_administrator = frappe.session.user === \"Administrator\";\r\n\tconst has_allow_rate = (frappe.user_roles || []).includes(\"Allow Rate\");\r\n\tconst can_see_rates = is_administrator || has_allow_rate;\r\n\r\n\ttoggle_rate_fields(frm, can_see_rates);\r\n}\r\n\r\nfunction toggle_rate_fields(frm, show) {\r\n\tconst hide = !show;\r\n\tconst fields = [\r\n\t\t\"basic_rate\",\r\n\t\t\"basic_amount\",\r\n\t\t\"amount\",\r\n\t\t\"additional_cost\",\r\n\t\t\"valuation_rate\"\r\n\t];\r\n\r\n\t// Parent field\r\n\tfrm.set_df_property(\"section_break_19\", \"hidden\", hide ? 1 : 0);\r\n\r\n\t// Child table: Stock Entry Detail\r\n\tconst grid = frm.fields_dict.items && frm.fields_dict.items.grid;\r\n\tif (grid) {\r\n\t\tfields.forEach((fieldname) => {\r\n\t\t\t// Hide in grid/list view immediately\r\n\t\t\tgrid.set_column_disp(fieldname, show ? true : false);\r\n\r\n\t\t\t// Hide in row form/dialog also\r\n\t\t\tgrid.update_docfield_property(fieldname, \"hidden\", hide ? 1 : 0);\r\n\t\t\tgrid.update_docfield_property(fieldname, \"in_list_view\", show ? 1 : 0);\r\n\t\t});\r\n\r\n\t\tfrm.refresh_field(\"items\");\r\n\t}\r\n}",
   "modified": "2026-04-07 11:52:23.733097",
   "module": "QCMC Logics",
   "name": "SO Customer PO warning",
@@ -859,6 +866,28 @@
   "module": "QCMC Logics",
   "name": "Hide Figure Recon",
   "script": "frappe.ui.form.on(\"Stock Reconciliation\", {\r\n    setup(frm) {\r\n        apply_rate_field_visibility(frm);\r\n    },\r\n    onload(frm) {\r\n        apply_rate_field_visibility(frm);\r\n    },\r\n    refresh(frm) {\r\n        apply_rate_field_visibility(frm);\r\n    }\r\n});\r\n\r\nfunction apply_rate_field_visibility(frm) {\r\n    const is_administrator = frappe.session.user === \"Administrator\";\r\n    const has_allow_rate = (frappe.user_roles || []).includes(\"Allow Rate\");\r\n    const can_see_rates = is_administrator || has_allow_rate;\r\n    toggle_rate_fields(frm, can_see_rates);\r\n}\r\n\r\nfunction toggle_rate_fields(frm, show) {\r\n    const hide = !show;\r\n\r\n    // ── Child table fields to hide (Stock Reconciliation Item) ──\r\n    const child_fields = [\r\n        \"valuation_rate\",\r\n        \"amount\",\r\n        \"current_valuation_rate\",\r\n        \"current_amount\",\r\n        \"amount_difference\"\r\n    ];\r\n\r\n    // ── Parent-level field ──\r\n    frm.set_df_property(\"difference_amount\", \"hidden\", hide ? 1 : 0);\r\n\r\n    // ── Child table: items ──\r\n    const grid = frm.fields_dict.items && frm.fields_dict.items.grid;\r\n    if (grid) {\r\n        child_fields.forEach((fieldname) => {\r\n            grid.set_column_disp(fieldname, show);\r\n            grid.update_docfield_property(fieldname, \"hidden\", hide ? 1 : 0);\r\n            grid.update_docfield_property(fieldname, \"in_list_view\", show ? 1 : 0);\r\n        });\r\n        frm.refresh_field(\"items\");\r\n    }\r\n}",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Delivery Note",
+  "enabled": 1,
+  "modified": "2026-04-13 15:36:12.434046",
+  "module": "QCMC Logics",
+  "name": "Delivery Note Hide Numeric",
+  "script": "frappe.ui.form.on(\"Delivery Note\", {\r\n\tsetup(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t},\r\n\r\n\tonload(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t},\r\n\r\n\trefresh(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t}\r\n});\r\n\r\nfunction apply_rate_field_visibility(frm) {\r\n\tconst is_administrator = frappe.session.user === \"Administrator\";\r\n\tconst has_allow_rate = (frappe.user_roles || []).includes(\"Allow Rate\");\r\n\tconst can_see_rates = is_administrator || has_allow_rate;\r\n\r\n\ttoggle_rate_fields(frm, can_see_rates);\r\n}\r\n\r\nfunction toggle_rate_fields(frm, show) {\r\n\tconst hide = !show;\r\n\r\n\tconst fields = [\r\n\t\t\"amount\",\r\n\t\t\"rate\",\r\n\t\t\"base_rate\",\r\n\t\t\"base_amount\"\r\n\t];\r\n\r\n\t// 🔹 Try all possible total fields (ERPNext inconsistency)\r\n\tconst total_fields = [\r\n\t\t\"total\",\r\n\t\t\"net_total\",\r\n\t\t\"grand_total\",\r\n\t\t\"rounded_total\",\r\n\t\t\"total_taxes_and_charges\",\r\n\t\t\"taxes_section\",\r\n\t\t\"totals\"\r\n\t];\r\n\r\n\ttotal_fields.forEach(field => {\r\n\t\tif (frm.fields_dict[field]) {\r\n\t\t\tfrm.toggle_display(field, show);\r\n\t\t}\r\n\t});\r\n\r\n\t// 🔹 DOM fallback (for stubborn UI like \"Total (PHP)\")\r\n\tsetTimeout(() => {\r\n\t\ttotal_fields.forEach(field => {\r\n\t\t\t$(`[data-fieldname=\"${field}\"]`).closest('.form-group').toggle(show);\r\n\t\t});\r\n\t}, 100);\r\n\r\n\t// 🔹 Child table handling\r\n\tconst grid = frm.fields_dict.items && frm.fields_dict.items.grid;\r\n\tif (grid) {\r\n\t\tfields.forEach((fieldname) => {\r\n\t\t\tgrid.set_column_disp(fieldname, show);\r\n\r\n\t\t\tgrid.update_docfield_property(fieldname, \"hidden\", hide ? 1 : 0);\r\n\t\t\tgrid.update_docfield_property(fieldname, \"in_list_view\", show ? 1 : 0);\r\n\t\t});\r\n\r\n\t\tfrm.refresh_field(\"items\");\r\n\t}\r\n}",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Stock Ledger Entry",
+  "enabled": 1,
+  "modified": "2026-04-13 13:04:27.212384",
+  "module": "QCMC Logics",
+  "name": "Stock Ledger Hide Numeric",
+  "script": "frappe.ui.form.on(\"Stock Ledger Entry\", {\r\n\tsetup(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t},\r\n\r\n\tonload(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t},\r\n\r\n\trefresh(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t}\r\n});\r\n\r\nfunction apply_rate_field_visibility(frm) {\r\n\tconst is_administrator = frappe.session.user === \"Administrator\";\r\n\tconst has_allow_rate = (frappe.user_roles || []).includes(\"Allow Rate\");\r\n\tconst can_see_rates = is_administrator || has_allow_rate;\r\n\r\n\ttoggle_rate_fields(frm, can_see_rates);\r\n}\r\n\r\nfunction toggle_rate_fields(frm, show) {\r\n\tconst hide = !show;\r\n\r\n    frm.set_df_property(\"section_break_11\", \"hidden\", hide ? 1 : 0);\r\n}",
   "view": "Form"
  }
 ]
