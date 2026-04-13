@@ -7,11 +7,7 @@
   "doctype_or_field": "DocField",
   "field_name": "naming_series",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:02.899620",
-=======
   "modified": "2026-04-10 11:08:57.630393",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Employee-naming_series-hidden",
   "property": "hidden",
@@ -27,11 +23,7 @@
   "doctype_or_field": "DocField",
   "field_name": "naming_series",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:02.922328",
-=======
   "modified": "2026-04-10 11:08:57.656266",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Employee-naming_series-reqd",
   "property": "reqd",
@@ -47,11 +39,7 @@
   "doctype_or_field": "DocField",
   "field_name": "employee_number",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:02.867426",
-=======
   "modified": "2026-04-10 11:08:57.602058",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Employee-employee_number-reqd",
   "property": "reqd",
@@ -67,11 +55,7 @@
   "doctype_or_field": "DocField",
   "field_name": "employee_number",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:02.856145",
-=======
   "modified": "2026-04-10 11:08:57.588882",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Employee-employee_number-hidden",
   "property": "hidden",
@@ -151,11 +135,7 @@
   "doctype_or_field": "DocField",
   "field_name": "naming_series",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:04.023336",
-=======
   "modified": "2026-04-10 11:08:58.864570",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Supplier-naming_series-reqd",
   "property": "reqd",
@@ -171,11 +151,7 @@
   "doctype_or_field": "DocField",
   "field_name": "naming_series",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.998373",
-=======
   "modified": "2026-04-10 11:08:58.839394",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Supplier-naming_series-hidden",
   "property": "hidden",
@@ -191,11 +167,7 @@
   "doctype_or_field": "DocField",
   "field_name": "rounded_total",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.843171",
-=======
   "modified": "2026-04-10 11:08:58.640589",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Salary Slip-rounded_total-hidden",
   "property": "hidden",
@@ -211,11 +183,7 @@
   "doctype_or_field": "DocField",
   "field_name": "rounded_total",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.855017",
-=======
   "modified": "2026-04-10 11:08:58.653928",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Salary Slip-rounded_total-print_hide",
   "property": "print_hide",
@@ -231,11 +199,7 @@
   "doctype_or_field": "DocType",
   "field_name": null,
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.672428",
-=======
   "modified": "2026-04-10 11:08:58.455473",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Salary Component-main-field_order",
   "property": "field_order",
@@ -251,11 +215,7 @@
   "doctype_or_field": "DocField",
   "field_name": "tax_id",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:02.537816",
-=======
   "modified": "2026-04-10 11:08:57.180837",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Company-tax_id-label",
   "property": "label",
@@ -271,11 +231,7 @@
   "doctype_or_field": "DocField",
   "field_name": "phone_no",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:02.526056",
-=======
   "modified": "2026-04-10 11:08:57.167579",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Company-phone_no-label",
   "property": "label",
@@ -291,11 +247,7 @@
   "doctype_or_field": "DocType",
   "field_name": null,
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.206184",
-=======
   "modified": "2026-04-10 11:08:57.933612",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Employee External Work History-main-field_order",
   "property": "field_order",
@@ -311,11 +263,7 @@
   "doctype_or_field": "DocField",
   "field_name": "naming_series",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:04.011664",
-=======
   "modified": "2026-04-10 11:08:58.851941",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Supplier-naming_series-options",
   "property": "options",
@@ -331,11 +279,7 @@
   "doctype_or_field": "DocField",
   "field_name": "naming_series",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.413378",
-=======
   "modified": "2026-04-10 11:08:58.170881",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Leave Application-naming_series-options",
   "property": "options",
@@ -351,11 +295,7 @@
   "doctype_or_field": "DocType",
   "field_name": null,
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.514828",
-=======
   "modified": "2026-04-10 11:08:58.294917",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Purchase Taxes and Charges-main-field_order",
   "property": "field_order",
@@ -371,11 +311,7 @@
   "doctype_or_field": "DocField",
   "field_name": "rate",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.534421",
-=======
   "modified": "2026-04-10 11:08:58.314802",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Purchase Taxes and Charges-rate-fetch_from",
   "property": "fetch_from",
@@ -391,11 +327,7 @@
   "doctype_or_field": "DocType",
   "field_name": null,
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:02.267773",
-=======
   "modified": "2026-04-10 11:08:56.826435",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Advance Taxes and Charges-main-field_order",
   "property": "field_order",
@@ -411,11 +343,7 @@
   "doctype_or_field": "DocField",
   "field_name": "rate",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:02.281896",
-=======
   "modified": "2026-04-10 11:08:56.842990",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Advance Taxes and Charges-rate-fetch_from",
   "property": "fetch_from",
@@ -431,11 +359,7 @@
   "doctype_or_field": "DocType",
   "field_name": null,
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.297860",
-=======
   "modified": "2026-04-10 11:08:58.037024",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Expense Taxes and Charges-main-field_order",
   "property": "field_order",
@@ -451,11 +375,7 @@
   "doctype_or_field": "DocField",
   "field_name": "rate",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.309739",
-=======
   "modified": "2026-04-10 11:08:58.050963",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Expense Taxes and Charges-rate-fetch_from",
   "property": "fetch_from",
@@ -471,11 +391,7 @@
   "doctype_or_field": "DocType",
   "field_name": null,
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:02.514312",
-=======
   "modified": "2026-04-10 11:08:57.154428",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Company-main-field_order",
   "property": "field_order",
@@ -491,11 +407,7 @@
   "doctype_or_field": "DocField",
   "field_name": "naming_series",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:02.912729",
-=======
   "modified": "2026-04-10 11:08:57.643179",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Employee-naming_series-options",
   "property": "options",
@@ -511,11 +423,7 @@
   "doctype_or_field": "DocType",
   "field_name": null,
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.399119",
-=======
   "modified": "2026-04-10 11:08:58.158481",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Leave Application-main-field_order",
   "property": "field_order",
@@ -531,11 +439,7 @@
   "doctype_or_field": "DocField",
   "field_name": "zip_code",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:04.034623",
-=======
   "modified": "2026-04-10 11:08:58.877121",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Supplier-zip_code-hidden",
   "property": "hidden",
@@ -551,11 +455,7 @@
   "doctype_or_field": "DocField",
   "field_name": "foreign_address",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.974712",
-=======
   "modified": "2026-04-10 11:08:58.812886",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Supplier-foreign_address-hidden",
   "property": "hidden",
@@ -571,11 +471,7 @@
   "doctype_or_field": "DocType",
   "field_name": null,
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.985094",
-=======
   "modified": "2026-04-10 11:08:58.825984",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Supplier-main-field_order",
   "property": "field_order",
@@ -591,11 +487,7 @@
   "doctype_or_field": "DocType",
   "field_name": null,
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:02.884515",
-=======
   "modified": "2026-04-10 11:08:57.616492",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Employee-main-field_order",
   "property": "field_order",
@@ -611,11 +503,7 @@
   "doctype_or_field": "DocField",
   "field_name": "condition_and_formula",
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.660863",
-=======
   "modified": "2026-04-10 11:08:58.443448",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Salary Component-condition_and_formula-depends_on",
   "property": "depends_on",
@@ -631,11 +519,7 @@
   "doctype_or_field": "DocType",
   "field_name": null,
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:02.162800",
-=======
   "modified": "2026-04-10 11:08:56.668670",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Activity Type-main-field_order",
   "property": "field_order",
@@ -651,11 +535,7 @@
   "doctype_or_field": "DocType",
   "field_name": null,
   "is_system_generated": 0,
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:54:03.830868",
-=======
   "modified": "2026-04-10 11:08:58.627180",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": null,
   "name": "Salary Slip-main-field_order",
   "property": "field_order",

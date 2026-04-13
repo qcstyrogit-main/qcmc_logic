@@ -243,11 +243,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:05.366317",
-=======
   "modified": "2026-04-10 11:07:21.563847",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "LMS",
   "name": "LMS Onboard",
   "naming_rule": "",
@@ -425,11 +421,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:05.493324",
-=======
   "modified": "2026-04-10 11:07:21.730066",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Stock",
   "name": "Inventory Group",
   "naming_rule": "By fieldname",
@@ -735,11 +727,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:05.610208",
-=======
   "modified": "2026-04-10 11:07:21.892007",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Stock",
   "name": "PRSection",
   "naming_rule": "By fieldname",
@@ -1132,11 +1120,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:05.718235",
-=======
   "modified": "2026-04-10 11:07:22.030749",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Stock",
   "name": "Booklet Monitoring Item",
   "naming_rule": "",
@@ -1546,11 +1530,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:05.828287",
-=======
   "modified": "2026-04-10 11:07:22.176705",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Accounts",
   "name": "Cost Center Warehouse Mapping",
   "naming_rule": "",
@@ -1832,11 +1812,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:05.949557",
-=======
   "modified": "2026-04-10 11:07:22.329612",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Zkteco Integration",
   "name": "ZKTeco Log Downloader",
   "naming_rule": "",
@@ -2526,11 +2502,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:06.083518",
-=======
   "modified": "2026-04-10 11:07:22.493939",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Zkteco Integration",
   "name": "ZKTeco Device",
   "naming_rule": "By fieldname",
@@ -2900,11 +2872,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:06.183827",
-=======
   "modified": "2026-04-10 11:07:22.630930",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Zkteco Integration",
   "name": "ZKTeco Attendance Log",
   "naming_rule": "",
@@ -3698,11 +3666,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:06.331539",
-=======
   "modified": "2026-04-10 11:07:22.811402",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Buying",
   "name": "Expense Details",
   "naming_rule": "",
@@ -4048,11 +4012,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:06.450566",
-=======
   "modified": "2026-04-10 11:07:22.977243",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Stock",
   "name": "ISO Doc Series",
   "naming_rule": "By fieldname",
@@ -6598,11 +6558,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:06.630340",
-=======
   "modified": "2026-04-10 11:07:23.209551",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "QCMC Logics",
   "name": "Salary Notice",
   "naming_rule": "By fieldname",
@@ -6908,11 +6864,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:06.755790",
-=======
   "modified": "2026-04-10 11:07:23.359608",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "QCMC Logics",
   "name": "Appraisal Section Assignment",
   "naming_rule": "By fieldname",
@@ -7090,11 +7042,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:06.846930",
-=======
   "modified": "2026-04-10 11:07:23.489239",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "QCMC Logics",
   "name": "Appraisal Section Assignment Detail",
   "naming_rule": "",
@@ -7312,11 +7260,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:06.944870",
-=======
   "modified": "2026-04-10 11:07:23.624827",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "HR",
   "name": "MRF Employee",
   "naming_rule": "",
@@ -7918,11 +7862,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:07.066928",
-=======
   "modified": "2026-04-10 11:07:23.790078",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "QCMC Logics",
   "name": "Website Event",
   "naming_rule": "Autoincrement",
@@ -8548,11 +8488,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:07.236199",
-=======
   "modified": "2026-04-10 11:07:23.973705",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "QCMC Logics",
   "name": "Announcements",
   "naming_rule": "By \"Naming Series\" field",
@@ -9178,11 +9114,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:07.378950",
-=======
   "modified": "2026-04-10 11:07:24.190112",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "QCMC Logics",
   "name": "Testimonials",
   "naming_rule": "By \"Naming Series\" field",
@@ -9552,11 +9484,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:07.508551",
-=======
   "modified": "2026-04-10 11:07:24.344621",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "QCMC Logics",
   "name": "Saved Report",
   "naming_rule": "",
@@ -10525,11 +10453,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:07.668623",
-=======
   "modified": "2026-04-10 11:07:24.558593",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "QCMC Logics",
   "name": "Delivery Monitoring",
   "naming_rule": "By \"Naming Series\" field",
@@ -10899,11 +10823,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:07.796720",
-=======
   "modified": "2026-04-10 11:07:24.706986",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "HR",
   "name": "Staffing Plan Assignment",
   "naming_rule": "By fieldname",
@@ -11145,11 +11065,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:07.897848",
-=======
   "modified": "2026-04-10 11:07:24.842957",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "HR",
   "name": "Staffing Plan Assignment Details",
   "naming_rule": "",
@@ -11431,11 +11347,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:07.997856",
-=======
   "modified": "2026-04-10 11:07:25.013382",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "QCMC Logics",
   "name": "Chatbot Topic",
   "naming_rule": "Autoincrement",
@@ -11613,11 +11525,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:08.097111",
-=======
   "modified": "2026-04-10 11:07:25.146378",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "QCMC Logics",
   "name": "Appraisal Group Section",
   "naming_rule": "",
@@ -11835,11 +11743,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:08.194569",
-=======
   "modified": "2026-04-10 11:07:25.281434",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "QCMC Logics",
   "name": "Designation Appraisal Template",
   "naming_rule": "",
@@ -12121,11 +12025,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:08.328976",
-=======
   "modified": "2026-04-10 11:07:25.441222",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "QCMC Logics",
   "name": "Appraisal Group",
   "naming_rule": "By fieldname",
@@ -12303,11 +12203,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:08.437303",
-=======
   "modified": "2026-04-10 11:07:25.589223",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "QCMC Logics",
   "name": "Appraisal Section",
   "naming_rule": "By fieldname",
@@ -12741,11 +12637,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:08.556831",
-=======
   "modified": "2026-04-10 11:07:25.791978",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "QCMC Logics",
   "name": "Competencies",
   "naming_rule": "By \"Naming Series\" field",
@@ -16187,11 +16079,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:08.810890",
-=======
   "modified": "2026-04-10 11:07:26.134057",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Assets",
   "name": "Inter Company Asset Transfer",
   "naming_rule": "By \"Naming Series\" field",
@@ -18655,11 +18543,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:09.009291",
-=======
   "modified": "2026-04-10 11:07:26.414453",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Assets",
   "name": "Asset Section",
   "naming_rule": "Set by user",
@@ -19267,11 +19151,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:09.137710",
-=======
   "modified": "2026-04-10 11:07:26.586556",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Custom",
   "name": "Legacy SI History",
   "naming_rule": "",
@@ -19641,11 +19521,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:09.257047",
-=======
   "modified": "2026-04-10 11:07:26.746730",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Payroll",
   "name": "SSS Table",
   "naming_rule": "",
@@ -20143,11 +20019,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:09.387135",
-=======
   "modified": "2026-04-10 11:07:26.911205",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "HR",
   "name": "SSS Table Details",
   "naming_rule": "",
@@ -20365,11 +20237,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:09.525080",
-=======
   "modified": "2026-04-10 11:07:27.074021",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Stock",
   "name": "PR Type",
   "naming_rule": "By fieldname",
@@ -20698,11 +20566,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:09.681771",
-=======
   "modified": "2026-04-10 11:07:27.262712",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Assets",
   "name": "Asset Tag Batch",
   "naming_rule": "",
@@ -21502,11 +21366,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:09.852240",
-=======
   "modified": "2026-04-10 11:07:27.422748",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Assets",
   "name": "Asset Tag Batch Item",
   "naming_rule": "",
@@ -21852,11 +21712,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:10.022478",
-=======
   "modified": "2026-04-10 11:07:27.571056",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Stock",
   "name": "Stock Entry Reference Detail",
   "naming_rule": "",
@@ -22650,11 +22506,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:10.204369",
-=======
   "modified": "2026-04-10 11:07:27.767001",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Accounts",
   "name": "Intercompany Expense Mapping",
   "naming_rule": "",
@@ -26375,11 +26227,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:10.493863",
-=======
   "modified": "2026-04-10 11:07:28.137274",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Stock",
   "name": "Warehouse Transfer",
   "naming_rule": "By \"Naming Series\" field",
@@ -26923,11 +26771,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:10.633512",
-=======
   "modified": "2026-04-10 11:07:28.305560",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Stock",
   "name": "Warehouse Transfer Details",
   "naming_rule": "",
@@ -27081,11 +26925,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:10.762237",
-=======
   "modified": "2026-04-10 11:07:28.539998",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "HR",
   "name": "Vehicle Service Category",
   "naming_rule": "By fieldname",
@@ -27327,11 +27167,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:10.910650",
-=======
   "modified": "2026-04-10 11:07:28.730950",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Stock",
   "name": "Inventory Division",
   "naming_rule": "By fieldname",
@@ -27573,11 +27409,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:11.065248",
-=======
   "modified": "2026-04-10 11:07:28.901114",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Stock",
   "name": "Inventory Type",
   "naming_rule": "By fieldname",
@@ -27819,11 +27651,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:11.192240",
-=======
   "modified": "2026-04-10 11:07:29.048523",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Stock",
   "name": "Inventory Class",
   "naming_rule": "By fieldname",
@@ -28001,11 +27829,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:11.299706",
-=======
   "modified": "2026-04-10 11:07:29.185847",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Stock",
   "name": "Allowed Warehouse",
   "naming_rule": "",
@@ -28223,11 +28047,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:11.422286",
-=======
   "modified": "2026-04-10 11:07:29.354698",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "HR",
   "name": "Warehouse Access",
   "naming_rule": "",
@@ -28597,11 +28417,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:11.548368",
-=======
   "modified": "2026-04-10 11:07:29.535418",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Stock",
   "name": "Booklet Monitoring",
   "naming_rule": "By fieldname",
@@ -30891,11 +30707,7 @@
   "max_attachments": 0,
   "menu_index": null,
   "migration_hash": "fe568396efc653213a97f68d44e9b4fb",
-<<<<<<< HEAD
-  "modified": "2026-04-10 07:53:11.727870",
-=======
   "modified": "2026-04-10 11:07:29.762713",
->>>>>>> 3b970fd (feat: Add new Sales Order Slip print format and update property setters)
   "module": "Stock",
   "name": "Warehouse Transfer Receiving",
   "naming_rule": "",
