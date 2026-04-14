@@ -889,5 +889,16 @@
   "name": "Stock Ledger Hide Numeric",
   "script": "frappe.ui.form.on(\"Stock Ledger Entry\", {\r\n\tsetup(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t},\r\n\r\n\tonload(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t},\r\n\r\n\trefresh(frm) {\r\n\t\tapply_rate_field_visibility(frm);\r\n\t}\r\n});\r\n\r\nfunction apply_rate_field_visibility(frm) {\r\n\tconst is_administrator = frappe.session.user === \"Administrator\";\r\n\tconst has_allow_rate = (frappe.user_roles || []).includes(\"Allow Rate\");\r\n\tconst can_see_rates = is_administrator || has_allow_rate;\r\n\r\n\ttoggle_rate_fields(frm, can_see_rates);\r\n}\r\n\r\nfunction toggle_rate_fields(frm, show) {\r\n\tconst hide = !show;\r\n\r\n    frm.set_df_property(\"section_break_11\", \"hidden\", hide ? 1 : 0);\r\n}",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Material Request",
+  "enabled": 1,
+  "modified": "2026-04-14 17:58:51.386276",
+  "module": null,
+  "name": "Material Request Document Naming Series",
+  "script": "frappe.ui.form.on('Material Request', {\n    setup: function(frm) {\n        // make naming_series read-only (optional but recommended)\n        frm.set_df_property(\"naming_series\", \"read_only\", 1);\n    },\n\n    refresh: function(frm) {\n        console.log(\"refreshed\", frm.doc.material_request_type);\n        set_series(frm);\n    },\n\n    material_request_type: function(frm) {\n        console.log(\"PURPOSE CHANGED\", frm.doc.material_request_type);\n        set_series(frm);\n    }\n});\n\nfunction set_series(frm) {\n    if (!frm.doc.material_request_type) return;\n\n    if (frm.doc.material_request_type === \"Purchase\") {\n        frm.set_value(\"naming_series\", \".{custom_wh_abbr}..{custom_pr_series_abbrv}.PR-.YY.-.#####\");\n    } else {\n        frm.set_value(\"naming_series\", \".{custom_wh_abbr}..WRF-.YY..MM.-.#####\");\n    }\n}",
+  "view": "Form"
  }
 ]
