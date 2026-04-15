@@ -2,13 +2,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-03-30 16:47:28.397383",
-  "name": "Submit for Machine Shop Supervisor Approval",
-  "workflow_action_name": "Submit for Machine Shop Supervisor Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2025-02-11 13:07:54.104867",
   "name": "Reject",
   "workflow_action_name": "Reject"
@@ -19,6 +12,20 @@
   "modified": "2025-02-11 13:07:54.106675",
   "name": "Review",
   "workflow_action_name": "Review"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-02-11 13:07:54.102923",
+  "name": "Approve",
+  "workflow_action_name": "Approve"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-03-30 16:47:28.397383",
+  "name": "Submit for Machine Shop Supervisor Approval",
+  "workflow_action_name": "Submit for Machine Shop Supervisor Approval"
  },
  {
   "docstatus": 0,
@@ -128,13 +135,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-04-21 12:57:38.843403",
-  "name": "Transfer",
-  "workflow_action_name": "Transfer"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2025-03-19 10:13:59.990445",
   "name": "Disapprove",
   "workflow_action_name": "Disapprove"
@@ -212,23 +212,9 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2024-04-15 21:25:15.987329",
-  "name": "Process",
-  "workflow_action_name": "Process"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2026-03-03 16:41:40.572957",
   "name": "Complete",
   "workflow_action_name": "Complete"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-05-14 13:36:08.460123",
-  "name": "Cancel",
-  "workflow_action_name": "Cancel"
  },
  {
   "docstatus": 0,
@@ -254,13 +240,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-05-14 13:23:14.108790",
-  "name": "Submit",
-  "workflow_action_name": "Submit"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2025-03-19 10:05:52.014185",
   "name": "Submit for Approval",
   "workflow_action_name": "Submit for Approval"
@@ -282,8 +261,29 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-02-11 13:07:54.102923",
-  "name": "Approve",
-  "workflow_action_name": "Approve"
+  "modified": "2024-04-15 21:25:15.987329",
+  "name": "Process",
+  "workflow_action_name": "Process"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-05-14 13:36:08.460123",
+  "name": "Cancel",
+  "workflow_action_name": "Cancel"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-05-14 13:23:14.108790",
+  "name": "Submit",
+  "workflow_action_name": "Submit"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-04-21 12:57:38.843403",
+  "name": "Transfer",
+  "workflow_action_name": "Transfer"
  }
 ]

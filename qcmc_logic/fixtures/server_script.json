@@ -370,13 +370,13 @@
   "doctype_event": "After Submit",
   "enable_rate_limit": 0,
   "event_frequency": "All",
-  "modified": "2026-03-26 07:56:48.209336",
+  "modified": "2026-04-15 14:09:44.579838",
   "module": null,
   "name": "WRR Received",
   "rate_limit_count": 5,
   "rate_limit_seconds": 86400,
   "reference_doctype": "Purchase Receipt",
-  "script": "# Server Script: Document Event\r\nif doc.workflow_state == \"Received\" :\r\n    doc.custom_date_received = frappe.utils.now_datetime()\r\n    doc.custom_received_by = frappe.session.user",
+  "script": "# # Server Script: Document Event\r\n# if doc.workflow_state == \"Received\" :\r\n#     doc.custom_date_received = frappe.utils.now_datetime()\r\n#     doc.custom_received_by = frappe.session.user\r\nif doc.workflow_state == \"Received\":\r\n    frappe.db.set_value(\r\n        doc.doctype,\r\n        doc.name,\r\n        \"custom_date_received\",\r\n        frappe.utils.now_datetime()\r\n    )\r\n\r\nuser_fullname = frappe.db.get_value(\"User\", frappe.session.user, \"full_name\")\r\n\r\nfrappe.db.set_value(\r\n    doc.doctype,\r\n    doc.name,\r\n    \"custom_received_by\",\r\n    user_fullname\r\n)",
   "script_type": "DocType Event"
  },
  {
@@ -529,25 +529,6 @@
   "rate_limit_seconds": 86400,
   "reference_doctype": "Vehicle Log",
   "script": "\r\n\r\n# Get all Vehicle Service rows linked to this Vehicle Log\r\nservices = frappe.get_all(\r\n    \"Vehicle Service\",\r\n    filters={\"parent\": doc.name},\r\n    fields=[\"service_item\", \"custom_service_date\"],\r\n    order_by=\"custom_service_date desc\"\r\n)\r\n\r\n\r\n\r\n# Get vehicle document using license_plate\r\nvehicle_name = frappe.db.get_value(\r\n    \"Vehicle\",\r\n    {\"license_plate\": doc.license_plate},\r\n    \"name\"\r\n)\r\n\r\n\r\n\r\nfor service in services:\r\n\r\n    # ENGINE CHANGE OIL\r\n    if service.service_item and \"ENGINE CHANGE OIL\" in service.service_item.upper():\r\n        frappe.db.set_value(\r\n            \"Vehicle\",\r\n            vehicle_name,\r\n            \"custom_last_change_engine_oil_date\",\r\n            service.custom_service_date\r\n        )\r\n        break  # only latest needed\r\n\r\n\r\n# REGISTRATION\r\nfor service in services:\r\n\r\n    if service.service_item and \"REGISTRATION\" in service.service_item.upper():\r\n\r\n        month = frappe.utils.formatdate(service.custom_service_date, \"MMMM\")\r\n        year = frappe.utils.formatdate(service.custom_service_date, \"yyyy\")\r\n\r\n        frappe.db.set_value(\r\n            \"Vehicle\",\r\n            vehicle_name,\r\n            {\r\n                \"custom_month\": month,\r\n                \"custom_year\": year\r\n            }\r\n        )\r\n        break  # only latest needed",
-  "script_type": "DocType Event"
- },
- {
-  "allow_guest": 0,
-  "api_method": null,
-  "cron_format": null,
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Server Script",
-  "doctype_event": "Before Insert",
-  "enable_rate_limit": 0,
-  "event_frequency": "All",
-  "modified": "2026-04-14 16:07:57.370372",
-  "module": "QCMC Logics",
-  "name": "Material Request Document Naming Series",
-  "rate_limit_count": 5,
-  "rate_limit_seconds": 86400,
-  "reference_doctype": "Material Request",
-  "script": "if doc.purpose == \"Purchase\":\n    doc.naming_series = \".{custom_wh_abbr}..{custom_pr_series_abbrv}.PR-.YY.-.#####\"\nelse:\n    doc.naming_series = \".{custom_wh_abbr}..WRF-.YY..MM.-.#####\"",
   "script_type": "DocType Event"
  }
 ]

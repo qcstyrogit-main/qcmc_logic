@@ -1,5 +1,62 @@
 [
  {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [
+   {
+    "default": null,
+    "fieldname": "company",
+    "fieldtype": "Link",
+    "label": "Company",
+    "mandatory": 1,
+    "options": "Company",
+    "parent": "Trial Balance (Simple)",
+    "parentfield": "filters",
+    "parenttype": "Report",
+    "wildcard_filter": 0
+   }
+  ],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-08-28 19:06:54.273322",
+  "module": "Accounts",
+  "name": "Trial Balance (Simple)",
+  "prepared_report": 0,
+  "query": "select fiscal_year as \"Fiscal Year:Data:80\",\n\tcompany as \"Company:Data:220\",\n\tposting_date as \"Posting Date:Date:100\",\n\taccount as \"Account:Data:380\",\n\tsum(debit) as \"Debit:Currency:140\",\n\tsum(credit) as \"Credit:Currency:140\",\n\tfinance_book as \"Finance Book:Link/Finance Book:140\"\nfrom `tabGL Entry`\nwhere is_cancelled = 0 and company = %(company)s\ngroup by fiscal_year, company, posting_date, account\norder by fiscal_year, company, posting_date, account",
+  "ref_doctype": "GL Entry",
+  "reference_report": null,
+  "report_name": "Trial Balance (Simple)",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Trial Balance (Simple)",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Trial Balance (Simple)",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Trial Balance (Simple)",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Auditor"
+   }
+  ],
+  "timeout": 0
+ },
+ {
   "add_total_row": 0,
   "add_translate_data": 0,
   "columns": [],
@@ -1915,50 +1972,6 @@
     "parentfield": "roles",
     "parenttype": "Report",
     "role": "Quality Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "add_translate_data": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2019-01-17 17:20:42.374958",
-  "module": "Accounts",
-  "name": "Trial Balance (Simple)",
-  "prepared_report": 0,
-  "query": "select fiscal_year as \"Fiscal Year:Data:80\",\n\tcompany as \"Company:Data:220\",\n\tposting_date as \"Posting Date:Date:100\",\n\taccount as \"Account:Data:380\",\n\tsum(debit) as \"Debit:Currency:140\",\n\tsum(credit) as \"Credit:Currency:140\",\n\tfinance_book as \"Finance Book:Link/Finance Book:140\"\nfrom `tabGL Entry`\ngroup by fiscal_year, company, posting_date, account\norder by fiscal_year, company, posting_date, account",
-  "ref_doctype": "GL Entry",
-  "reference_report": null,
-  "report_name": "Trial Balance (Simple)",
-  "report_script": null,
-  "report_type": "Query Report",
-  "roles": [
-   {
-    "parent": "Trial Balance (Simple)",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
-   },
-   {
-    "parent": "Trial Balance (Simple)",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts Manager"
-   },
-   {
-    "parent": "Trial Balance (Simple)",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Auditor"
    }
   ],
   "timeout": 0
@@ -9011,100 +9024,6 @@
   "timeout": 0
  },
  {
-  "add_total_row": 1,
-  "add_translate_data": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2025-03-13 11:46:23.251657",
-  "module": "Buying",
-  "name": "Purchase Order Trends",
-  "prepared_report": 1,
-  "query": null,
-  "ref_doctype": "Purchase Order",
-  "reference_report": null,
-  "report_name": "Purchase Order Trends",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Purchase Order Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   },
-   {
-    "parent": "Purchase Order Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Purchase Manager"
-   },
-   {
-    "parent": "Purchase Order Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Purchase User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "add_translate_data": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2018-02-21 01:28:31.261299",
-  "module": "Accounts",
-  "name": "Purchase Invoice Trends",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Purchase Invoice",
-  "reference_report": null,
-  "report_name": "Purchase Invoice Trends",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Purchase Invoice Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
-   },
-   {
-    "parent": "Purchase Invoice Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Purchase User"
-   },
-   {
-    "parent": "Purchase Invoice Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts Manager"
-   },
-   {
-    "parent": "Purchase Invoice Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Auditor"
-   }
-  ],
-  "timeout": 0
- },
- {
   "add_total_row": 0,
   "add_translate_data": 0,
   "columns": [],
@@ -10328,56 +10247,6 @@
   "timeout": 0
  },
  {
-  "add_total_row": 1,
-  "add_translate_data": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2018-02-21 01:28:22.682161",
-  "module": "Stock",
-  "name": "Purchase Receipt Trends",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Purchase Receipt",
-  "reference_report": null,
-  "report_name": "Purchase Receipt Trends",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Purchase Receipt Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock Manager"
-   },
-   {
-    "parent": "Purchase Receipt Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   },
-   {
-    "parent": "Purchase Receipt Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Purchase User"
-   },
-   {
-    "parent": "Purchase Receipt Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
-   }
-  ],
-  "timeout": 0
- },
- {
   "add_total_row": 0,
   "add_translate_data": 0,
   "columns": [],
@@ -10944,44 +10813,6 @@
   "timeout": 0
  },
  {
-  "add_total_row": 0,
-  "add_translate_data": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2021-10-06 06:26:07.881340",
-  "module": "Accounts",
-  "name": "Sales Partners Commission",
-  "prepared_report": 0,
-  "query": "SELECT\n    sales_partner as \"Sales Partner:Link/Sales Partner:220\",\n\tsum(base_net_total) as \"Invoiced Amount (Excl. Tax):Currency:220\",\n\tsum(amount_eligible_for_commission) as \"Amount Eligible for Commission:Currency:220\",\n\tsum(total_commission) as \"Total Commission:Currency:170\",\n\tsum(total_commission)*100/sum(amount_eligible_for_commission) as \"Average Commission Rate:Percent:220\"\nFROM\n\t`tabSales Invoice`\nWHERE\n\tdocstatus = 1 and ifnull(base_net_total, 0) > 0 and ifnull(total_commission, 0) > 0\nGROUP BY\n\tsales_partner\nORDER BY\n\t\"Total Commission:Currency:120\"",
-  "ref_doctype": "Sales Invoice",
-  "reference_report": null,
-  "report_name": "Sales Partners Commission",
-  "report_script": null,
-  "report_type": "Query Report",
-  "roles": [
-   {
-    "parent": "Sales Partners Commission",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts Manager"
-   },
-   {
-    "parent": "Sales Partners Commission",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
-   }
-  ],
-  "timeout": 0
- },
- {
   "add_total_row": 1,
   "add_translate_data": 0,
   "columns": [],
@@ -11033,150 +10864,6 @@
     "parentfield": "roles",
     "parenttype": "Report",
     "role": "Stock User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "add_translate_data": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2018-02-21 01:28:14.928929",
-  "module": "Selling",
-  "name": "Quotation Trends",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Quotation",
-  "reference_report": null,
-  "report_name": "Quotation Trends",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Quotation Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Sales User"
-   },
-   {
-    "parent": "Quotation Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Sales Manager"
-   },
-   {
-    "parent": "Quotation Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Maintenance Manager"
-   },
-   {
-    "parent": "Quotation Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Maintenance User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "add_translate_data": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2025-03-18 12:58:30.984722",
-  "module": "Selling",
-  "name": "Sales Order Trends",
-  "prepared_report": 1,
-  "query": null,
-  "ref_doctype": "Sales Order",
-  "reference_report": null,
-  "report_name": "Sales Order Trends",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Sales Order Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Sales User"
-   },
-   {
-    "parent": "Sales Order Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Sales Manager"
-   },
-   {
-    "parent": "Sales Order Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Maintenance User"
-   },
-   {
-    "parent": "Sales Order Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
-   },
-   {
-    "parent": "Sales Order Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "add_translate_data": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2025-04-23 16:15:06.829348",
-  "module": "Accounts",
-  "name": "Sales Invoice Trends",
-  "prepared_report": 1,
-  "query": null,
-  "ref_doctype": "Sales Invoice",
-  "reference_report": null,
-  "report_name": "Sales Invoice Trends",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Sales Invoice Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts Manager"
-   },
-   {
-    "parent": "Sales Invoice Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
    }
   ],
   "timeout": 0
@@ -11377,56 +11064,6 @@
     "parentfield": "roles",
     "parenttype": "Report",
     "role": "Sales Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "add_translate_data": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2025-03-18 11:32:31.005869",
-  "module": "Stock",
-  "name": "Delivery Note Trends",
-  "prepared_report": 1,
-  "query": null,
-  "ref_doctype": "Delivery Note",
-  "reference_report": null,
-  "report_name": "Delivery Note Trends",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Delivery Note Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   },
-   {
-    "parent": "Delivery Note Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock Manager"
-   },
-   {
-    "parent": "Delivery Note Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Sales User"
-   },
-   {
-    "parent": "Delivery Note Trends",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
    }
   ],
   "timeout": 0
@@ -11638,50 +11275,6 @@
    },
    {
     "parent": "Accounts Payable",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Auditor"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "add_translate_data": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2025-04-24 09:37:52.600548",
-  "module": "Accounts",
-  "name": "General Ledger",
-  "prepared_report": 1,
-  "query": null,
-  "ref_doctype": "GL Entry",
-  "reference_report": null,
-  "report_name": "General Ledger",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "General Ledger",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
-   },
-   {
-    "parent": "General Ledger",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts Manager"
-   },
-   {
-    "parent": "General Ledger",
     "parentfield": "roles",
     "parenttype": "Report",
     "role": "Auditor"
@@ -11945,38 +11538,6 @@
   "filters": [],
   "is_standard": "Yes",
   "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2026-03-26 09:32:22.053679",
-  "module": "Stock",
-  "name": "Booklet Monitoring Report",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Stock Entry",
-  "reference_report": null,
-  "report_name": "Booklet Monitoring Report",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Booklet Monitoring Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "System Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "add_translate_data": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
   "json": "{\"add_total_row\": 0, \"sort_by\": \"Serial No.modified\", \"sort_order\": \"desc\", \"sort_by_next\": null, \"filters\": [[\"Serial No\", \"warehouse\", \"=\", \"\"]], \"sort_order_next\": \"desc\", \"columns\": [[\"name\", \"Serial No\"], [\"item_code\", \"Serial No\"], [\"amc_expiry_date\", \"Serial No\"], [\"maintenance_status\", \"Serial No\"],[\"item_name\", \"Serial No\"], [\"description\", \"Serial No\"], [\"item_group\", \"Serial No\"], [\"brand\", \"Serial No\"]]}",
   "letter_head": null,
   "modified": "2025-04-24 13:07:23.451182",
@@ -12007,6 +11568,458 @@
     "parentfield": "roles",
     "parenttype": "Report",
     "role": "Stock User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2026-04-15 11:05:13.796002",
+  "module": null,
+  "name": "Booklet Monitoring Report",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Stock Entry",
+  "reference_report": null,
+  "report_name": "Booklet Monitoring Report",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Booklet Monitoring Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "System Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-11-05 11:55:50.127020",
+  "module": "Selling",
+  "name": "Quotation Trends",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Quotation",
+  "reference_report": null,
+  "report_name": "Quotation Trends",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Quotation Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales User"
+   },
+   {
+    "parent": "Quotation Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Manager"
+   },
+   {
+    "parent": "Quotation Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Maintenance Manager"
+   },
+   {
+    "parent": "Quotation Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Maintenance User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-11-05 11:55:50.114173",
+  "module": "Stock",
+  "name": "Delivery Note Trends",
+  "prepared_report": 1,
+  "query": null,
+  "ref_doctype": "Delivery Note",
+  "reference_report": null,
+  "report_name": "Delivery Note Trends",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Delivery Note Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   },
+   {
+    "parent": "Delivery Note Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock Manager"
+   },
+   {
+    "parent": "Delivery Note Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales User"
+   },
+   {
+    "parent": "Delivery Note Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-11-05 11:55:50.096303",
+  "module": "Selling",
+  "name": "Sales Order Trends",
+  "prepared_report": 1,
+  "query": null,
+  "ref_doctype": "Sales Order",
+  "reference_report": null,
+  "report_name": "Sales Order Trends",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Sales Order Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales User"
+   },
+   {
+    "parent": "Sales Order Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Manager"
+   },
+   {
+    "parent": "Sales Order Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Maintenance User"
+   },
+   {
+    "parent": "Sales Order Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Sales Order Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-11-05 11:55:50.070651",
+  "module": "Accounts",
+  "name": "Sales Invoice Trends",
+  "prepared_report": 1,
+  "query": null,
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "Sales Invoice Trends",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Sales Invoice Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Sales Invoice Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-11-05 11:55:50.058154",
+  "module": "Buying",
+  "name": "Purchase Order Trends",
+  "prepared_report": 1,
+  "query": null,
+  "ref_doctype": "Purchase Order",
+  "reference_report": null,
+  "report_name": "Purchase Order Trends",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Purchase Order Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   },
+   {
+    "parent": "Purchase Order Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Purchase Manager"
+   },
+   {
+    "parent": "Purchase Order Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Purchase User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-11-05 11:55:49.983683",
+  "module": "Stock",
+  "name": "Purchase Receipt Trends",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Purchase Receipt",
+  "reference_report": null,
+  "report_name": "Purchase Receipt Trends",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Purchase Receipt Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock Manager"
+   },
+   {
+    "parent": "Purchase Receipt Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   },
+   {
+    "parent": "Purchase Receipt Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Purchase User"
+   },
+   {
+    "parent": "Purchase Receipt Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-11-05 11:55:49.950442",
+  "module": "Accounts",
+  "name": "Purchase Invoice Trends",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Purchase Invoice",
+  "reference_report": null,
+  "report_name": "Purchase Invoice Trends",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Purchase Invoice Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Purchase Invoice Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Purchase User"
+   },
+   {
+    "parent": "Purchase Invoice Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Purchase Invoice Trends",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Auditor"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-11-05 15:47:59.597853",
+  "module": "Accounts",
+  "name": "General Ledger",
+  "prepared_report": 1,
+  "query": null,
+  "ref_doctype": "GL Entry",
+  "reference_report": null,
+  "report_name": "General Ledger",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "General Ledger",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "General Ledger",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "General Ledger",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Auditor"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-07-17 23:16:19.892044",
+  "module": "Accounts",
+  "name": "Sales Partners Commission",
+  "prepared_report": 0,
+  "query": "SELECT\n   sales_partner as \"Sales Partner:Link / Sales Partner:220\",\n   sum(base_net_total) as \"Invoiced Amount (Excl. Tax):Currency:220\",\n   sum(amount_eligible_for_commission) as \"Amount Eligible for Commission:Currency:220\",\n   sum(total_commission) as \"Total Commission:Currency:170\",\n   sum(total_commission)*100 / sum(amount_eligible_for_commission) as \"Average Commission Rate:Percent:220\"\nFROM\n   (\n      SELECT\n         sales_partner,\n         base_net_total,\n         total_commission,\n         amount_eligible_for_commission\n      FROM\n         `tabSales Invoice` \n      WHERE\n         docstatus = 1\n         AND IFNULL(base_net_total, 0) > 0\n         AND IFNULL(total_commission, 0) > 0\n\n      UNION ALL\n\n      SELECT\n         sales_partner,\n         base_net_total,\n         total_commission,\n         amount_eligible_for_commission\n      FROM\n         `tabPOS Invoice`\n      WHERE\n         docstatus = 1\n         AND IFNULL(base_net_total, 0) > 0\n         AND IFNULL(total_commission, 0) > 0\n   ) AS sub\nGROUP BY\n   sales_partner\nORDER BY\n   \"Total Commission:Currency:120\"",
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "Sales Partners Commission",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Sales Partners Commission",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Sales Partners Commission",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
    }
   ],
   "timeout": 0
