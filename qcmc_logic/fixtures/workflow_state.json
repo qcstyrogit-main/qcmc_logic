@@ -20,6 +20,15 @@
  {
   "docstatus": 0,
   "doctype": "Workflow State",
+  "icon": "ok-sign",
+  "modified": "2025-02-11 13:07:54.034840",
+  "name": "Approved",
+  "style": "Success",
+  "workflow_state_name": "Approved"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
   "icon": "",
   "modified": "2026-01-27 09:35:15.269575",
   "name": "For RTC Approval",
@@ -345,15 +354,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2024-04-15 21:21:38.208963",
-  "name": "Processed",
-  "style": "Success",
-  "workflow_state_name": "Processed"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2025-06-02 15:39:11.032351",
   "name": "Completed",
   "style": "",
@@ -372,28 +372,10 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-05-14 11:53:38.107266",
-  "name": "Cancelled",
-  "style": "",
-  "workflow_state_name": "Cancelled"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2025-10-20 11:16:47.071286",
   "name": "For Approval",
   "style": "",
   "workflow_state_name": "For Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "ok-sign",
-  "modified": "2025-02-11 13:07:54.034840",
-  "name": "Approved",
-  "style": "Success",
-  "workflow_state_name": "Approved"
  },
  {
   "docstatus": 0,
@@ -403,15 +385,6 @@
   "name": "For Checking",
   "style": "",
   "workflow_state_name": "For Checking"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-04-21 12:49:18.189749",
-  "name": "Transferred",
-  "style": "",
-  "workflow_state_name": "Transferred"
  },
  {
   "docstatus": 0,
@@ -444,15 +417,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-02-07 09:07:33.779764",
-  "name": "Submitted",
-  "style": "Success",
-  "workflow_state_name": "Submitted"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2025-06-19 17:22:55.011080",
   "name": "Pending Approval",
   "style": "",
@@ -466,15 +430,6 @@
   "name": "Pending Machine Shop Supervisor Approval",
   "style": "",
   "workflow_state_name": "Pending Machine Shop Supervisor Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-06-26 11:40:38.894485",
-  "name": "Received",
-  "style": "",
-  "workflow_state_name": "Received"
  },
  {
   "docstatus": 0,
@@ -498,9 +453,54 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "modified": "2024-04-15 21:21:38.208963",
+  "name": "Processed",
+  "style": "Success",
+  "workflow_state_name": "Processed"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-02-07 09:07:33.779764",
+  "name": "Submitted",
+  "style": "Success",
+  "workflow_state_name": "Submitted"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-04-21 12:49:18.189749",
+  "name": "Transferred",
+  "style": "",
+  "workflow_state_name": "Transferred"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-05-14 11:53:38.107266",
+  "name": "Cancelled",
+  "style": "",
+  "workflow_state_name": "Cancelled"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "modified": "2025-01-07 09:26:33.936333",
   "name": "Draft",
   "style": "",
   "workflow_state_name": "Draft"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-26 11:40:38.894485",
+  "name": "Received",
+  "style": "",
+  "workflow_state_name": "Received"
  }
 ]
