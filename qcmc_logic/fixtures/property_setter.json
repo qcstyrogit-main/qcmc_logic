@@ -5233,22 +5233,6 @@
  },
  {
   "default_value": null,
-  "doc_type": "Purchase Receipt",
-  "docstatus": 0,
-  "doctype": "Property Setter",
-  "doctype_or_field": "DocType",
-  "field_name": null,
-  "is_system_generated": 1,
-  "modified": "2025-10-02 09:22:22.265832",
-  "module": null,
-  "name": "Purchase Receipt-main-default_print_format",
-  "property": "default_print_format",
-  "property_type": "Data",
-  "row_name": null,
-  "value": "WRR"
- },
- {
-  "default_value": null,
   "doc_type": "Asset Movement",
   "docstatus": 0,
   "doctype": "Property Setter",
@@ -7342,5 +7326,21 @@
   "property_type": "Data",
   "row_name": null,
   "value": "[\"workflow_state\", \"type_section\", \"naming_series\", \"title\", \"material_request_type\", \"custom_request_type\", \"custom_pr_section\", \"custom_pr_series_abbrv\", \"customer\", \"company\", \"custom_abbr\", \"custom_remarks\", \"request_by\", \"column_break_2\", \"transaction_date\", \"schedule_date\", \"buying_price_list\", \"amended_from\", \"custom_prepared_by\", \"custom_checked_by\", \"custom_approved_by\", \"custom_ktc\", \"custom_alc\", \"custom_date_approved_by_ktc\", \"custom_date_approved_by_alc\", \"custom_reference_vehicle_log\", \"custom_print\", \"custom_partner_pr\", \"custom_is_converted\", \"warehouse_section\", \"scan_barcode\", \"last_scanned_warehouse\", \"set_from_warehouse\", \"column_break5\", \"set_warehouse\", \"custom_wh_abbr\", \"items_section\", \"items\", \"terms_tab\", \"terms_section_break\", \"tc_name\", \"terms\", \"more_info_tab\", \"status_section\", \"status\", \"per_ordered\", \"column_break2\", \"transfer_status\", \"per_received\", \"printing_details\", \"letter_head\", \"column_break_31\", \"select_print_heading\", \"reference\", \"job_card\", \"column_break_35\", \"work_order\", \"connections_tab\"]"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Purchase Receipt",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocType",
+  "field_name": null,
+  "is_system_generated": 1,
+  "modified": "2026-04-15 17:15:38.696041",
+  "module": null,
+  "name": "Purchase Receipt-main-default_print_format",
+  "property": "default_print_format",
+  "property_type": "Data",
+  "row_name": null,
+  "value": "WRR"
  }
 ]
