@@ -86,8 +86,7 @@ fixtures = [
         "filters": [["custom", "=", 1]]
     },    
     {
-        "doctype": "Print Format",
-        "filters": [["custom_format", "=", 1]]
+        "doctype": "Print Format"
     },
     "Letter Head",
     {
