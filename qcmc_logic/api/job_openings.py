@@ -161,7 +161,7 @@ def submit_job_applicant_custom(
     if career1: recipients.append(career1)
     if career2: recipients.append(career2)
 
-    # 1. Send to Career Team
+    # 1. Send to Career Team (with resume attachment)
     if recipients:
         frappe.sendmail(
             recipients=recipients,
@@ -170,20 +170,9 @@ def submit_job_applicant_custom(
             attachments=mail_attachments
         )
 
-    # 2. Send Auto-reply to Applicant
-    if email_id:
-        frappe.sendmail(
-            recipients=email_id,
-            subject=f"Application Received: {job_title}",
-            message=f"""
-                <p>Dear {applicant_name},</p>
-                <p>Thank you for applying for the <strong>{job_title}</strong> position at QC StyroPackaging / MultiPlast Corporation.</p>
-                <p>We have received your application and resume. Our recruitment team will review your qualifications and contact you if your profile matches our requirements.</p>
-                <p>Best regards,<br/><strong>HR Recruitment Team</strong></p>
-            """
-        )
-
-    # 3. Log Communication
+    # NOTE: Auto-reply to the applicant is handled by the ERPNext Notification
+    # configured in Setup > Notifications > Job Applicant (on_submit / after_insert).
+    # Do NOT add a manual frappe.sendmail() here — it will cause a duplicate email.
     frappe.get_doc({
         "doctype": "Communication",
         "communication_type": "Communication",
