@@ -196,5 +196,68 @@ def submit_job_applicant_custom(
     }
 
 
+@frappe.whitelist(allow_guest=True)
+def submit_open_application(oa_name, oa_email, oa_address, oa_contact, oa_pitch=None):
+    """
+    Handles open / unsolicited job applications submitted from the website.
+    Sends an email with the applicant's details and attached resume to the career team.
+    No ERPNext document is created.
+    """
+    # --- File Attachment
+    mail_attachments = []
+    if frappe.request.files:
+        for file_key in frappe.request.files:
+            if file_key == "oa_file":
+                file_obj = frappe.request.files[file_key]
+                raw_data = file_obj.read()
+                if raw_data:
+                    mail_attachments.append({
+                        "fname": file_obj.filename,
+                        "fcontent": raw_data
+                    })
 
+    if not mail_attachments:
+        frappe.throw("Please attach a resume or portfolio file.")
 
+    # --- Build Email
+    time = now_datetime().strftime("%Y-%m-%d %H:%M:%S")
+    subject = f"Open Application: {oa_name}"
+    content = f"""
+    <div style="font-family: system-ui, sans-serif, Arial; font-size: 14px; line-height: 1.6; color: #333;">
+      <h2 style="color: #133880; border-bottom: 2px solid #ed1d26; padding-bottom: 8px;">Open Application</h2>
+      <p>A new open application has been submitted via the website.</p>
+
+      <table role="presentation" style="width: 100%; margin-top: 20px; border-collapse: collapse;">
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee; width: 140px;"><strong>Name:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{oa_name}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{oa_email}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Address:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{oa_address}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Contact:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{oa_contact}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>File:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">Attached</td></tr>
+      </table>
+
+      <div style="margin-top: 25px; padding: 15px; background-color: #f9fafb; border-radius: 8px;">
+        <strong>Pitch:</strong><br/>
+        <p style="white-space: pre-wrap; margin: 8px 0 0;">{oa_pitch or 'No pitch provided.'}</p>
+      </div>
+
+      <p style="color: #999; font-size: 12px; margin-top: 30px;">Submitted on: {time}</p>
+    </div>
+    """
+
+    # --- Recipients
+    career1 = frappe.db.get_value("Email Account", "Career 1", "email_id")
+    career2 = frappe.db.get_value("Email Account", "Career 2", "email_id")
+    recipients = [e for e in [career1, career2] if e]
+
+    if not recipients:
+        frappe.throw("No career email recipients configured.")
+
+    frappe.sendmail(
+        recipients=recipients,
+        subject=subject,
+        message=content,
+        attachments=mail_attachments
+    )
+
+    frappe.db.commit()
+    return {"message": "Sent"}
