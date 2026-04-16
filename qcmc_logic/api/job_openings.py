@@ -259,5 +259,22 @@ def submit_open_application(oa_name, oa_email, oa_address, oa_contact, oa_pitch=
         attachments=mail_attachments
     )
 
+    # --- Auto-reply to Applicant
+    if oa_email:
+        frappe.sendmail(
+            recipients=oa_email,
+            subject="We Received Your Open Application",
+            message=f"""
+            <div style="font-family: system-ui, sans-serif, Arial; font-size: 14px; line-height: 1.6; color: #333;">
+              <h2 style="color: #133880; border-bottom: 2px solid #ed1d26; padding-bottom: 8px;">Application Received</h2>
+              <p>Dear {oa_name},</p>
+              <p>Thank you for reaching out to <strong>QC StyroPackaging / MultiPlast Corporation</strong>. We have received your open application and resume.</p>
+              <p>Our HR team will review your profile and contact you if your qualifications match a suitable opportunity.</p>
+              <p>We appreciate your interest in joining our team!</p>
+              <p>Best regards,<br/><strong>HR Recruitment Team</strong><br/>QC StyroPackaging / MultiPlast Corporation</p>
+            </div>
+            """
+        )
+
     frappe.db.commit()
-    return {"message": "Sent"}
+    return "Sent"
