@@ -1,5 +1,4 @@
 import frappe
-import base64
 from frappe.utils import now_datetime
 
 @frappe.whitelist(allow_guest=True)
@@ -109,8 +108,8 @@ def submit_job_applicant_custom(
     })
 
     doc.flags.ignore_permissions = True
-    doc.insert()          # triggers Notification (after_insert)
-    doc.notify_update()
+    doc.flags.ignore_email_alerts = True  # we send emails manually below
+    doc.insert()
 
     # --- Handle File Attachment (In-Memory for Email only)
     mail_attachments = []
@@ -120,10 +119,10 @@ def submit_job_applicant_custom(
                 file_obj = frappe.request.files[file_key]
                 raw_data = file_obj.read()
                 if raw_data:
-                    # frappe.sendmail expects fcontent as a base64-encoded string
+                    # Pass raw bytes — frappe.sendmail handles base64 encoding internally
                     mail_attachments.append({
                         "fname": file_obj.filename,
-                        "fcontent": base64.b64encode(raw_data).decode("utf-8")
+                        "fcontent": raw_data
                     })
 
     # --- Email Logic
