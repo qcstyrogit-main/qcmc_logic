@@ -1,4 +1,5 @@
 import frappe
+import base64
 from frappe.utils import now_datetime
 
 @frappe.whitelist(allow_guest=True)
@@ -116,13 +117,14 @@ def submit_job_applicant_custom(
     if frappe.request.files:
         for file_key in frappe.request.files:
             if file_key == "resume_file":
-                file_content = frappe.request.files[file_key]
-                # Read once and use for all emails
-                raw_data = file_content.read()
-                mail_attachments.append({
-                    "fname": file_content.filename,
-                    "fcontent": raw_data
-                })
+                file_obj = frappe.request.files[file_key]
+                raw_data = file_obj.read()
+                if raw_data:
+                    # frappe.sendmail expects fcontent as a base64-encoded string
+                    mail_attachments.append({
+                        "fname": file_obj.filename,
+                        "fcontent": base64.b64encode(raw_data).decode("utf-8")
+                    })
 
     # --- Email Logic
     subject = f"New Job Application: {job_title} - {applicant_name}"
