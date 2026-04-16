@@ -377,7 +377,7 @@
   "doctype": "Workflow",
   "document_type": "Sales Order",
   "is_active": 1,
-  "modified": "2025-06-19 15:55:01.646265",
+  "modified": "2026-04-16 16:53:04.579261",
   "name": "Sales Order",
   "override_status": 0,
   "send_email_alert": 0,
@@ -396,7 +396,7 @@
     "state": "Draft",
     "update_field": "status",
     "update_value": "Draft",
-    "workflow_builder_id": null
+    "workflow_builder_id": "1"
    },
    {
     "allow_edit": "Credit and Collection Section Head",
@@ -412,7 +412,7 @@
     "state": "Pending Credit Approval",
     "update_field": "status",
     "update_value": "Pending Credit Approval",
-    "workflow_builder_id": null
+    "workflow_builder_id": "2"
    },
    {
     "allow_edit": "Sales Coordinator",
@@ -428,7 +428,7 @@
     "state": "Sent Back for Modification",
     "update_field": "status",
     "update_value": "Sent Back for Modification",
-    "workflow_builder_id": null
+    "workflow_builder_id": "3"
    },
    {
     "allow_edit": "Credit and Collection Section Head",
@@ -444,7 +444,7 @@
     "state": "On Hold",
     "update_field": "status",
     "update_value": "On Hold",
-    "workflow_builder_id": null
+    "workflow_builder_id": "4"
    },
    {
     "allow_edit": "Credit and Collection Section Head",
@@ -460,7 +460,7 @@
     "state": "To Deliver and Bill",
     "update_field": "status",
     "update_value": "To Deliver and Bill",
-    "workflow_builder_id": null
+    "workflow_builder_id": "5"
    },
    {
     "allow_edit": "Credit and Collection Section Head",
@@ -476,7 +476,23 @@
     "state": "Cancelled",
     "update_field": "status",
     "update_value": "Cancelled",
-    "workflow_builder_id": null
+    "workflow_builder_id": "6"
+   },
+   {
+    "allow_edit": "Credit and Collection Section Head",
+    "avoid_status_override": 0,
+    "doc_status": "1",
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "parent": "Sales Order",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "send_email": 1,
+    "state": "Completed",
+    "update_field": "status",
+    "update_value": "Completed",
+    "workflow_builder_id": "7"
    }
   ],
   "transitions": [
@@ -491,7 +507,7 @@
     "parenttype": "Workflow",
     "send_email_to_creator": 0,
     "state": "Draft",
-    "workflow_builder_id": null
+    "workflow_builder_id": "action-1"
    },
    {
     "action": "Approve",
@@ -504,7 +520,7 @@
     "parenttype": "Workflow",
     "send_email_to_creator": 0,
     "state": "Pending Credit Approval",
-    "workflow_builder_id": null
+    "workflow_builder_id": "action-2"
    },
    {
     "action": "Send back for Modification",
@@ -517,7 +533,7 @@
     "parenttype": "Workflow",
     "send_email_to_creator": 0,
     "state": "Pending Credit Approval",
-    "workflow_builder_id": null
+    "workflow_builder_id": "action-3"
    },
    {
     "action": "Resubmit for Approval",
@@ -530,7 +546,7 @@
     "parenttype": "Workflow",
     "send_email_to_creator": 0,
     "state": "Sent Back for Modification",
-    "workflow_builder_id": null
+    "workflow_builder_id": "action-4"
    },
    {
     "action": "Place on Hold",
@@ -543,7 +559,7 @@
     "parenttype": "Workflow",
     "send_email_to_creator": 0,
     "state": "Pending Credit Approval",
-    "workflow_builder_id": null
+    "workflow_builder_id": "action-5"
    },
    {
     "action": "Approve",
@@ -556,7 +572,7 @@
     "parenttype": "Workflow",
     "send_email_to_creator": 0,
     "state": "On Hold",
-    "workflow_builder_id": null
+    "workflow_builder_id": "action-6"
    },
    {
     "action": "Send back for Modification",
@@ -569,7 +585,7 @@
     "parenttype": "Workflow",
     "send_email_to_creator": 0,
     "state": "On Hold",
-    "workflow_builder_id": null
+    "workflow_builder_id": "action-7"
    },
    {
     "action": "Cancel",
@@ -582,10 +598,23 @@
     "parenttype": "Workflow",
     "send_email_to_creator": 0,
     "state": "To Deliver and Bill",
+    "workflow_builder_id": "action-8"
+   },
+   {
+    "action": "Mark as Completed",
+    "allow_self_approval": 1,
+    "allowed": "Credit and Collection Section Head",
+    "condition": null,
+    "next_state": "Completed",
+    "parent": "Sales Order",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "send_email_to_creator": 0,
+    "state": "To Deliver and Bill",
     "workflow_builder_id": null
    }
   ],
-  "workflow_data": null,
+  "workflow_data": "[{\"id\":\"1\",\"type\":\"state\",\"dimensions\":{\"width\":85,\"height\":53},\"computedPosition\":{\"x\":550,\"y\":100,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"1\",\"position\":\"top\",\"x\":38.96875,\"y\":-14.5,\"width\":7,\"height\":7},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"1\",\"position\":\"right\",\"x\":92.4375,\"y\":23,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"1\",\"position\":\"bottom\",\"x\":38.96875,\"y\":60.5,\"width\":7,\"height\":7},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"1\",\"position\":\"left\",\"x\":-14.5,\"y\":23,\"width\":7,\"height\":7}],\"target\":null},\"isParent\":false,\"position\":{\"x\":550,\"y\":100}},{\"id\":\"2\",\"type\":\"state\",\"dimensions\":{\"width\":162,\"height\":74},\"computedPosition\":{\"x\":950,\"y\":100,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"2\",\"position\":\"top\",\"x\":77.5,\"y\":-14.5,\"width\":7,\"height\":7},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"2\",\"position\":\"right\",\"x\":169.5,\"y\":33.5,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"2\",\"position\":\"bottom\",\"x\":77.5,\"y\":81.5,\"width\":7,\"height\":7},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"2\",\"position\":\"left\",\"x\":-14.5,\"y\":33.5,\"width\":7,\"height\":7}],\"target\":null},\"isParent\":false,\"position\":{\"x\":950,\"y\":100}},{\"id\":\"3\",\"type\":\"state\",\"dimensions\":{\"width\":162,\"height\":74},\"computedPosition\":{\"x\":1350,\"y\":100,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"3\",\"position\":\"top\",\"x\":77.5,\"y\":-14.5,\"width\":7,\"height\":7},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"3\",\"position\":\"right\",\"x\":169.5,\"y\":33.5,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"3\",\"position\":\"bottom\",\"x\":77.5,\"y\":81.5,\"width\":7,\"height\":7},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"3\",\"position\":\"left\",\"x\":-14.5,\"y\":33.5,\"width\":7,\"height\":7}],\"target\":null},\"isParent\":false,\"position\":{\"x\":1350,\"y\":100}},{\"id\":\"4\",\"type\":\"state\",\"dimensions\":{\"width\":106,\"height\":53},\"computedPosition\":{\"x\":1750,\"y\":100,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"4\",\"position\":\"top\",\"x\":49.515625,\"y\":-14.5,\"width\":7,\"height\":7},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"4\",\"position\":\"right\",\"x\":113.53125,\"y\":23,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"4\",\"position\":\"bottom\",\"x\":49.515625,\"y\":60.5,\"width\":7,\"height\":7},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"4\",\"position\":\"left\",\"x\":-14.5,\"y\":23,\"width\":7,\"height\":7}],\"target\":null},\"isParent\":false,\"position\":{\"x\":1750,\"y\":100}},{\"id\":\"5\",\"type\":\"state\",\"dimensions\":{\"width\":162,\"height\":74},\"computedPosition\":{\"x\":2150,\"y\":100,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"5\",\"position\":\"top\",\"x\":77.5,\"y\":-14.5,\"width\":7,\"height\":7},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"5\",\"position\":\"right\",\"x\":169.5,\"y\":33.5,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"5\",\"position\":\"bottom\",\"x\":77.5,\"y\":81.5,\"width\":7,\"height\":7},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"5\",\"position\":\"left\",\"x\":-14.5,\"y\":33.5,\"width\":7,\"height\":7}],\"target\":null},\"isParent\":false,\"position\":{\"x\":2150,\"y\":100}},{\"id\":\"6\",\"type\":\"state\",\"dimensions\":{\"width\":119,\"height\":53},\"computedPosition\":{\"x\":2550,\"y\":100,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"6\",\"position\":\"top\",\"x\":55.921875,\"y\":-14.5,\"width\":7,\"height\":7},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"6\",\"position\":\"right\",\"x\":126.359375,\"y\":23,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"6\",\"position\":\"bottom\",\"x\":55.921875,\"y\":60.5,\"width\":7,\"height\":7},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"6\",\"position\":\"left\",\"x\":-14.5,\"y\":23,\"width\":7,\"height\":7}],\"target\":null},\"isParent\":false,\"position\":{\"x\":2550,\"y\":100}},{\"id\":\"7\",\"type\":\"state\",\"dimensions\":{\"width\":125,\"height\":53},\"computedPosition\":{\"x\":2950,\"y\":100,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"7\",\"position\":\"top\",\"x\":59.125,\"y\":-14.5,\"width\":7,\"height\":7},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"7\",\"position\":\"right\",\"x\":132.75,\"y\":23,\"width\":7,\"height\":7},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"7\",\"position\":\"bottom\",\"x\":59.125,\"y\":60.5,\"width\":7,\"height\":7},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"7\",\"position\":\"left\",\"x\":-14.5,\"y\":23,\"width\":7,\"height\":7}],\"target\":null},\"isParent\":false,\"position\":{\"x\":2950,\"y\":100}},{\"id\":\"action-1\",\"type\":\"action\",\"dimensions\":{\"width\":155,\"height\":33},\"computedPosition\":{\"x\":800,\"y\":120,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"action-1\",\"position\":\"top\",\"x\":74.546875,\"y\":-5,\"width\":6,\"height\":6},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"action-1\",\"position\":\"right\",\"x\":154.109375,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"action-1\",\"position\":\"bottom\",\"x\":74.546875,\"y\":32,\"width\":6,\"height\":6},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"action-1\",\"position\":\"left\",\"x\":-5,\"y\":13.5,\"width\":6,\"height\":6}],\"target\":null},\"isParent\":false,\"position\":{\"x\":800,\"y\":120},\"data\":{\"from_id\":\"1\",\"to_id\":\"2\"}},{\"id\":\"action-2\",\"type\":\"action\",\"dimensions\":{\"width\":78,\"height\":33},\"computedPosition\":{\"x\":1200,\"y\":120,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"action-2\",\"position\":\"top\",\"x\":36.125,\"y\":-5,\"width\":6,\"height\":6},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"action-2\",\"position\":\"right\",\"x\":77.25,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"action-2\",\"position\":\"bottom\",\"x\":36.125,\"y\":32,\"width\":6,\"height\":6},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"action-2\",\"position\":\"left\",\"x\":-5,\"y\":13.5,\"width\":6,\"height\":6}],\"target\":null},\"isParent\":false,\"position\":{\"x\":1200,\"y\":120},\"data\":{\"from_id\":\"2\",\"to_id\":\"5\"}},{\"id\":\"action-3\",\"type\":\"action\",\"dimensions\":{\"width\":202,\"height\":33},\"computedPosition\":{\"x\":1200,\"y\":120,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"action-3\",\"position\":\"top\",\"x\":98.09375,\"y\":-5,\"width\":6,\"height\":6},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"action-3\",\"position\":\"right\",\"x\":201.1875,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"action-3\",\"position\":\"bottom\",\"x\":98.09375,\"y\":32,\"width\":6,\"height\":6},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"action-3\",\"position\":\"left\",\"x\":-5,\"y\":13.5,\"width\":6,\"height\":6}],\"target\":null},\"isParent\":false,\"position\":{\"x\":1200,\"y\":120},\"data\":{\"from_id\":\"2\",\"to_id\":\"3\"}},{\"id\":\"action-4\",\"type\":\"action\",\"dimensions\":{\"width\":171,\"height\":33},\"computedPosition\":{\"x\":1600,\"y\":120,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"action-4\",\"position\":\"top\",\"x\":82.28125,\"y\":-5,\"width\":6,\"height\":6},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"action-4\",\"position\":\"right\",\"x\":169.5625,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"action-4\",\"position\":\"bottom\",\"x\":82.28125,\"y\":32,\"width\":6,\"height\":6},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"action-4\",\"position\":\"left\",\"x\":-5,\"y\":13.5,\"width\":6,\"height\":6}],\"target\":null},\"isParent\":false,\"position\":{\"x\":1600,\"y\":120},\"data\":{\"from_id\":\"3\",\"to_id\":\"2\"}},{\"id\":\"action-5\",\"type\":\"action\",\"dimensions\":{\"width\":114,\"height\":33},\"computedPosition\":{\"x\":1200,\"y\":120,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"action-5\",\"position\":\"top\",\"x\":54.046875,\"y\":-5,\"width\":6,\"height\":6},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"action-5\",\"position\":\"right\",\"x\":113.09375,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"action-5\",\"position\":\"bottom\",\"x\":54.046875,\"y\":32,\"width\":6,\"height\":6},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"action-5\",\"position\":\"left\",\"x\":-5,\"y\":13.5,\"width\":6,\"height\":6}],\"target\":null},\"isParent\":false,\"position\":{\"x\":1200,\"y\":120},\"data\":{\"from_id\":\"2\",\"to_id\":\"4\"}},{\"id\":\"action-6\",\"type\":\"action\",\"dimensions\":{\"width\":78,\"height\":33},\"computedPosition\":{\"x\":2000,\"y\":120,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"action-6\",\"position\":\"top\",\"x\":36.125,\"y\":-5,\"width\":6,\"height\":6},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"action-6\",\"position\":\"right\",\"x\":77.25,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"action-6\",\"position\":\"bottom\",\"x\":36.125,\"y\":32,\"width\":6,\"height\":6},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"action-6\",\"position\":\"left\",\"x\":-5,\"y\":13.5,\"width\":6,\"height\":6}],\"target\":null},\"isParent\":false,\"position\":{\"x\":2000,\"y\":120},\"data\":{\"from_id\":\"4\",\"to_id\":\"5\"}},{\"id\":\"action-7\",\"type\":\"action\",\"dimensions\":{\"width\":202,\"height\":33},\"computedPosition\":{\"x\":2000,\"y\":120,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"action-7\",\"position\":\"top\",\"x\":98.09375,\"y\":-5,\"width\":6,\"height\":6},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"action-7\",\"position\":\"right\",\"x\":201.1875,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"action-7\",\"position\":\"bottom\",\"x\":98.09375,\"y\":32,\"width\":6,\"height\":6},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"action-7\",\"position\":\"left\",\"x\":-5,\"y\":13.5,\"width\":6,\"height\":6}],\"target\":null},\"isParent\":false,\"position\":{\"x\":2000,\"y\":120},\"data\":{\"from_id\":\"4\",\"to_id\":\"3\"}},{\"id\":\"action-8\",\"type\":\"action\",\"dimensions\":{\"width\":69,\"height\":33},\"computedPosition\":{\"x\":2400,\"y\":120,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"action-8\",\"position\":\"top\",\"x\":31.265625,\"y\":-5,\"width\":6,\"height\":6},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"action-8\",\"position\":\"right\",\"x\":67.53125,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"action-8\",\"position\":\"bottom\",\"x\":31.265625,\"y\":32,\"width\":6,\"height\":6},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"action-8\",\"position\":\"left\",\"x\":-5,\"y\":13.5,\"width\":6,\"height\":6}],\"target\":null},\"isParent\":false,\"position\":{\"x\":2400,\"y\":120},\"data\":{\"from_id\":\"5\",\"to_id\":\"6\"}},{\"id\":\"action-9\",\"type\":\"action\",\"dimensions\":{\"width\":87,\"height\":33},\"computedPosition\":{\"x\":2400,\"y\":120,\"z\":0},\"handleBounds\":{\"source\":[{\"id\":\"top\",\"type\":\"source\",\"nodeId\":\"action-9\",\"position\":\"top\",\"x\":40.3125,\"y\":-5,\"width\":6,\"height\":6},{\"id\":\"right\",\"type\":\"source\",\"nodeId\":\"action-9\",\"position\":\"right\",\"x\":85.640625,\"y\":13.5,\"width\":6,\"height\":6},{\"id\":\"bottom\",\"type\":\"source\",\"nodeId\":\"action-9\",\"position\":\"bottom\",\"x\":40.3125,\"y\":32,\"width\":6,\"height\":6},{\"id\":\"left\",\"type\":\"source\",\"nodeId\":\"action-9\",\"position\":\"left\",\"x\":-5,\"y\":13.5,\"width\":6,\"height\":6}],\"target\":null},\"isParent\":false,\"position\":{\"x\":2400,\"y\":120},\"data\":{\"from_id\":\"5\",\"to_id\":\"7\"}},{\"id\":\"edge-1-action-1\",\"type\":\"transition\",\"source\":\"1\",\"target\":\"action-1\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":649.4375,\"sourceY\":126.5,\"targetX\":795,\"targetY\":136.5},{\"id\":\"edge-action-1-2\",\"type\":\"transition\",\"source\":\"action-1\",\"target\":\"2\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":960.109375,\"sourceY\":136.5,\"targetX\":935.5,\"targetY\":137,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"id\":\"edge-2-action-2\",\"type\":\"transition\",\"source\":\"2\",\"target\":\"action-2\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":1126.5,\"sourceY\":137,\"targetX\":1195,\"targetY\":136.5},{\"id\":\"edge-action-2-5\",\"type\":\"transition\",\"source\":\"action-2\",\"target\":\"5\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":1283.25,\"sourceY\":136.5,\"targetX\":2135.5,\"targetY\":137,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"id\":\"edge-2-action-3\",\"type\":\"transition\",\"source\":\"2\",\"target\":\"action-3\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":1126.5,\"sourceY\":137,\"targetX\":1195,\"targetY\":136.5},{\"id\":\"edge-action-3-3\",\"type\":\"transition\",\"source\":\"action-3\",\"target\":\"3\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":1407.1875,\"sourceY\":136.5,\"targetX\":1335.5,\"targetY\":137,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"id\":\"edge-3-action-4\",\"type\":\"transition\",\"source\":\"3\",\"target\":\"action-4\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":1526.5,\"sourceY\":137,\"targetX\":1595,\"targetY\":136.5},{\"id\":\"edge-action-4-2\",\"type\":\"transition\",\"source\":\"action-4\",\"target\":\"2\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":1775.5625,\"sourceY\":136.5,\"targetX\":935.5,\"targetY\":137,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"id\":\"edge-2-action-5\",\"type\":\"transition\",\"source\":\"2\",\"target\":\"action-5\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":1126.5,\"sourceY\":137,\"targetX\":1195,\"targetY\":136.5},{\"id\":\"edge-action-5-4\",\"type\":\"transition\",\"source\":\"action-5\",\"target\":\"4\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":1319.09375,\"sourceY\":136.5,\"targetX\":1735.5,\"targetY\":126.5,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"id\":\"edge-4-action-6\",\"type\":\"transition\",\"source\":\"4\",\"target\":\"action-6\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":1870.53125,\"sourceY\":126.5,\"targetX\":1995,\"targetY\":136.5},{\"id\":\"edge-action-6-5\",\"type\":\"transition\",\"source\":\"action-6\",\"target\":\"5\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":2083.25,\"sourceY\":136.5,\"targetX\":2135.5,\"targetY\":137,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"id\":\"edge-4-action-7\",\"type\":\"transition\",\"source\":\"4\",\"target\":\"action-7\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":1870.53125,\"sourceY\":126.5,\"targetX\":1995,\"targetY\":136.5},{\"id\":\"edge-action-7-3\",\"type\":\"transition\",\"source\":\"action-7\",\"target\":\"3\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":2207.1875,\"sourceY\":136.5,\"targetX\":1335.5,\"targetY\":137,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"id\":\"edge-5-action-8\",\"type\":\"transition\",\"source\":\"5\",\"target\":\"action-8\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":2326.5,\"sourceY\":137,\"targetX\":2395,\"targetY\":136.5},{\"id\":\"edge-action-8-6\",\"type\":\"transition\",\"source\":\"action-8\",\"target\":\"6\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":2473.53125,\"sourceY\":136.5,\"targetX\":2535.5,\"targetY\":126.5,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}},{\"id\":\"edge-5-action-9\",\"type\":\"transition\",\"source\":\"5\",\"target\":\"action-9\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":2326.5,\"sourceY\":137,\"targetX\":2395,\"targetY\":136.5},{\"id\":\"edge-action-9-7\",\"type\":\"transition\",\"source\":\"action-9\",\"target\":\"7\",\"sourceHandle\":\"right\",\"targetHandle\":\"left\",\"updatable\":true,\"label\":\"\",\"animated\":true,\"sourceX\":2491.640625,\"sourceY\":136.5,\"targetX\":2935.5,\"targetY\":126.5,\"markerEnd\":{\"type\":\"arrow\",\"width\":15,\"height\":15,\"strokeWidth\":1.5,\"color\":\"#687178\"}}]",
   "workflow_name": "Sales Order",
   "workflow_state_field": "workflow_state"
  },
