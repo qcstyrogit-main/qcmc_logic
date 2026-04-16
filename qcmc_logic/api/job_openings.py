@@ -1,6 +1,5 @@
 import frappe
 from frappe.utils import now_datetime
-from frappe.utils.file_manager import save_file
 
 @frappe.whitelist(allow_guest=True)
 def get_job_openings():
@@ -112,20 +111,18 @@ def submit_job_applicant_custom(
     doc.insert()          # triggers Notification (after_insert)
     doc.notify_update()
 
-    # --- Handle File Attachment (Resume)
-    resume_attachment = None
+    # --- Handle File Attachment (In-Memory for Email only)
+    mail_attachments = []
     if frappe.request.files:
         for file_key in frappe.request.files:
             if file_key == "resume_file":
                 file_content = frappe.request.files[file_key]
-                file_doc = save_file(
-                    file_content.filename,
-                    file_content.read(),
-                    doc.doctype,
-                    doc.name,
-                    is_private=1
-                )
-                resume_attachment = file_doc.file_url
+                # Read once and use for all emails
+                raw_data = file_content.read()
+                mail_attachments.append({
+                    "fname": file_content.filename,
+                    "fcontent": raw_data
+                })
 
     # --- Email Logic
     subject = f"New Job Application: {job_title} - {applicant_name}"
@@ -142,8 +139,8 @@ def submit_job_applicant_custom(
         <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Email:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{email_id}</td></tr>
         <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Phone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{phone_number}</td></tr>
         <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Position:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{custom_current_job_position or 'N/A'}</td></tr>
-        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Resume Link:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{resume_link or 'See Attachment'}</td></tr>
-        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Expected Salary:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{currency or 'PHP'} {lower_range or 0:,.0f} - {upper_range or 0:,.0f}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Resume Link:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{resume_link or (mail_attachments and 'Attached in Email') or 'N/A'}</td></tr>
+        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Expected Salary:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{currency or 'PHP'} {float(lower_range or 0):,.0f} - {float(upper_range or 0):,.0f}</td></tr>
       </table>
 
       <div style="margin-top: 25px; padding: 15px; background-color: #f9fafb; border-radius: 8px;">
@@ -163,16 +160,6 @@ def submit_job_applicant_custom(
     if career1: recipients.append(career1)
     if career2: recipients.append(career2)
 
-    # Attachments list for frappe.sendmail
-    mail_attachments = []
-    if resume_attachment:
-        # Get absolute path for file if internal
-        if resume_attachment.startswith("/private/files/"):
-            mail_attachments.append({
-                "fname": file_doc.file_name,
-                "fcontent": frappe.get_doc("File", file_doc.name).get_content()
-            })
-
     # 1. Send to Career Team
     if recipients:
         frappe.sendmail(
@@ -191,7 +178,7 @@ def submit_job_applicant_custom(
                 <p>Dear {applicant_name},</p>
                 <p>Thank you for applying for the <strong>{job_title}</strong> position at QC StyroPackaging / MultiPlast Corporation.</p>
                 <p>We have received your application and resume. Our recruitment team will review your qualifications and contact you if your profile matches our requirements.</p>
-                <p>Best regards,<hr/><strong>HR Recruitment Team</strong></p>
+                <p>Best regards,<br/><strong>HR Recruitment Team</strong></p>
             """
         )
 
