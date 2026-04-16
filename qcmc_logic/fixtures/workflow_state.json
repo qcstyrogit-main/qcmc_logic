@@ -264,36 +264,36 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-03-19 10:02:55.739294",
+  "modified": "2026-04-16 16:41:45.996375",
   "name": "Sent Back for Modification",
-  "style": "",
+  "style": "Warning",
   "workflow_state_name": "Sent Back for Modification"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-03-19 10:03:29.490366",
+  "modified": "2026-04-16 16:41:57.766849",
   "name": "On Hold",
-  "style": "",
+  "style": "Inverse",
   "workflow_state_name": "On Hold"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-04-11 10:24:33.127310",
+  "modified": "2026-04-16 16:40:32.926969",
   "name": "To Deliver and Bill",
-  "style": "",
+  "style": "Info",
   "workflow_state_name": "To Deliver and Bill"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-03-19 10:01:13.050422",
+  "modified": "2026-04-16 16:39:55.393592",
   "name": "Pending Credit Approval",
-  "style": "",
+  "style": "Warning",
   "workflow_state_name": "Pending Credit Approval"
  },
  {
@@ -354,9 +354,9 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-06-02 15:39:11.032351",
+  "modified": "2026-04-16 16:37:14.859683",
   "name": "Completed",
-  "style": "",
+  "style": "Success",
   "workflow_state_name": "Completed"
  },
  {
@@ -480,9 +480,9 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-05-14 11:53:38.107266",
+  "modified": "2026-04-16 16:37:48.364899",
   "name": "Cancelled",
-  "style": "",
+  "style": "Danger",
   "workflow_state_name": "Cancelled"
  },
  {

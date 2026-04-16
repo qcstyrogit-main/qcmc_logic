@@ -285,5 +285,12 @@
   "modified": "2025-04-21 12:57:38.843403",
   "name": "Transfer",
   "workflow_action_name": "Transfer"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-04-16 16:52:13.213459",
+  "name": "Mark as Completed",
+  "workflow_action_name": "Mark as Completed"
  }
 ]

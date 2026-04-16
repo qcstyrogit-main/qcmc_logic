@@ -1,5 +1,73 @@
 [
  {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": null,
+  "letter_head": "BOA Letterhead",
+  "modified": "2026-04-15 11:26:29.727408",
+  "module": "Selling",
+  "name": "_Temp Add Completed State to SO Workflow",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Sales Order",
+  "reference_report": null,
+  "report_name": "_Temp Add Completed State to SO Workflow",
+  "report_script": "def execute(filters=None):\n    results = []\n\n    existing_states = frappe.db.get_all(\n        'Workflow Document State',\n        filters={'parent': 'Sales Order', 'state': 'Completed'},\n        fields=['name']\n    )\n\n    if not existing_states:\n        max_idx_result = frappe.db.sql(\n            \"SELECT IFNULL(MAX(idx), 0) FROM `tabWorkflow Document State` WHERE parent='Sales Order'\"\n        )\n        max_idx = max_idx_result[0][0] if max_idx_result else 0\n\n        new_name = frappe.generate_hash('', 10)\n        frappe.db.sql(\"\"\"\n            INSERT INTO `tabWorkflow Document State`\n            (name, parent, parentfield, parenttype, state, doc_status,\n             update_field, update_value, allow_edit, idx, creation, modified, modified_by, owner)\n            VALUES (%s, 'Sales Order', 'states', 'Workflow', 'Completed', '1',\n             'status', 'Completed', 'System Manager', %s, NOW(), NOW(), 'Administrator', 'Administrator')\n        \"\"\", (new_name, max_idx + 1))\n        results.append('Completed state ADDED to workflow')\n    else:\n        results.append('Completed state already exists')\n\n    existing_trans = frappe.db.get_all(\n        'Workflow Transition',\n        filters={'parent': 'Sales Order', 'action': 'Mark as Completed'},\n        fields=['name']\n    )\n\n    if not existing_trans:\n        max_idx_t_result = frappe.db.sql(\n            \"SELECT IFNULL(MAX(idx), 0) FROM `tabWorkflow Transition` WHERE parent='Sales Order'\"\n        )\n        max_idx_t = max_idx_t_result[0][0] if max_idx_t_result else 0\n\n        new_name_t = frappe.generate_hash('', 10)\n        frappe.db.sql(\"\"\"\n            INSERT INTO `tabWorkflow Transition`\n            (name, parent, parentfield, parenttype, state, action, next_state, allowed,\n             idx, creation, modified, modified_by, owner)\n            VALUES (%s, 'Sales Order', 'transitions', 'Workflow', 'To Deliver and Bill',\n             'Mark as Completed', 'Completed', 'Administrator', %s, NOW(), NOW(), 'Administrator', 'Administrator')\n        \"\"\", (new_name_t, max_idx_t + 1))\n        results.append('Mark as Completed transition ADDED')\n    else:\n        results.append('Mark as Completed transition already exists')\n\n    frappe.db.commit()\n\n    columns = [{'fieldname': 'result', 'label': 'Result', 'fieldtype': 'Data', 'width': 500}]\n    data = [{'result': r} for r in results]\n    return columns, data\n",
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "_Temp Add Completed State to SO Workflow",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "_Temp Add Completed State to SO Workflow",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Maintenance User"
+   },
+   {
+    "parent": "_Temp Add Completed State to SO Workflow",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   },
+   {
+    "parent": "_Temp Add Completed State to SO Workflow",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales User"
+   },
+   {
+    "parent": "_Temp Add Completed State to SO Workflow",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Manager"
+   },
+   {
+    "parent": "_Temp Add Completed State to SO Workflow",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Credit and Collection Section Head"
+   },
+   {
+    "parent": "_Temp Add Completed State to SO Workflow",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Coordinator"
+   }
+  ],
+  "timeout": 0
+ },
+ {
   "add_total_row": 1,
   "add_translate_data": 0,
   "columns": [],
@@ -11585,7 +11653,7 @@
   "json": null,
   "letter_head": null,
   "modified": "2026-04-15 11:05:13.796002",
-  "module": null,
+  "module": "Stock",
   "name": "Booklet Monitoring Report",
   "prepared_report": 0,
   "query": null,
