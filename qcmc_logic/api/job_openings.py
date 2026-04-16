@@ -126,14 +126,18 @@ def submit_job_applicant_custom(
                     })
 
     # --- Email Logic
-    subject = f"New Job Application: {job_title} - {applicant_name}"
+    # job_title holds the Job Opening doc name (e.g. HR-OPN-2025-002).
+    # Fetch the human-readable position name from the Job Opening document.
+    position_name = frappe.db.get_value("Job Opening", job_title, "job_title") or job_title
+
+    subject = f"New Job Application: {position_name} - {applicant_name}"
     time = now_datetime().strftime("%Y-%m-%d %H:%M:%S")
 
     # Construct Admin Email Content
     admin_content = f"""
     <div style="font-family: system-ui, sans-serif, Arial; font-size: 14px; line-height: 1.6; color: #333;">
       <h2 style="color: #133880; border-bottom: 2px solid #ed1d26; padding-bottom: 8px;">New Job Application</h2>
-      <p>A new application has been received for the position of <strong>{job_title}</strong>.</p>
+      <p>A new application has been received for the position of <strong>{position_name}</strong>.</p>
       
       <table role="presentation" style="width: 100%; margin-top: 20px; border-collapse: collapse;">
         <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Applicant Name:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{applicant_name}</td></tr>
