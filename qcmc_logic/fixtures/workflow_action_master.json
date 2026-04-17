@@ -16,13 +16,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-02-11 13:07:54.102923",
-  "name": "Approve",
-  "workflow_action_name": "Approve"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2026-03-30 16:47:28.397383",
   "name": "Submit for Machine Shop Supervisor Approval",
   "workflow_action_name": "Submit for Machine Shop Supervisor Approval"
@@ -149,13 +142,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-10-20 15:59:53.086519",
-  "name": "Acknowledge",
-  "workflow_action_name": "Acknowledge"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2025-04-21 12:56:25.565713",
   "name": "Scrap",
   "workflow_action_name": "Scrap"
@@ -240,13 +226,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-03-19 10:05:52.014185",
-  "name": "Submit for Approval",
-  "workflow_action_name": "Submit for Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2025-07-31 13:39:59.864970",
   "name": "Submit for Machine Supervisor Approval",
   "workflow_action_name": "Submit for Machine Supervisor Approval"
@@ -254,23 +233,9 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-06-26 11:41:12.434883",
-  "name": "Receive",
-  "workflow_action_name": "Receive"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2024-04-15 21:25:15.987329",
   "name": "Process",
   "workflow_action_name": "Process"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-05-14 13:36:08.460123",
-  "name": "Cancel",
-  "workflow_action_name": "Cancel"
  },
  {
   "docstatus": 0,
@@ -292,5 +257,40 @@
   "modified": "2026-04-16 16:52:13.213459",
   "name": "Mark as Completed",
   "workflow_action_name": "Mark as Completed"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-02-11 13:07:54.102923",
+  "name": "Approve",
+  "workflow_action_name": "Approve"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-10-20 15:59:53.086519",
+  "name": "Acknowledge",
+  "workflow_action_name": "Acknowledge"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-03-19 10:05:52.014185",
+  "name": "Submit for Approval",
+  "workflow_action_name": "Submit for Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-06-26 11:41:12.434883",
+  "name": "Receive",
+  "workflow_action_name": "Receive"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-05-14 13:36:08.460123",
+  "name": "Cancel",
+  "workflow_action_name": "Cancel"
  }
 ]
