@@ -9,13 +9,13 @@
   "doctype_event": "Before Insert",
   "enable_rate_limit": 0,
   "event_frequency": "All",
-  "modified": "2026-04-14 16:07:57.370372",
+  "modified": "2026-04-20 11:44:33.396059",
   "module": "QCMC Logics",
   "name": "Material Request Document Naming Series",
   "rate_limit_count": 5,
   "rate_limit_seconds": 86400,
   "reference_doctype": "Material Request",
-  "script": "if doc.purpose == \"Purchase\":\n    doc.naming_series = \".{custom_wh_abbr}..{custom_pr_series_abbrv}.PR-.YY.-.#####\"\nelse:\n    doc.naming_series = \".{custom_wh_abbr}..WRF-.YY..MM.-.#####\"",
+  "script": "if doc.material_request_type == \"Purchase\":\n    doc.naming_series = \".{custom_wh_abbr}..{custom_pr_series_abbrv}.PR-.YY.-.#####\"\nelse:\n    doc.naming_series = \".{custom_wh_abbr}..WRF-.YY..MM.-.#####\"",
   "script_type": "DocType Event"
  },
  {

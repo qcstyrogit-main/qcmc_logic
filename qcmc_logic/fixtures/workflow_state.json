@@ -2,114 +2,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow State",
-  "icon": "remove",
-  "modified": "2025-02-11 13:07:54.037496",
-  "name": "Rejected",
-  "style": "Danger",
-  "workflow_state_name": "Rejected"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "question-sign",
-  "modified": "2025-02-11 13:07:54.032034",
-  "name": "Pending",
-  "style": "",
-  "workflow_state_name": "Pending"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "ok-sign",
-  "modified": "2025-02-11 13:07:54.034840",
-  "name": "Approved",
-  "style": "Success",
-  "workflow_state_name": "Approved"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2026-01-27 09:35:15.269575",
-  "name": "For RTC Approval",
-  "style": "",
-  "workflow_state_name": "For RTC Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2026-01-27 09:37:33.559547",
-  "name": "For KTC Approval",
-  "style": "",
-  "workflow_state_name": "For KTC Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2026-02-02 09:44:01.281591",
-  "name": "For Approval(PROC)",
-  "style": "",
-  "workflow_state_name": "For Approval(PROC)"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-06-27 14:55:16.695882",
-  "name": "Initiated",
-  "style": "",
-  "workflow_state_name": "Initiated"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-06-27 16:18:38.530934",
-  "name": "KYC Pending",
-  "style": "",
-  "workflow_state_name": "KYC Pending"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-06-27 16:27:34.607514",
-  "name": "KYC Complete",
-  "style": "",
-  "workflow_state_name": "KYC Complete"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-09-15 13:15:31.788120",
-  "name": "For Approval of Corp IE",
-  "style": "",
-  "workflow_state_name": "For Approval of Corp IE"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-10-20 11:29:01.475957",
-  "name": "For Exec Approval",
-  "style": "",
-  "workflow_state_name": "For Exec Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-10-30 16:55:10.449499",
-  "name": "For VP Procurement Approval",
-  "style": "",
-  "workflow_state_name": "For VP Procurement Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
   "icon": "",
   "modified": "2025-03-14 14:08:14.159739",
   "name": "Close",
@@ -205,24 +97,6 @@
   "name": "For VP Procurement",
   "style": "",
   "workflow_state_name": "For VP Procurement"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-06-02 14:47:48.706180",
-  "name": "For DR Printing",
-  "style": "",
-  "workflow_state_name": "For DR Printing"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-06-02 14:46:44.771752",
-  "name": "For Stock Confirmation",
-  "style": "",
-  "workflow_state_name": "For Stock Confirmation"
  },
  {
   "docstatus": 0,
@@ -480,6 +354,141 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "modified": "2025-06-26 11:40:38.894485",
+  "name": "Received",
+  "style": "",
+  "workflow_state_name": "Received"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "remove",
+  "modified": "2025-02-11 13:07:54.037496",
+  "name": "Rejected",
+  "style": "Danger",
+  "workflow_state_name": "Rejected"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "question-sign",
+  "modified": "2025-02-11 13:07:54.032034",
+  "name": "Pending",
+  "style": "",
+  "workflow_state_name": "Pending"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "ok-sign",
+  "modified": "2025-02-11 13:07:54.034840",
+  "name": "Approved",
+  "style": "Success",
+  "workflow_state_name": "Approved"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-01-27 09:35:15.269575",
+  "name": "For RTC Approval",
+  "style": "",
+  "workflow_state_name": "For RTC Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-01-27 09:37:33.559547",
+  "name": "For KTC Approval",
+  "style": "",
+  "workflow_state_name": "For KTC Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-02 09:44:01.281591",
+  "name": "For Approval(PROC)",
+  "style": "",
+  "workflow_state_name": "For Approval(PROC)"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-27 14:55:16.695882",
+  "name": "Initiated",
+  "style": "",
+  "workflow_state_name": "Initiated"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-27 16:18:38.530934",
+  "name": "KYC Pending",
+  "style": "",
+  "workflow_state_name": "KYC Pending"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-27 16:27:34.607514",
+  "name": "KYC Complete",
+  "style": "",
+  "workflow_state_name": "KYC Complete"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-09-15 13:15:31.788120",
+  "name": "For Approval of Corp IE",
+  "style": "",
+  "workflow_state_name": "For Approval of Corp IE"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-10-20 11:29:01.475957",
+  "name": "For Exec Approval",
+  "style": "",
+  "workflow_state_name": "For Exec Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-10-30 16:55:10.449499",
+  "name": "For VP Procurement Approval",
+  "style": "",
+  "workflow_state_name": "For VP Procurement Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-02 14:47:48.706180",
+  "name": "For DR Printing",
+  "style": "",
+  "workflow_state_name": "For DR Printing"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-02 14:46:44.771752",
+  "name": "For Stock Confirmation",
+  "style": "",
+  "workflow_state_name": "For Stock Confirmation"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "modified": "2026-04-16 16:37:48.364899",
   "name": "Cancelled",
   "style": "Danger",
@@ -493,14 +502,5 @@
   "name": "Draft",
   "style": "",
   "workflow_state_name": "Draft"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-06-26 11:40:38.894485",
-  "name": "Received",
-  "style": "",
-  "workflow_state_name": "Received"
  }
 ]
