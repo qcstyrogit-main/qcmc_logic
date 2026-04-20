@@ -119,15 +119,24 @@ def recalculate_staffing_plan(staffing_plan):
                 (staffing_plan, d.designation, doc.department, from_date, to_date),
             )[0][0]
 
-        
+
         vacancies = d.vacancies
 
+        current_openings = frappe.db.count(
+            "Job Opening",
+            filters={
+                "designation": d.designation,
+                "department": doc.department,
+                "status": "Open"
+    }
+)
+        
         # directly update the child row (bypass save validation)
         frappe.db.set_value("Staffing Plan Detail", d.name, "current_count", current_count)
         if doc.docstatus == 1:
             number_of_positions = d.number_of_positions
             if d.number_of_positions > current_count:
-                vacancies = (d.number_of_positions - current_count) + additional_count
+                vacancies = ((d.number_of_positions - current_count)) + additional_count
             # else:
             #     vacancies = 0
             if number_of_positions < current_count:
@@ -144,7 +153,11 @@ def recalculate_staffing_plan(staffing_plan):
             number_of_positions = vacancies + current_count
             frappe.db.set_value("Staffing Plan Detail", d.name, "number_of_positions", number_of_positions)
         
-        frappe.db.set_value("Staffing Plan Detail", d.name, "vacancies", vacancies)
+
+        frappe.db.set_value("Staffing Plan Detail", d.name, 
+                            {"vacancies": vacancies,
+                            "current_openings": current_openings })
+
 
     frappe.db.commit()
     return f"Recalculation completed successfully."
