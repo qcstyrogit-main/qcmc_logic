@@ -4,6 +4,17 @@
   "doctype": "Client Script",
   "dt": "Sales Order",
   "enabled": 1,
+  "modified": "2026-04-20 09:14:10.951210",
+  "module": "QCMC Logics",
+  "name": "Show Address",
+  "script": "frappe.ui.form.on('Sales Order', {\r\n  setup(frm) {\r\n    frm.set_query('customer_address', () => ({\r\n      query: 'custom.api.get_address_list',\r\n      filters: {\r\n        link_doctype: 'Customer',\r\n        link_name: frm.doc.customer\r\n      }\r\n    }));\r\n  }\r\n\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Order",
+  "enabled": 1,
   "modified": "2026-04-15 13:40:06.851344",
   "module": "QCMC Logics",
   "name": "Hide Complete",
