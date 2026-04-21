@@ -1,43 +1,7 @@
 [
  {
   "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2026-04-20 11:35:23.235707",
-  "module": "Stock",
-  "name": "Stock Ledger",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Stock Ledger Entry",
-  "reference_report": null,
-  "report_name": "Stock Ledger",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Stock Ledger",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   },
-   {
-    "parent": "Stock Ledger",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -105,6 +69,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -161,6 +126,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -210,6 +176,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -331,6 +298,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [
    {
     "fieldname": "name",
@@ -503,6 +471,45 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2017-06-23 04:46:43.209008",
+  "module": "Manufacturing",
+  "name": "BOM Stock Report",
+  "prepared_report": 0,
+  "query": "SELECT \n\tbom_item.item_code as \"Item:Link/Item:200\",\n\tbom_item.description as \"Description:Data:300\",\n\tbom_item.qty as \"Required Qty:Float:100\",\n\tledger.actual_qty  as \"In Stock Qty:Float:100\",\n\tFLOOR(ledger.actual_qty /bom_item.qty) as \"Enough Parts to Build:Int:100\"\nFROM\n\t`tabBOM Item` AS bom_item \n\tLEFT JOIN `tabBin` AS ledger\t\n\t\tON bom_item.item_code = ledger.item_code  \n\t\tAND ledger.warehouse = %(warehouse)s\nWHERE\n\tbom_item.parent=%(bom)s\n\nGROUP BY bom_item.item_code",
+  "ref_doctype": "BOM",
+  "reference_report": null,
+  "report_name": "BOM Stock Report",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "BOM Stock Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Manufacturing Manager"
+   },
+   {
+    "parent": "BOM Stock Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Manufacturing User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [
    {
     "fieldname": "Sales Invoice",
@@ -603,6 +610,45 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2018-02-13 04:47:04.158213",
+  "module": "Manufacturing",
+  "name": "Work Order Stock Report",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Work Order",
+  "reference_report": null,
+  "report_name": "Work Order Stock Report",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Work Order Stock Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Manufacturing User"
+   },
+   {
+    "parent": "Work Order Stock Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -652,6 +698,51 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2017-04-04 10:00:10.253224",
+  "module": "CRM",
+  "name": "Prospects Engaged But Not Converted",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Lead",
+  "reference_report": null,
+  "report_name": "Prospects Engaged But Not Converted",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Prospects Engaged But Not Converted",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales User"
+   },
+   {
+    "parent": "Prospects Engaged But Not Converted",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Manager"
+   },
+   {
+    "parent": "Prospects Engaged But Not Converted",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "System Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -701,442 +792,7 @@
  },
  {
   "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2025-02-07 17:27:53.441631",
-  "module": "Core",
-  "name": "Prepared Report Analytics",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Prepared Report",
-  "reference_report": null,
-  "report_name": "Prepared Report Analytics",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Prepared Report Analytics",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "System Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2025-03-07 10:54:09.429215",
-  "module": "Stock",
-  "name": "Available Serial No",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Stock Ledger Entry",
-  "reference_report": null,
-  "report_name": "Available Serial No",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Available Serial No",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   },
-   {
-    "parent": "Available Serial No",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2025-06-06 18:09:18.221911",
-  "module": "Accounts",
-  "name": "Calculated Discount Mismatch",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Version",
-  "reference_report": null,
-  "report_name": "Calculated Discount Mismatch",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Calculated Discount Mismatch",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "System Manager"
-   },
-   {
-    "parent": "Calculated Discount Mismatch",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Administrator"
-   },
-   {
-    "parent": "Calculated Discount Mismatch",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts Manager"
-   },
-   {
-    "parent": "Calculated Discount Mismatch",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2025-08-30 15:57:04.044724",
-  "module": "Payroll",
-  "name": "Accrued Earnings Report",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Employee Benefit Ledger",
-  "reference_report": null,
-  "report_name": "Accrued Earnings Report",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Accrued Earnings Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "System Manager"
-   },
-   {
-    "parent": "Accrued Earnings Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "HR Manager"
-   },
-   {
-    "parent": "Accrued Earnings Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "HR User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2021-01-10 02:03:26.742693",
-  "module": "Loan Management",
-  "name": "Loan Interest Report",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Loan Interest Accrual",
-  "reference_report": null,
-  "report_name": "Loan Interest Report",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Loan Interest Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "System Manager"
-   },
-   {
-    "parent": "Loan Interest Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Loan Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2024-03-11 18:55:34.504099",
-  "module": "Loan Management",
-  "name": "ALM Audit Report",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Loan",
-  "reference_report": null,
-  "report_name": "ALM Audit Report",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "ALM Audit Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Loan Manager"
-   },
-   {
-    "parent": "ALM Audit Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Employee"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2025-08-11 11:29:39.233095",
-  "module": "Loan Management",
-  "name": "Loan Outstanding Report",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Loan",
-  "reference_report": null,
-  "report_name": "Loan Outstanding Report",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Loan Outstanding Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Loan Manager"
-   },
-   {
-    "parent": "Loan Outstanding Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Employee"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2025-08-06 10:25:02.000409",
-  "module": "Loan Management",
-  "name": "Past Cashflow Report",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Loan",
-  "reference_report": null,
-  "report_name": "Past Cashflow Report",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2025-08-21 15:12:11.648960",
-  "module": "Loan Management",
-  "name": "Future Cashflow Report",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Loan",
-  "reference_report": null,
-  "report_name": "Future Cashflow Report",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2017-06-23 04:46:43.209008",
-  "module": "Manufacturing",
-  "name": "BOM Stock Report",
-  "prepared_report": 0,
-  "query": "SELECT \n\tbom_item.item_code as \"Item:Link/Item:200\",\n\tbom_item.description as \"Description:Data:300\",\n\tbom_item.qty as \"Required Qty:Float:100\",\n\tledger.actual_qty  as \"In Stock Qty:Float:100\",\n\tFLOOR(ledger.actual_qty /bom_item.qty) as \"Enough Parts to Build:Int:100\"\nFROM\n\t`tabBOM Item` AS bom_item \n\tLEFT JOIN `tabBin` AS ledger\t\n\t\tON bom_item.item_code = ledger.item_code  \n\t\tAND ledger.warehouse = %(warehouse)s\nWHERE\n\tbom_item.parent=%(bom)s\n\nGROUP BY bom_item.item_code",
-  "ref_doctype": "BOM",
-  "reference_report": null,
-  "report_name": "BOM Stock Report",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "BOM Stock Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Manufacturing Manager"
-   },
-   {
-    "parent": "BOM Stock Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Manufacturing User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2018-02-13 04:47:04.158213",
-  "module": "Manufacturing",
-  "name": "Work Order Stock Report",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Work Order",
-  "reference_report": null,
-  "report_name": "Work Order Stock Report",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Work Order Stock Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Manufacturing User"
-   },
-   {
-    "parent": "Work Order Stock Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2017-04-04 10:00:10.253224",
-  "module": "CRM",
-  "name": "Prospects Engaged But Not Converted",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Lead",
-  "reference_report": null,
-  "report_name": "Prospects Engaged But Not Converted",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Prospects Engaged But Not Converted",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Sales User"
-   },
-   {
-    "parent": "Prospects Engaged But Not Converted",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Sales Manager"
-   },
-   {
-    "parent": "Prospects Engaged But Not Converted",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "System Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1180,6 +836,39 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-02-07 17:27:53.441631",
+  "module": "Core",
+  "name": "Prepared Report Analytics",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Prepared Report",
+  "reference_report": null,
+  "report_name": "Prepared Report Analytics",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Prepared Report Analytics",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "System Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1223,6 +912,45 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-03-07 10:54:09.429215",
+  "module": "Stock",
+  "name": "Available Serial No",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Stock Ledger Entry",
+  "reference_report": null,
+  "report_name": "Available Serial No",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Available Serial No",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   },
+   {
+    "parent": "Available Serial No",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1272,6 +1000,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1309,6 +1038,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1346,6 +1076,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1383,6 +1114,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1414,6 +1146,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1463,6 +1196,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1506,6 +1240,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1543,6 +1278,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1598,6 +1334,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1635,6 +1372,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1684,6 +1422,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1721,6 +1460,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1770,6 +1510,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1819,6 +1560,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1856,6 +1598,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1893,6 +1636,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1930,6 +1674,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1967,6 +1712,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2004,6 +1750,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2041,6 +1788,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2078,6 +1826,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2115,6 +1864,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2151,276 +1901,8 @@
   "timeout": 0
  },
  {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2019-01-02 18:01:46.691685",
-  "module": "Accounts",
-  "name": "Account Balance",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Bank Account",
-  "reference_report": null,
-  "report_name": "Account Balance",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 1,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2019-01-13 19:03:56.187748",
-  "module": "Regional",
-  "name": "Electronic Invoice Register",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Sales Invoice",
-  "reference_report": null,
-  "report_name": "Electronic Invoice Register",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2019-02-08 10:58:55.763090",
-  "module": "Accounts",
-  "name": "Gross and Net Profit Report",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "GL Entry",
-  "reference_report": null,
-  "report_name": "Gross and Net Profit Report",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Gross and Net Profit Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
-   },
-   {
-    "parent": "Gross and Net Profit Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts Manager"
-   },
-   {
-    "parent": "Gross and Net Profit Report",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Auditor"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2019-03-06 01:40:35.418304",
-  "module": "Stock",
-  "name": "Product Bundle Balance",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Stock Ledger Entry",
-  "reference_report": null,
-  "report_name": "Product Bundle Balance",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Product Bundle Balance",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   }
-  ],
-  "timeout": 0
- },
- {
   "add_total_row": 1,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2019-06-13 15:54:49.213973",
-  "module": "Projects",
-  "name": "Employee Billing Summary",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Timesheet",
-  "reference_report": null,
-  "report_name": "Employee Billing Summary",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Employee Billing Summary",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Projects User"
-   },
-   {
-    "parent": "Employee Billing Summary",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "HR User"
-   },
-   {
-    "parent": "Employee Billing Summary",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Manufacturing User"
-   },
-   {
-    "parent": "Employee Billing Summary",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Employee"
-   },
-   {
-    "parent": "Employee Billing Summary",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2019-06-13 15:54:55.255947",
-  "module": "Projects",
-  "name": "Project Billing Summary",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Timesheet",
-  "reference_report": null,
-  "report_name": "Project Billing Summary",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Project Billing Summary",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Projects User"
-   },
-   {
-    "parent": "Project Billing Summary",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "HR User"
-   },
-   {
-    "parent": "Project Billing Summary",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Manufacturing User"
-   },
-   {
-    "parent": "Project Billing Summary",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Employee"
-   },
-   {
-    "parent": "Project Billing Summary",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2019-04-15 15:22:15.012318",
-  "module": "Selling",
-  "name": "Sales Partner Commission Summary",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Sales Order",
-  "reference_report": null,
-  "report_name": "Sales Partner Commission Summary",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Sales Partner Commission Summary",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Sales Manager"
-   },
-   {
-    "parent": "Sales Partner Commission Summary",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Maintenance User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2476,6 +1958,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2507,6 +1990,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2544,6 +2028,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2587,6 +2072,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2624,6 +2110,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2691,6 +2178,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2746,6 +2234,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2801,6 +2290,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2838,6 +2328,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2887,6 +2378,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2924,6 +2416,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2961,6 +2454,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2998,6 +2492,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3035,6 +2530,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3078,6 +2574,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3115,6 +2612,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3158,6 +2656,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3207,6 +2706,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3250,6 +2750,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3293,6 +2794,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3330,6 +2832,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3373,6 +2876,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3410,6 +2914,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3471,6 +2976,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3520,6 +3026,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3544,6 +3051,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3568,6 +3076,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3605,6 +3114,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3648,6 +3158,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3697,6 +3208,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3734,6 +3246,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3771,6 +3284,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3802,6 +3316,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3839,6 +3354,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3863,6 +3379,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3900,6 +3417,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3931,6 +3449,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3962,6 +3481,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3993,6 +3513,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4036,6 +3557,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4073,6 +3595,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4110,6 +3633,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4147,6 +3671,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4202,6 +3727,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4239,6 +3765,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4263,6 +3790,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4330,6 +3858,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4373,6 +3902,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4416,6 +3946,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4465,6 +3996,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4508,6 +4040,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4551,6 +4084,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4588,6 +4122,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4625,6 +4160,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4649,6 +4185,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4686,6 +4223,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4735,6 +4273,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4778,6 +4317,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4821,6 +4361,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4858,6 +4399,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4913,6 +4455,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4925,7 +4468,7 @@
   "modified": "2021-10-20 19:32:52.115364",
   "module": "PH Localization",
   "name": "BIR 2550M",
-  "prepared_report": 1,
+  "prepared_report": 0,
   "query": null,
   "ref_doctype": "Sales Invoice",
   "reference_report": null,
@@ -4962,6 +4505,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5017,6 +4561,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5072,6 +4617,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5103,6 +4649,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5146,6 +4693,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5189,6 +4737,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5232,6 +4781,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5275,6 +4825,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5306,6 +4857,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5355,6 +4907,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5398,6 +4951,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5441,6 +4995,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5484,6 +5039,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5539,6 +5095,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5588,6 +5145,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5625,6 +5183,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5668,6 +5227,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5711,6 +5271,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5742,6 +5303,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5797,6 +5359,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5846,6 +5409,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5877,6 +5441,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5920,6 +5485,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5951,6 +5517,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5982,6 +5549,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6037,6 +5605,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6080,6 +5649,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6135,6 +5705,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6190,6 +5761,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6233,6 +5805,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6264,6 +5837,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6319,6 +5893,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6343,6 +5918,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6380,6 +5956,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6429,6 +6006,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6466,6 +6044,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6503,6 +6082,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6527,6 +6107,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6612,6 +6193,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6649,6 +6231,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6673,6 +6256,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [
    {
     "fieldname": "Sales Order",
@@ -6851,6 +6435,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6918,6 +6503,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6973,6 +6559,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7040,6 +6627,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7071,6 +6659,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7144,6 +6733,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7254,6 +6844,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7303,6 +6894,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7327,6 +6919,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7358,6 +6951,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7401,6 +6995,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7413,7 +7008,7 @@
   "modified": "2017-02-24 20:12:40.282376",
   "module": "Accounts",
   "name": "Profit and Loss Statement",
-  "prepared_report": 1,
+  "prepared_report": 0,
   "query": null,
   "ref_doctype": "GL Entry",
   "reference_report": null,
@@ -7444,6 +7039,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7487,6 +7083,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7524,6 +7121,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7573,6 +7171,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7604,6 +7203,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7641,6 +7241,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7684,6 +7285,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7727,6 +7329,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7776,6 +7379,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7819,6 +7423,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7868,6 +7473,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7911,6 +7517,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7948,6 +7555,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7997,6 +7605,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8070,6 +7679,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8143,6 +7753,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8192,6 +7803,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8235,6 +7847,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8278,6 +7891,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8327,6 +7941,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8364,6 +7979,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8407,6 +8023,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8438,6 +8055,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8475,6 +8093,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8512,6 +8131,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8561,6 +8181,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8604,6 +8225,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8647,6 +8269,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8684,6 +8307,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8727,6 +8351,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8764,6 +8389,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8807,6 +8433,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8844,6 +8471,45 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2017-02-24 20:00:30.392287",
+  "module": "Stock",
+  "name": "Batch Item Expiry Status",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Stock Ledger Entry",
+  "reference_report": null,
+  "report_name": "Batch Item Expiry Status",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Batch Item Expiry Status",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   },
+   {
+    "parent": "Batch Item Expiry Status",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8880,7 +8546,52 @@
   "timeout": 0
  },
  {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2018-05-21 11:06:11.920622",
+  "module": "Selling",
+  "name": "Customers Without Any Sales Transactions",
+  "prepared_report": 0,
+  "query": "SELECT\n\t`tabCustomer`.name as \"Customer:Link/Customer:120\",\n\t`tabCustomer`.customer_name as \"Customer Name::120\",\n\t`tabCustomer`.territory as \"Territory:Link/Territory:120\",\n\t`tabCustomer`.customer_group as \"Customer Group:Link/Customer Group:120\"\nFROM\n\t`tabCustomer`\nWHERE\n\tnot exists(select name from `tabSales Invoice` where `tabCustomer`.name = `tabSales Invoice`.customer and `tabSales Invoice`.docstatus=1 limit 1)\n\tand not exists(select name from `tabSales Order` where `tabCustomer`.name = `tabSales Order`.customer and `tabSales Order`.docstatus=1 limit 1)",
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "Customers Without Any Sales Transactions",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Customers Without Any Sales Transactions",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales User"
+   },
+   {
+    "parent": "Customers Without Any Sales Transactions",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Manager"
+   },
+   {
+    "parent": "Customers Without Any Sales Transactions",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "System Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8930,6 +8641,57 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2018-06-01 09:39:39.604944",
+  "module": "Selling",
+  "name": "Address And Contacts",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Address",
+  "reference_report": null,
+  "report_name": "Address And Contacts",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Address And Contacts",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales User"
+   },
+   {
+    "parent": "Address And Contacts",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Purchase User"
+   },
+   {
+    "parent": "Address And Contacts",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Maintenance User"
+   },
+   {
+    "parent": "Address And Contacts",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8984,622 +8746,8 @@
   "timeout": 0
  },
  {
-  "add_total_row": 1,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2017-11-06 13:04:36.338268",
-  "module": "Accounts",
-  "name": "Delivered Items To Be Billed",
-  "prepared_report": 0,
-  "query": "select\n    `tabDelivery Note`.`name` as \"Delivery Note:Link/Delivery Note:120\",\n\t`tabDelivery Note`.`customer` as \"Customer:Link/Customer:120\",\n\t`tabDelivery Note`.`customer_name` as \"Customer Name::150\",\n\t`tabDelivery Note`.`posting_date` as \"Date:Date\",\n\t`tabDelivery Note`.`project` as \"Project\",\n\t`tabDelivery Note Item`.`item_code` as \"Item:Link/Item:120\",\n\t(`tabDelivery Note Item`.`base_amount` - `tabDelivery Note Item`.`billed_amt`*ifnull(`tabDelivery Note`.conversion_rate, 1)) as \"Pending Amount:Currency:110\",\n\t`tabDelivery Note Item`.`item_name` as \"Item Name::150\",\n\t`tabDelivery Note Item`.`description` as \"Description::200\",\n\t`tabDelivery Note`.`company` as \"Company:Link/Company:\"\nfrom `tabDelivery Note`, `tabDelivery Note Item`\nwhere  \n    `tabDelivery Note`.name = `tabDelivery Note Item`.parent \n    and `tabDelivery Note`.docstatus = 1 \n    and `tabDelivery Note`.`status` not in (\"Stopped\", \"Closed\") \n    and `tabDelivery Note Item`.amount > 0\n    and `tabDelivery Note Item`.billed_amt < `tabDelivery Note Item`.amount\norder by `tabDelivery Note`.`name` desc",
-  "ref_doctype": "Sales Invoice",
-  "reference_report": null,
-  "report_name": "Delivered Items To Be Billed",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Delivered Items To Be Billed",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts Manager"
-   },
-   {
-    "parent": "Delivered Items To Be Billed",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2017-11-06 13:04:26.094432",
-  "module": "Accounts",
-  "name": "Received Items To Be Billed",
-  "prepared_report": 0,
-  "query": "select\n    `tabPurchase Receipt`.`name` as \"Purchase Receipt:Link/Purchase Receipt:120\",\n    `tabPurchase Receipt`.`supplier` as \"Supplier:Link/Supplier:120\",\n\t`tabPurchase Receipt`.`supplier_name` as \"Supplier Name::150\",\n\t`tabPurchase Receipt`.`posting_date` as \"Date:Date\",\n\t`tabPurchase Receipt Item`.`project` as \"Project\",\n\t`tabPurchase Receipt Item`.`item_code` as \"Item:Link/Item:120\",\n\t(`tabPurchase Receipt Item`.`base_amount` - `tabPurchase Receipt Item`.`billed_amt`*ifnull(`tabPurchase Receipt`.conversion_rate, 1)) as \"Pending Amount:Currency:110\",\n\t`tabPurchase Receipt Item`.`item_name` as \"Item Name::150\",\n\t`tabPurchase Receipt Item`.`description` as \"Description::200\",\n\t`tabPurchase Receipt`.`company` as \"Company:Link/Company:\"\nfrom `tabPurchase Receipt`, `tabPurchase Receipt Item`\nwhere\n    `tabPurchase Receipt`.name = `tabPurchase Receipt Item`.parent \n    and `tabPurchase Receipt`.docstatus = 1 \n    and `tabPurchase Receipt`.status != \"Closed\" \n    and `tabPurchase Receipt Item`.amount > 0\n    and `tabPurchase Receipt Item`.billed_amt < `tabPurchase Receipt Item`.amount\norder by `tabPurchase Receipt`.`name` desc",
-  "ref_doctype": "Purchase Invoice",
-  "reference_report": null,
-  "report_name": "Received Items To Be Billed",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Received Items To Be Billed",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
-   },
-   {
-    "parent": "Received Items To Be Billed",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Purchase User"
-   },
-   {
-    "parent": "Received Items To Be Billed",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts Manager"
-   },
-   {
-    "parent": "Received Items To Be Billed",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Auditor"
-   }
-  ],
-  "timeout": 0
- },
- {
   "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2017-02-24 20:05:31.066151",
-  "module": "Stock",
-  "name": "Material Requests for which Supplier Quotations are not created",
-  "prepared_report": 0,
-  "query": "select \n    mr.name as \"Material Request:Link/Material Request:120\",\n    mr.transaction_date as \"Date:Date:100\",\n\tmr_item.item_code as \"Item Code:Link/Item:120\",\n\tmr_item.qty as \"Qty:Float:100\",\n\tmr_item.item_name as \"Item Name::150\",\n\tmr_item.description as \"Description::200\",\n\tmr.company as \"Company:Link/Company:\"\nfrom\n\t`tabMaterial Request` mr, `tabMaterial Request Item` mr_item\nwhere\n\tmr_item.parent = mr.name\n\tand mr.material_request_type = \"Purchase\"\n\tand mr.docstatus = 1\n\tand mr.status != \"Stopped\"\n\tand not exists(select name from `tabSupplier Quotation Item` where material_request=mr.name)\norder by mr.transaction_date asc",
-  "ref_doctype": "Material Request",
-  "reference_report": null,
-  "report_name": "Material Requests for which Supplier Quotations are not created",
-  "report_script": null,
-  "report_type": "Query Report",
-  "roles": [
-   {
-    "parent": "Material Requests for which Supplier Quotations are not created",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Purchase Manager"
-   },
-   {
-    "parent": "Material Requests for which Supplier Quotations are not created",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock Manager"
-   },
-   {
-    "parent": "Material Requests for which Supplier Quotations are not created",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   },
-   {
-    "parent": "Material Requests for which Supplier Quotations are not created",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Purchase User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2018-02-13 04:58:29.780472",
-  "module": "Manufacturing",
-  "name": "Open Work Orders",
-  "prepared_report": 0,
-  "query": "SELECT\n  `tabWork Order`.name as \"Work Order:Link/Work Order:200\",\n  `tabWork Order`.creation as \"Date:Date:120\",\n  `tabWork Order`.production_item as \"Item:Link/Item:150\",\n  `tabWork Order`.qty as \"To Produce:Int:100\",\n  `tabWork Order`.produced_qty as \"Produced:Int:100\",\n  `tabWork Order`.company as \"Company:Link/Company:\"\nFROM\n  `tabWork Order`\nWHERE\n  `tabWork Order`.docstatus=1\n  AND ifnull(`tabWork Order`.produced_qty,0) < `tabWork Order`.qty\n  AND NOT EXISTS (SELECT name from `tabStock Entry` where work_order =`tabWork Order`.name) ",
-  "ref_doctype": "Work Order",
-  "reference_report": null,
-  "report_name": "Open Work Orders",
-  "report_script": null,
-  "report_type": "Query Report",
-  "roles": [
-   {
-    "parent": "Open Work Orders",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Manufacturing User"
-   },
-   {
-    "parent": "Open Work Orders",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2018-09-18 12:24:38.684995",
-  "module": "Manufacturing",
-  "name": "Work Orders in Progress",
-  "prepared_report": 0,
-  "query": "SELECT\n  `tabWork Order`.name as \"Work Order:Link/Work Order:200\",\n  `tabWork Order`.creation as \"Date:Date:120\",\n  `tabWork Order`.production_item as \"Item:Link/Item:150\",\n  `tabWork Order`.qty as \"To Produce:Int:100\",\n  `tabWork Order`.produced_qty as \"Produced:Int:100\",\n  `tabWork Order`.company as \"Company:Link/Company:\"\nFROM\n  `tabWork Order`\nWHERE\n  `tabWork Order`.docstatus=1\n  AND `tabWork Order`.status != 'Stopped'\n  AND ifnull(`tabWork Order`.produced_qty,0) < `tabWork Order`.qty\n  AND EXISTS (SELECT name from `tabStock Entry` where work_order =`tabWork Order`.name) ",
-  "ref_doctype": "Work Order",
-  "reference_report": null,
-  "report_name": "Work Orders in Progress",
-  "report_script": null,
-  "report_type": "Query Report",
-  "roles": [
-   {
-    "parent": "Work Orders in Progress",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Manufacturing User"
-   },
-   {
-    "parent": "Work Orders in Progress",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2024-02-21 14:35:14.301848",
-  "module": "Manufacturing",
-  "name": "Completed Work Orders",
-  "prepared_report": 0,
-  "query": "SELECT\n  `tabWork Order`.name as \"Work Order:Link/Work Order:200\",\n  `tabWork Order`.creation as \"Date:Date:120\",\n  `tabWork Order`.production_item as \"Item:Link/Item:150\",\n  `tabWork Order`.qty as \"To Produce:Int:100\",\n  `tabWork Order`.produced_qty as \"Produced:Int:100\",\n  `tabWork Order`.company as \"Company:Link/Company:\"\nFROM\n  `tabWork Order`\nWHERE\n  `tabWork Order`.docstatus=1\n  AND ifnull(`tabWork Order`.produced_qty,0) >= `tabWork Order`.qty",
-  "ref_doctype": "Work Order",
-  "reference_report": null,
-  "report_name": "Completed Work Orders",
-  "report_script": null,
-  "report_type": "Query Report",
-  "roles": [
-   {
-    "parent": "Completed Work Orders",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Manufacturing User"
-   },
-   {
-    "parent": "Completed Work Orders",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2017-02-24 20:06:00.761719",
-  "module": "Stock",
-  "name": "Items To Be Requested",
-  "prepared_report": 0,
-  "query": "SELECT\n    tabBin.item_code as \"Item:Link/Item:120\",\n    tabBin.warehouse as \"Warehouse:Link/Warehouse:120\",\n    tabBin.actual_qty as \"Actual:Float:90\",\n    tabBin.indented_qty as \"Requested:Float:90\",\n    tabBin.reserved_qty as \"Reserved:Float:90\",\n    tabBin.ordered_qty as \"Ordered:Float:90\",\n    tabBin.projected_qty as \"Projected:Float:90\"\nFROM\n    tabBin, tabItem\nWHERE\n    tabBin.item_code = tabItem.name\n   AND tabBin.projected_qty < 0\nORDER BY\n    tabBin.projected_qty ASC",
-  "ref_doctype": "Material Request",
-  "reference_report": null,
-  "report_name": "Items To Be Requested",
-  "report_script": null,
-  "report_type": "Query Report",
-  "roles": [
-   {
-    "parent": "Items To Be Requested",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Purchase Manager"
-   },
-   {
-    "parent": "Items To Be Requested",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock Manager"
-   },
-   {
-    "parent": "Items To Be Requested",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   },
-   {
-    "parent": "Items To Be Requested",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Purchase User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": "{\"fields\": [[\"name\", \"Item Price\"], [\"price_list\", \"Item Price\"], [\"currency\", \"Item Price\"], [\"item_code\", \"Item Price\"], [\"brand\", \"Item Price\"], [\"price_list_rate\", \"Item Price\"], [\"docstatus\", \"Item Price\"]], \"order_by\": \"`tabItem Price`.`modified` asc\", \"add_total_row\": 0, \"filters\": []}",
-  "letter_head": null,
-  "modified": "2018-05-03 12:48:39.802088",
-  "module": "Stock",
-  "name": "Item-wise Price List Rate",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Item Price",
-  "reference_report": null,
-  "report_name": "Item-wise Price List Rate",
-  "report_script": null,
-  "report_type": "Report Builder",
-  "roles": [
-   {
-    "parent": "Item-wise Price List Rate",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Sales Master Manager"
-   },
-   {
-    "parent": "Item-wise Price List Rate",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Purchase Master Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2020-07-26 23:59:49.897577",
-  "module": "CRM",
-  "name": "Lead Details",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Lead",
-  "reference_report": null,
-  "report_name": "Lead Details",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Lead Details",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Sales User"
-   },
-   {
-    "parent": "Lead Details",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Sales Manager"
-   },
-   {
-    "parent": "Lead Details",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "System Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2017-02-24 20:13:38.914651",
-  "module": "Stock",
-  "name": "Supplier-Wise Sales Analytics",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Stock Ledger Entry",
-  "reference_report": null,
-  "report_name": "Supplier-Wise Sales Analytics",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Supplier-Wise Sales Analytics",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   },
-   {
-    "parent": "Supplier-Wise Sales Analytics",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 1,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2017-02-24 20:16:43.005325",
-  "module": "Accounts",
-  "name": "Payment Period Based On Invoice Date",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Journal Entry",
-  "reference_report": null,
-  "report_name": "Payment Period Based On Invoice Date",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Payment Period Based On Invoice Date",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
-   },
-   {
-    "parent": "Payment Period Based On Invoice Date",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts Manager"
-   },
-   {
-    "parent": "Payment Period Based On Invoice Date",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Auditor"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2025-04-16 13:33:10.546870",
-  "module": "Core",
-  "name": "Permitted Documents For User",
-  "prepared_report": 1,
-  "query": null,
-  "ref_doctype": "User",
-  "reference_report": null,
-  "report_name": "Permitted Documents For User",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Permitted Documents For User",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "System Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2017-02-24 20:00:30.392287",
-  "module": "Stock",
-  "name": "Batch Item Expiry Status",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Stock Ledger Entry",
-  "reference_report": null,
-  "report_name": "Batch Item Expiry Status",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Batch Item Expiry Status",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Stock User"
-   },
-   {
-    "parent": "Batch Item Expiry Status",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2018-05-21 11:06:11.920622",
-  "module": "Selling",
-  "name": "Customers Without Any Sales Transactions",
-  "prepared_report": 0,
-  "query": "SELECT\n\t`tabCustomer`.name as \"Customer:Link/Customer:120\",\n\t`tabCustomer`.customer_name as \"Customer Name::120\",\n\t`tabCustomer`.territory as \"Territory:Link/Territory:120\",\n\t`tabCustomer`.customer_group as \"Customer Group:Link/Customer Group:120\"\nFROM\n\t`tabCustomer`\nWHERE\n\tnot exists(select name from `tabSales Invoice` where `tabCustomer`.name = `tabSales Invoice`.customer and `tabSales Invoice`.docstatus=1 limit 1)\n\tand not exists(select name from `tabSales Order` where `tabCustomer`.name = `tabSales Order`.customer and `tabSales Order`.docstatus=1 limit 1)",
-  "ref_doctype": "Sales Invoice",
-  "reference_report": null,
-  "report_name": "Customers Without Any Sales Transactions",
-  "report_script": null,
-  "report_type": "Query Report",
-  "roles": [
-   {
-    "parent": "Customers Without Any Sales Transactions",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Sales User"
-   },
-   {
-    "parent": "Customers Without Any Sales Transactions",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Sales Manager"
-   },
-   {
-    "parent": "Customers Without Any Sales Transactions",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "System Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "modified": "2018-06-01 09:39:39.604944",
-  "module": "Selling",
-  "name": "Address And Contacts",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Address",
-  "reference_report": null,
-  "report_name": "Address And Contacts",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "parent": "Address And Contacts",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Sales User"
-   },
-   {
-    "parent": "Address And Contacts",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Purchase User"
-   },
-   {
-    "parent": "Address And Contacts",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Maintenance User"
-   },
-   {
-    "parent": "Address And Contacts",
-    "parentfield": "roles",
-    "parenttype": "Report",
-    "role": "Accounts User"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9654,7 +8802,46 @@
   "timeout": 0
  },
  {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2017-11-06 13:04:36.338268",
+  "module": "Accounts",
+  "name": "Delivered Items To Be Billed",
+  "prepared_report": 0,
+  "query": "select\n    `tabDelivery Note`.`name` as \"Delivery Note:Link/Delivery Note:120\",\n\t`tabDelivery Note`.`customer` as \"Customer:Link/Customer:120\",\n\t`tabDelivery Note`.`customer_name` as \"Customer Name::150\",\n\t`tabDelivery Note`.`posting_date` as \"Date:Date\",\n\t`tabDelivery Note`.`project` as \"Project\",\n\t`tabDelivery Note Item`.`item_code` as \"Item:Link/Item:120\",\n\t(`tabDelivery Note Item`.`base_amount` - `tabDelivery Note Item`.`billed_amt`*ifnull(`tabDelivery Note`.conversion_rate, 1)) as \"Pending Amount:Currency:110\",\n\t`tabDelivery Note Item`.`item_name` as \"Item Name::150\",\n\t`tabDelivery Note Item`.`description` as \"Description::200\",\n\t`tabDelivery Note`.`company` as \"Company:Link/Company:\"\nfrom `tabDelivery Note`, `tabDelivery Note Item`\nwhere  \n    `tabDelivery Note`.name = `tabDelivery Note Item`.parent \n    and `tabDelivery Note`.docstatus = 1 \n    and `tabDelivery Note`.`status` not in (\"Stopped\", \"Closed\") \n    and `tabDelivery Note Item`.amount > 0\n    and `tabDelivery Note Item`.billed_amt < `tabDelivery Note Item`.amount\norder by `tabDelivery Note`.`name` desc",
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "Delivered Items To Be Billed",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Delivered Items To Be Billed",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Delivered Items To Be Billed",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9709,7 +8896,58 @@
   "timeout": 0
  },
  {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2017-11-06 13:04:26.094432",
+  "module": "Accounts",
+  "name": "Received Items To Be Billed",
+  "prepared_report": 0,
+  "query": "select\n    `tabPurchase Receipt`.`name` as \"Purchase Receipt:Link/Purchase Receipt:120\",\n    `tabPurchase Receipt`.`supplier` as \"Supplier:Link/Supplier:120\",\n\t`tabPurchase Receipt`.`supplier_name` as \"Supplier Name::150\",\n\t`tabPurchase Receipt`.`posting_date` as \"Date:Date\",\n\t`tabPurchase Receipt Item`.`project` as \"Project\",\n\t`tabPurchase Receipt Item`.`item_code` as \"Item:Link/Item:120\",\n\t(`tabPurchase Receipt Item`.`base_amount` - `tabPurchase Receipt Item`.`billed_amt`*ifnull(`tabPurchase Receipt`.conversion_rate, 1)) as \"Pending Amount:Currency:110\",\n\t`tabPurchase Receipt Item`.`item_name` as \"Item Name::150\",\n\t`tabPurchase Receipt Item`.`description` as \"Description::200\",\n\t`tabPurchase Receipt`.`company` as \"Company:Link/Company:\"\nfrom `tabPurchase Receipt`, `tabPurchase Receipt Item`\nwhere\n    `tabPurchase Receipt`.name = `tabPurchase Receipt Item`.parent \n    and `tabPurchase Receipt`.docstatus = 1 \n    and `tabPurchase Receipt`.status != \"Closed\" \n    and `tabPurchase Receipt Item`.amount > 0\n    and `tabPurchase Receipt Item`.billed_amt < `tabPurchase Receipt Item`.amount\norder by `tabPurchase Receipt`.`name` desc",
+  "ref_doctype": "Purchase Invoice",
+  "reference_report": null,
+  "report_name": "Received Items To Be Billed",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Received Items To Be Billed",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Received Items To Be Billed",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Purchase User"
+   },
+   {
+    "parent": "Received Items To Be Billed",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Received Items To Be Billed",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Auditor"
+   }
+  ],
+  "timeout": 0
+ },
+ {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9765,6 +9003,57 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2017-02-24 20:05:31.066151",
+  "module": "Stock",
+  "name": "Material Requests for which Supplier Quotations are not created",
+  "prepared_report": 0,
+  "query": "select \n    mr.name as \"Material Request:Link/Material Request:120\",\n    mr.transaction_date as \"Date:Date:100\",\n\tmr_item.item_code as \"Item Code:Link/Item:120\",\n\tmr_item.qty as \"Qty:Float:100\",\n\tmr_item.item_name as \"Item Name::150\",\n\tmr_item.description as \"Description::200\",\n\tmr.company as \"Company:Link/Company:\"\nfrom\n\t`tabMaterial Request` mr, `tabMaterial Request Item` mr_item\nwhere\n\tmr_item.parent = mr.name\n\tand mr.material_request_type = \"Purchase\"\n\tand mr.docstatus = 1\n\tand mr.status != \"Stopped\"\n\tand not exists(select name from `tabSupplier Quotation Item` where material_request=mr.name)\norder by mr.transaction_date asc",
+  "ref_doctype": "Material Request",
+  "reference_report": null,
+  "report_name": "Material Requests for which Supplier Quotations are not created",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Material Requests for which Supplier Quotations are not created",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Purchase Manager"
+   },
+   {
+    "parent": "Material Requests for which Supplier Quotations are not created",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock Manager"
+   },
+   {
+    "parent": "Material Requests for which Supplier Quotations are not created",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   },
+   {
+    "parent": "Material Requests for which Supplier Quotations are not created",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Purchase User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9820,6 +9109,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9844,6 +9134,57 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-06-06 18:09:18.221911",
+  "module": "Accounts",
+  "name": "Calculated Discount Mismatch",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Version",
+  "reference_report": null,
+  "report_name": "Calculated Discount Mismatch",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Calculated Discount Mismatch",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "System Manager"
+   },
+   {
+    "parent": "Calculated Discount Mismatch",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Calculated Discount Mismatch",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Calculated Discount Mismatch",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9886,7 +9227,52 @@
   "timeout": 0
  },
  {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-08-30 15:57:04.044724",
+  "module": "Payroll",
+  "name": "Accrued Earnings Report",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Employee Benefit Ledger",
+  "reference_report": null,
+  "report_name": "Accrued Earnings Report",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Accrued Earnings Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "System Manager"
+   },
+   {
+    "parent": "Accrued Earnings Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "HR Manager"
+   },
+   {
+    "parent": "Accrued Earnings Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "HR User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9930,6 +9316,45 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2021-01-10 02:03:26.742693",
+  "module": "Loan Management",
+  "name": "Loan Interest Report",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Loan Interest Accrual",
+  "reference_report": null,
+  "report_name": "Loan Interest Report",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Loan Interest Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "System Manager"
+   },
+   {
+    "parent": "Loan Interest Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Loan Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9978,7 +9403,46 @@
   "timeout": 0
  },
  {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2024-03-11 18:55:34.504099",
+  "module": "Loan Management",
+  "name": "ALM Audit Report",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Loan",
+  "reference_report": null,
+  "report_name": "ALM Audit Report",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "ALM Audit Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Loan Manager"
+   },
+   {
+    "parent": "ALM Audit Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Employee"
+   }
+  ],
+  "timeout": 0
+ },
+ {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10015,7 +9479,71 @@
   "timeout": 0
  },
  {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-08-11 11:29:39.233095",
+  "module": "Loan Management",
+  "name": "Loan Outstanding Report",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Loan",
+  "reference_report": null,
+  "report_name": "Loan Outstanding Report",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Loan Outstanding Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Loan Manager"
+   },
+   {
+    "parent": "Loan Outstanding Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Employee"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-08-06 10:25:02.000409",
+  "module": "Loan Management",
+  "name": "Past Cashflow Report",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Loan",
+  "reference_report": null,
+  "report_name": "Past Cashflow Report",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [],
+  "timeout": 0
+ },
+ {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10052,7 +9580,33 @@
   "timeout": 0
  },
  {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-08-21 15:12:11.648960",
+  "module": "Loan Management",
+  "name": "Future Cashflow Report",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Loan",
+  "reference_report": null,
+  "report_name": "Future Cashflow Report",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [],
+  "timeout": 0
+ },
+ {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10126,6 +9680,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10169,6 +9724,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10242,6 +9798,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10315,6 +9872,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10370,6 +9928,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10413,6 +9972,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10480,6 +10040,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10517,6 +10078,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10572,6 +10134,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10584,7 +10147,7 @@
   "modified": "2020-05-29 14:54:53.591445",
   "module": "Selling",
   "name": "Sales Order Analysis",
-  "prepared_report": 1,
+  "prepared_report": 0,
   "query": null,
   "ref_doctype": "Sales Order",
   "reference_report": null,
@@ -10627,6 +10190,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10682,6 +10246,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10694,7 +10259,7 @@
   "modified": "2019-11-04 16:28:14.608904",
   "module": "Selling",
   "name": "Item-wise Sales History",
-  "prepared_report": 1,
+  "prepared_report": 0,
   "query": null,
   "ref_doctype": "Sales Order",
   "reference_report": null,
@@ -10737,6 +10302,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10780,6 +10346,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10846,7 +10413,46 @@
   "timeout": 0
  },
  {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2017-02-24 20:14:07.626391",
+  "module": "Stock",
+  "name": "Stock Ledger",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Stock Ledger Entry",
+  "reference_report": null,
+  "report_name": "Stock Ledger",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Stock Ledger",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   },
+   {
+    "parent": "Stock Ledger",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10896,6 +10502,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10905,11 +10512,11 @@
   "javascript": null,
   "json": null,
   "letter_head": "QCMC",
-  "modified": "2025-11-20 18:19:02.916166",
+  "modified": "2026-04-21 10:02:20.314427",
   "module": "HR",
   "name": "Oil Change Due",
   "prepared_report": 0,
-  "query": "SELECT\r\n    v.name AS \"Vehicle:Link/Vehicle:150\",\r\n    v.last_odometer AS \"Current Odometer\",\r\n    vlo.odometer AS \"Last Oil Change Odometer\",\r\n    vlo.last_service_date AS \"Last Oil Change Date\"\r\nFROM\r\n    `tabVehicle` v\r\nLEFT JOIN\r\n    (\r\n        SELECT \r\n            l.license_plate,\r\n            CAST(MAX(l.odometer) AS DECIMAL(12,2)) AS odometer,\r\n            MAX(s.custom_service_date) AS last_service_date\r\n        FROM `tabVehicle Log` l\r\n        INNER JOIN `tabVehicle Service` s \r\n            ON s.parent = l.name\r\n           AND s.service_item LIKE '%%ENGINE CHANGE OIL%%'\r\n        GROUP BY l.license_plate\r\n    ) vlo ON v.name = vlo.license_plate\r\nWHERE\r\n    (v.last_odometer - IFNULL(vlo.odometer, v.last_odometer)) >= 5000\r\n    OR vlo.last_service_date <= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)\r\nORDER BY\r\n    v.name;\r\n",
+  "query": "SELECT\r\n    v.name AS \"Vehicle:Link/Vehicle:150\",\r\n    v.last_odometer AS \"Current Odometer\",\r\n    vlo.odometer AS \"Last Oil Change Odometer\",\r\n    vlo.last_service_date AS \"Last Oil Change Date\"\r\nFROM\r\n    `tabVehicle` v\r\nLEFT JOIN\r\n    (\r\n        SELECT \r\n            l.license_plate,\r\n            CAST(MAX(l.odometer) AS DECIMAL(12,2)) AS odometer,\r\n            MAX(s.custom_service_date) AS last_service_date\r\n        FROM `tabVehicle Log` l\r\n        INNER JOIN `tabVehicle Service` s \r\n            ON s.parent = l.name\r\n           AND s.service_item LIKE '%%ENGINE CHANGE OIL%%'\r\n        GROUP BY l.license_plate\r\n    ) vlo ON v.name = vlo.license_plate\r\n    where vlo.last_service_date IS NOT NULL\r\nORDER BY\r\n    v.name;\r\n",
   "ref_doctype": "Vehicle",
   "reference_report": null,
   "report_name": "Oil Change Due",
@@ -10939,6 +10546,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10976,6 +10584,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11019,6 +10628,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11056,6 +10666,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11105,6 +10716,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11135,7 +10747,58 @@
   "timeout": 0
  },
  {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2019-01-02 18:01:46.691685",
+  "module": "Accounts",
+  "name": "Account Balance",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Bank Account",
+  "reference_report": null,
+  "report_name": "Account Balance",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 1,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2019-01-13 19:03:56.187748",
+  "module": "Regional",
+  "name": "Electronic Invoice Register",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "Electronic Invoice Register",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [],
+  "timeout": 0
+ },
+ {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11173,6 +10836,51 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2019-02-08 10:58:55.763090",
+  "module": "Accounts",
+  "name": "Gross and Net Profit Report",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "GL Entry",
+  "reference_report": null,
+  "report_name": "Gross and Net Profit Report",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Gross and Net Profit Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Gross and Net Profit Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Gross and Net Profit Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Auditor"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11227,7 +10935,40 @@
   "timeout": 0
  },
  {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2019-03-06 01:40:35.418304",
+  "module": "Stock",
+  "name": "Product Bundle Balance",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Stock Ledger Entry",
+  "reference_report": null,
+  "report_name": "Product Bundle Balance",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Product Bundle Balance",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11270,7 +11011,64 @@
   "timeout": 0
  },
  {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2019-06-13 15:54:49.213973",
+  "module": "Projects",
+  "name": "Employee Billing Summary",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Timesheet",
+  "reference_report": null,
+  "report_name": "Employee Billing Summary",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Employee Billing Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Projects User"
+   },
+   {
+    "parent": "Employee Billing Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "HR User"
+   },
+   {
+    "parent": "Employee Billing Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Manufacturing User"
+   },
+   {
+    "parent": "Employee Billing Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Employee"
+   },
+   {
+    "parent": "Employee Billing Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11314,6 +11112,63 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2019-06-13 15:54:55.255947",
+  "module": "Projects",
+  "name": "Project Billing Summary",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Timesheet",
+  "reference_report": null,
+  "report_name": "Project Billing Summary",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Project Billing Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Projects User"
+   },
+   {
+    "parent": "Project Billing Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "HR User"
+   },
+   {
+    "parent": "Project Billing Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Manufacturing User"
+   },
+   {
+    "parent": "Project Billing Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Employee"
+   },
+   {
+    "parent": "Project Billing Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11344,7 +11199,46 @@
   "timeout": 0
  },
  {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2019-04-15 15:22:15.012318",
+  "module": "Selling",
+  "name": "Sales Partner Commission Summary",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Sales Order",
+  "reference_report": null,
+  "report_name": "Sales Partner Commission Summary",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Sales Partner Commission Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Manager"
+   },
+   {
+    "parent": "Sales Partner Commission Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Maintenance User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11388,6 +11282,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11437,6 +11332,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11486,6 +11382,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11541,6 +11438,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11578,6 +11476,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11621,6 +11520,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11670,6 +11570,7 @@
  },
  {
   "add_total_row": 1,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11719,6 +11620,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11762,6 +11664,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11799,6 +11702,7 @@
  },
  {
   "add_total_row": 0,
+  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11808,10 +11712,370 @@
   "javascript": null,
   "json": null,
   "letter_head": null,
-  "modified": "2026-04-20 17:16:12.130078",
+  "modified": "2018-02-13 04:58:29.780472",
+  "module": "Manufacturing",
+  "name": "Open Work Orders",
+  "prepared_report": 0,
+  "query": "SELECT\n  `tabWork Order`.name as \"Work Order:Link/Work Order:200\",\n  `tabWork Order`.creation as \"Date:Date:120\",\n  `tabWork Order`.production_item as \"Item:Link/Item:150\",\n  `tabWork Order`.qty as \"To Produce:Int:100\",\n  `tabWork Order`.produced_qty as \"Produced:Int:100\",\n  `tabWork Order`.company as \"Company:Link/Company:\"\nFROM\n  `tabWork Order`\nWHERE\n  `tabWork Order`.docstatus=1\n  AND ifnull(`tabWork Order`.produced_qty,0) < `tabWork Order`.qty\n  AND NOT EXISTS (SELECT name from `tabStock Entry` where work_order =`tabWork Order`.name) ",
+  "ref_doctype": "Work Order",
+  "reference_report": null,
+  "report_name": "Open Work Orders",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Open Work Orders",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Manufacturing User"
+   },
+   {
+    "parent": "Open Work Orders",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2018-09-18 12:24:38.684995",
+  "module": "Manufacturing",
+  "name": "Work Orders in Progress",
+  "prepared_report": 0,
+  "query": "SELECT\n  `tabWork Order`.name as \"Work Order:Link/Work Order:200\",\n  `tabWork Order`.creation as \"Date:Date:120\",\n  `tabWork Order`.production_item as \"Item:Link/Item:150\",\n  `tabWork Order`.qty as \"To Produce:Int:100\",\n  `tabWork Order`.produced_qty as \"Produced:Int:100\",\n  `tabWork Order`.company as \"Company:Link/Company:\"\nFROM\n  `tabWork Order`\nWHERE\n  `tabWork Order`.docstatus=1\n  AND `tabWork Order`.status != 'Stopped'\n  AND ifnull(`tabWork Order`.produced_qty,0) < `tabWork Order`.qty\n  AND EXISTS (SELECT name from `tabStock Entry` where work_order =`tabWork Order`.name) ",
+  "ref_doctype": "Work Order",
+  "reference_report": null,
+  "report_name": "Work Orders in Progress",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Work Orders in Progress",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Manufacturing User"
+   },
+   {
+    "parent": "Work Orders in Progress",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2024-02-21 14:35:14.301848",
+  "module": "Manufacturing",
+  "name": "Completed Work Orders",
+  "prepared_report": 0,
+  "query": "SELECT\n  `tabWork Order`.name as \"Work Order:Link/Work Order:200\",\n  `tabWork Order`.creation as \"Date:Date:120\",\n  `tabWork Order`.production_item as \"Item:Link/Item:150\",\n  `tabWork Order`.qty as \"To Produce:Int:100\",\n  `tabWork Order`.produced_qty as \"Produced:Int:100\",\n  `tabWork Order`.company as \"Company:Link/Company:\"\nFROM\n  `tabWork Order`\nWHERE\n  `tabWork Order`.docstatus=1\n  AND ifnull(`tabWork Order`.produced_qty,0) >= `tabWork Order`.qty",
+  "ref_doctype": "Work Order",
+  "reference_report": null,
+  "report_name": "Completed Work Orders",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Completed Work Orders",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Manufacturing User"
+   },
+   {
+    "parent": "Completed Work Orders",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2017-02-24 20:06:00.761719",
+  "module": "Stock",
+  "name": "Items To Be Requested",
+  "prepared_report": 0,
+  "query": "SELECT\n    tabBin.item_code as \"Item:Link/Item:120\",\n    tabBin.warehouse as \"Warehouse:Link/Warehouse:120\",\n    tabBin.actual_qty as \"Actual:Float:90\",\n    tabBin.indented_qty as \"Requested:Float:90\",\n    tabBin.reserved_qty as \"Reserved:Float:90\",\n    tabBin.ordered_qty as \"Ordered:Float:90\",\n    tabBin.projected_qty as \"Projected:Float:90\"\nFROM\n    tabBin, tabItem\nWHERE\n    tabBin.item_code = tabItem.name\n   AND tabBin.projected_qty < 0\nORDER BY\n    tabBin.projected_qty ASC",
+  "ref_doctype": "Material Request",
+  "reference_report": null,
+  "report_name": "Items To Be Requested",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Items To Be Requested",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Purchase Manager"
+   },
+   {
+    "parent": "Items To Be Requested",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock Manager"
+   },
+   {
+    "parent": "Items To Be Requested",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   },
+   {
+    "parent": "Items To Be Requested",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Purchase User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": "{\"fields\": [[\"name\", \"Item Price\"], [\"price_list\", \"Item Price\"], [\"currency\", \"Item Price\"], [\"item_code\", \"Item Price\"], [\"brand\", \"Item Price\"], [\"price_list_rate\", \"Item Price\"], [\"docstatus\", \"Item Price\"]], \"order_by\": \"`tabItem Price`.`modified` asc\", \"add_total_row\": 0, \"filters\": []}",
+  "letter_head": null,
+  "modified": "2018-05-03 12:48:39.802088",
+  "module": "Stock",
+  "name": "Item-wise Price List Rate",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Item Price",
+  "reference_report": null,
+  "report_name": "Item-wise Price List Rate",
+  "report_script": null,
+  "report_type": "Report Builder",
+  "roles": [
+   {
+    "parent": "Item-wise Price List Rate",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Master Manager"
+   },
+   {
+    "parent": "Item-wise Price List Rate",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Purchase Master Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2020-07-26 23:59:49.897577",
+  "module": "CRM",
+  "name": "Lead Details",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Lead",
+  "reference_report": null,
+  "report_name": "Lead Details",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Lead Details",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales User"
+   },
+   {
+    "parent": "Lead Details",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Manager"
+   },
+   {
+    "parent": "Lead Details",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "System Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2017-02-24 20:13:38.914651",
+  "module": "Stock",
+  "name": "Supplier-Wise Sales Analytics",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Stock Ledger Entry",
+  "reference_report": null,
+  "report_name": "Supplier-Wise Sales Analytics",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Supplier-Wise Sales Analytics",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   },
+   {
+    "parent": "Supplier-Wise Sales Analytics",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2017-02-24 20:16:43.005325",
+  "module": "Accounts",
+  "name": "Payment Period Based On Invoice Date",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Journal Entry",
+  "reference_report": null,
+  "report_name": "Payment Period Based On Invoice Date",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Payment Period Based On Invoice Date",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Payment Period Based On Invoice Date",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Payment Period Based On Invoice Date",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Auditor"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-04-16 13:33:10.546870",
+  "module": "Core",
+  "name": "Permitted Documents For User",
+  "prepared_report": 1,
+  "query": null,
+  "ref_doctype": "User",
+  "reference_report": null,
+  "report_name": "Permitted Documents For User",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Permitted Documents For User",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "System Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2026-04-21 09:16:37.301391",
   "module": "Stock",
   "name": "Booklet Monitoring Report",
-  "prepared_report": 1,
+  "prepared_report": 0,
   "query": null,
   "ref_doctype": "Stock Entry",
   "reference_report": null,
