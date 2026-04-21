@@ -19,7 +19,6 @@
     "parent": "Generate Logs Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "workflow_state",
     "update_value": "Draft",
@@ -35,7 +34,6 @@
     "parent": "Generate Logs Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "For Approval",
     "update_field": "workflow_state",
     "update_value": "For Approval",
@@ -51,7 +49,6 @@
     "parent": "Generate Logs Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Approved",
     "update_field": "workflow_state",
     "update_value": "Approved",
@@ -67,7 +64,6 @@
     "parent": "Generate Logs Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Cancelled",
     "update_field": "workflow_state",
     "update_value": "Cancelled",
@@ -84,7 +80,6 @@
     "parent": "Generate Logs Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -97,7 +92,6 @@
     "parent": "Generate Logs Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Approval",
     "workflow_builder_id": null
    },
@@ -110,7 +104,6 @@
     "parent": "Generate Logs Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Approval",
     "workflow_builder_id": null
    }
@@ -139,7 +132,6 @@
     "parent": "Appraisal Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "workflow_state",
     "update_value": "Draft",
@@ -155,7 +147,6 @@
     "parent": "Appraisal Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "For Approval",
     "update_field": "workflow_state",
     "update_value": "For Approval",
@@ -171,7 +162,6 @@
     "parent": "Appraisal Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Approved",
     "update_field": "workflow_state",
     "update_value": "Approved",
@@ -187,7 +177,6 @@
     "parent": "Appraisal Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Cancelled",
     "update_field": "workflow_state",
     "update_value": "Cancelled",
@@ -204,7 +193,6 @@
     "parent": "Appraisal Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -217,7 +205,6 @@
     "parent": "Appraisal Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Approval",
     "workflow_builder_id": null
    },
@@ -230,7 +217,6 @@
     "parent": "Appraisal Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Approved",
     "workflow_builder_id": null
    }
@@ -259,7 +245,6 @@
     "parent": "Machine Shop WF",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Active",
     "update_field": "status",
     "update_value": "Active",
@@ -275,7 +260,6 @@
     "parent": "Machine Shop WF",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Approved",
     "update_field": "status",
     "update_value": "Approved",
@@ -291,7 +275,6 @@
     "parent": "Machine Shop WF",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Close",
     "update_field": "status",
     "update_value": "Closed",
@@ -307,7 +290,6 @@
     "parent": "Machine Shop WF",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Cancelled",
     "update_field": "status",
     "update_value": "Cancelled",
@@ -324,7 +306,6 @@
     "parent": "Machine Shop WF",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Active",
     "workflow_builder_id": "action-1"
    },
@@ -337,7 +318,6 @@
     "parent": "Machine Shop WF",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Approved",
     "workflow_builder_id": "action-2"
    },
@@ -350,7 +330,6 @@
     "parent": "Machine Shop WF",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Active",
     "workflow_builder_id": "action-3"
    },
@@ -363,7 +342,6 @@
     "parent": "Machine Shop WF",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Approved",
     "workflow_builder_id": "action-4"
    }
@@ -392,7 +370,6 @@
     "parent": "Sales Order",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "status",
     "update_value": "Draft",
@@ -408,7 +385,6 @@
     "parent": "Sales Order",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Pending Credit Approval",
     "update_field": "status",
     "update_value": "Pending Credit Approval",
@@ -424,7 +400,6 @@
     "parent": "Sales Order",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Sent Back for Modification",
     "update_field": "status",
     "update_value": "Sent Back for Modification",
@@ -440,7 +415,6 @@
     "parent": "Sales Order",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "On Hold",
     "update_field": "status",
     "update_value": "On Hold",
@@ -456,7 +430,6 @@
     "parent": "Sales Order",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "To Deliver and Bill",
     "update_field": "status",
     "update_value": "To Deliver and Bill",
@@ -472,7 +445,6 @@
     "parent": "Sales Order",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Cancelled",
     "update_field": "status",
     "update_value": "Cancelled",
@@ -488,7 +460,6 @@
     "parent": "Sales Order",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 1,
     "state": "Completed",
     "update_field": "status",
     "update_value": "Completed",
@@ -505,7 +476,6 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": "action-1"
    },
@@ -518,7 +488,6 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Pending Credit Approval",
     "workflow_builder_id": "action-2"
    },
@@ -531,7 +500,6 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Pending Credit Approval",
     "workflow_builder_id": "action-3"
    },
@@ -544,7 +512,6 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Sent Back for Modification",
     "workflow_builder_id": "action-4"
    },
@@ -557,7 +524,6 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Pending Credit Approval",
     "workflow_builder_id": "action-5"
    },
@@ -570,7 +536,6 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "On Hold",
     "workflow_builder_id": "action-6"
    },
@@ -583,7 +548,6 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "On Hold",
     "workflow_builder_id": "action-7"
    },
@@ -596,7 +560,6 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "To Deliver and Bill",
     "workflow_builder_id": "action-8"
    },
@@ -609,7 +572,6 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "To Deliver and Bill",
     "workflow_builder_id": null
    }
@@ -638,7 +600,6 @@
     "parent": "Asset Work Flow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "workflow_state",
     "update_value": "Draft",
@@ -654,7 +615,6 @@
     "parent": "Asset Work Flow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "For Checking",
     "update_field": "workflow_state",
     "update_value": "For Checking",
@@ -670,7 +630,6 @@
     "parent": "Asset Work Flow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Checked",
     "update_field": "workflow_state",
     "update_value": "Checked",
@@ -686,7 +645,6 @@
     "parent": "Asset Work Flow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Cancelled",
     "update_field": "workflow_state",
     "update_value": "Cancelled",
@@ -702,7 +660,6 @@
     "parent": "Asset Work Flow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Scrapped",
     "update_field": "workflow_state",
     "update_value": "Scrapped",
@@ -718,7 +675,6 @@
     "parent": "Asset Work Flow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Received",
     "update_field": "workflow_state",
     "update_value": "Received",
@@ -734,7 +690,6 @@
     "parent": "Asset Work Flow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Disposed",
     "update_field": "workflow_state",
     "update_value": "Disposed",
@@ -751,7 +706,6 @@
     "parent": "Asset Work Flow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -764,7 +718,6 @@
     "parent": "Asset Work Flow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Checking",
     "workflow_builder_id": null
    },
@@ -777,7 +730,6 @@
     "parent": "Asset Work Flow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Checked",
     "workflow_builder_id": null
    },
@@ -790,7 +742,6 @@
     "parent": "Asset Work Flow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Checked",
     "workflow_builder_id": null
    },
@@ -803,7 +754,6 @@
     "parent": "Asset Work Flow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Checked",
     "workflow_builder_id": null
    },
@@ -816,7 +766,6 @@
     "parent": "Asset Work Flow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Received",
     "workflow_builder_id": null
    }
@@ -845,7 +794,6 @@
     "parent": "Asset Movement WF",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": null,
     "update_value": "Draft",
@@ -861,7 +809,6 @@
     "parent": "Asset Movement WF",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "For Checking",
     "update_field": null,
     "update_value": "For Checking",
@@ -877,7 +824,6 @@
     "parent": "Asset Movement WF",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Checked",
     "update_field": null,
     "update_value": "Checked",
@@ -893,7 +839,6 @@
     "parent": "Asset Movement WF",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Cancelled",
     "update_field": null,
     "update_value": "Cancelled",
@@ -909,7 +854,6 @@
     "parent": "Asset Movement WF",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Received",
     "update_field": null,
     "update_value": "Received",
@@ -926,7 +870,6 @@
     "parent": "Asset Movement WF",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -939,7 +882,6 @@
     "parent": "Asset Movement WF",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Checking",
     "workflow_builder_id": null
    },
@@ -952,7 +894,6 @@
     "parent": "Asset Movement WF",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Checked",
     "workflow_builder_id": null
    },
@@ -965,7 +906,6 @@
     "parent": "Asset Movement WF",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Checked",
     "workflow_builder_id": null
    }
@@ -994,7 +934,6 @@
     "parent": "Inter Company Asset Transfer WF",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "workflow_state",
     "update_value": "Draft",
@@ -1010,7 +949,6 @@
     "parent": "Inter Company Asset Transfer WF",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "For Checking",
     "update_field": "workflow_state",
     "update_value": "For Checking",
@@ -1026,7 +964,6 @@
     "parent": "Inter Company Asset Transfer WF",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Checked",
     "update_field": "workflow_state",
     "update_value": "Checked",
@@ -1042,7 +979,6 @@
     "parent": "Inter Company Asset Transfer WF",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Cancelled",
     "update_field": "workflow_state",
     "update_value": "Cancelled",
@@ -1059,7 +995,6 @@
     "parent": "Inter Company Asset Transfer WF",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -1072,7 +1007,6 @@
     "parent": "Inter Company Asset Transfer WF",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Checking",
     "workflow_builder_id": null
    },
@@ -1085,7 +1019,6 @@
     "parent": "Inter Company Asset Transfer WF",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Checked",
     "workflow_builder_id": null
    },
@@ -1098,7 +1031,6 @@
     "parent": "Inter Company Asset Transfer WF",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Checked",
     "workflow_builder_id": null
    }
@@ -1127,7 +1059,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "workflow_state",
     "update_value": "Draft",
@@ -1143,7 +1074,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Pending PM Approval",
     "update_field": "workflow_state",
     "update_value": "Pending PM Approval",
@@ -1159,7 +1089,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "To Received",
     "update_field": "workflow_state",
     "update_value": "To Received",
@@ -1175,7 +1104,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Received",
     "update_field": "workflow_state",
     "update_value": "Received",
@@ -1191,7 +1119,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Submitted",
     "update_field": "workflow_state",
     "update_value": "Submitted",
@@ -1207,7 +1134,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "workflow_state",
     "update_value": "Draft",
@@ -1223,7 +1149,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Pending Logistics Manager Approval",
     "update_field": "workflow_state",
     "update_value": "Pending Logistics Manager Approval",
@@ -1239,7 +1164,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "workflow_state",
     "update_value": "Draft",
@@ -1255,7 +1179,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Pending PPIC Supervisor",
     "update_field": "workflow_state",
     "update_value": "Pending PPIC Supervisor",
@@ -1271,7 +1194,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Pending PM Approval",
     "update_field": "workflow_state",
     "update_value": "Pending PM Approval",
@@ -1287,7 +1209,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "workflow_state",
     "update_value": "Draft",
@@ -1303,7 +1224,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Pending Approval",
     "update_field": "workflow_state",
     "update_value": "Pending Approval",
@@ -1319,7 +1239,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "workflow_state",
     "update_value": "Draft",
@@ -1335,7 +1254,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Pending Machine Shop Supervisor Approval",
     "update_field": "workflow_state",
     "update_value": "Pending Machine Shop Supervisor Approval",
@@ -1351,7 +1269,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "workflow_state",
     "update_value": "Draft",
@@ -1367,7 +1284,6 @@
     "parent": "Purchase Request",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Pending MIS Supervisor Approval",
     "update_field": "workflow_state",
     "update_value": "Pending MIS Supervisor Approval",
@@ -1384,7 +1300,6 @@
     "parent": "Purchase Request",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -1397,7 +1312,6 @@
     "parent": "Purchase Request",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Pending PM Approval",
     "workflow_builder_id": null
    },
@@ -1410,7 +1324,6 @@
     "parent": "Purchase Request",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "To Received",
     "workflow_builder_id": null
    },
@@ -1423,7 +1336,6 @@
     "parent": "Purchase Request",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Received",
     "workflow_builder_id": null
    },
@@ -1436,7 +1348,6 @@
     "parent": "Purchase Request",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -1449,7 +1360,6 @@
     "parent": "Purchase Request",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Pending Logistics Manager Approval",
     "workflow_builder_id": null
    },
@@ -1462,7 +1372,6 @@
     "parent": "Purchase Request",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -1475,7 +1384,6 @@
     "parent": "Purchase Request",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Pending PPIC Supervisor",
     "workflow_builder_id": null
    },
@@ -1488,7 +1396,6 @@
     "parent": "Purchase Request",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Pending PM Approval",
     "workflow_builder_id": null
    },
@@ -1501,7 +1408,6 @@
     "parent": "Purchase Request",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -1514,7 +1420,6 @@
     "parent": "Purchase Request",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Pending Approval",
     "workflow_builder_id": null
    },
@@ -1527,7 +1432,6 @@
     "parent": "Purchase Request",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -1540,7 +1444,6 @@
     "parent": "Purchase Request",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Pending Machine Shop Supervisor Approval",
     "workflow_builder_id": null
    },
@@ -1553,7 +1456,6 @@
     "parent": "Purchase Request",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    }
@@ -1582,7 +1484,6 @@
     "parent": "Delivery Note",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "status",
     "update_value": "Draft",
@@ -1598,7 +1499,6 @@
     "parent": "Delivery Note",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "For Stock Confirmation",
     "update_field": "status",
     "update_value": "For Stock Confirmation",
@@ -1614,7 +1514,6 @@
     "parent": "Delivery Note",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "For Stock Confirmation",
     "update_field": "status",
     "update_value": "For Stock Confirmation",
@@ -1630,7 +1529,6 @@
     "parent": "Delivery Note",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "For DR Printing",
     "update_field": "status",
     "update_value": "For DR Printing",
@@ -1646,7 +1544,6 @@
     "parent": "Delivery Note",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "To Deliver and Bill",
     "update_field": "status",
     "update_value": "To Deliver and Bill",
@@ -1662,7 +1559,6 @@
     "parent": "Delivery Note",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Completed",
     "update_field": "status",
     "update_value": "Completed",
@@ -1678,7 +1574,6 @@
     "parent": "Delivery Note",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Cancelled",
     "update_field": "status",
     "update_value": "Cancelled",
@@ -1694,7 +1589,6 @@
     "parent": "Delivery Note",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "status",
     "update_value": "Draft",
@@ -1710,7 +1604,6 @@
     "parent": "Delivery Note",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Completed",
     "update_field": "status",
     "update_value": "Completed",
@@ -1726,7 +1619,6 @@
     "parent": "Delivery Note",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Cancelled",
     "update_field": "status",
     "update_value": "Cancelled",
@@ -1743,7 +1635,6 @@
     "parent": "Delivery Note",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -1756,7 +1647,6 @@
     "parent": "Delivery Note",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Stock Confirmation",
     "workflow_builder_id": null
    },
@@ -1769,7 +1659,6 @@
     "parent": "Delivery Note",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For DR Printing",
     "workflow_builder_id": null
    },
@@ -1782,7 +1671,6 @@
     "parent": "Delivery Note",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "To Deliver and Bill",
     "workflow_builder_id": null
    },
@@ -1795,7 +1683,6 @@
     "parent": "Delivery Note",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Completed",
     "workflow_builder_id": null
    },
@@ -1808,7 +1695,6 @@
     "parent": "Delivery Note",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -1821,7 +1707,6 @@
     "parent": "Delivery Note",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Completed",
     "workflow_builder_id": null
    }
@@ -1850,7 +1735,6 @@
     "parent": "WF_WarehouseTransfer",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "transfer_status",
     "update_value": "Draft",
@@ -1866,7 +1750,6 @@
     "parent": "WF_WarehouseTransfer",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Transferred",
     "update_field": "transfer_status",
     "update_value": "Transferred",
@@ -1882,7 +1765,6 @@
     "parent": "WF_WarehouseTransfer",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Received",
     "update_field": "transfer_status",
     "update_value": "Received",
@@ -1898,7 +1780,6 @@
     "parent": "WF_WarehouseTransfer",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Cancelled",
     "update_field": "amended_from",
     "update_value": "Cancelled",
@@ -1915,7 +1796,6 @@
     "parent": "WF_WarehouseTransfer",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -1928,7 +1808,6 @@
     "parent": "WF_WarehouseTransfer",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Transferred",
     "workflow_builder_id": null
    },
@@ -1941,7 +1820,6 @@
     "parent": "WF_WarehouseTransfer",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Received",
     "workflow_builder_id": null
    },
@@ -1954,7 +1832,6 @@
     "parent": "WF_WarehouseTransfer",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Transferred",
     "workflow_builder_id": null
    }
@@ -1983,7 +1860,6 @@
     "parent": "Item Master File (non production)",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "workflow_state",
     "update_value": "Draft",
@@ -1999,7 +1875,6 @@
     "parent": "Item Master File (non production)",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Pending Approval",
     "update_field": "workflow_state",
     "update_value": "Pending Approval",
@@ -2015,7 +1890,6 @@
     "parent": "Item Master File (non production)",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Submitted",
     "update_field": "workflow_state",
     "update_value": "Submitted",
@@ -2031,7 +1905,6 @@
     "parent": "Item Master File (non production)",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Submitted",
     "update_field": "workflow_state",
     "update_value": "Submitted",
@@ -2048,7 +1921,6 @@
     "parent": "Item Master File (non production)",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -2061,7 +1933,6 @@
     "parent": "Item Master File (non production)",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Pending Approval",
     "workflow_builder_id": null
    },
@@ -2074,7 +1945,6 @@
     "parent": "Item Master File (non production)",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Submitted",
     "workflow_builder_id": null
    }
@@ -2103,7 +1973,6 @@
     "parent": "WF_WRR",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": "workflow_state",
     "update_value": "Draft",
@@ -2119,7 +1988,6 @@
     "parent": "WF_WRR",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Transferred",
     "update_field": "workflow_state",
     "update_value": "Transferred",
@@ -2135,7 +2003,6 @@
     "parent": "WF_WRR",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Received",
     "update_field": "workflow_state",
     "update_value": "Received",
@@ -2151,7 +2018,6 @@
     "parent": "WF_WRR",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Cancelled",
     "update_field": "workflow_state",
     "update_value": "Cancelled",
@@ -2168,7 +2034,6 @@
     "parent": "WF_WRR",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -2181,7 +2046,6 @@
     "parent": "WF_WRR",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Transferred",
     "workflow_builder_id": null
    },
@@ -2194,7 +2058,6 @@
     "parent": "WF_WRR",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Received",
     "workflow_builder_id": null
    },
@@ -2207,7 +2070,6 @@
     "parent": "WF_WRR",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -2220,7 +2082,6 @@
     "parent": "WF_WRR",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    }
@@ -2249,7 +2110,6 @@
     "parent": "PC_WORKFLOW",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": null,
     "update_value": "Draft",
@@ -2265,7 +2125,6 @@
     "parent": "PC_WORKFLOW",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "For Recon",
     "update_field": null,
     "update_value": "For Recon",
@@ -2281,7 +2140,6 @@
     "parent": "PC_WORKFLOW",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Active",
     "update_field": null,
     "update_value": "Active",
@@ -2298,7 +2156,6 @@
     "parent": "PC_WORKFLOW",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -2311,7 +2168,6 @@
     "parent": "PC_WORKFLOW",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Recon",
     "workflow_builder_id": null
    },
@@ -2324,7 +2180,6 @@
     "parent": "PC_WORKFLOW",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    }
@@ -2353,7 +2208,6 @@
     "parent": "MRF Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": null,
     "update_value": "Draft",
@@ -2369,7 +2223,6 @@
     "parent": "MRF Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "For Approval",
     "update_field": null,
     "update_value": "For Approval",
@@ -2385,7 +2238,6 @@
     "parent": "MRF Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Approved",
     "update_field": null,
     "update_value": "Approved",
@@ -2401,7 +2253,6 @@
     "parent": "MRF Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Acknowledged",
     "update_field": null,
     "update_value": "Acknowledged",
@@ -2417,7 +2268,6 @@
     "parent": "MRF Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Cancelled",
     "update_field": null,
     "update_value": "Cancelled",
@@ -2433,7 +2283,6 @@
     "parent": "MRF Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Completed",
     "update_field": null,
     "update_value": "Completed",
@@ -2450,7 +2299,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -2463,7 +2311,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Approval",
     "workflow_builder_id": null
    },
@@ -2476,7 +2323,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Acknowledged",
     "workflow_builder_id": null
    },
@@ -2489,7 +2335,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Approved",
     "workflow_builder_id": null
    },
@@ -2502,7 +2347,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -2515,7 +2359,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Approval",
     "workflow_builder_id": null
    },
@@ -2528,7 +2371,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Approved",
     "workflow_builder_id": null
    },
@@ -2541,7 +2383,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -2554,7 +2395,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -2567,7 +2407,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -2580,7 +2419,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Approval",
     "workflow_builder_id": null
    },
@@ -2593,7 +2431,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Approval",
     "workflow_builder_id": null
    },
@@ -2606,7 +2443,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -2619,7 +2455,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Approval",
     "workflow_builder_id": null
    },
@@ -2632,7 +2467,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Approval",
     "workflow_builder_id": null
    },
@@ -2645,7 +2479,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Approval",
     "workflow_builder_id": null
    },
@@ -2658,7 +2491,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "For Approval",
     "workflow_builder_id": null
    },
@@ -2671,7 +2503,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Approved",
     "workflow_builder_id": null
    },
@@ -2684,7 +2515,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Approved",
     "workflow_builder_id": null
    },
@@ -2697,7 +2527,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Approved",
     "workflow_builder_id": null
    },
@@ -2710,7 +2539,6 @@
     "parent": "MRF Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Acknowledged",
     "workflow_builder_id": null
    }
@@ -2739,7 +2567,6 @@
     "parent": "Loan Application Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": null,
     "update_value": null,
@@ -2755,7 +2582,6 @@
     "parent": "Loan Application Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Initiated",
     "update_field": null,
     "update_value": null,
@@ -2771,7 +2597,6 @@
     "parent": "Loan Application Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "KYC Pending",
     "update_field": null,
     "update_value": null,
@@ -2787,7 +2612,6 @@
     "parent": "Loan Application Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Rejected",
     "update_field": null,
     "update_value": null,
@@ -2803,7 +2627,6 @@
     "parent": "Loan Application Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "KYC Complete",
     "update_field": null,
     "update_value": null,
@@ -2819,7 +2642,6 @@
     "parent": "Loan Application Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Approved",
     "update_field": null,
     "update_value": null,
@@ -2836,7 +2658,6 @@
     "parent": "Loan Application Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": "action-1"
    },
@@ -2849,7 +2670,6 @@
     "parent": "Loan Application Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Initiated",
     "workflow_builder_id": "action-2"
    },
@@ -2862,7 +2682,6 @@
     "parent": "Loan Application Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Initiated",
     "workflow_builder_id": "action-3"
    },
@@ -2875,7 +2694,6 @@
     "parent": "Loan Application Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "KYC Pending",
     "workflow_builder_id": "action-4"
    },
@@ -2888,7 +2706,6 @@
     "parent": "Loan Application Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "KYC Pending",
     "workflow_builder_id": "action-5"
    },
@@ -2901,7 +2718,6 @@
     "parent": "Loan Application Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "KYC Complete",
     "workflow_builder_id": "action-6"
    },
@@ -2914,7 +2730,6 @@
     "parent": "Loan Application Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "KYC Complete",
     "workflow_builder_id": "action-7"
    }
@@ -2943,7 +2758,6 @@
     "parent": "Salary Slip Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Draft",
     "update_field": null,
     "update_value": null,
@@ -2959,7 +2773,6 @@
     "parent": "Salary Slip Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Submitted",
     "update_field": null,
     "update_value": null,
@@ -2975,7 +2788,6 @@
     "parent": "Salary Slip Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Processed",
     "update_field": null,
     "update_value": null,
@@ -2991,7 +2803,6 @@
     "parent": "Salary Slip Workflow",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "send_email": 0,
     "state": "Cancelled",
     "update_field": null,
     "update_value": null,
@@ -3008,7 +2819,6 @@
     "parent": "Salary Slip Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -3021,7 +2831,6 @@
     "parent": "Salary Slip Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Submitted",
     "workflow_builder_id": "action-2"
    },
@@ -3034,7 +2843,6 @@
     "parent": "Salary Slip Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Draft",
     "workflow_builder_id": null
    },
@@ -3047,7 +2855,6 @@
     "parent": "Salary Slip Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Submitted",
     "workflow_builder_id": null
    },
@@ -3060,7 +2867,6 @@
     "parent": "Salary Slip Workflow",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "send_email_to_creator": 0,
     "state": "Processed",
     "workflow_builder_id": null
    }

@@ -1,7 +1,6 @@
 [
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -39,7 +38,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -107,7 +105,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -164,7 +161,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -214,7 +210,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -336,7 +331,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [
    {
     "fieldname": "name",
@@ -509,7 +503,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [
    {
     "fieldname": "Sales Invoice",
@@ -610,7 +603,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -660,7 +652,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -710,7 +701,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -742,7 +732,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -780,7 +769,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -830,7 +818,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -874,7 +861,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -912,7 +898,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -950,7 +935,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -988,7 +972,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1013,7 +996,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1038,7 +1020,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1076,7 +1057,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1114,7 +1094,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1158,7 +1137,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1202,7 +1180,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1246,7 +1223,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1296,7 +1272,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1334,7 +1309,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1372,7 +1346,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1410,7 +1383,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1442,7 +1414,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1492,7 +1463,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1536,7 +1506,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1574,7 +1543,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1630,7 +1598,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1668,7 +1635,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1718,7 +1684,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1756,7 +1721,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1806,7 +1770,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1856,7 +1819,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1894,7 +1856,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1932,7 +1893,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -1970,7 +1930,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2008,7 +1967,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2046,7 +2004,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2084,7 +2041,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2122,7 +2078,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2160,7 +2115,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2198,7 +2152,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2223,7 +2176,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 1,
   "docstatus": 0,
@@ -2248,7 +2200,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2292,7 +2243,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2324,7 +2274,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2380,7 +2329,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2436,7 +2384,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2474,7 +2421,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2530,7 +2476,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2562,7 +2507,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2600,7 +2544,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2644,7 +2587,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2682,7 +2624,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2750,7 +2691,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2806,7 +2746,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2862,7 +2801,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2900,7 +2838,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2950,7 +2887,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -2988,7 +2924,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3026,7 +2961,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3064,7 +2998,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3102,7 +3035,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3146,7 +3078,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3184,7 +3115,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3228,7 +3158,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3278,7 +3207,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3322,7 +3250,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3366,7 +3293,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3404,7 +3330,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3448,7 +3373,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3486,7 +3410,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3548,7 +3471,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3598,7 +3520,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3623,7 +3544,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3648,7 +3568,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3686,7 +3605,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3730,7 +3648,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3780,7 +3697,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3818,7 +3734,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3856,7 +3771,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3888,7 +3802,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3926,7 +3839,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3951,7 +3863,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -3989,7 +3900,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4021,7 +3931,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4053,7 +3962,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4085,7 +3993,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4129,7 +4036,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4167,7 +4073,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4205,7 +4110,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4243,7 +4147,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4299,7 +4202,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4337,7 +4239,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4362,7 +4263,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4430,7 +4330,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4474,7 +4373,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4518,7 +4416,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4568,7 +4465,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4612,7 +4508,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4656,7 +4551,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4694,7 +4588,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4732,7 +4625,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4757,7 +4649,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4795,7 +4686,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4845,7 +4735,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4889,7 +4778,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4933,7 +4821,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -4971,7 +4858,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5027,7 +4913,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5040,7 +4925,7 @@
   "modified": "2021-10-20 19:32:52.115364",
   "module": "PH Localization",
   "name": "BIR 2550M",
-  "prepared_report": 0,
+  "prepared_report": 1,
   "query": null,
   "ref_doctype": "Sales Invoice",
   "reference_report": null,
@@ -5077,7 +4962,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5133,7 +5017,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5189,7 +5072,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5221,7 +5103,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5265,7 +5146,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5309,7 +5189,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5353,7 +5232,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5397,7 +5275,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5429,7 +5306,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5479,7 +5355,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5523,7 +5398,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5567,7 +5441,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5611,7 +5484,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5667,7 +5539,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5717,7 +5588,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5755,7 +5625,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5799,7 +5668,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5843,7 +5711,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5875,7 +5742,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5931,7 +5797,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -5981,7 +5846,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6013,7 +5877,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6057,7 +5920,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6089,7 +5951,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6121,7 +5982,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6177,7 +6037,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6221,7 +6080,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6277,7 +6135,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6333,7 +6190,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6377,7 +6233,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6409,7 +6264,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6465,7 +6319,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6490,7 +6343,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6528,7 +6380,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6578,7 +6429,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6616,7 +6466,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6654,7 +6503,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6679,7 +6527,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6765,7 +6612,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6803,7 +6649,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -6828,7 +6673,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [
    {
     "fieldname": "Sales Order",
@@ -7007,7 +6851,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7075,7 +6918,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7131,7 +6973,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7199,7 +7040,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7231,7 +7071,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7305,7 +7144,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7416,7 +7254,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7466,7 +7303,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7491,7 +7327,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7523,7 +7358,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7567,7 +7401,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7580,7 +7413,7 @@
   "modified": "2017-02-24 20:12:40.282376",
   "module": "Accounts",
   "name": "Profit and Loss Statement",
-  "prepared_report": 0,
+  "prepared_report": 1,
   "query": null,
   "ref_doctype": "GL Entry",
   "reference_report": null,
@@ -7611,7 +7444,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7655,7 +7487,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7693,7 +7524,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7743,7 +7573,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7775,7 +7604,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7813,7 +7641,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7857,7 +7684,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7901,7 +7727,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7951,7 +7776,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -7995,7 +7819,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8045,7 +7868,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8089,7 +7911,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8127,7 +7948,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8177,7 +7997,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8251,7 +8070,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8325,7 +8143,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8375,7 +8192,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8419,7 +8235,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8463,7 +8278,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8513,7 +8327,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8551,7 +8364,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8595,7 +8407,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8627,7 +8438,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8665,7 +8475,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8703,7 +8512,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8753,7 +8561,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8797,7 +8604,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8841,7 +8647,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8879,7 +8684,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8923,7 +8727,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -8961,7 +8764,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9005,7 +8807,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9043,7 +8844,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9081,7 +8881,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9131,7 +8930,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9187,7 +8985,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9225,7 +9022,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9275,7 +9071,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9325,7 +9120,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9363,7 +9157,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9401,7 +9194,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9439,7 +9231,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9489,7 +9280,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9527,7 +9317,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9571,7 +9360,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9609,7 +9397,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9653,7 +9440,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9685,7 +9471,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9723,7 +9508,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9767,7 +9551,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9817,7 +9600,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9873,7 +9655,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9929,7 +9710,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -9985,7 +9765,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10041,7 +9820,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10066,7 +9844,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10110,7 +9887,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10154,7 +9930,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10204,7 +9979,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10242,7 +10016,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10280,7 +10053,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10354,7 +10126,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10398,7 +10169,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10472,7 +10242,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10546,7 +10315,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10602,7 +10370,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10646,7 +10413,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10714,7 +10480,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10752,7 +10517,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10808,7 +10572,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10821,7 +10584,7 @@
   "modified": "2020-05-29 14:54:53.591445",
   "module": "Selling",
   "name": "Sales Order Analysis",
-  "prepared_report": 0,
+  "prepared_report": 1,
   "query": null,
   "ref_doctype": "Sales Order",
   "reference_report": null,
@@ -10864,7 +10627,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10920,7 +10682,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -10933,7 +10694,7 @@
   "modified": "2019-11-04 16:28:14.608904",
   "module": "Selling",
   "name": "Item-wise Sales History",
-  "prepared_report": 0,
+  "prepared_report": 1,
   "query": null,
   "ref_doctype": "Sales Order",
   "reference_report": null,
@@ -10976,7 +10737,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11020,7 +10780,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11088,7 +10847,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11138,7 +10896,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11182,7 +10939,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11220,7 +10976,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11264,7 +11019,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11302,7 +11056,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11352,7 +11105,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11384,7 +11136,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11422,7 +11173,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11478,7 +11228,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11522,7 +11271,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11566,7 +11314,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11598,7 +11345,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11642,7 +11388,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11692,7 +11437,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11742,7 +11486,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11798,7 +11541,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11836,7 +11578,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11880,7 +11621,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11930,7 +11670,6 @@
  },
  {
   "add_total_row": 1,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -11980,7 +11719,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -12024,7 +11762,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -12062,7 +11799,6 @@
  },
  {
   "add_total_row": 0,
-  "add_translate_data": 0,
   "columns": [],
   "disabled": 0,
   "docstatus": 0,
@@ -12075,7 +11811,7 @@
   "modified": "2026-04-20 17:16:12.130078",
   "module": "Stock",
   "name": "Booklet Monitoring Report",
-  "prepared_report": 0,
+  "prepared_report": 1,
   "query": null,
   "ref_doctype": "Stock Entry",
   "reference_report": null,
