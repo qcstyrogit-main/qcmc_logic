@@ -2,11 +2,30 @@ import frappe
 from erpnext.stock.utils import get_incoming_rate
 from erpnext.accounts.general_ledger import make_reverse_gl_entries
 from qcmc_logic.utils import get_user_allowed_warehouses
-from frappe.utils import now, nowdate
+from frappe.utils import now, nowdate, cint
 from erpnext.stock.stock_ledger import make_sl_entries
 
 
 @frappe.whitelist()
+
+
+def validate_transfer_type_rules(doc, method=None):
+    if not doc.source_warehouse or not doc.target_warehouse or not doc.transfer_type:
+        return
+
+    if doc.source_warehouse == doc.target_warehouse:
+        frappe.throw("Source Warehouse and Target Warehouse cannot be the same.")
+
+    source_company = frappe.db.get_value("Warehouse", doc.source_warehouse, "company")
+    target_company = frappe.db.get_value("Warehouse", doc.target_warehouse, "company")
+
+    if doc.transfer_type == "Intercompany Warehouse Transfer" and source_company == target_company:
+        frappe.throw("Intercompany Warehouse Transfer requires source and target warehouses from different companies.")
+
+    if doc.transfer_type == "Provincial Warehouse Transfer":
+        is_province = frappe.db.get_value("Warehouse", doc.target_warehouse, "custom_is_province")
+        if not cint(is_province):
+            frappe.throw("Provincial Warehouse Transfer requires a provincial target warehouse.")
 
 
 def validate_update_after_submit(doc, method):
