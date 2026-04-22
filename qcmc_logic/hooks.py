@@ -11,6 +11,7 @@ override_whitelisted_methods = {}
 
 doc_events = {
     "Warehouse Transfer": {   # 👈 name of your GUI Doctype
+        "validate": "qcmc_logic.customs.warehouse_transfer_events.validate_transfer_type_rules",
         "on_submit": "qcmc_logic.customs.warehouse_transfer_events.on_submit",
         "on_update_after_submit": "qcmc_logic.customs.warehouse_transfer_events.on_update_after_submit",
         "on_cancel": "qcmc_logic.customs.warehouse_transfer_events.on_cancel",
@@ -65,7 +66,7 @@ override_print_format = {
 }
 
 fixtures = [
-    {"doctype": "Custom Field"},
+    {"doctype": "Custom Field", "filters": [["fieldname", "!=", "workflow_state"]]},
     {"doctype": "Client Script"},
     {"doctype": "Server Script"},
     {"doctype": "List View Settings"},
