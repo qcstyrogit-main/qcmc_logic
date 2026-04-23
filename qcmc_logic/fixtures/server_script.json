@@ -568,5 +568,24 @@
   "reference_doctype": "Vehicle Log",
   "script": "\r\n\r\n# Get all Vehicle Service rows linked to this Vehicle Log\r\nservices = frappe.get_all(\r\n    \"Vehicle Service\",\r\n    filters={\"parent\": doc.name},\r\n    fields=[\"service_item\", \"custom_service_date\"],\r\n    order_by=\"custom_service_date desc\"\r\n)\r\n\r\n\r\n\r\n# Get vehicle document using license_plate\r\nvehicle_name = frappe.db.get_value(\r\n    \"Vehicle\",\r\n    {\"license_plate\": doc.license_plate},\r\n    \"name\"\r\n)\r\n\r\n\r\n\r\nfor service in services:\r\n\r\n    # ENGINE CHANGE OIL\r\n    if service.service_item and \"ENGINE CHANGE OIL\" in service.service_item.upper():\r\n        frappe.db.set_value(\r\n            \"Vehicle\",\r\n            vehicle_name,\r\n            \"custom_last_change_engine_oil_date\",\r\n            service.custom_service_date\r\n        )\r\n        break  # only latest needed\r\n\r\n\r\n# REGISTRATION\r\nfor service in services:\r\n\r\n    if service.service_item and \"REGISTRATION\" in service.service_item.upper():\r\n\r\n        month = frappe.utils.formatdate(service.custom_service_date, \"MMMM\")\r\n        year = frappe.utils.formatdate(service.custom_service_date, \"yyyy\")\r\n\r\n        frappe.db.set_value(\r\n            \"Vehicle\",\r\n            vehicle_name,\r\n            {\r\n                \"custom_month\": month,\r\n                \"custom_year\": year\r\n            }\r\n        )\r\n        break  # only latest needed",
   "script_type": "DocType Event"
+ },
+ {
+  "allow_guest": 0,
+  "api_method": null,
+  "cron_format": null,
+  "disabled": 1,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "Before Save",
+  "enable_rate_limit": 0,
+  "event_frequency": "All",
+  "modified": "2026-04-22 14:39:03.384352",
+  "module": null,
+  "name": "WRR Not to Compute Total Weight",
+  "rate_limit_count": 5,
+  "rate_limit_seconds": 86400,
+  "reference_doctype": "Purchase Receipt",
+  "script": "for item in doc.items:\r\n    # Only compute if total_weight is empty (first time)\r\n    if not item.total_weight:\r\n        if item.qty and item.weight_per_unit:\r\n            item.total_weight = item.qty * item.weight_per_unit\r\n    else:\r\n        item.weight_per_unit = item.total_weight / item.qty",
+  "script_type": "DocType Event"
  }
 ]

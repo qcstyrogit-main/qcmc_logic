@@ -854,7 +854,7 @@
   "modified": "2026-04-20 16:01:16.851459",
   "module": null,
   "name": "WT_WHFILTERS",
-  "script": "frappe.ui.form.on('Warehouse Transfer', {\n    setup(frm) {\n        set_target_warehouse_filter(frm);\n    },\n    refresh(frm) {\n        set_target_warehouse_filter(frm);\n    },\n    source_warehouse(frm) {\n        frm.set_value('target_warehouse', null);\n        set_target_warehouse_filter(frm);\n    },\n    source_company(frm) {\n        set_target_warehouse_filter(frm);\n    },\n    transfer_type(frm) {\n        frm.set_value('target_warehouse', null);\n        set_target_warehouse_filter(frm);\n    }\n});\n\nfunction set_target_warehouse_filter(frm) {\n    frm.set_query('target_warehouse', () => {\n        const source_warehouse = frm.doc.source_warehouse;\n        const source_company = frm.doc.source_company;\n        const transfer_type = frm.doc.transfer_type;\n\n        // Block target selection until controlling fields are set.\n        if (!source_warehouse || !transfer_type) {\n            return { filters: [['Warehouse', 'name', '=', '']] };\n        }\n\n        const filters = [\n            ['Warehouse', 'name', '!=', source_warehouse]\n        ];\n\n        if (transfer_type === 'Intercompany Warehouse Transfer') {\n            if (!source_company) {\n                return { filters: [['Warehouse', 'name', '=', '']] };\n            }\n            filters.push(['Warehouse', 'company', '!=', source_company]);\n        } else if (transfer_type === 'Provincial Warehouse Transfer') {\n            filters.push(['Warehouse', 'custom_is_province', '=', 1]);\n        }\n\n        return { filters };\n    });\n}",
+  "script": "frappe.ui.form.on('Warehouse Transfer', {\r\n    refresh(frm) {\r\n        set_target_warehouse_filter(frm);\r\n    },\r\n    source_warehouse(frm) {\r\n        set_target_warehouse_filter(frm);\r\n    },\r\n    warehouse_transfer_type(frm) {\r\n        set_target_warehouse_filter(frm);\r\n    }\r\n});\r\n\r\nfunction set_target_warehouse_filter(frm) {\r\n    if (!frm.doc.source_warehouse || !frm.doc.warehouse_transfer_type) {\r\n        frm.set_query(\"target_warehouse\", () => { return {}; });\r\n        return;\r\n    }\r\n\r\n    let filters = {};\r\n\r\n    if (frm.doc.warehouse_transfer_type === \"Intercompany Warehouse Transfer\") {\r\n        // Get source warehouse company\r\n        frappe.db.get_value(\"Warehouse\", frm.doc.source_warehouse, \"company\").then(r => {\r\n            let source_company = r.message.company;\r\n            filters[\"company\"] = [\"!=\", source_company]; // Different company\r\n            frm.set_query(\"target_warehouse\", () => {\r\n                return { filters: filters };\r\n            });\r\n        });\r\n    }\r\n\r\n    else if (frm.doc.warehouse_transfer_type === \"Provincial Warehouse Transfer\") {\r\n        // Provincial warehouses are assumed to have naming or custom field \"is_provincial\" = 1\r\n        filters[\"is_provincial\"] = 1;\r\n        frm.set_query(\"target_warehouse\", () => {\r\n            return { filters: filters };\r\n        });\r\n    }\r\n\r\n    else {\r\n        // Default: no special filter\r\n        frm.set_query(\"target_warehouse\", () => {\r\n            return {};\r\n        });\r\n    }\r\n}",
   "view": "Form"
  },
  {
@@ -932,6 +932,28 @@
   "module": null,
   "name": "BookletItemsFilter",
   "script": "frappe.ui.form.on('Booklet Monitoring', {\n\tonload(frm) {\n    frm.set_query(\"item\", () => {\n      return {\n        query: \"qcmc_logic.queries.bookletitems.get_booklet_items\"\n      };\n    });\n  }\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Receipt",
+  "enabled": 1,
+  "modified": "2026-04-22 12:54:10.072850",
+  "module": null,
+  "name": "WRR total weight not read only",
+  "script": "frappe.ui.form.on('Purchase Receipt', {\n\trefresh: function(frm) {\n        frm.fields_dict.items.grid.update_docfield_property(\n            'total_weight',\n            'read_only',\n            0\n        );\n    }\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Receipt",
+  "enabled": 0,
+  "modified": "2026-04-22 14:39:07.760025",
+  "module": null,
+  "name": "WRR Set Weight Per Unit",
+  "script": "frappe.ui.form.on('Purchase Receipt', {\n\ttotal_weight: function(frm, cdt, cdn) {\n        let row = locals[cdt][cdn];\n\n        if (row.total_weight && row.qty) {\n            row.weight_per_unit = row.total_weight / row.qty;\n\n            // refresh the field in grid\n            frm.refresh_field('items');\n        }\n    }\n})",
   "view": "Form"
  }
 ]
