@@ -12073,7 +12073,7 @@
   "json": null,
   "letter_head": null,
   "modified": "2026-04-23 09:46:06.794325",
-  "module": null,
+  "module": "Stock",
   "name": "Booklet Monitoring Report",
   "prepared_report": 0,
   "query": null,
