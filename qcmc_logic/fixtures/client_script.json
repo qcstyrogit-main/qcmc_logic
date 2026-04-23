@@ -288,94 +288,6 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
-  "dt": "Sales Order",
-  "enabled": 0,
-  "modified": "2025-04-02 16:35:40.421996",
-  "module": null,
-  "name": "SONotCOMPGroup",
-  "script": "frappe.ui.form.on('Sales Order', {\n\trefresh: function(frm) {\n\t\t// your code here\n\t\tfrappe.call({\n            method: 'frappe.client.get_list',\n            args: {\n                doctype: 'Company',\n                filters: { 'is_group': 0 },\n                fields: ['name'],\n                limit_page_length: 1  // Get the first company that is not a group\n            },\n            callback: function(response) {\n                if (response.message && response.message.length > 0) {\n                    frm.set_value('company', response.message[0].name);\n                    frm.set_value('custom_abbr', response.message[0].abbr);\n                }\n            }\n        });\n\t\t\n\t\t\n\t\tfrm.set_query(\"company\", function() {\n            return {\n                filters: {\n                    \"is_group\": 0  // Filters only non-group companies\n                }\n            };\n        });\n\t},\n    company: function(frm) {  // Trigger when company field changes\n        if (frm.doc.company) {\n            frappe.call({\n                method: 'frappe.client.get_value',\n                args: {\n                    doctype: 'Company',\n                    filters: { 'name': frm.doc.company },\n                    fieldname: 'abbr'\n                },\n                callback: function(response) {\n                    if (response.message) {\n                        frm.set_value('custom_abbr', response.message.abbr);\n                    }\n                }\n            });\n        }\n    }\n});\n",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
-  "dt": "Material Request",
-  "enabled": 0,
-  "modified": "2025-04-04 14:51:12.912744",
-  "module": null,
-  "name": "PRNotCOMPGroup",
-  "script": "frappe.ui.form.on('Material Request', {\r\n\trefresh: function(frm) {\r\n\t\t// your code here\r\n\t\tfrappe.call({\r\n            method: 'frappe.client.get_list',\r\n            args: {\r\n                doctype: 'Company',\r\n                filters: { 'is_group': 0 },\r\n                fields: ['name'],\r\n                limit_page_length: 1  // Get the first company that is not a group\r\n            },\r\n            callback: function(response) {\r\n                if (response.message && response.message.length > 0) {\r\n                    frm.set_value('company', response.message[0].name);\r\n                    frm.set_value('custom_abbr', response.message[0].abbr);\r\n                }\r\n            }\r\n        });\r\n\t\t\r\n\t\t\r\n\t\tfrm.set_query(\"company\", function() {\r\n            return {\r\n                filters: {\r\n                    \"is_group\": 0  // Filters only non-group companies\r\n                }\r\n            };\r\n        });\r\n\t},\r\n    company: function(frm) {  // Trigger when company field changes\r\n        if (frm.doc.company) {\r\n            frappe.call({\r\n                method: 'frappe.client.get_value',\r\n                args: {\r\n                    doctype: 'Company',\r\n                    filters: { 'name': frm.doc.company },\r\n                    fieldname: 'abbr'\r\n                },\r\n                callback: function(response) {\r\n                    if (response.message) {\r\n                        frm.set_value('custom_abbr', response.message.abbr);\r\n                    }\r\n                }\r\n            });\r\n        }\r\n    }\r\n})",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
-  "dt": "Delivery Trip",
-  "enabled": 1,
-  "modified": "2025-04-04 15:10:23.545365",
-  "module": null,
-  "name": "DeliveryStopMatTransOnly",
-  "script": "frappe.ui.form.on('Delivery Trip', {\r\n    onload(frm) {\r\n        frm.fields_dict.delivery_stops.grid.get_field('custom_material_transfer').get_query = function(doc, cdt, cdn) {\r\n            return {\r\n                filters: {\r\n                    purpose: 'Material Transfer'\r\n                }\r\n            };\r\n        };\r\n    }\r\n});",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
-  "dt": "Inter Company Asset Transfer",
-  "enabled": 1,
-  "modified": "2025-07-07 13:29:56.975785",
-  "module": null,
-  "name": "Inter Company Asset Transfer Employee Comp",
-  "script": "frappe.ui.form.on('Inter Company Asset Transfer', {\r\n    target_comp: function(frm) {\r\n        const target_comp = frm.doc.target_comp;\r\n\r\n        if (target_comp) {\r\n            frm.set_query(\"transfer_to_emp\", () => {\r\n                return {\r\n                    filters: {\r\n                        company: target_comp\r\n                    }\r\n                };\r\n            });\r\n        } else {\r\n            // Clear filter if no target company selected\r\n            frm.set_query(\"transfer_to_emp\", () => {\r\n                return {\r\n                    filters: {}\r\n                };\r\n            });\r\n        }\r\n    }\r\n});",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
-  "dt": "Asset Movement",
-  "enabled": 1,
-  "modified": "2025-07-23 08:00:04.464650",
-  "module": null,
-  "name": "Asset Movement Item - Exclude Cancelled Asset",
-  "script": "frappe.ui.form.on('Asset Movement Item', {\r\n  form_render: function(frm, cdt, cdn) {\r\n    const row = locals[cdt][cdn];\r\n    const show = frm.doc.purpose === 'Receipt';\r\n\r\n    // Show/hide the field in the child row edit dialog\r\n    frm.fields_dict.items.grid.grid_rows_by_docname[cdn]\r\n      .fields_dict.custom_to_section.toggle(show);\r\n  }\r\n});\r\n",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
-  "dt": "Asset",
-  "enabled": 1,
-  "modified": "2025-04-29 17:58:18.833709",
-  "module": null,
-  "name": "Asset bypass location",
-  "script": "frappe.ui.form.on('Asset', {\r\n    before_save(frm) {\r\n        if (!frm.doc.location) {\r\n            frm.set_value('location', 'EDSA'); // Replace with your actual Location name\r\n        }\r\n    }\r\n});",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
-  "dt": "Sales Order",
-  "enabled": 0,
-  "modified": "2025-06-19 15:42:28.957293",
-  "module": null,
-  "name": "SO Create Dropdown",
-  "script": "frappe.ui.form.on('Sales Order', {\r\n    refresh: function(frm) {\r\n        if (frm.doc.docstatus === 1) {\r\n            // Delay execution slightly to ensure buttons are loaded\r\n            setTimeout(() => {\r\n                // Remove \"Pick List\" from the \"Create\" menu\r\n                frm.remove_custom_button('Pick List', 'Create');\r\n                frm.remove_custom_button('Payment', 'Create');\r\n                frm.remove_custom_button('Project', 'Create');\r\n                frm.remove_custom_button('Payment Request', 'Create');\r\n                frm.remove_custom_button('Purchase Order', 'Create');\r\n            }, 100);\r\n        }\r\n    }\r\n});",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
-  "dt": "Sales Order",
-  "enabled": 0,
-  "modified": "2025-06-19 15:42:50.448033",
-  "module": null,
-  "name": "SO No Price",
-  "script": "frappe.ui.form.on('Sales Order', {\r\n    onload: function(frm) {\r\n        if (frappe.user.has_role('Stock User')) {\r\n            // Hide pricing fields in main form\r\n            frm.set_df_property('base_total', 'hidden', 1);\r\n            frm.set_df_property('grand_total', 'hidden', 1);\r\n            frm.set_df_property('total', 'hidden', 1);\r\n\r\n            // Hide pricing fields in items table\r\n            ['rate', 'amount', 'net_rate', 'net_amount', 'base_rate', 'base_amount'].forEach(field => {\r\n                frm.fields_dict.items.grid.update_docfield_property(field, 'hidden', 1);\r\n                frm.fields_dict.items.grid.update_docfield_property(field, 'read_only', 1);\r\n            });\r\n        }\r\n    }\r\n});",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
   "dt": "Asset",
   "enabled": 1,
   "modified": "2025-07-17 13:32:54.096181",
@@ -932,6 +844,94 @@
   "module": null,
   "name": "BookletItemsFilter",
   "script": "frappe.ui.form.on('Booklet Monitoring', {\n\tonload(frm) {\n    frm.set_query(\"item\", () => {\n      return {\n        query: \"qcmc_logic.queries.bookletitems.get_booklet_items\"\n      };\n    });\n  }\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Order",
+  "enabled": 0,
+  "modified": "2025-04-02 16:35:40.421996",
+  "module": null,
+  "name": "SONotCOMPGroup",
+  "script": "frappe.ui.form.on('Sales Order', {\n\trefresh: function(frm) {\n\t\t// your code here\n\t\tfrappe.call({\n            method: 'frappe.client.get_list',\n            args: {\n                doctype: 'Company',\n                filters: { 'is_group': 0 },\n                fields: ['name'],\n                limit_page_length: 1  // Get the first company that is not a group\n            },\n            callback: function(response) {\n                if (response.message && response.message.length > 0) {\n                    frm.set_value('company', response.message[0].name);\n                    frm.set_value('custom_abbr', response.message[0].abbr);\n                }\n            }\n        });\n\t\t\n\t\t\n\t\tfrm.set_query(\"company\", function() {\n            return {\n                filters: {\n                    \"is_group\": 0  // Filters only non-group companies\n                }\n            };\n        });\n\t},\n    company: function(frm) {  // Trigger when company field changes\n        if (frm.doc.company) {\n            frappe.call({\n                method: 'frappe.client.get_value',\n                args: {\n                    doctype: 'Company',\n                    filters: { 'name': frm.doc.company },\n                    fieldname: 'abbr'\n                },\n                callback: function(response) {\n                    if (response.message) {\n                        frm.set_value('custom_abbr', response.message.abbr);\n                    }\n                }\n            });\n        }\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Material Request",
+  "enabled": 0,
+  "modified": "2025-04-04 14:51:12.912744",
+  "module": null,
+  "name": "PRNotCOMPGroup",
+  "script": "frappe.ui.form.on('Material Request', {\r\n\trefresh: function(frm) {\r\n\t\t// your code here\r\n\t\tfrappe.call({\r\n            method: 'frappe.client.get_list',\r\n            args: {\r\n                doctype: 'Company',\r\n                filters: { 'is_group': 0 },\r\n                fields: ['name'],\r\n                limit_page_length: 1  // Get the first company that is not a group\r\n            },\r\n            callback: function(response) {\r\n                if (response.message && response.message.length > 0) {\r\n                    frm.set_value('company', response.message[0].name);\r\n                    frm.set_value('custom_abbr', response.message[0].abbr);\r\n                }\r\n            }\r\n        });\r\n\t\t\r\n\t\t\r\n\t\tfrm.set_query(\"company\", function() {\r\n            return {\r\n                filters: {\r\n                    \"is_group\": 0  // Filters only non-group companies\r\n                }\r\n            };\r\n        });\r\n\t},\r\n    company: function(frm) {  // Trigger when company field changes\r\n        if (frm.doc.company) {\r\n            frappe.call({\r\n                method: 'frappe.client.get_value',\r\n                args: {\r\n                    doctype: 'Company',\r\n                    filters: { 'name': frm.doc.company },\r\n                    fieldname: 'abbr'\r\n                },\r\n                callback: function(response) {\r\n                    if (response.message) {\r\n                        frm.set_value('custom_abbr', response.message.abbr);\r\n                    }\r\n                }\r\n            });\r\n        }\r\n    }\r\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Delivery Trip",
+  "enabled": 1,
+  "modified": "2025-04-04 15:10:23.545365",
+  "module": null,
+  "name": "DeliveryStopMatTransOnly",
+  "script": "frappe.ui.form.on('Delivery Trip', {\r\n    onload(frm) {\r\n        frm.fields_dict.delivery_stops.grid.get_field('custom_material_transfer').get_query = function(doc, cdt, cdn) {\r\n            return {\r\n                filters: {\r\n                    purpose: 'Material Transfer'\r\n                }\r\n            };\r\n        };\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Inter Company Asset Transfer",
+  "enabled": 1,
+  "modified": "2025-07-07 13:29:56.975785",
+  "module": null,
+  "name": "Inter Company Asset Transfer Employee Comp",
+  "script": "frappe.ui.form.on('Inter Company Asset Transfer', {\r\n    target_comp: function(frm) {\r\n        const target_comp = frm.doc.target_comp;\r\n\r\n        if (target_comp) {\r\n            frm.set_query(\"transfer_to_emp\", () => {\r\n                return {\r\n                    filters: {\r\n                        company: target_comp\r\n                    }\r\n                };\r\n            });\r\n        } else {\r\n            // Clear filter if no target company selected\r\n            frm.set_query(\"transfer_to_emp\", () => {\r\n                return {\r\n                    filters: {}\r\n                };\r\n            });\r\n        }\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Asset Movement",
+  "enabled": 1,
+  "modified": "2025-07-23 08:00:04.464650",
+  "module": null,
+  "name": "Asset Movement Item - Exclude Cancelled Asset",
+  "script": "frappe.ui.form.on('Asset Movement Item', {\r\n  form_render: function(frm, cdt, cdn) {\r\n    const row = locals[cdt][cdn];\r\n    const show = frm.doc.purpose === 'Receipt';\r\n\r\n    // Show/hide the field in the child row edit dialog\r\n    frm.fields_dict.items.grid.grid_rows_by_docname[cdn]\r\n      .fields_dict.custom_to_section.toggle(show);\r\n  }\r\n});\r\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Asset",
+  "enabled": 1,
+  "modified": "2025-04-29 17:58:18.833709",
+  "module": null,
+  "name": "Asset bypass location",
+  "script": "frappe.ui.form.on('Asset', {\r\n    before_save(frm) {\r\n        if (!frm.doc.location) {\r\n            frm.set_value('location', 'EDSA'); // Replace with your actual Location name\r\n        }\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Order",
+  "enabled": 0,
+  "modified": "2025-06-19 15:42:28.957293",
+  "module": null,
+  "name": "SO Create Dropdown",
+  "script": "frappe.ui.form.on('Sales Order', {\r\n    refresh: function(frm) {\r\n        if (frm.doc.docstatus === 1) {\r\n            // Delay execution slightly to ensure buttons are loaded\r\n            setTimeout(() => {\r\n                // Remove \"Pick List\" from the \"Create\" menu\r\n                frm.remove_custom_button('Pick List', 'Create');\r\n                frm.remove_custom_button('Payment', 'Create');\r\n                frm.remove_custom_button('Project', 'Create');\r\n                frm.remove_custom_button('Payment Request', 'Create');\r\n                frm.remove_custom_button('Purchase Order', 'Create');\r\n            }, 100);\r\n        }\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Order",
+  "enabled": 0,
+  "modified": "2025-06-19 15:42:50.448033",
+  "module": null,
+  "name": "SO No Price",
+  "script": "frappe.ui.form.on('Sales Order', {\r\n    onload: function(frm) {\r\n        if (frappe.user.has_role('Stock User')) {\r\n            // Hide pricing fields in main form\r\n            frm.set_df_property('base_total', 'hidden', 1);\r\n            frm.set_df_property('grand_total', 'hidden', 1);\r\n            frm.set_df_property('total', 'hidden', 1);\r\n\r\n            // Hide pricing fields in items table\r\n            ['rate', 'amount', 'net_rate', 'net_amount', 'base_rate', 'base_amount'].forEach(field => {\r\n                frm.fields_dict.items.grid.update_docfield_property(field, 'hidden', 1);\r\n                frm.fields_dict.items.grid.update_docfield_property(field, 'read_only', 1);\r\n            });\r\n        }\r\n    }\r\n});",
   "view": "Form"
  }
 ]
