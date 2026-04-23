@@ -69,7 +69,7 @@ override_print_format = {
 }
 
 fixtures = [
-    {"doctype": "Custom Field", "filters": [["fieldname", "!=", "workflow_state"]]},
+    {"doctype": "Custom Field", "filters": [["fieldname", "not in", ["workflow_state"]]]},
     {"doctype": "Client Script"},
     {"doctype": "Server Script"},
     {"doctype": "List View Settings"},
