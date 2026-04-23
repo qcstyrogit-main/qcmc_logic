@@ -16,6 +16,9 @@ doc_events = {
         "on_update_after_submit": "qcmc_logic.customs.warehouse_transfer_events.on_update_after_submit",
         "on_cancel": "qcmc_logic.customs.warehouse_transfer_events.on_cancel",
         "on_trash": "qcmc_logic.customs.warehouse_transfer_events.on_trash"
+    },
+    "Purchase Receipt": {
+        "before_save": "qcmc_logic.overrides.wrr_override.validate"
     }
 }
 
