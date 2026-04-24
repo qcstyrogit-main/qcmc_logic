@@ -100,13 +100,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-06-02 15:02:12.989050",
-  "name": "Submit for Stock Confirmation",
-  "workflow_action_name": "Submit for Stock Confirmation"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2025-06-02 15:02:57.731993",
   "name": "Submit For DR Printing",
   "workflow_action_name": "Submit For DR Printing"
@@ -117,13 +110,6 @@
   "modified": "2025-06-02 15:04:06.291450",
   "name": "Submit for Delivery",
   "workflow_action_name": "Submit for Delivery"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-06-02 15:05:11.755955",
-  "name": "Tag To Active",
-  "workflow_action_name": "Tag To Active"
  },
  {
   "docstatus": 0,
@@ -296,8 +282,22 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-03-19 10:05:52.014185",
-  "name": "Submit for Approval",
-  "workflow_action_name": "Submit for Approval"
+  "modified": "2025-06-02 15:02:12.989050",
+  "name": "Submit for Stock Confirmation",
+  "workflow_action_name": "Submit for Stock Confirmation"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-06-02 15:05:11.755955",
+  "name": "Tag To Active",
+  "workflow_action_name": "Tag To Active"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-05-14 13:36:08.460123",
+  "name": "Cancel",
+  "workflow_action_name": "Cancel"
  }
 ]
