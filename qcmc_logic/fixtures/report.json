@@ -6677,7 +6677,7 @@
   "ref_doctype": "Material Request",
   "reference_report": null,
   "report_name": "PR Printout",
-  "report_script": "column_name AS \"Label:FieldType:Width\"",
+  "report_script": null,
   "report_type": "Query Report",
   "roles": [
    {
