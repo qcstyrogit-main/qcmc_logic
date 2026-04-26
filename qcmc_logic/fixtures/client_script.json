@@ -46,7 +46,7 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
-  "dt": "Stock Entry",
+  "dt": "Sales Order",
   "enabled": 1,
   "modified": "2026-04-07 11:52:23.733097",
   "module": "QCMC Logics",
