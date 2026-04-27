@@ -19,7 +19,7 @@ def get_user_allowed_warehouses(user=None):
     # There should normally be only one Warehouse Access doc per user, but we handle multiple just in case
     allowed = frappe.get_all(
         "Allowed Warehouse",
-        filters={"parent": ["in", [d.name for d in access_doc]]},
+        filters={"parent": ["in", [d.name for d in access_doc]],"allow_transact": 1},
         pluck="warehouse"
     )
 
@@ -27,24 +27,9 @@ def get_user_allowed_warehouses(user=None):
 
 @frappe.whitelist()
 def check_warehouse_access(user, warehouse):
-    """
-    Check if a given user has access to the specified warehouse
-    based on the custom 'Warehouse Access' doctype.
-    """
-    allowed = frappe.db.exists(
-        "Allowed Warehouse",
-        {
-            "parenttype": "Warehouse Access",
-            "parentfield": "allowed_warehouses",
-            "parent": ["in", frappe.get_all(
-                "Warehouse Access",
-                filters={"user": user},
-                pluck="name"
-            )],
-            "warehouse": warehouse
-        }
-    )
-    return True if allowed else False
+    
+    allowed = get_user_allowed_warehouses(user)
+    return warehouse in allowed
 
 @frappe.whitelist()
 def check_duplicate_customer_po(customer, po_no, current_name=None):

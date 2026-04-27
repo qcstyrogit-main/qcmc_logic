@@ -7,7 +7,11 @@ from erpnext.stock.stock_ledger import make_sl_entries
 
 
 @frappe.whitelist()
+def validate(self):
+    allowed = get_user_allowed_warehouses(frappe.session.user)
 
+    if self.target_warehouse not in allowed:
+        frappe.throw("You are not allowed to transact in this target warehouse.")
 
 def validate_transfer_type_rules(doc, method=None):
     if not doc.source_warehouse or not doc.target_warehouse or not doc.transfer_type:
