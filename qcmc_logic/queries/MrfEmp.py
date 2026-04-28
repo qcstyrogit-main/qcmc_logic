@@ -45,10 +45,26 @@ def get_employee(doctype, txt, searchfield, start, page_len, filters):
             values["department"] = filters["department"]
 
         if filters.get("designation"):
-            conditions.append("(designation = %(designation)s or " \
-            " name in (select employee from `tabEmployee Promotion` " \
-            "where department = %(department)s AND company = %(company)s AND name in (select parent from `tabEmployee Property History` where fieldname = 'designation' and current = %(designation)s ))  )")
             values["designation"] = filters["designation"]
+
+            # ✅ If BOTH company & department exist
+            if filters.get("department") and filters.get("company"):
+                conditions.append("""
+                    (designation = %(designation)s OR
+                    name IN (
+                        SELECT employee FROM `tabEmployee Promotion`
+                        WHERE department = %(department)s
+                        AND company = %(company)s
+                        AND name IN (
+                            SELECT parent FROM `tabEmployee Property History`
+                            WHERE fieldname = 'designation'
+                            AND current = %(designation)s
+                        )
+                    ))
+                """)
+            else:
+                # ✅ fallback without department/company
+                conditions.append("designation = %(designation)s")
 
         condition_sql = ""
         if conditions:
