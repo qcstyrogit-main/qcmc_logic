@@ -390,5 +390,19 @@
   "modified": "2026-04-27 15:00:48.627062",
   "name": "BD Class",
   "total_fields": "4"
+ },
+ {
+  "allow_edit": 0,
+  "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
+  "disable_comment_count": 0,
+  "disable_count": 0,
+  "disable_sidebar_stats": 0,
+  "docstatus": 0,
+  "doctype": "List View Settings",
+  "fields": "[{\"fieldname\":\"asset_name\",\"label\":\"Asset Name\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"asset\",\"label\":\"Asset\"},{\"fieldname\":\"repair_status\",\"label\":\"Repair Status\"}]",
+  "modified": "2026-04-28 15:13:56.610221",
+  "name": "Asset Repair",
+  "total_fields": "5"
  }
 ]

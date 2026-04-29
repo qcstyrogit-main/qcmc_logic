@@ -426,15 +426,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-04-16 16:37:48.364899",
-  "name": "Cancelled",
-  "style": "Danger",
-  "workflow_state_name": "Cancelled"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2025-07-31 14:49:11.567305",
   "name": "Pending MIS Supervisor Approval",
   "style": "",
@@ -489,10 +480,10 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-01-07 09:26:33.936333",
-  "name": "Draft",
-  "style": "",
-  "workflow_state_name": "Draft"
+  "modified": "2026-04-16 16:37:48.364899",
+  "name": "Cancelled",
+  "style": "Danger",
+  "workflow_state_name": "Cancelled"
  },
  {
   "docstatus": 0,
@@ -502,5 +493,32 @@
   "name": "Completed",
   "style": "Success",
   "workflow_state_name": "Completed"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-04-28 14:52:46.626077",
+  "name": "Pending Machine Shop",
+  "style": "",
+  "workflow_state_name": "Pending Machine Shop"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-04-28 13:57:51.076127",
+  "name": "Pending SMB Maintenance",
+  "style": "",
+  "workflow_state_name": "Pending SMB Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-01-07 09:26:33.936333",
+  "name": "Draft",
+  "style": "",
+  "workflow_state_name": "Draft"
  }
 ]

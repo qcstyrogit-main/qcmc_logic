@@ -198,13 +198,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-03-03 16:41:40.572957",
-  "name": "Complete",
-  "workflow_action_name": "Complete"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2025-07-21 11:43:02.752283",
   "name": "To Receive",
   "workflow_action_name": "To Receive"
@@ -222,13 +215,6 @@
   "modified": "2025-04-21 12:57:38.843403",
   "name": "Transfer",
   "workflow_action_name": "Transfer"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-04-16 16:52:13.213459",
-  "name": "Mark as Completed",
-  "workflow_action_name": "Mark as Completed"
  },
  {
   "docstatus": 0,
@@ -275,13 +261,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-05-14 13:23:14.108790",
-  "name": "Submit",
-  "workflow_action_name": "Submit"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2025-06-02 15:02:12.989050",
   "name": "Submit for Stock Confirmation",
   "workflow_action_name": "Submit for Stock Confirmation"
@@ -299,5 +278,40 @@
   "modified": "2025-05-14 13:36:08.460123",
   "name": "Cancel",
   "workflow_action_name": "Cancel"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-04-28 13:56:36.247055",
+  "name": "Submit for SMB Maintenance",
+  "workflow_action_name": "Submit for SMB Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-04-28 14:59:26.519595",
+  "name": "Submit for Machine Shop",
+  "workflow_action_name": "Submit for Machine Shop"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-03-03 16:41:40.572957",
+  "name": "Complete",
+  "workflow_action_name": "Complete"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-05-14 13:23:14.108790",
+  "name": "Submit",
+  "workflow_action_name": "Submit"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-04-16 16:52:13.213459",
+  "name": "Mark as Completed",
+  "workflow_action_name": "Mark as Completed"
  }
 ]

@@ -2,6 +2,39 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
+  "dt": "Purchase Receipt",
+  "enabled": 1,
+  "modified": "2026-04-22 12:54:10.072850",
+  "module": null,
+  "name": "WRR total weight not read only",
+  "script": "frappe.ui.form.on('Purchase Receipt', {\n\trefresh: function(frm) {\n        frm.fields_dict.items.grid.update_docfield_property(\n            'total_weight',\n            'read_only',\n            0\n        );\n    }\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Receipt",
+  "enabled": 0,
+  "modified": "2026-04-22 14:39:07.760025",
+  "module": null,
+  "name": "WRR Set Weight Per Unit",
+  "script": "frappe.ui.form.on('Purchase Receipt', {\n\ttotal_weight: function(frm, cdt, cdn) {\n        let row = locals[cdt][cdn];\n\n        if (row.total_weight && row.qty) {\n            row.weight_per_unit = row.total_weight / row.qty;\n\n            // refresh the field in grid\n            frm.refresh_field('items');\n        }\n    }\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Stock Entry",
+  "enabled": 1,
+  "modified": "2026-04-28 10:40:47.943026",
+  "module": null,
+  "name": "SE Allow Target Warehouse",
+  "script": "frappe.ui.form.on('Stock Entry', {\r\n    validate: function(frm) {\r\n        if (frm.doc.stock_entry_type === \"Material Consumption for Manufacture\") {\r\n            frm.doc.items.forEach(row => {\r\n                if (!row.t_warehouse && frm.doc.to_warehouse) {\r\n                    row.t_warehouse = frm.doc.to_warehouse;\r\n                }\r\n            });\r\n        }\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
   "dt": "Sales Order",
   "enabled": 1,
   "modified": "2026-04-15 13:40:06.851344",
@@ -932,6 +965,17 @@
   "module": "QCMC Logics",
   "name": "Show Address",
   "script": "frappe.ui.form.on('Sales Order', {\r\n  setup(frm) {\r\n    frm.set_query('customer_address', () => ({\r\n      query: 'custom.api.get_address_list',\r\n      filters: {\r\n        link_doctype: 'Customer',\r\n        link_name: frm.doc.customer\r\n      }\r\n    }));\r\n  }\r\n\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Asset Repair",
+  "enabled": 1,
+  "modified": "2026-04-28 17:31:40.934223",
+  "module": null,
+  "name": "Asset Repair Status",
+  "script": "frappe.ui.form.on('Asset Repair', {\n    repair_status: function(frm) {\n        if (frm.doc.repair_status === \"Cancelled\") {\n\n            frappe.confirm(\n                \"Cancel this document?\",\n\n                // ✅ YES\n                () => {\n                    if (frm.doc.docstatus === 0) {\n                        frm.set_value(\"workflow_state\", \"Cancelled\");\n                        frm.save();\n                    } else if (frm.doc.docstatus === 1) {\n                        frappe.call({\n                            method: \"frappe.client.cancel\",\n                            args: {\n                                doctype: frm.doc.doctype,\n                                name: frm.doc.name\n                            },\n                            callback: () => frm.reload_doc()\n                        });\n                    }\n                },\n\n                // ❌ NO (else condition)\n                () => {\n                    // revert the field value\n                    frm.set_value(\"repair_status\", \"Pending\");\n\n                    frappe.msgprint(\"Cancellation aborted\");\n                }\n            );\n\n        }\n    }\n});",
   "view": "Form"
  }
 ]
