@@ -42,15 +42,16 @@ def get_courses(filters=None, start=0):
 	else:
 		enrolled_courses = frappe.get_all("LMS Enrollment", filters={"member": user}, pluck="course")
 
-		if not enrolled_courses:
-			return []
-
 		if not filters:
 			filters = {}
-
-		filters["name"] = ["in", enrolled_courses]
 		
 		filters, or_filters, show_featured = update_course_filters(filters)
+		or_filters = or_filters or []
+		or_filters.append({"disable_self_learning": ["!=", 1]})
+
+		if enrolled_courses:
+			or_filters.append({"name": ["in", enrolled_courses]})
+
 		fields = get_course_fields()
 
 		courses = frappe.get_all(
