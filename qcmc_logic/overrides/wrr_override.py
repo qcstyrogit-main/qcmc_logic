@@ -19,5 +19,5 @@ def validate(doc, method):
         )
 
     # 👇 show once after loop
-    if debug_messages:
-        frappe.msgprint("<br>".join(debug_messages))
+    # if debug_messages:
+    #     frappe.msgprint("<br>".join(debug_messages))
