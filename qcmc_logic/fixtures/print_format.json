@@ -49,7 +49,7 @@
   "custom_format": 1,
   "default_print_language": "en",
   "disabled": 0,
-  "doc_type": "Accounts Receivable",
+  "doc_type": null,
   "docstatus": 0,
   "doctype": "Print Format",
   "font": null,
