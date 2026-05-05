@@ -19,6 +19,9 @@ doc_events = {
     },
     "Purchase Receipt": {
         "before_save": "qcmc_logic.overrides.wrr_override.validate"
+    },
+    "Sales Invoice": { 
+         "validate": "qcmc_logic.overrides.sales_invoice_override.validate"
     }
 }
 
@@ -37,14 +40,14 @@ before_request = [
 # }
 
 
-
 override_whitelisted_methods = {
     "frappe.desk.printing.get_print_format": "qcmc_logic.overrides.POPrint_Override.get_po_print_format",
     "frappe.desk.query_report.run": "qcmc_logic.overrides.query_report_override.run",
     "lms.lms.utils.get_courses": "qcmc_logic.overrides.lms_overrides.get_courses",
-     "frappe_assistant_core.api.oauth_discovery.protected_resource_metadata":"qcmc_logic.overrides.oauth_override.protected_resource_metadata",
-     "frappe_assistant_core.api.oauth_registration.register_client":"qcmc_logic.overrides.oauth_override.register_client",
-      "frappe_assistant_core.api.oauth_discovery.oauth_authorization_server":"qcmc_logic.overrides.oauth_override.oauth_authorization_server",
+    "frappe_assistant_core.api.oauth_discovery.protected_resource_metadata":"qcmc_logic.overrides.oauth_override.protected_resource_metadata",
+    "frappe_assistant_core.api.oauth_registration.register_client":"qcmc_logic.overrides.oauth_override.register_client",
+    "frappe_assistant_core.api.oauth_discovery.oauth_authorization_server":"qcmc_logic.overrides.oauth_override.oauth_authorization_server",
+    "erpnext.stock.doctype.delivery_note.delivery_note.make_delivery_trip":"qcmc_logic.overrides.delivery_note_override.make_delivery_trip",
 
 }
 
@@ -57,7 +60,8 @@ override_doctype_class = {
     "Job Requisition": "qcmc_logic.overrides.MRFApprovers.MRFApproverSetCustomFields",
     "Staffing Plan": "qcmc_logic.overrides.StaffingPlanOverrides.CustomStaffingPlan",
     "Payment Entry": "qcmc_logic.overrides.payment_entry.CustomPaymentEntry",
-    "Job Opening": "qcmc_logic.overrides.jobopening_overrides.CustomJobOpening"
+    "Job Opening": "qcmc_logic.overrides.jobopening_overrides.CustomJobOpening",
+    "Material Request":"qcmc_logic.overrides.material_request_override.CustomMaterialRequest"
 }
 permission_query_conditions = {
      "Appraisal": "qcmc_logic.customs.permissions.appraisal_permission_query",
