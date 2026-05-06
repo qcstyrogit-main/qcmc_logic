@@ -4,21 +4,10 @@
   "doctype": "Client Script",
   "dt": "Sales Invoice",
   "enabled": 1,
-  "modified": "2026-05-05 15:21:47.155502",
+  "modified": "2026-05-06 15:41:31.090969",
   "module": null,
   "name": "Show DR Number",
-  "script": "frappe.ui.form.on('Sales Invoice', {\r\n    refresh: function(frm) {\r\n        set_delivery_number(frm);\r\n    }\r\n});\r\n\r\nfrappe.ui.form.on('Sales Invoice Item', {\r\n    delivery_note: function(frm, cdt, cdn) {\r\n        set_delivery_number(frm);\r\n    },\r\n    items_add: function(frm) {\r\n        set_delivery_number(frm);\r\n    }\r\n});\r\n\r\nfunction set_delivery_number(frm) {\r\n    // ✅ ALWAYS clear first (this fixes your issue)\r\n    frm.set_value('custom_delivery_number', '');\r\n\r\n    if (!frm.doc.items || frm.doc.items.length === 0) {\r\n        return;\r\n    }\r\n\r\n    let dn = null;\r\n\r\n    for (let i = 0; i < frm.doc.items.length; i++) {\r\n        if (frm.doc.items[i].delivery_note) {\r\n            dn = frm.doc.items[i].delivery_note;\r\n            break;\r\n        }\r\n    }\r\n\r\n    if (dn) {\r\n        frappe.db.get_value('Delivery Note', dn, 'custom_dr_number')\r\n            .then(r => {\r\n                if (r && r.message && r.message.custom_dr_number) {\r\n                    frm.set_value('custom_delivery_number', r.message.custom_dr_number);\r\n                }\r\n            });\r\n    }\r\n}",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
-  "dt": "Delivery Note",
-  "enabled": 1,
-  "modified": "2026-05-04 14:53:31.779563",
-  "module": null,
-  "name": "Show Sales Order",
-  "script": "frappe.ui.form.on('Delivery Note', {\r\n    items_add: function(frm) {\r\n        if (frm.doc.items && frm.doc.items.length > 0) {\r\n            let so = frm.doc.items[0].against_sales_order;\r\n            if (so) {\r\n                frm.set_value('sales_order', so);\r\n            }\r\n        }\r\n    }\r\n});",
+  "script": "frappe.ui.form.on('Sales Invoice', {\r\n    refresh: function(frm) {\r\n        set_delivery_number(frm);\r\n\r\n        // 1. Target the 'Get Items From' dropdown\r\n        // 2. Add/Override the 'Delivery Note' button to include your clear logic\r\n        frm.page.add_inner_button(__('Delivery Note'), function() {\r\n\r\n            // Trigger your clear logic BEFORE opening the dialog\r\n            frm.clear_table('items');\r\n            frm.set_value('custom_delivery_number', '');\r\n            frm.refresh_field('items');\r\n\r\n            // Now call the standard ERPNext mapper for Delivery Note\r\n            erpnext.utils.map_current_doc({\r\n                method: \"erpnext.stock.doctype.delivery_note.delivery_note.make_sales_invoice\",\r\n                source_doctype: \"Delivery Note\",\r\n                target: frm,\r\n                setters: {\r\n                    customer: frm.doc.customer || undefined,\r\n                },\r\n                get_query: function() {\r\n                    return {\r\n                        filters: {\r\n                            docstatus: 1,\r\n                            customer: frm.doc.customer,\r\n                            status: [\"not in\", [\"Completed\", \"Closed\"]]\r\n                        }\r\n                    };\r\n                }\r\n            });\r\n        }, __('Get Items From'));\r\n    },\r\n    after_save: function(frm) {\r\n        set_delivery_number(frm);\r\n    }\r\n});\r\n\r\nfrappe.ui.form.on('Sales Invoice Item', {\r\n    items_add: function(frm) {\r\n        set_delivery_number(frm);\r\n    },\r\n    items_remove: function(frm) {\r\n        set_delivery_number(frm);\r\n    },\r\n    delivery_note: function(frm) {\r\n        set_delivery_number(frm);\r\n    }\r\n});\r\n\r\n// Main helper function to keep your custom field updated\r\nfunction set_delivery_number(frm) {\r\n    let delivery_notes = [];\r\n    (frm.doc.items || []).forEach(function(row) {\r\n        if (row.delivery_note && !delivery_notes.includes(row.delivery_note)) {\r\n            delivery_notes.push(row.delivery_note);\r\n        }\r\n    });\r\n\r\n    if (delivery_notes.length === 0) {\r\n        frm.set_value('custom_delivery_number', '');\r\n        return;\r\n    }\r\n\r\n    // Fetch custom_dr_number for all unique Delivery Notes\r\n    let promises = delivery_notes.map(dn =>\r\n        frappe.db.get_value('Delivery Note', dn, 'custom_dr_number')\r\n    );\r\n\r\n    Promise.all(promises).then(results => {\r\n        let dr_numbers = results\r\n            .map(r => r && r.message && r.message.custom_dr_number)\r\n            .filter(Boolean);\r\n\r\n        frm.set_value('custom_delivery_number', dr_numbers.join(', '));\r\n    });\r\n}",
   "view": "Form"
  },
  {
@@ -1064,6 +1053,17 @@
   "module": null,
   "name": "Force Submit",
   "script": "frappe.ui.form.on(\"Sales Invoice\", {\r\n    refresh(frm) {\r\n        if (frm.doc.docstatus === 0) {\r\n\r\n            frm.add_custom_button(\"Force Submit (Bypass DN)\", function () {\r\n\r\n                frappe.call({\r\n                    method: \"qcmc_logic.api.sales_invoice.force_submit_sales_invoice\",\r\n                    args: {\r\n                        si_name: frm.doc.name\r\n                    },\r\n                    freeze: true,\r\n                    freeze_message: \"Force submitting...\",\r\n                    callback: function (r) {\r\n                        if (!r.exc) {\r\n                            frappe.set_route(\"Form\", \"Sales Invoice\", r.message);\r\n                        }\r\n                    }\r\n                });\r\n\r\n            });\r\n\r\n        }\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Delivery Note",
+  "enabled": 1,
+  "modified": "2026-05-06 15:34:46.931855",
+  "module": null,
+  "name": "Show Value Sales Order",
+  "script": "frappe.ui.form.on('Delivery Note', {\r\n    refresh: function(frm) {\r\n        set_sales_order(frm);\r\n\r\n        // 1. Target the 'Get Items From' dropdown\r\n        // 2. Add/Override the 'Sales Order' button to include your clear logic\r\n        frm.page.add_inner_button(__('Sales Order'), function() {\r\n            \r\n            // Trigger your clear logic BEFORE opening the dialog from image_a03c13.png\r\n            frm.clear_table('items');\r\n            frm.set_value('custom_sales_order', '');\r\n            frm.refresh_field('items');\r\n            \r\n            // Now call the standard ERPNext mapper for Sales Order\r\n            erpnext.utils.map_current_doc({\r\n                method: \"erpnext.selling.doctype.sales_order.sales_order.make_delivery_note\",\r\n                source_doctype: \"Sales Order\",\r\n                target: frm,\r\n                setters: {\r\n                    customer: frm.doc.customer || undefined,\r\n                },\r\n                get_query: function() {\r\n                    return {\r\n                        filters: {\r\n                            docstatus: 1,\r\n                            customer: frm.doc.customer,\r\n                            status: [\"not in\", [\"Completed\", \"Closed\"]]\r\n                        }\r\n                    };\r\n                }\r\n            });\r\n        }, __('Get Items From'));\r\n    },\r\n\r\n    after_save: function(frm) {\r\n        set_sales_order(frm);\r\n    }\r\n});\r\n\r\nfrappe.ui.form.on('Delivery Note Item', {\r\n    items_add: function(frm) {\r\n        set_sales_order(frm);\r\n    },\r\n    items_remove: function(frm) {\r\n        set_sales_order(frm);\r\n    },\r\n    against_sales_order: function(frm) {\r\n        set_sales_order(frm);\r\n    }\r\n});\r\n\r\n// Main helper function to keep your custom field updated\r\nfunction set_sales_order(frm) {\r\n    let sales_orders = [];\r\n    (frm.doc.items || []).forEach(function(row) {\r\n        if (row.against_sales_order && !sales_orders.includes(row.against_sales_order)) {\r\n            sales_orders.push(row.against_sales_order);\r\n        }\r\n    });\r\n\r\n    // Join the unique Sales Orders and update the field\r\n    frm.set_value('custom_sales_order', sales_orders.join(', '));\r\n}",
   "view": "Form"
  }
 ]
