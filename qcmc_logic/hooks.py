@@ -48,6 +48,7 @@ override_whitelisted_methods = {
     "frappe_assistant_core.api.oauth_registration.register_client":"qcmc_logic.overrides.oauth_override.register_client",
     "frappe_assistant_core.api.oauth_discovery.oauth_authorization_server":"qcmc_logic.overrides.oauth_override.oauth_authorization_server",
     "erpnext.stock.doctype.delivery_note.delivery_note.make_delivery_trip":"qcmc_logic.overrides.delivery_note_override.make_delivery_trip",
+    "erpnext.stock.doctype.material_request.material_request.make_stock_entry": "qcmc_logic.utils.make_stock_entry_from_material_request",
 
 }
 
@@ -146,10 +147,18 @@ fixtures = [
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {
+    "Warehouse Transfer": "public/js/warehouse_transfer.js",
+    "Material Request": "public/js/material_request.js",
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
+
+accounting_dimension_doctypes = [
+    "Warehouse Transfer",
+    "Warehouse Transfer Details",
+]
 
 # Svg Icons
 # ------------------

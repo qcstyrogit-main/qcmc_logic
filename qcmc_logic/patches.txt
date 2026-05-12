@@ -4,3 +4,6 @@
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
+qcmc_logic.patches.warehouse_transfer_reference_material_request
+qcmc_logic.patches.remove_warehouse_transfer_reference_details
+qcmc_logic.patches.create_accounting_dimensions_for_warehouse_transfer

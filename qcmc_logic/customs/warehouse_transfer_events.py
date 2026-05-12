@@ -1,45 +1,214 @@
 import frappe
 from erpnext.stock.utils import get_incoming_rate
 from erpnext.accounts.general_ledger import make_reverse_gl_entries
-from qcmc_logic.utils import get_user_allowed_warehouses
-from frappe.utils import now, nowdate, cint
+from qcmc_logic.utils import get_user_allowed_warehouses, _get_material_request_warehouses
+from frappe.utils import now, nowdate, cint, flt
 from erpnext.stock.stock_ledger import make_sl_entries
 
 
 @frappe.whitelist()
 def validate(self):
-    allowed = get_user_allowed_warehouses(frappe.session.user)
+    allowed = get_user_allowed_warehouses(frappe.session.user, require_transact=True)
 
     if self.target_warehouse not in allowed:
         frappe.throw("You are not allowed to transact in this target warehouse.")
 
+
+def _skip_warehouse_access_checks():
+    return frappe.session.user == "Administrator"
+
+
+def _set_company_fields(doc):
+    if doc.source_warehouse:
+        doc.source_company = frappe.db.get_value("Warehouse", doc.source_warehouse, "company")
+    if doc.target_warehouse:
+        doc.target_company = frappe.db.get_value("Warehouse", doc.target_warehouse, "company")
+    if doc.source_warehouse and frappe.get_meta(doc.doctype).has_field("location"):
+        doc.location = _get_location_for_dimension(doc, doc.source_warehouse, doc.source_company)
+
+
+def _get_warehouse_location(warehouse):
+    if not warehouse:
+        return None
+    return frappe.db.get_value("Warehouse", warehouse, "custom_location")
+
+
+def _get_company_dimension_default(fieldname, company):
+    if not company:
+        return None
+
+    dimension = frappe.db.get_value(
+        "Accounting Dimension",
+        {"fieldname": fieldname, "disabled": 0},
+        "name",
+    )
+    if not dimension:
+        return None
+
+    return frappe.db.get_value(
+        "Accounting Dimension Detail",
+        {"parent": dimension, "company": company},
+        "default_dimension",
+    )
+
+
+def _get_location_for_dimension(doc, warehouse, company):
+    location = _get_warehouse_location(warehouse)
+    if location:
+        return location
+
+    if frappe.get_meta(doc.doctype).has_field("location") and doc.get("location"):
+        return doc.get("location")
+
+    return _get_company_dimension_default("location", company)
+
+
+def _require_location_for_dimension(doc, warehouse, company):
+    location = _get_location_for_dimension(doc, warehouse, company)
+    if not location:
+        frappe.throw(
+            "Location is required for Warehouse Transfer accounting. "
+            "Set Custom Location on Warehouse {0} or set a default Location "
+            "in Accounting Dimension for company {1}.".format(warehouse, company)
+        )
+    return location
+
+
+def _validate_user_warehouse_access(doc):
+    if _skip_warehouse_access_checks() or not doc.source_warehouse or not doc.target_warehouse:
+        return
+
+    allowed = set(get_user_allowed_warehouses(frappe.session.user))
+    missing = [
+        warehouse for warehouse in (doc.source_warehouse, doc.target_warehouse)
+        if warehouse not in allowed
+    ]
+    if missing:
+        frappe.throw(
+            "You do not have Warehouse Access for: {0}".format(", ".join(missing))
+        )
+
+
+def _validate_material_request_references(doc):
+    reference_names = []
+    reference_names.extend(
+        row.reference_doc for row in (doc.get("transfer_items") or []) if row.reference_doc
+    )
+
+    for material_request in set(reference_names):
+        mr = frappe.db.get_value(
+            "Material Request",
+            material_request,
+            ["docstatus", "company", "material_request_type"],
+            as_dict=True,
+        )
+        if not mr:
+            frappe.throw(f"Material Request {material_request} does not exist.")
+        if mr.docstatus != 1:
+            frappe.throw(f"Material Request {material_request} must be submitted.")
+        if mr.material_request_type != "Material Transfer":
+            frappe.throw(
+                f"Material Request {material_request} must be a Material Transfer request."
+            )
+        if doc.source_company and doc.target_company and mr.company not in (doc.source_company, doc.target_company):
+            frappe.throw(
+                f"Material Request {material_request} belongs to {mr.company}, "
+                "which is not part of this transfer."
+            )
+
+        mr_source, mr_target = _get_material_request_warehouses(material_request)
+        if doc.source_warehouse and mr_source and mr_source != doc.source_warehouse:
+            frappe.throw(
+                f"Material Request {material_request} source warehouse does not match this transfer."
+            )
+        if doc.target_warehouse and mr_target and mr_target != doc.target_warehouse:
+            frappe.throw(
+                f"Material Request {material_request} target warehouse does not match this transfer."
+            )
+
+
 def validate_transfer_type_rules(doc, method=None):
+    _set_company_fields(doc)
+
     if not doc.source_warehouse or not doc.target_warehouse or not doc.transfer_type:
         return
 
     if doc.source_warehouse == doc.target_warehouse:
         frappe.throw("Source Warehouse and Target Warehouse cannot be the same.")
 
-    source_company = frappe.db.get_value("Warehouse", doc.source_warehouse, "company")
-    target_company = frappe.db.get_value("Warehouse", doc.target_warehouse, "company")
+    source_company = doc.source_company
+    target_company = doc.target_company
 
-    if doc.transfer_type == "Intercompany Warehouse Transfer" and source_company == target_company:
+    if doc.transfer_type == "Warehouse Transfer" and source_company != target_company:
+        frappe.throw("Warehouse Transfer requires source and target warehouses from the same company.")
+
+    elif doc.transfer_type == "Intercompany Warehouse Transfer" and source_company == target_company:
         frappe.throw("Intercompany Warehouse Transfer requires source and target warehouses from different companies.")
 
-    if doc.transfer_type == "Provincial Warehouse Transfer":
+    elif doc.transfer_type == "Provincial Warehouse Transfer":
         is_province = frappe.db.get_value("Warehouse", doc.target_warehouse, "custom_is_province")
         if not cint(is_province):
             frappe.throw("Provincial Warehouse Transfer requires a provincial target warehouse.")
 
+    _validate_user_warehouse_access(doc)
+    _validate_material_request_references(doc)
+
 
 def validate_update_after_submit(doc, method):
+    previous = doc.get_doc_before_save()
+
     if doc.transfer_status == "Received":
-        frappe.throw("Cannot update a Warehouse Transfer after it has been marked as 'Received'.") 
-    if doc.transfer_status == "Transferred":
-        allowed_whs = get_user_allowed_warehouses(frappe.session.user)
-        if doc.source_warehouse in allowed_whs and doc.target_warehouse not in allowed_whs:
-            frappe.throw("You cannot modify this transfer while in 'Transferred' state, "
-                         "since you only have access to the source warehouse.")
+        if previous and previous.transfer_status == "Received":
+            frappe.throw("Cannot update a Warehouse Transfer after it has been marked as 'Received'.")
+        _validate_receiving_update(doc, previous)
+    elif previous and previous.transfer_status == "Transferred" and doc.transfer_status == "Transferred":
+        _validate_receiving_update(doc, previous)
+
+
+def _validate_receiving_update(doc, previous):
+    if _skip_warehouse_access_checks():
+        return
+
+    transact_whs = set(get_user_allowed_warehouses(frappe.session.user, require_transact=True))
+    if doc.target_warehouse not in transact_whs:
+        frappe.throw("You are not allowed to receive transfers for this target warehouse.")
+
+    if not previous:
+        return
+
+    protected_fields = (
+        "transfer_type",
+        "source_warehouse",
+        "source_company",
+        "target_warehouse",
+        "target_company",
+        "date_transferred",
+    )
+    for field in protected_fields:
+        if doc.get(field) != previous.get(field):
+            frappe.throw(f"Receivers cannot modify {frappe.unscrub(field)}.")
+
+    previous_items = {row.name: row for row in (previous.get("transfer_items") or [])}
+    current_items = {row.name: row for row in (doc.get("transfer_items") or []) if row.name}
+
+    deleted = [row.item_code for name, row in previous_items.items() if name not in current_items]
+    if deleted:
+        frappe.throw("Receivers cannot delete transferred item rows.")
+
+    for row in doc.get("transfer_items") or []:
+        if flt(row.received_qty) < 0:
+            frappe.throw("Received Qty cannot be negative.")
+
+        if row.name in previous_items:
+            previous_row = previous_items[row.name]
+            for field in ("item_code", "item_name", "uom", "issued_qty", "reference_doc"):
+                if row.get(field) != previous_row.get(field):
+                    frappe.throw("Receivers can only modify Received Qty on existing item rows.")
+        else:
+            if not row.item_code:
+                frappe.throw("Item is required for receiver-added rows.")
+            if flt(row.issued_qty) != 0:
+                frappe.throw("Receiver-added item rows must have Issued Qty set to 0.")
 
 
 def on_submit(doc, method=None):
@@ -53,8 +222,13 @@ def on_submit(doc, method=None):
 
 def on_update_after_submit(doc, method=None):
     """Handles workflow transitions after document is submitted (docstatus = 1)."""
+    previous = doc.get_doc_before_save()
+    validate_update_after_submit(doc, method)
+
     new_state = doc.transfer_status
-    if new_state == "Received":   # Example: Transferred → Received
+    previous_state = previous.transfer_status if previous else None
+
+    if new_state == "Received" and previous_state != "Received":
         create_target_stock_entry(doc.name)
         if doc.source_company != doc.target_company:
             create_intercompany_gl(doc.name, source=False)
@@ -75,6 +249,7 @@ def create_source_stock_entry(docname):
             if qty <= 0:
                 continue
 
+            location = _require_location_for_dimension(doc, doc.source_warehouse, doc.source_company)
             # Build the SLE as a frappe._dict so code that uses row.warehouse works
             sle = frappe._dict({
                 "item_code": item.item_code,
@@ -93,6 +268,7 @@ def create_source_stock_entry(docname):
                 "valuation_rate": 0.0,
                 "stock_value_difference": 0.0,
                 "is_cancelled": 0,
+                "location": location,
             })
 
             sl_entries.append(sle)
@@ -121,14 +297,15 @@ def create_target_stock_entry(docname):
     doc = frappe.get_doc("Warehouse Transfer", docname)
     try:
         sl_entries = []
-        posting_date = doc.date_transferred or nowdate()
+        posting_date = doc.date_received or nowdate()
         posting_time = now()
 
         for item in doc.transfer_items:
-            qty = float(item.issued_qty or 0)
+            qty = float(item.received_qty or 0)
             if qty <= 0:
                 continue
 
+            location = _require_location_for_dimension(doc, doc.target_warehouse, doc.target_company)
             # Build the SLE as a frappe._dict so code that uses row.warehouse works
             sle = frappe._dict({
                 "item_code": item.item_code,
@@ -147,6 +324,7 @@ def create_target_stock_entry(docname):
                 "valuation_rate": 0.0,
                 "stock_value_difference": 0.0,
                 "is_cancelled": 0,
+                "location": location,
             })
 
             sl_entries.append(sle)
@@ -188,12 +366,9 @@ def create_intercompany_gl(docname, source=True):
             {"parent": row.item_code, "company": doc.source_company if source else doc.target_company},
             "selling_cost_center"
         ) or frappe.get_value("Company", doc.source_company if source else doc.target_company, "cost_center")
-        # Get location from warehouse
-        location = frappe.get_value(
-            "Warehouse",
-            doc.source_warehouse if source else doc.target_warehouse,
-            "custom_location"
-        )
+        warehouse = doc.source_warehouse if source else doc.target_warehouse
+        company = doc.source_company if source else doc.target_company
+        location = _require_location_for_dimension(doc, warehouse, company)
         mapping = frappe.get_value(
             "Intercompany Expense Mapping",
             {
@@ -390,6 +565,8 @@ def on_cancel(doc, method):
                 "valuation_rate": linked_sle.valuation_rate,
                 "stock_value_difference": -1 * linked_sle.stock_value_difference,
                 "is_cancelled": 1, # 
+                "location": getattr(linked_sle, "location", None)
+                or _require_location_for_dimension(doc, linked_sle.warehouse, linked_sle.company),
             }], allow_negative_stock=True)
 
     except Exception as e:
