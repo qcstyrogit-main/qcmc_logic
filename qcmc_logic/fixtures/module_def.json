@@ -1,9 +1,16 @@
 [
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
+  "app_name": "zkteco_integration",
+  "custom": 0,
+  "docstatus": 0,
+  "doctype": "Module Def",
+  "modified": "2026-03-28 22:16:20.802701",
+  "module_name": "zkteco_integration",
+  "name": "zkteco_integration",
+  "package": null,
+  "restrict_to_domain": null
+ },
+ {
   "app_name": "chat",
   "custom": 0,
   "docstatus": 0,
@@ -15,10 +22,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "clefincode_chat",
   "custom": 0,
   "docstatus": 0,
@@ -30,10 +33,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe",
   "custom": 1,
   "docstatus": 0,
@@ -45,10 +44,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "custom_theme",
   "custom": 0,
   "docstatus": 0,
@@ -60,10 +55,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "lending",
   "custom": 0,
   "docstatus": 0,
@@ -75,10 +66,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe",
   "custom": 0,
   "docstatus": 0,
@@ -90,10 +77,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe",
   "custom": 0,
   "docstatus": 0,
@@ -105,10 +88,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe",
   "custom": 0,
   "docstatus": 0,
@@ -120,10 +99,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe",
   "custom": 0,
   "docstatus": 0,
@@ -135,10 +110,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe",
   "custom": 0,
   "docstatus": 0,
@@ -150,10 +121,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe",
   "custom": 0,
   "docstatus": 0,
@@ -165,10 +132,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe",
   "custom": 0,
   "docstatus": 0,
@@ -180,10 +143,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe",
   "custom": 0,
   "docstatus": 0,
@@ -195,10 +154,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe",
   "custom": 0,
   "docstatus": 0,
@@ -210,10 +165,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe",
   "custom": 0,
   "docstatus": 0,
@@ -225,10 +176,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe",
   "custom": 0,
   "docstatus": 0,
@@ -240,10 +187,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe",
   "custom": 0,
   "docstatus": 0,
@@ -255,10 +198,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "payments",
   "custom": 0,
   "docstatus": 0,
@@ -270,10 +209,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "payments",
   "custom": 0,
   "docstatus": 0,
@@ -285,10 +220,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -300,10 +231,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -315,10 +242,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -330,10 +253,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -345,10 +264,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -360,10 +275,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -375,10 +286,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -390,10 +297,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -405,10 +308,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -420,10 +319,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -435,10 +330,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -450,10 +341,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -465,10 +352,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -480,10 +363,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -495,10 +374,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -510,10 +385,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -525,10 +396,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -540,10 +407,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -555,10 +418,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -570,10 +429,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -585,10 +440,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,
@@ -600,10 +451,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "phbir",
   "custom": 0,
   "docstatus": 0,
@@ -615,10 +462,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "print_designer",
   "custom": 0,
   "docstatus": 0,
@@ -630,10 +473,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "route_optimizer",
   "custom": 0,
   "docstatus": 0,
@@ -645,10 +484,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "erp_ai_assistant",
   "custom": 0,
   "docstatus": 0,
@@ -660,10 +495,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe_assistant_core",
   "custom": 0,
   "docstatus": 0,
@@ -675,10 +506,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "frappe_pdf",
   "custom": 0,
   "docstatus": 0,
@@ -690,10 +517,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "custom_theme",
   "custom": 0,
   "docstatus": 0,
@@ -705,10 +528,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "hrms",
   "custom": 0,
   "docstatus": 0,
@@ -720,10 +539,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "hrms",
   "custom": 0,
   "docstatus": 0,
@@ -735,10 +550,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "lending",
   "custom": 0,
   "docstatus": 0,
@@ -750,10 +561,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "xsi_payroll",
   "custom": 0,
   "docstatus": 0,
@@ -765,10 +572,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "lms",
   "custom": 0,
   "docstatus": 0,
@@ -780,10 +583,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "lms",
   "custom": 0,
   "docstatus": 0,
@@ -795,10 +594,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "qcmc_logic",
   "custom": 0,
   "docstatus": 0,
@@ -810,10 +605,6 @@
   "restrict_to_domain": null
  },
  {
-  "_assign": null,
-  "_comments": null,
-  "_liked_by": null,
-  "_user_tags": null,
   "app_name": "qcmc_customs",
   "custom": 0,
   "docstatus": 0,

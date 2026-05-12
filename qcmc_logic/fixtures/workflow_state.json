@@ -30,6 +30,78 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "modified": "2026-05-08 14:12:12.589860",
+  "name": "Pending SMB Maintenance",
+  "style": "",
+  "workflow_state_name": "Pending SMB Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-08 14:12:41.322630",
+  "name": "Pending Machine Shop",
+  "style": "",
+  "workflow_state_name": "Pending Machine Shop"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-20 09:40:06.663047",
+  "name": "Incoming",
+  "style": "",
+  "workflow_state_name": "Incoming"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-20 09:40:06.826370",
+  "name": "Scrubbing",
+  "style": "",
+  "workflow_state_name": "Scrubbing"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-20 09:40:06.831100",
+  "name": "Pre-Qualification",
+  "style": "",
+  "workflow_state_name": "Pre-Qualification"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-20 09:40:06.834616",
+  "name": "Pre-Qualified",
+  "style": "",
+  "workflow_state_name": "Pre-Qualified"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-20 09:40:06.838062",
+  "name": "Qualified",
+  "style": "",
+  "workflow_state_name": "Qualified"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-02-20 09:40:06.842870",
+  "name": "Converted",
+  "style": "",
+  "workflow_state_name": "Converted"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "modified": "2026-01-27 09:35:15.269575",
   "name": "For RTC Approval",
   "style": "",
@@ -489,18 +561,18 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-01-07 09:26:33.936333",
-  "name": "Draft",
+  "modified": "2025-05-14 11:53:38.107266",
+  "name": "Cancelled",
   "style": "",
-  "workflow_state_name": "Draft"
+  "workflow_state_name": "Cancelled"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-04-16 16:37:48.364899",
-  "name": "Cancelled",
-  "style": "Danger",
-  "workflow_state_name": "Cancelled"
+  "modified": "2025-01-07 09:26:33.936333",
+  "name": "Draft",
+  "style": "",
+  "workflow_state_name": "Draft"
  }
 ]
