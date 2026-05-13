@@ -10,8 +10,8 @@ from erpnext.stock.stock_ledger import make_sl_entries
 def validate(self):
     allowed = get_user_allowed_warehouses(frappe.session.user, require_transact=True)
 
-    if self.target_warehouse not in allowed:
-        frappe.throw("You are not allowed to transact in this target warehouse.")
+    if self.source_warehouse not in allowed:
+        frappe.throw("You are not allowed to transact from this source warehouse.")
 
 
 def _skip_warehouse_access_checks():
@@ -69,19 +69,13 @@ def _require_location_for_dimension(warehouse, company):
     return location
 
 
-def _validate_user_warehouse_access(doc):
-    if _skip_warehouse_access_checks() or not doc.source_warehouse or not doc.target_warehouse:
+def _validate_source_warehouse_access(doc):
+    if _skip_warehouse_access_checks() or not doc.source_warehouse:
         return
 
-    allowed = set(get_user_allowed_warehouses(frappe.session.user))
-    missing = [
-        warehouse for warehouse in (doc.source_warehouse, doc.target_warehouse)
-        if warehouse not in allowed
-    ]
-    if missing:
-        frappe.throw(
-            "You do not have Warehouse Access for: {0}".format(", ".join(missing))
-        )
+    allowed = set(get_user_allowed_warehouses(frappe.session.user, require_transact=True))
+    if doc.source_warehouse not in allowed:
+        frappe.throw("You are not allowed to create transfers from this source warehouse.")
 
 
 def _validate_material_request_references(doc):
@@ -133,19 +127,31 @@ def validate_transfer_type_rules(doc, method=None):
 
     source_company = doc.source_company
     target_company = doc.target_company
+    source_warehouse_type = frappe.db.get_value("Warehouse", doc.source_warehouse, "warehouse_type")
+    target_warehouse_type = frappe.db.get_value("Warehouse", doc.target_warehouse, "warehouse_type")
+    target_is_province = cint(frappe.db.get_value("Warehouse", doc.target_warehouse, "custom_is_province"))
 
-    if doc.transfer_type == "Warehouse Transfer" and source_company != target_company:
-        frappe.throw("Warehouse Transfer requires source and target warehouses from the same company.")
+    if doc.transfer_type == "Warehouse Transfer":
+        if source_company != target_company:
+            frappe.throw("Warehouse Transfer requires source and target warehouses from the same company.")
+        if source_warehouse_type != target_warehouse_type:
+            frappe.throw("Warehouse Transfer requires source and target warehouses with the same warehouse type.")
+        if target_is_province:
+            frappe.throw("Warehouse Transfer cannot use a provincial target warehouse.")
 
-    elif doc.transfer_type == "Intercompany Warehouse Transfer" and source_company == target_company:
-        frappe.throw("Intercompany Warehouse Transfer requires source and target warehouses from different companies.")
+    elif doc.transfer_type == "Intercompany Warehouse Transfer":
+        if source_company == target_company:
+            frappe.throw("Intercompany Warehouse Transfer requires source and target warehouses from different companies.")
+        if source_warehouse_type != target_warehouse_type:
+            frappe.throw("Intercompany Warehouse Transfer requires source and target warehouses with the same warehouse type.")
+        if target_is_province:
+            frappe.throw("Intercompany Warehouse Transfer cannot use a provincial target warehouse.")
 
     elif doc.transfer_type == "Provincial Warehouse Transfer":
-        is_province = frappe.db.get_value("Warehouse", doc.target_warehouse, "custom_is_province")
-        if not cint(is_province):
+        if not target_is_province:
             frappe.throw("Provincial Warehouse Transfer requires a provincial target warehouse.")
 
-    _validate_user_warehouse_access(doc)
+    _validate_source_warehouse_access(doc)
     _validate_material_request_references(doc)
 
 
@@ -288,7 +294,7 @@ def create_source_stock_entry(docname):
         frappe.throw(f"Error creating source Stock Ledger Entry: {e}")
 
 def create_target_stock_entry(docname):
-    
+
     doc = frappe.get_doc("Warehouse Transfer", docname)
     try:
         sl_entries = []
@@ -340,12 +346,12 @@ def create_target_stock_entry(docname):
         frappe.msgprint(f"✅ Target Stock Ledger Entries created for Warehouse Transfer {doc.name}")
 
     except Exception as e:
-        
+
         # rethrow with simple message for UI
         frappe.throw(f"Error creating source Stock Ledger Entry: {e}")
 
 def create_intercompany_gl(docname, source=True):
-    
+
     doc = frappe.get_doc("Warehouse Transfer", docname)
 
     totals_by_mapping = {}
@@ -383,7 +389,7 @@ def create_intercompany_gl(docname, source=True):
             as_dict=True
         )
 
-        
+
         if mapping:
             frappe.log(f"✅ Mapping found for {inventory_group}:\n{frappe.as_json(mapping, indent=2)}")
         else:
@@ -398,7 +404,7 @@ def create_intercompany_gl(docname, source=True):
                 "item_code": row.item_code,
                 "warehouse": doc.source_warehouse ,
                 "posting_date": doc.date_transferred if source else doc.date_received,
-                "company": doc.source_company 
+                "company": doc.source_company
             },
             raise_error_if_no_rate=False,
         ) or 0.0
@@ -439,7 +445,7 @@ def create_intercompany_gl(docname, source=True):
             continue
 
         if source:
-            # Credit Inventory  
+            # Credit Inventory
             gl_entries.append({
                 "account": src_inv,
                 "credit": total_amount,
@@ -519,10 +525,10 @@ def create_intercompany_gl(docname, source=True):
                 "remarks": f"Target side entry for WT {doc.name}",
                 "location": location
             })
-    
+
     if not gl_entries:
         frappe.throw("⚠️ No valid Intercompany mappings found. GL Entries not created.")
-        
+
     for gle in gl_entries:
         gle_doc = frappe.get_doc({
             "doctype": "GL Entry",
@@ -559,7 +565,7 @@ def on_cancel(doc, method):
                 "incoming_rate": linked_sle.incoming_rate,
                 "valuation_rate": linked_sle.valuation_rate,
                 "stock_value_difference": -1 * linked_sle.stock_value_difference,
-                "is_cancelled": 1, # 
+                "is_cancelled": 1, #
                 "location": getattr(linked_sle, "location", None)
                 or _require_location_for_dimension(
                     linked_sle.warehouse,

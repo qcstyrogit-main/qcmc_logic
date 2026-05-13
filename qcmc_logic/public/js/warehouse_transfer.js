@@ -27,11 +27,18 @@ frappe.ui.form.on("Warehouse Transfer", {
 });
 
 qcmc_logic.warehouse_transfer.add_get_items_buttons = function(frm) {
-    if (frm.doc.docstatus !== 0 || frm.doc.transfer_status === "Transferred") return;
+    if (!qcmc_logic.warehouse_transfer.can_get_items_from_material_request(frm)) return;
 
     frm.add_custom_button(__("Get Items From Material Request"), () => {
         qcmc_logic.warehouse_transfer.open_material_request_picker(frm);
     });
+};
+
+qcmc_logic.warehouse_transfer.can_get_items_from_material_request = function(frm) {
+    if (frm.doc.docstatus !== 0) return false;
+
+    const transfer_status = frm.doc.transfer_status || "Draft";
+    return transfer_status === "Draft";
 };
 
 qcmc_logic.warehouse_transfer.set_queries = function(frm) {
