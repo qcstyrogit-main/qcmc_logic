@@ -74,9 +74,17 @@ def get_target_warehouse_query(doctype, txt, searchfield, start, page_len, filte
     }
 
     source_company = _get_warehouse_company(source_warehouse)
+    source_warehouse_type = None
     if source_warehouse:
         conditions.append("w.name != %(source_warehouse)s")
         values["source_warehouse"] = source_warehouse
+        source_warehouse_type = frappe.db.get_value(
+            "Warehouse", source_warehouse, "warehouse_type"
+        )
+
+    if source_warehouse_type:
+        conditions.append("w.warehouse_type = %(source_warehouse_type)s")
+        values["source_warehouse_type"] = source_warehouse_type
 
     if transfer_type == "Intercompany Warehouse Transfer" and source_company:
         conditions.append("w.company != %(source_company)s")
@@ -335,9 +343,6 @@ def make_warehouse_transfer_from_material_request(source_name, target_doc=None):
     target.target_company = _get_warehouse_company(target_warehouse)
     target.date_transferred = getattr(mr, "schedule_date", None) or getattr(mr, "transaction_date", None)
     target.transfer_status = "Draft"
-    _set_dimension_from_warehouse(target, source_warehouse)
-    _set_location_field_from_warehouse(target, "source_location", source_warehouse)
-    _set_location_field_from_warehouse(target, "target_location", target_warehouse)
 
     target.set("transfer_items", [])
     for item in get_material_request_transfer_items(source_name):
@@ -359,8 +364,6 @@ def make_warehouse_transfer_from_material_request(source_name, target_doc=None):
         row.issued_qty = remaining_qty
         row.received_qty = 0
         row.reference_doc = source_name
-        _set_dimension_from_warehouse(row, row_source)
-
     if not target.get("transfer_items"):
         frappe.throw(f"Material Request {source_name} has no transferable items.")
 
@@ -379,18 +382,6 @@ def _get_transfer_type_for_warehouses(source_warehouse, target_warehouse):
     if source_company != target_company:
         return "Intercompany Warehouse Transfer"
     return "Warehouse Transfer"
-
-
-def _set_dimension_from_warehouse(doc, warehouse):
-    location = frappe.db.get_value("Warehouse", warehouse, "custom_location")
-    if location and frappe.get_meta(doc.doctype).has_field("location"):
-        doc.set("location", location)
-
-
-def _set_location_field_from_warehouse(doc, fieldname, warehouse):
-    location = frappe.db.get_value("Warehouse", warehouse, "custom_location")
-    if location and frappe.get_meta(doc.doctype).has_field(fieldname):
-        doc.set(fieldname, location)
 
 
 @frappe.whitelist()
