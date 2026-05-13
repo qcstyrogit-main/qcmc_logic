@@ -13,6 +13,8 @@ frappe.ui.form.on("Warehouse Transfer", {
 
     source_warehouse(frm) {
         frm.set_value("target_warehouse", "");
+        qcmc_logic.warehouse_transfer.set_location_from_warehouse(frm, "source");
+        qcmc_logic.warehouse_transfer.clear_location(frm, "target");
         qcmc_logic.warehouse_transfer.set_queries(frm);
     },
 
@@ -22,6 +24,7 @@ frappe.ui.form.on("Warehouse Transfer", {
     },
 
     target_warehouse(frm) {
+        qcmc_logic.warehouse_transfer.set_location_from_warehouse(frm, "target");
         qcmc_logic.warehouse_transfer.configure_receiving_state(frm);
     },
 });
@@ -44,6 +47,39 @@ qcmc_logic.warehouse_transfer.set_queries = function(frm) {
         },
     }));
 
+};
+
+qcmc_logic.warehouse_transfer.get_location_field = function(side) {
+    return side === "source" ? "source_location" : "target_location";
+};
+
+qcmc_logic.warehouse_transfer.get_warehouse_field = function(side) {
+    return side === "source" ? "source_warehouse" : "target_warehouse";
+};
+
+qcmc_logic.warehouse_transfer.clear_location = function(frm, side) {
+    const location_field = qcmc_logic.warehouse_transfer.get_location_field(side);
+    if (frm.fields_dict[location_field]) {
+        frm.set_value(location_field, "");
+    }
+};
+
+qcmc_logic.warehouse_transfer.set_location_from_warehouse = function(frm, side) {
+    const warehouse_field = qcmc_logic.warehouse_transfer.get_warehouse_field(side);
+    const location_field = qcmc_logic.warehouse_transfer.get_location_field(side);
+
+    if (!frm.fields_dict[location_field]) return;
+
+    const warehouse = frm.doc[warehouse_field];
+    if (!warehouse) {
+        frm.set_value(location_field, "");
+        return;
+    }
+
+    frappe.db.get_value("Warehouse", warehouse, "custom_location").then(r => {
+        const location = (r.message && r.message.custom_location) || "";
+        frm.set_value(location_field, location);
+    });
 };
 
 qcmc_logic.warehouse_transfer.open_material_request_picker = function(frm) {

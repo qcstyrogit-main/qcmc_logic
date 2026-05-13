@@ -23,8 +23,30 @@ def _set_company_fields(doc):
         doc.source_company = frappe.db.get_value("Warehouse", doc.source_warehouse, "company")
     if doc.target_warehouse:
         doc.target_company = frappe.db.get_value("Warehouse", doc.target_warehouse, "company")
+    if doc.source_warehouse and frappe.get_meta(doc.doctype).has_field("source_location"):
+        doc.source_location = _get_location_for_dimension(
+            doc,
+            doc.source_warehouse,
+            doc.source_company,
+            side="source",
+            allow_doc_fallback=False,
+        )
+    if doc.target_warehouse and frappe.get_meta(doc.doctype).has_field("target_location"):
+        doc.target_location = _get_location_for_dimension(
+            doc,
+            doc.target_warehouse,
+            doc.target_company,
+            side="target",
+            allow_doc_fallback=False,
+        )
     if doc.source_warehouse and frappe.get_meta(doc.doctype).has_field("location"):
-        doc.location = _get_location_for_dimension(doc, doc.source_warehouse, doc.source_company)
+        doc.location = _get_location_for_dimension(
+            doc,
+            doc.source_warehouse,
+            doc.source_company,
+            side="source",
+            allow_doc_fallback=False,
+        )
 
 
 def _get_warehouse_location(warehouse):
@@ -52,19 +74,45 @@ def _get_company_dimension_default(fieldname, company):
     )
 
 
-def _get_location_for_dimension(doc, warehouse, company):
+def _get_side_location_field(side):
+    return {
+        "source": "source_location",
+        "target": "target_location",
+    }.get(side)
+
+
+def _get_doc_location(doc, fieldname):
+    if fieldname and frappe.get_meta(doc.doctype).has_field(fieldname) and doc.get(fieldname):
+        return doc.get(fieldname)
+
+
+def _get_side_for_warehouse(doc, warehouse):
+    if warehouse == doc.source_warehouse:
+        return "source"
+    if warehouse == doc.target_warehouse:
+        return "target"
+
+
+def _get_location_for_dimension(doc, warehouse, company, side=None, allow_doc_fallback=True):
     location = _get_warehouse_location(warehouse)
     if location:
         return location
 
-    if frappe.get_meta(doc.doctype).has_field("location") and doc.get("location"):
-        return doc.get("location")
+    if allow_doc_fallback:
+        location = _get_doc_location(doc, _get_side_location_field(side))
+        if location:
+            return location
+
+    if allow_doc_fallback and side == "source":
+        location = _get_doc_location(doc, "location")
+        if location:
+            return location
 
     return _get_company_dimension_default("location", company)
 
 
-def _require_location_for_dimension(doc, warehouse, company):
-    location = _get_location_for_dimension(doc, warehouse, company)
+def _require_location_for_dimension(doc, warehouse, company, side=None):
+    location = _get_location_for_dimension(doc, warehouse, company, side=side)
     if not location:
         frappe.throw(
             "Location is required for Warehouse Transfer accounting. "
@@ -180,8 +228,11 @@ def _validate_receiving_update(doc, previous):
         "transfer_type",
         "source_warehouse",
         "source_company",
+        "source_location",
         "target_warehouse",
         "target_company",
+        "target_location",
+        "location",
         "date_transferred",
     )
     for field in protected_fields:
@@ -249,7 +300,9 @@ def create_source_stock_entry(docname):
             if qty <= 0:
                 continue
 
-            location = _require_location_for_dimension(doc, doc.source_warehouse, doc.source_company)
+            location = _require_location_for_dimension(
+                doc, doc.source_warehouse, doc.source_company, side="source"
+            )
             # Build the SLE as a frappe._dict so code that uses row.warehouse works
             sle = frappe._dict({
                 "item_code": item.item_code,
@@ -305,7 +358,9 @@ def create_target_stock_entry(docname):
             if qty <= 0:
                 continue
 
-            location = _require_location_for_dimension(doc, doc.target_warehouse, doc.target_company)
+            location = _require_location_for_dimension(
+                doc, doc.target_warehouse, doc.target_company, side="target"
+            )
             # Build the SLE as a frappe._dict so code that uses row.warehouse works
             sle = frappe._dict({
                 "item_code": item.item_code,
@@ -368,7 +423,9 @@ def create_intercompany_gl(docname, source=True):
         ) or frappe.get_value("Company", doc.source_company if source else doc.target_company, "cost_center")
         warehouse = doc.source_warehouse if source else doc.target_warehouse
         company = doc.source_company if source else doc.target_company
-        location = _require_location_for_dimension(doc, warehouse, company)
+        location = _require_location_for_dimension(
+            doc, warehouse, company, side="source" if source else "target"
+        )
         mapping = frappe.get_value(
             "Intercompany Expense Mapping",
             {
@@ -566,7 +623,12 @@ def on_cancel(doc, method):
                 "stock_value_difference": -1 * linked_sle.stock_value_difference,
                 "is_cancelled": 1, # 
                 "location": getattr(linked_sle, "location", None)
-                or _require_location_for_dimension(doc, linked_sle.warehouse, linked_sle.company),
+                or _require_location_for_dimension(
+                    doc,
+                    linked_sle.warehouse,
+                    linked_sle.company,
+                    side=_get_side_for_warehouse(doc, linked_sle.warehouse),
+                ),
             }], allow_negative_stock=True)
 
     except Exception as e:

@@ -336,6 +336,8 @@ def make_warehouse_transfer_from_material_request(source_name, target_doc=None):
     target.date_transferred = getattr(mr, "schedule_date", None) or getattr(mr, "transaction_date", None)
     target.transfer_status = "Draft"
     _set_dimension_from_warehouse(target, source_warehouse)
+    _set_location_field_from_warehouse(target, "source_location", source_warehouse)
+    _set_location_field_from_warehouse(target, "target_location", target_warehouse)
 
     target.set("transfer_items", [])
     for item in get_material_request_transfer_items(source_name):
@@ -383,6 +385,12 @@ def _set_dimension_from_warehouse(doc, warehouse):
     location = frappe.db.get_value("Warehouse", warehouse, "custom_location")
     if location and frappe.get_meta(doc.doctype).has_field("location"):
         doc.set("location", location)
+
+
+def _set_location_field_from_warehouse(doc, fieldname, warehouse):
+    location = frappe.db.get_value("Warehouse", warehouse, "custom_location")
+    if location and frappe.get_meta(doc.doctype).has_field(fieldname):
+        doc.set(fieldname, location)
 
 
 @frappe.whitelist()
