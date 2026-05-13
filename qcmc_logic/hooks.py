@@ -27,6 +27,11 @@ doc_events = {
 
 before_request = [
     "qcmc_logic.patches.oauth_patch.ensure_fac_oauth_alias",
+    "qcmc_logic.overrides.lms_inject.redirect_login_to_lms_login",
+]
+
+after_request = [
+    "qcmc_logic.overrides.lms_inject.inject_lms_login_redirect",
 ]
 
 doctype_js = {
