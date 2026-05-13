@@ -27,7 +27,17 @@ doc_events = {
 
 before_request = [
     "qcmc_logic.patches.oauth_patch.ensure_fac_oauth_alias",
+    "qcmc_logic.overrides.lms_inject.redirect_login_to_lms_login",
 ]
+
+after_request = [
+    "qcmc_logic.overrides.lms_inject.inject_lms_login_redirect",
+]
+
+doctype_js = {
+    "Material Request": "public/js/material_request.js",
+    "Warehouse Transfer": "public/js/warehouse_transfer.js",
+}
 
 # override_doctype_class = {
     
@@ -48,7 +58,7 @@ override_whitelisted_methods = {
     "frappe_assistant_core.api.oauth_registration.register_client":"qcmc_logic.overrides.oauth_override.register_client",
     "frappe_assistant_core.api.oauth_discovery.oauth_authorization_server":"qcmc_logic.overrides.oauth_override.oauth_authorization_server",
     "erpnext.stock.doctype.delivery_note.delivery_note.make_delivery_trip":"qcmc_logic.overrides.delivery_note_override.make_delivery_trip",
-
+    "erpnext.stock.doctype.material_request.material_request.make_stock_entry": "qcmc_logic.utils.make_stock_entry_from_material_request"
 }
 
 
@@ -129,7 +139,7 @@ fixtures = [
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/qcmc_logic/css/qcmc_logic.css"
-# app_include_js = "/assets/qcmc_logic/js/qcmc_logic.js"
+app_include_js = "/assets/qcmc_logic/js/warehouse_transfer.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/qcmc_logic/css/qcmc_logic.css"
