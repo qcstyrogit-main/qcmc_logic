@@ -29,6 +29,11 @@ before_request = [
     "qcmc_logic.patches.oauth_patch.ensure_fac_oauth_alias",
 ]
 
+doctype_js = {
+    "Material Request": "public/js/material_request.js",
+    "Warehouse Transfer": "public/js/warehouse_transfer.js",
+}
+
 # override_doctype_class = {
     
 #    # ,"Stock Entry": "qcmc_logic.overrides.stock_entry_override.CustomStockEntry"
