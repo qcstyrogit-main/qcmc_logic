@@ -20,11 +20,16 @@ class CustomAsset(Asset):
         if item.has_variants:
             frappe.throw("Asset cannot be created from a template item")
 
-        #if item.is_stock_item and item.is_fixed_asset:
-         #   frappe.throw("Item cannot be both stock item and fixed asset item")
-
-        if item.is_stock_item and not item.get("custom_is_asset_item"): #not item.custom_is_asset_item:
+        if item.is_stock_item and not item.get("custom_is_asset_item"):
             frappe.throw("Stock Item must also be marked as Custom Asset Item")
+
+        # Auto-fill Asset Category from the Item's custom field if the Asset does not already have one
+        if not self.asset_category:
+            custom_cat = item.get("custom_asset_cat")
+            if custom_cat:
+                self.asset_category = custom_cat
+            elif not item.get("asset_category"):
+                frappe.throw(f"Item {self.item_code} must have an Asset Category or custom_asset_cat set")
 
     def before_save(self):
 
