@@ -4,8 +4,8 @@
   "doctype": "Client Script",
   "dt": "Delivery Note",
   "enabled": 1,
-  "modified": "2026-05-04 14:53:31.779563",
-  "module": null,
+  "modified": "2026-05-19 11:14:45.782286",
+  "module": "QCMC Logics",
   "name": "Show Sales Order",
   "script": "frappe.ui.form.on('Delivery Note', {\r\n    items_add: function(frm) {\r\n        if (frm.doc.items && frm.doc.items.length > 0) {\r\n            let so = frm.doc.items[0].against_sales_order;\r\n            if (so) {\r\n                frm.set_value('sales_order', so);\r\n            }\r\n        }\r\n    }\r\n});",
   "view": "Form"
@@ -15,10 +15,10 @@
   "doctype": "Client Script",
   "dt": "Sales Invoice",
   "enabled": 1,
-  "modified": "2026-05-06 15:41:31.090969",
-  "module": null,
+  "modified": "2026-05-19 11:10:20.954728",
+  "module": "QCMC Logics",
   "name": "Show DR Number",
-  "script": "frappe.ui.form.on('Sales Invoice', {\r\n    refresh: function(frm) {\r\n        set_delivery_number(frm);\r\n\r\n        // 1. Target the 'Get Items From' dropdown\r\n        // 2. Add/Override the 'Delivery Note' button to include your clear logic\r\n        frm.page.add_inner_button(__('Delivery Note'), function() {\r\n\r\n            // Trigger your clear logic BEFORE opening the dialog\r\n            frm.clear_table('items');\r\n            frm.set_value('custom_delivery_number', '');\r\n            frm.refresh_field('items');\r\n\r\n            // Now call the standard ERPNext mapper for Delivery Note\r\n            erpnext.utils.map_current_doc({\r\n                method: \"erpnext.stock.doctype.delivery_note.delivery_note.make_sales_invoice\",\r\n                source_doctype: \"Delivery Note\",\r\n                target: frm,\r\n                setters: {\r\n                    customer: frm.doc.customer || undefined,\r\n                },\r\n                get_query: function() {\r\n                    return {\r\n                        filters: {\r\n                            docstatus: 1,\r\n                            customer: frm.doc.customer,\r\n                            status: [\"not in\", [\"Completed\", \"Closed\"]]\r\n                        }\r\n                    };\r\n                }\r\n            });\r\n        }, __('Get Items From'));\r\n    },\r\n    after_save: function(frm) {\r\n        set_delivery_number(frm);\r\n    }\r\n});\r\n\r\nfrappe.ui.form.on('Sales Invoice Item', {\r\n    items_add: function(frm) {\r\n        set_delivery_number(frm);\r\n    },\r\n    items_remove: function(frm) {\r\n        set_delivery_number(frm);\r\n    },\r\n    delivery_note: function(frm) {\r\n        set_delivery_number(frm);\r\n    }\r\n});\r\n\r\n// Main helper function to keep your custom field updated\r\nfunction set_delivery_number(frm) {\r\n    let delivery_notes = [];\r\n    (frm.doc.items || []).forEach(function(row) {\r\n        if (row.delivery_note && !delivery_notes.includes(row.delivery_note)) {\r\n            delivery_notes.push(row.delivery_note);\r\n        }\r\n    });\r\n\r\n    if (delivery_notes.length === 0) {\r\n        frm.set_value('custom_delivery_number', '');\r\n        return;\r\n    }\r\n\r\n    // Fetch custom_dr_number for all unique Delivery Notes\r\n    let promises = delivery_notes.map(dn =>\r\n        frappe.db.get_value('Delivery Note', dn, 'custom_dr_number')\r\n    );\r\n\r\n    Promise.all(promises).then(results => {\r\n        let dr_numbers = results\r\n            .map(r => r && r.message && r.message.custom_dr_number)\r\n            .filter(Boolean);\r\n\r\n        frm.set_value('custom_delivery_number', dr_numbers.join(', '));\r\n    });\r\n}",
+  "script": "let _dr_request_id = 0;\r\nlet _dr_debounce_timer = null;\r\n\r\nfrappe.ui.form.on('Sales Invoice', {\r\n    refresh: function(frm) {\r\n        set_delivery_number(frm);\r\n\r\n        $(document).off('click.dr_clear').on('click.dr_clear', 'li a, .dropdown-item', function() {\r\n            if ($(this).text().trim() === __('Delivery Note') && cur_frm === frm) {\r\n                _dr_request_id++; // invalidate in-flight fetches\r\n\r\n                // Clear items table\r\n                frm._clearing_items = true;\r\n                frm.clear_table('items');\r\n                frm.refresh_field('items');\r\n                frm._clearing_items = false;\r\n\r\n                // Clear delivery number\r\n                frm.set_value('custom_delivery_number', '');\r\n            }\r\n        });\r\n\r\n        // Hook refresh_field to re-evaluate after Frappe bulk-inserts rows\r\n        const _orig_refresh_field = frm.refresh_field.bind(frm);\r\n        frm.refresh_field = function(fieldname) {\r\n            _orig_refresh_field(fieldname);\r\n            if (fieldname === 'items' && !frm._clearing_items) {\r\n                debounced_set_delivery_number(frm);\r\n            }\r\n        };\r\n    },\r\n\r\n    after_save: function(frm) {\r\n        set_delivery_number(frm);\r\n    }\r\n});\r\n\r\nfrappe.ui.form.on('Sales Invoice Item', {\r\n    items_add:     function(frm) { if (!frm._clearing_items) debounced_set_delivery_number(frm); },\r\n    items_remove:  function(frm) { if (!frm._clearing_items) debounced_set_delivery_number(frm); },\r\n    delivery_note: function(frm) { if (!frm._clearing_items) debounced_set_delivery_number(frm); }\r\n});\r\n\r\nfunction debounced_set_delivery_number(frm) {\r\n    clearTimeout(_dr_debounce_timer);\r\n    _dr_debounce_timer = setTimeout(function() {\r\n        set_delivery_number(frm);\r\n    }, 300);\r\n}\r\n\r\nfunction set_delivery_number(frm) {\r\n    let delivery_notes = [];\r\n    (frm.doc.items || []).forEach(function(row) {\r\n        if (row.delivery_note && !delivery_notes.includes(row.delivery_note)) {\r\n            delivery_notes.push(row.delivery_note);\r\n        }\r\n    });\r\n\r\n    if (delivery_notes.length === 0) {\r\n        frm.set_value('custom_delivery_number', '');\r\n        return;\r\n    }\r\n\r\n    const request_id = ++_dr_request_id;\r\n    Promise.all(\r\n        delivery_notes.map(dn =>\r\n            frappe.db.get_value('Delivery Note', dn, 'custom_dr_number')\r\n        )\r\n    ).then(function(results) {\r\n        if (request_id !== _dr_request_id) return;\r\n        let dr_numbers = results\r\n            .map(r => r && r.message && r.message.custom_dr_number)\r\n            .filter(Boolean);\r\n        frm.set_value('custom_delivery_number', dr_numbers.join(', '));\r\n    });\r\n}",
   "view": "Form"
  },
  {
@@ -158,8 +158,8 @@
   "doctype": "Client Script",
   "dt": "Sales Order",
   "enabled": 1,
-  "modified": "2026-05-04 17:32:44.738910",
-  "module": "",
+  "modified": "2026-05-19 11:10:37.243935",
+  "module": "QCMC Logics",
   "name": "Customer PO Exist",
   "script": "frappe.ui.form.on('Sales Order', {\r\n    po_no: function(frm) {\r\n        if (!frm.doc.po_no) {\r\n            frm.get_field('po_no').set_description('');\r\n            return;\r\n        }\r\n\r\n        frappe.call({\r\n            method: 'frappe.client.get_list',\r\n            args: {\r\n                doctype: 'Sales Order',\r\n                filters: [\r\n                    ['po_no', '=', frm.doc.po_no],\r\n                    ['name', '!=', frm.doc.name],\r\n                    ['docstatus', '!=', 2]\r\n                ],\r\n                fields: ['name', 'customer'],\r\n                limit: 1\r\n            },\r\n            callback: function(r) {\r\n                if (r.message && r.message.length > 0) {\r\n                    let so = r.message[0];\r\n                    frm.get_field('po_no').set_description(\r\n                        `<span style=\"color: red;\">⚠️ PO No. already used in \r\n                        <a href=\"/app/sales-order/${so.name}\" target=\"_blank\">${so.name}</a> \r\n                        (${so.customer})</span>`\r\n                    );\r\n                    // Disable save button\r\n                    frm.page.set_primary_action('Save', null);\r\n                    frm.save_disabled = true;\r\n                } else {\r\n                    frm.get_field('po_no').set_description(\r\n                        '<span style=\"color: green;\">✅ PO No. is unique</span>'\r\n                    );\r\n                    // Re-enable save button\r\n                    frm.save_disabled = false;\r\n                    frm.page.set_primary_action('Save', () => frm.save());\r\n                }\r\n            }\r\n        });\r\n    },\r\n\r\n    // Also validate before saving\r\n    before_save: function(frm) {\r\n        if (frm.save_disabled) {\r\n            frappe.throw('⚠️ Cannot save. Customer\\'s Purchase Order No. already exists in another Sales Order.');\r\n        }\r\n    }\r\n});",
   "view": "Form"
@@ -234,8 +234,8 @@
   "docstatus": 0,
   "doctype": "Client Script",
   "dt": "Sales Order",
-  "enabled": 1,
-  "modified": "2026-04-06 17:39:30.205897",
+  "enabled": 0,
+  "modified": "2026-05-18 14:44:00.435828",
   "module": "QCMC Logics",
   "name": "Sales Order - PO Duplicate Warn",
   "script": "frappe.ui.form.on(\"Sales Order\", {\r\n    po_no(frm) {\r\n        // Reset confirmation if PO changes\r\n        frm.__po_confirmed = false;\r\n    },\r\n\r\n    validate(frm) {\r\n        if (!frm.doc.po_no || !frm.doc.customer) return;\r\n        if (frm.__po_confirmed) return;\r\n\r\n        // Block save while we check duplicates\r\n        frappe.validated = false;\r\n\r\n        frappe.call({\r\n            method: \"qcmc_logic.utils.check_duplicate_customer_po\",\r\n            args: {\r\n                customer: frm.doc.customer,\r\n                po_no: frm.doc.po_no,\r\n                current_name: frm.doc.name\r\n            },\r\n            callback: function(r) {\r\n                const duplicates = r.message || [];\r\n\r\n                if (!duplicates.length) {\r\n                    // No duplicates found, proceed with save\r\n                    frm.__po_confirmed = true;\r\n                    frm.save();\r\n                    return;\r\n                }\r\n\r\n                const list = duplicates.slice(0, 5).join(', ');\r\n                const msg = __(\"PO No. {0} was already used for this customer in: {1}. Proceed anyway?\", [frm.doc.po_no, list]);\r\n\r\n                frappe.confirm(msg,\r\n                    () => {\r\n                        frm.__po_confirmed = true;\r\n                        frm.save();\r\n                    },\r\n                    () => {\r\n                        frm.set_value(\"po_no\", \"\");\r\n                    }\r\n                );\r\n            }\r\n        });\r\n    }\r\n});\r\n",
@@ -939,8 +939,8 @@
   "doctype": "Client Script",
   "dt": "Purchase Receipt",
   "enabled": 1,
-  "modified": "2026-04-22 12:54:10.072850",
-  "module": null,
+  "modified": "2026-05-19 11:14:05.009618",
+  "module": "QCMC Logics",
   "name": "WRR total weight not read only",
   "script": "frappe.ui.form.on('Purchase Receipt', {\n\trefresh: function(frm) {\n        frm.fields_dict.items.grid.update_docfield_property(\n            'total_weight',\n            'read_only',\n            0\n        );\n    }\n})",
   "view": "Form"
@@ -994,8 +994,8 @@
   "doctype": "Client Script",
   "dt": "Delivery Note",
   "enabled": 1,
-  "modified": "2026-05-06 15:34:46.931855",
-  "module": null,
+  "modified": "2026-05-19 11:13:23.683689",
+  "module": "QCMC Logics",
   "name": "Show Value Sales Order",
   "script": "frappe.ui.form.on('Delivery Note', {\r\n    refresh: function(frm) {\r\n        set_sales_order(frm);\r\n\r\n        // 1. Target the 'Get Items From' dropdown\r\n        // 2. Add/Override the 'Sales Order' button to include your clear logic\r\n        frm.page.add_inner_button(__('Sales Order'), function() {\r\n            \r\n            // Trigger your clear logic BEFORE opening the dialog from image_a03c13.png\r\n            frm.clear_table('items');\r\n            frm.set_value('custom_sales_order', '');\r\n            frm.refresh_field('items');\r\n            \r\n            // Now call the standard ERPNext mapper for Sales Order\r\n            erpnext.utils.map_current_doc({\r\n                method: \"erpnext.selling.doctype.sales_order.sales_order.make_delivery_note\",\r\n                source_doctype: \"Sales Order\",\r\n                target: frm,\r\n                setters: {\r\n                    customer: frm.doc.customer || undefined,\r\n                },\r\n                get_query: function() {\r\n                    return {\r\n                        filters: {\r\n                            docstatus: 1,\r\n                            customer: frm.doc.customer,\r\n                            status: [\"not in\", [\"Completed\", \"Closed\"]]\r\n                        }\r\n                    };\r\n                }\r\n            });\r\n        }, __('Get Items From'));\r\n    },\r\n\r\n    after_save: function(frm) {\r\n        set_sales_order(frm);\r\n    }\r\n});\r\n\r\nfrappe.ui.form.on('Delivery Note Item', {\r\n    items_add: function(frm) {\r\n        set_sales_order(frm);\r\n    },\r\n    items_remove: function(frm) {\r\n        set_sales_order(frm);\r\n    },\r\n    against_sales_order: function(frm) {\r\n        set_sales_order(frm);\r\n    }\r\n});\r\n\r\n// Main helper function to keep your custom field updated\r\nfunction set_sales_order(frm) {\r\n    let sales_orders = [];\r\n    (frm.doc.items || []).forEach(function(row) {\r\n        if (row.against_sales_order && !sales_orders.includes(row.against_sales_order)) {\r\n            sales_orders.push(row.against_sales_order);\r\n        }\r\n    });\r\n\r\n    // Join the unique Sales Orders and update the field\r\n    frm.set_value('custom_sales_order', sales_orders.join(', '));\r\n}",
   "view": "Form"
@@ -1075,6 +1075,61 @@
   "module": null,
   "name": "Inter Company Asset Transfer Employee Comp",
   "script": "frappe.ui.form.on('Inter Company Asset Transfer', {\r\n    target_comp: function(frm) {\r\n        const target_comp = frm.doc.target_comp;\r\n\r\n        if (target_comp) {\r\n            frm.set_query(\"transfer_to_emp\", () => {\r\n                return {\r\n                    filters: {\r\n                        company: target_comp\r\n                    }\r\n                };\r\n            });\r\n        } else {\r\n            // Clear filter if no target company selected\r\n            frm.set_query(\"transfer_to_emp\", () => {\r\n                return {\r\n                    filters: {}\r\n                };\r\n            });\r\n        }\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Delivery Note",
+  "enabled": 1,
+  "modified": "2026-05-19 11:10:56.331792",
+  "module": "QCMC Logics",
+  "name": "Customer DR Exist",
+  "script": "frappe.ui.form.on('Delivery Note', {\r\n    custom_dr_number: function(frm) {\r\n        if (!frm.doc.custom_dr_number) {\r\n            frm.get_field('custom_dr_number').set_description('');\r\n            return;\r\n        }\r\n        frappe.call({\r\n            method: 'frappe.client.get_list',\r\n            args: {\r\n                doctype: 'Delivery Note',\r\n                filters: [\r\n                    ['custom_dr_number', '=', frm.doc.custom_dr_number],\r\n                    ['name', '!=', frm.doc.name],\r\n                    ['docstatus', '!=', 2]\r\n                ],\r\n                fields: ['name', 'customer'],\r\n                limit: 1\r\n            },\r\n            callback: function(r) {\r\n                if (r.message && r.message.length > 0) {\r\n                    let dn = r.message[0];\r\n                    frm.get_field('custom_dr_number').set_description(\r\n                        `<span style=\"color: red;\">⚠️ DR No. already used in \r\n                        <a href=\"/app/delivery-note/${dn.name}\" target=\"_blank\">${dn.name}</a> \r\n                        (${dn.customer})</span>`\r\n                    );\r\n                    // Disable save button\r\n                    frm.page.set_primary_action('Save', null);\r\n                    frm.save_disabled = true;\r\n                } else {\r\n                    frm.get_field('custom_dr_number').set_description(\r\n                        '<span style=\"color: green;\">✅ DR No. is unique</span>'\r\n                    );\r\n                    // Re-enable save button\r\n                    frm.save_disabled = false;\r\n                    frm.page.set_primary_action('Save', () => frm.save());\r\n                }\r\n            }\r\n        });\r\n    },\r\n    // Also validate before saving\r\n    before_save: function(frm) {\r\n        if (frm.save_disabled) {\r\n            frappe.throw('⚠️ Cannot save. DR No. already exists in another Delivery Note.');\r\n        }\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Delivery Note",
+  "enabled": 1,
+  "modified": "2026-05-19 11:12:55.203411",
+  "module": "QCMC Logics",
+  "name": "Format Print Auto Select DN",
+  "script": "frappe.ui.form.on('Delivery Note', {\r\n    refresh(frm) {\r\n        set_print_format(frm);\r\n    },\r\n\r\n    company(frm) {\r\n        set_print_format(frm);\r\n    }\r\n});\r\n\r\nfunction set_print_format(frm) {\r\n    let print_format = '';\r\n\r\n    if (frm.doc.company === 'QC Styropackaging Corporation') {\r\n        print_format = 'Deliver Receipt QC';\r\n\r\n    } else if (frm.doc.company === 'Multiplast Corporation') {\r\n        print_format = 'Delivery Receipt MC';\r\n    }\r\n\r\n    frm.meta.default_print_format = print_format;\r\n}",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Invoice",
+  "enabled": 1,
+  "modified": "2026-05-19 11:10:10.108296",
+  "module": "QCMC Logics",
+  "name": "Customer SI Exist",
+  "script": "frappe.ui.form.on('Sales Invoice', {\r\n    custom_invoice_number: function(frm) {\r\n        if (!frm.doc.custom_invoice_number) {\r\n            frm.get_field('custom_invoice_number').set_description('');\r\n            return;\r\n        }\r\n        frappe.call({\r\n            method: 'frappe.client.get_list',\r\n            args: {\r\n                doctype: 'Sales Invoice',\r\n                filters: [\r\n                    ['custom_invoice_number', '=', frm.doc.custom_invoice_number],\r\n                    ['name', '!=', frm.doc.name],\r\n                    ['docstatus', '!=', 2]\r\n                ],\r\n                fields: ['name', 'customer'],\r\n                limit: 1\r\n            },\r\n            callback: function(r) {\r\n                if (r.message && r.message.length > 0) {\r\n                    let si = r.message[0];\r\n                    frm.get_field('custom_invoice_number').set_description(\r\n                        `<span style=\"color: red;\">⚠️ Invoice Number already used in \r\n                        <a href=\"/app/sales-invoice/${si.name}\" target=\"_blank\">${si.name}</a> \r\n                        (${si.customer})</span>`\r\n                    );\r\n                    // Disable save button\r\n                    frm.page.set_primary_action('Save', null);\r\n                    frm.save_disabled = true;\r\n                } else {\r\n                    frm.get_field('custom_invoice_number').set_description(\r\n                        '<span style=\"color: green;\">✅ Invoice Number is unique</span>'\r\n                    );\r\n                    // Re-enable save button\r\n                    frm.save_disabled = false;\r\n                    frm.page.set_primary_action('Save', () => frm.save());\r\n                }\r\n            }\r\n        });\r\n    },\r\n    // Also validate before saving\r\n    before_save: function(frm) {\r\n        if (frm.save_disabled) {\r\n            frappe.throw('⚠️ Cannot save. Invoice Number already exists in another Sales Invoice.');\r\n        }\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Material Request",
+  "enabled": 1,
+  "modified": "2026-05-18 17:44:50.269614",
+  "module": null,
+  "name": "Material Request Default Print Format",
+  "script": "frappe.ui.form.on(\"Material Request\", {\r\n    onload(frm) {\r\n        set_print_format(frm);\r\n    },\r\n\r\n    refresh(frm) {\r\n        set_print_format(frm);\r\n    },\r\n\r\n    material_request_type(frm) {\r\n        set_print_format(frm);\r\n    }\r\n});\r\n\r\nfunction set_print_format(frm) {\r\n    let print_format = \"\";\r\n\r\n    if (frm.doc.material_request_type === \"Material Issue\") {\r\n        print_format = \"Issuance to Production\";\r\n    } else {\r\n        print_format = \"PR_Form_Jinja\";\r\n    }\r\n\r\n    frm.meta.default_print_format = print_format;\r\n\r\n}",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Asset Movement",
+  "enabled": 0,
+  "modified": "2026-05-19 08:05:24.789879",
+  "module": null,
+  "name": "AM - Print Default",
+  "script": "frappe.ui.form.on('Asset Movement', {\r\n    onload(frm) {\r\n        set_print_format(frm);\r\n    },\r\n\r\n    refresh(frm) {\r\n        set_print_format(frm);\r\n    },\r\n\r\n    material_request_type(frm) {\r\n        set_print_format(frm);\r\n    }\r\n});\r\n\r\nfunction set_print_format(frm) {\r\n    let print_format = \"\";\r\n\r\n    if (frm.doc.material_request_type === \"Material Issue\") {\r\n        print_format = \"Issuance to Production\";\r\n    } else {\r\n        print_format = \"PR_Form_Jinja\";\r\n    }\r\n\r\n    frm.meta.default_print_format = print_format;\r\n\r\n}",
   "view": "Form"
  }
 ]

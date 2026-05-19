@@ -139,7 +139,11 @@ fixtures = [
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/qcmc_logic/css/qcmc_logic.css"
-app_include_js = "/assets/qcmc_logic/js/warehouse_transfer.js"
+app_include_js = [
+    "/assets/qcmc_logic/js/hide_print_selection.js",
+    "/assets/qcmc_logic/js/warehouse_transfer.js"
+]
+
 
 # include js, css files in header of web template
 # web_include_css = "/assets/qcmc_logic/css/qcmc_logic.css"
