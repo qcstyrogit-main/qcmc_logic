@@ -8093,5 +8093,821 @@
    }
   ],
   "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": null,
+  "letter_head": "QCMC",
+  "modified": "2025-08-14 17:20:09.646332",
+  "module": "Assets",
+  "name": "Accountability Summary",
+  "prepared_report": 0,
+  "query": "WITH latest_movement AS (\r\n    SELECT\r\n        ami.asset,\r\n        am.name AS movement_name,\r\n        am.transaction_date,\r\n        am.custom_remarks,\r\n        ROW_NUMBER() OVER (PARTITION BY ami.asset ORDER BY am.transaction_date DESC, am.name DESC) AS rn\r\n    FROM `tabAsset Movement` am\r\n    JOIN `tabAsset Movement Item` ami ON am.name = ami.parent\r\n    WHERE am.workflow_state IN ('Checked', 'Received')\r\n),\r\nmovement_count AS (\r\n    SELECT\r\n        ami.asset,\r\n        COUNT(*) AS movement_count\r\n    FROM `tabAsset Movement` am\r\n    JOIN `tabAsset Movement Item` ami ON am.name = ami.parent\r\n    WHERE am.workflow_state IN ('Checked', 'Received')\r\n    GROUP BY ami.asset\r\n)\r\n\r\nSELECT \r\n    CASE WHEN a.custom_custodian_name IS NULL OR a.custom_custodian_name = '' THEN a.custom_section\r\n    else a.custom_custodian_name END as \"Employee / Section:data:140\",\r\n    CASE \r\n        WHEN mc.movement_count >= 3 THEN lm.movement_name\r\n        ELSE a.name \r\n    END AS \"Doc No.:data:100\",\r\n    CASE \r\n        WHEN mc.movement_count >= 2 THEN DATE_FORMAT(lm.transaction_date,'%%m/%%d/%%Y')\r\n        ELSE DATE_FORMAT(a.available_for_use_date,'%%m/%%d/%%Y')\r\n    END AS \"Date\",\r\n    a.asset_name AS \"Asset Name\",\r\n    a.gross_purchase_amount AS \"Unit Cost\",\r\n    a.purchase_receipt AS \"Ref WRR\",\r\n    a.custom_notes AS \"Notes\",\r\n    CASE \r\n        WHEN mc.movement_count >= 2 THEN lm.custom_remarks\r\n        ELSE '' \r\n    END AS \"Remarks\"\r\n\r\nFROM `tabAsset` a\r\nLEFT JOIN movement_count mc ON mc.asset = a.name\r\nLEFT JOIN latest_movement lm ON lm.asset = a.name AND lm.rn = 1\r\nWHERE a.disposal_date IS NULL \r\n  AND a.calculate_depreciation = 0 \r\n  AND a.docstatus < 2\r\nORDER BY CASE WHEN a.custom_custodian_name IS NULL OR a.custom_custodian_name = '' THEN a.custom_section\r\n    else a.custom_custodian_name END, a.custom_notes ASC",
+  "ref_doctype": "Asset",
+  "reference_report": null,
+  "report_name": "Accountability Summary",
+  "report_script": "",
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Accountability Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Accountability Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Quality Manager"
+   },
+   {
+    "parent": "Accountability Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "System Manager"
+   },
+   {
+    "parent": "Accountability Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management Head"
+   },
+   {
+    "parent": "Accountability Summary",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": null,
+  "letter_head": "BOA Letterhead",
+  "modified": "2026-03-24 16:56:54.137490",
+  "module": "Accounts",
+  "name": "Annual Sales Report",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "Annual Sales Report",
+  "report_script": "def execute(filters=None):\n    data = frappe.db.sql(\"\"\"SELECT YEAR(posting_date) as year, SUM(grand_total) as total_sales\n                           FROM `tabSales Invoice`\n                           WHERE docstatus = 1\n                           GROUP BY YEAR(posting_date)\n                           ORDER BY year\"\"\", as_dict=True)\n    columns = [\n        {\"fieldname\": \"year\", \"label\": \"Year\", \"fieldtype\": \"Int\", \"width\": 100},\n        {\"fieldname\": \"total_sales\", \"label\": \"Total Sales\", \"fieldtype\": \"Currency\", \"width\": 150}\n    ]\n    return columns, data",
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "parent": "Annual Sales Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Annual Sales Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Annual Sales Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management User"
+   },
+   {
+    "parent": "Annual Sales Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management Head"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": null,
+  "letter_head": "BOA Letterhead",
+  "modified": "2026-03-24 09:36:51.256362",
+  "module": "Selling",
+  "name": "Custom Sales Invoice Export",
+  "prepared_report": 0,
+  "query": "SELECT name AS `Invoice ID`, posting_date AS `Date`, customer AS `Customer`, grand_total AS `Total Amount`, status AS `Status`, due_date AS `Due Date`, outstanding_amount AS `Outstanding` FROM `tabSales Invoice` WHERE docstatus = 1",
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "Custom Sales Invoice Export",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Custom Sales Invoice Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Custom Sales Invoice Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Custom Sales Invoice Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management User"
+   },
+   {
+    "parent": "Custom Sales Invoice Export",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management Head"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [
+   {
+    "fieldname": "Sales Invoice",
+    "fieldtype": "Link",
+    "label": "Sales Invoice",
+    "options": "Sales Invoice",
+    "parent": "Detailed Overdues in Sales Invoice",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Customer",
+    "fieldtype": "Link",
+    "label": "Customer",
+    "options": "Customer",
+    "parent": "Detailed Overdues in Sales Invoice",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Due Date",
+    "fieldtype": "Date",
+    "label": "Due Date",
+    "options": null,
+    "parent": "Detailed Overdues in Sales Invoice",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Outstanding Amount",
+    "fieldtype": "Currency",
+    "label": "Outstanding Amount",
+    "options": null,
+    "parent": "Detailed Overdues in Sales Invoice",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Days Overdue",
+    "fieldtype": "Int",
+    "label": "Days Overdue",
+    "options": null,
+    "parent": "Detailed Overdues in Sales Invoice",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   }
+  ],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [
+   {
+    "default": null,
+    "fieldname": "customer",
+    "fieldtype": "Link",
+    "label": "Customer",
+    "mandatory": 0,
+    "options": "Customer",
+    "parent": "Detailed Overdues in Sales Invoice",
+    "parentfield": "filters",
+    "parenttype": "Report",
+    "wildcard_filter": 0
+   },
+   {
+    "default": null,
+    "fieldname": "company",
+    "fieldtype": "Link",
+    "label": "Company",
+    "mandatory": 0,
+    "options": "Company",
+    "parent": "Detailed Overdues in Sales Invoice",
+    "parentfield": "filters",
+    "parenttype": "Report",
+    "wildcard_filter": 0
+   }
+  ],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "modified": "2026-03-18 13:58:18.139888",
+  "module": "Selling",
+  "name": "Detailed Overdues in Sales Invoice",
+  "prepared_report": 0,
+  "query": "SELECT si.name as \"Sales Invoice\", si.customer_name as \"Customer\", si.due_date as \"Due Date\", si.outstanding_amount as \"Outstanding Amount\", DATEDIFF(CURDATE(), si.due_date) as \"Days Overdue\" FROM `tabSales Invoice` si WHERE si.outstanding_amount > 0 AND si.due_date < CURDATE() ORDER BY si.due_date ASC",
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "Detailed Overdues in Sales Invoice",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": null,
+  "letter_head": "QCMC",
+  "modified": "2025-08-27 14:53:11.830944",
+  "module": "HR",
+  "name": "Fuel Mortgage Report",
+  "prepared_report": 0,
+  "query": "select Name as \"Vehicle Log ID\", \r\nlicense_plate as \"License Plate\",\r\nDATE,\r\nCase when custom_odometer_reset = 1 then\r\n\tcustom_odometer_reset_value\r\n\tElse odometer END as \"Odometer\",\r\nfuel_qty as \"Fuel Quantity\",\r\nprice as \"Price\",\r\nsupplier as \"Supplier\",\r\ninvoice as \"Invoice\"\r\n from `tabVehicle Log` where fuel_qty > 0 ",
+  "ref_doctype": "Vehicle Log",
+  "reference_report": null,
+  "report_name": "Fuel Mortgage Report",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Fuel Mortgage Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Fleet Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": null,
+  "letter_head": "QCMC",
+  "modified": "2026-04-21 10:02:20.314427",
+  "module": "HR",
+  "name": "Oil Change Due",
+  "prepared_report": 0,
+  "query": "SELECT\r\n    v.name AS \"Vehicle:Link/Vehicle:150\",\r\n    v.last_odometer AS \"Current Odometer\",\r\n    vlo.odometer AS \"Last Oil Change Odometer\",\r\n    vlo.last_service_date AS \"Last Oil Change Date\"\r\nFROM\r\n    `tabVehicle` v\r\nLEFT JOIN\r\n    (\r\n        SELECT \r\n            l.license_plate,\r\n            CAST(MAX(l.odometer) AS DECIMAL(12,2)) AS odometer,\r\n            MAX(s.custom_service_date) AS last_service_date\r\n        FROM `tabVehicle Log` l\r\n        INNER JOIN `tabVehicle Service` s \r\n            ON s.parent = l.name\r\n           AND s.service_item LIKE '%%ENGINE CHANGE OIL%%'\r\n        GROUP BY l.license_plate\r\n    ) vlo ON v.name = vlo.license_plate\r\n    where vlo.last_service_date IS NOT NULL\r\nORDER BY\r\n    v.name;\r\n",
+  "ref_doctype": "Vehicle",
+  "reference_report": null,
+  "report_name": "Oil Change Due",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Oil Change Due",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Fleet Manager"
+   },
+   {
+    "parent": "Oil Change Due",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Delivery User"
+   },
+   {
+    "parent": "Oil Change Due",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Delivery Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": null,
+  "letter_head": "QCMC",
+  "modified": "2025-07-02 17:42:10.521227",
+  "module": "Selling",
+  "name": "SO Delivery Progress",
+  "prepared_report": 0,
+  "query": "SELECT\r\n    so.name AS \"Sales Order:Link/Sales Order:130\",\r\n    so.customer AS \"Customer:Link/Customer:140\",\r\n    soi.delivery_date AS \"Date:Date:100\",\r\n    so.status as \"Status::130\",\r\n    soi.item_code AS \"Item Code:Link/Item:180\",\r\n    soi.item_name AS \"Item Name::0\",\r\n    soi.qty AS \"Ordered Qty:Float:100\",\r\n    soi.delivered_qty AS \"Delivered Qty:Float:120\",\r\n\r\n    -- Draft DR Qty\r\n    IFNULL((\r\n        SELECT SUM(dni.qty)\r\n        FROM `tabDelivery Note Item` dni\r\n        JOIN `tabDelivery Note` dn ON dn.name = dni.parent\r\n        WHERE dni.so_detail = soi.name AND dn.docstatus = 0\r\n    ), 0) AS \"Draft DR Qty:Float:120\",\r\n\r\n    -- Related Delivery Note numbers (submitted only)\r\n    IFNULL((\r\n        SELECT GROUP_CONCAT(DISTINCT dn.name SEPARATOR ', ')\r\n        FROM `tabDelivery Note Item` dni\r\n        JOIN `tabDelivery Note` dn ON dn.name = dni.parent\r\n        WHERE dni.so_detail = soi.name AND dn.docstatus = 1\r\n    ), '-') AS \"Delivery Notes(Completed):Link/Delivery Note:200\",\r\n    \r\n        -- Related Delivery Note numbers (submitted only)\r\n    IFNULL((\r\n        SELECT GROUP_CONCAT(DISTINCT dn.name SEPARATOR ', ')\r\n        FROM `tabDelivery Note Item` dni\r\n        JOIN `tabDelivery Note` dn ON dn.name = dni.parent\r\n        WHERE dni.so_detail = soi.name AND dn.docstatus = 0\r\n    ), '-') AS \"Delivery Notes(Draft):Link/Delivery Note:200\",\r\n    \r\n    -- Progress Bar (delivered only) \r\n    CONCAT(\r\n        '<div style=\"background:#eee;border-radius:4px;width:100%%;height:20px;\" title=\"',\r\n        ROUND(soi.delivered_qty, 2), ' out of ', ROUND(soi.qty, 2), ' delivered\">',\r\n        '<div style=\"height:100%%;border-radius:4px;width:',\r\n        ROUND(IFNULL(soi.delivered_qty / NULLIF(soi.qty, 0), 0) * 100, 1), '%%;',\r\n        'background:',\r\n        CASE \r\n            WHEN IFNULL(soi.delivered_qty / NULLIF(soi.qty, 0), 0) = 1 THEN '#4caf50'\r\n            WHEN IFNULL(soi.delivered_qty / NULLIF(soi.qty, 0), 0) >= 0.5 THEN '#ffc107'\r\n            ELSE '#f44336'\r\n        END,\r\n        ';color:black;text-align:center;font-size:12px;\">',\r\n        ROUND(IFNULL(soi.delivered_qty / NULLIF(soi.qty, 0), 0) * 100, 1), '%%</div></div>'\r\n    ) AS \"Progress (Delivered Only):HTML:180\",\r\n    -- Progress Bar (ALL)\r\n    CONCAT(\r\n        '<div style=\"background:#eee;border-radius:4px;width:100%%;height:20px;\" title=\"',\r\n        ROUND(soi.delivered_qty, 2), ' delivered, ',\r\n        (\r\n            SELECT IFNULL(SUM(dni.qty), 0)\r\n            FROM `tabDelivery Note Item` dni\r\n            JOIN `tabDelivery Note` dn ON dn.name = dni.parent\r\n            WHERE dni.so_detail = soi.name AND dn.docstatus = 0\r\n        ), ' draft out of ', ROUND(soi.qty, 2), ' ordered\">',\r\n        '<div style=\"height:100%%;border-radius:4px;width:',\r\n        ROUND(IFNULL((soi.delivered_qty + \r\n            (SELECT IFNULL(SUM(dni.qty), 0)\r\n             FROM `tabDelivery Note Item` dni\r\n             JOIN `tabDelivery Note` dn ON dn.name = dni.parent\r\n             WHERE dni.so_detail = soi.name AND dn.docstatus = 0)\r\n        ) / NULLIF(soi.qty, 0), 0) * 100, 1), '%%;',\r\n        'background:',\r\n        CASE \r\n            WHEN IFNULL((soi.delivered_qty + \r\n                (SELECT IFNULL(SUM(dni.qty), 0)\r\n                 FROM `tabDelivery Note Item` dni\r\n                 JOIN `tabDelivery Note` dn ON dn.name = dni.parent\r\n                 WHERE dni.so_detail = soi.name AND dn.docstatus = 0)\r\n            ) / NULLIF(soi.qty, 0), 0) = 1 THEN '#4caf50'\r\n            WHEN IFNULL((soi.delivered_qty + \r\n                (SELECT IFNULL(SUM(dni.qty), 0)\r\n                 FROM `tabDelivery Note Item` dni\r\n                 JOIN `tabDelivery Note` dn ON dn.name = dni.parent\r\n                 WHERE dni.so_detail = soi.name AND dn.docstatus = 0)\r\n            ) / NULLIF(soi.qty, 0), 0) >= 0.5 THEN '#ffc107'\r\n            ELSE '#f44336'\r\n        END,\r\n        ';color:black;text-align:center;font-size:12px;\">',\r\n        ROUND(IFNULL((soi.delivered_qty + \r\n            (SELECT IFNULL(SUM(dni.qty), 0)\r\n             FROM `tabDelivery Note Item` dni\r\n             JOIN `tabDelivery Note` dn ON dn.name = dni.parent\r\n             WHERE dni.so_detail = soi.name AND dn.docstatus = 0)\r\n        ) / NULLIF(soi.qty, 0), 0) * 100, 1), '%%</div></div>'\r\n    ) AS \"Progress (ALL):HTML:180\"\r\n\r\nFROM `tabSales Order` so\r\nJOIN `tabSales Order Item` soi ON soi.parent = so.name\r\nWHERE so.docstatus = 1\r\n    \r\nORDER BY so.transaction_date DESC, so.name DESC",
+  "ref_doctype": "Sales Order",
+  "reference_report": null,
+  "report_name": "SO Delivery Progress",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "SO Delivery Progress",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "SO Delivery Progress",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Maintenance User"
+   },
+   {
+    "parent": "SO Delivery Progress",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   },
+   {
+    "parent": "SO Delivery Progress",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales User"
+   },
+   {
+    "parent": "SO Delivery Progress",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Manager"
+   },
+   {
+    "parent": "SO Delivery Progress",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Credit and Collection Section Head"
+   },
+   {
+    "parent": "SO Delivery Progress",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Coordinator"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": "{\"filters\":[],\"fields\":[[\"workflow_state\",\"Sales Order\"],[\"name\",\"Sales Order\"],[\"docstatus\",\"Sales Order\"],[\"customer_name\",\"Sales Order\"],[\"customer\",\"Sales Order\"],[\"transaction_date\",\"Sales Order\"],[\"delivery_date\",\"Sales Order\"],[\"company\",\"Sales Order\"],[\"grand_total\",\"Sales Order\"],[\"delivery_status\",\"Sales Order\"],[\"billing_status\",\"Sales Order\"],[\"currency\",\"Sales Order\"],[\"base_grand_total\",\"Sales Order\"],[\"per_delivered\",\"Sales Order\"],[\"per_billed\",\"Sales Order\"],[\"status\",\"Sales Order\"],[\"order_type\",\"Sales Order\"],[\"skip_delivery_note\",\"Sales Order\"]],\"order_by\":\"`tabSales Order`.`modified` desc\",\"add_totals_row\":0,\"page_length\":20,\"column_widths\":{\"workflow_state\":120,\"name\":120,\"customer_name\":120,\"customer\":120,\"transaction_date\":160,\"delivery_date\":120,\"company\":150,\"grand_total\":150,\"delivery_status\":120,\"billing_status\":120,\"currency\":100,\"base_grand_total\":150,\"per_delivered\":100,\"per_billed\":100,\"status\":100,\"order_type\":120,\"skip_delivery_note\":120},\"group_by\":null}",
+  "letter_head": "QCMC",
+  "modified": "2025-07-21 10:23:02.590934",
+  "module": "Selling",
+  "name": "SO View",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Sales Order",
+  "reference_report": null,
+  "report_name": "SO View",
+  "report_script": null,
+  "report_type": "Report Builder",
+  "roles": [
+   {
+    "parent": "SO View",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "SO View",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Maintenance User"
+   },
+   {
+    "parent": "SO View",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   },
+   {
+    "parent": "SO View",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales User"
+   },
+   {
+    "parent": "SO View",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Manager"
+   },
+   {
+    "parent": "SO View",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Credit and Collection Section Head"
+   },
+   {
+    "parent": "SO View",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Coordinator"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [
+   {
+    "fieldname": "Sales Order",
+    "fieldtype": "Link",
+    "label": "Sales Order",
+    "options": "Sales Order",
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Customer",
+    "fieldtype": "Link",
+    "label": "Customer",
+    "options": "Customer",
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Customer Name",
+    "fieldtype": "Data",
+    "label": "Customer Name",
+    "options": null,
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Item Code",
+    "fieldtype": "Link",
+    "label": "Item",
+    "options": "Item",
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Item Name",
+    "fieldtype": "Data",
+    "label": "Description",
+    "options": null,
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Ordered Qty",
+    "fieldtype": "Data",
+    "label": "Ordered Qty",
+    "options": null,
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Delivered Qty",
+    "fieldtype": "Data",
+    "label": "Delivered Qty",
+    "options": null,
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "SO Balance",
+    "fieldtype": "Data",
+    "label": "SO Balance",
+    "options": null,
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "Draft DR Qty",
+    "fieldtype": "Data",
+    "label": "Draft DR Qty",
+    "options": null,
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "SO Delivery Date",
+    "fieldtype": "Date",
+    "label": "SO Delivery Date",
+    "options": null,
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   },
+   {
+    "fieldname": "SO Status",
+    "fieldtype": "Data",
+    "label": "SO Status",
+    "options": null,
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "columns",
+    "parenttype": "Report",
+    "width": 0
+   }
+  ],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": null,
+  "letter_head": "QCMC",
+  "modified": "2025-07-02 16:50:00.104566",
+  "module": "Selling",
+  "name": "Sales Order Delivery Overview",
+  "prepared_report": 0,
+  "query": "SELECT\r\n    so.name AS \"Sales Order\",\r\n    so.customer AS \"Customer\",\r\n    so.customer_name AS \"Customer Name\",\r\n    soi.item_code AS \"Item Code\",\r\n    soi.item_name AS \"Item Name\",\r\n    soi.qty AS \"Ordered Qty\",\r\n    soi.delivered_qty AS \"Delivered Qty\",\r\n    soi.qty - soi.delivered_qty as \"SO Balance\",\r\n    IFNULL((\r\n        SELECT SUM(dni.qty)\r\n        FROM `tabDelivery Note Item` dni\r\n        JOIN `tabDelivery Note` dn ON dn.name = dni.parent\r\n        WHERE dni.so_detail = soi.name\r\n          AND dn.docstatus = 0\r\n    ), 0) AS \"Draft DR Qty\",\r\n    soi.delivery_date AS \"SO Delivery Date\",\r\n    so.status AS \"SO Status\" \r\n    \r\n    \r\n    \r\nFROM `tabSales Order` so\r\nJOIN `tabSales Order Item` soi ON soi.parent = so.name\r\nWHERE so.docstatus = 1 AND soi.qty  <> soi.delivered_qty\r\nAND so.status  = 'To Deliver and Bill' \r\nORDER BY so.transaction_date DESC",
+  "ref_doctype": "Sales Order",
+  "reference_report": "",
+  "report_name": "Sales Order Delivery Overview",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Maintenance User"
+   },
+   {
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Stock User"
+   },
+   {
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales User"
+   },
+   {
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Manager"
+   },
+   {
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Credit and Collection Section Head"
+   },
+   {
+    "parent": "Sales Order Delivery Overview",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Sales Coordinator"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [
+   {
+    "default": null,
+    "fieldname": "from_date",
+    "fieldtype": "Date",
+    "label": "From Date",
+    "mandatory": 1,
+    "options": null,
+    "parent": "Sales Vs Forecast",
+    "parentfield": "filters",
+    "parenttype": "Report",
+    "wildcard_filter": 0
+   },
+   {
+    "default": null,
+    "fieldname": "to_date",
+    "fieldtype": "Date",
+    "label": "To Date",
+    "mandatory": 1,
+    "options": null,
+    "parent": "Sales Vs Forecast",
+    "parentfield": "filters",
+    "parenttype": "Report",
+    "wildcard_filter": 0
+   },
+   {
+    "default": null,
+    "fieldname": "fiscal_year",
+    "fieldtype": "Link",
+    "label": "Fiscal Year",
+    "mandatory": 1,
+    "options": "Fiscal Year",
+    "parent": "Sales Vs Forecast",
+    "parentfield": "filters",
+    "parenttype": "Report",
+    "wildcard_filter": 0
+   },
+   {
+    "default": null,
+    "fieldname": "parent_sales_person",
+    "fieldtype": "Link",
+    "label": "RSM",
+    "mandatory": 0,
+    "options": "Sales Person",
+    "parent": "Sales Vs Forecast",
+    "parentfield": "filters",
+    "parenttype": "Report",
+    "wildcard_filter": 0
+   },
+   {
+    "default": null,
+    "fieldname": "sales_person",
+    "fieldtype": "Link",
+    "label": "AM",
+    "mandatory": 0,
+    "options": "Sales Person",
+    "parent": "Sales Vs Forecast",
+    "parentfield": "filters",
+    "parenttype": "Report",
+    "wildcard_filter": 0
+   }
+  ],
+  "is_standard": "No",
+  "javascript": null,
+  "json": "{}",
+  "letter_head": null,
+  "modified": "2025-09-17 16:38:50.369962",
+  "module": "Selling",
+  "name": "Sales Vs Forecast",
+  "prepared_report": 0,
+  "query": "SELECT * FROM (\r\n\r\n    -- 1\ufe0f\u20e3 Targets (with or without sales)\r\n    SELECT\r\n        sp.parent_sales_person AS \"Parent Sales Person:Link/Sales Person:180\",\r\n        td.parent AS \"Sales Person:Link/Sales Person:180\",\r\n        td.item_group AS \"Item Group:Link/Item Group:150\",\r\n        '' AS \"Item:Link/Item:120\",\r\n        '' AS \"Item Name::180\",\r\n        td.target_amount AS \"Target:Currency:120\",\r\n        COALESCE(SUM(sii.base_net_amount), 0) AS \"Achieved:Currency:120\",\r\n        (COALESCE(SUM(sii.base_net_amount), 0) - td.target_amount) AS \"Variance:Currency:120\"\r\n    FROM `tabTarget Detail` td\r\n    JOIN `tabSales Person` sp ON sp.name = td.parent\r\n    LEFT JOIN `tabSales Team` st ON st.sales_person = td.parent\r\n    LEFT JOIN `tabSales Invoice` si ON si.name = st.parent\r\n        AND si.docstatus = 1\r\n        AND si.posting_date BETWEEN %(from_date)s AND %(to_date)s\r\n    LEFT JOIN `tabSales Invoice Item` sii ON sii.parent = si.name\r\n        AND sii.item_group = td.item_group\r\n    WHERE td.parenttype = 'Sales Person'\r\n      AND td.fiscal_year = %(fiscal_year)s\r\n    GROUP BY sp.parent_sales_person, td.parent, td.item_group, td.target_amount\r\n\r\n    UNION ALL\r\n\r\n    -- 2\ufe0f\u20e3 Sales without targets (so they don\u2019t get lost)\r\n    SELECT\r\n        sp.parent_sales_person,\r\n        st.sales_person,\r\n        sii.item_group,\r\n        '' AS item_code,\r\n        '' AS item_name,\r\n        0,\r\n        SUM(sii.base_net_amount),\r\n        SUM(sii.base_net_amount) -- variance = same as achieved since no target\r\n    FROM `tabSales Invoice` si\r\n    JOIN `tabSales Team` st ON st.parent = si.name\r\n    JOIN `tabSales Person` sp ON sp.name = st.sales_person\r\n    JOIN `tabSales Invoice Item` sii ON sii.parent = si.name\r\n    WHERE si.docstatus = 1\r\n      AND si.posting_date BETWEEN %(from_date)s AND %(to_date)s\r\n      AND NOT EXISTS (\r\n          SELECT 1 FROM `tabTarget Detail` td\r\n          WHERE td.parent = st.sales_person\r\n            AND td.item_group = sii.item_group\r\n            AND td.fiscal_year = %(fiscal_year)s\r\n            AND td.parenttype = 'Sales Person'\r\n      )\r\n    GROUP BY sp.parent_sales_person, st.sales_person, sii.item_group\r\n\r\n    UNION ALL\r\n\r\n    -- 3\ufe0f\u20e3 Item-level breakdown (target = 0, variance = 0)\r\n    SELECT\r\n        sp.parent_sales_person,\r\n        st.sales_person,\r\n        sii.item_group,\r\n        sii.item_code,\r\n        sii.item_name,\r\n        0,\r\n        SUM(sii.base_net_amount),\r\n        0\r\n    FROM `tabSales Invoice` si\r\n    JOIN `tabSales Team` st ON st.parent = si.name\r\n    JOIN `tabSales Person` sp ON sp.name = st.sales_person\r\n    JOIN `tabSales Invoice Item` sii ON sii.parent = si.name\r\n    WHERE si.docstatus = 1\r\n      AND si.posting_date BETWEEN %(from_date)s AND %(to_date)s\r\n    GROUP BY sp.parent_sales_person, st.sales_person, sii.item_group, sii.item_code, sii.item_name\r\n) x\r\nORDER BY 1,2,3,4;\r\n",
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "Sales Vs Forecast",
+  "report_script": "frappe.query_reports[\"Sales Person Target Variance by Item\"] = {\r\n    filters: [\r\n        {\r\n            fieldname: \"fiscal_year\",\r\n            label: \"Fiscal Year\",\r\n            fieldtype: \"Link\",\r\n            options: \"Fiscal Year\",\r\n            reqd: 1\r\n        },\r\n        {\r\n            fieldname: \"from_date\",\r\n            label: \"From Date\",\r\n            fieldtype: \"Date\",\r\n            reqd: 1\r\n        },\r\n        {\r\n            fieldname: \"to_date\",\r\n            label: \"To Date\",\r\n            fieldtype: \"Date\",\r\n            reqd: 1\r\n        },\r\n        {\r\n            fieldname: \"parent_sales_person\",\r\n            label: \"Parent Sales Person\",\r\n            fieldtype: \"Link\",\r\n            options: \"Sales Person\",\r\n            get_query: () => {\r\n                return {\r\n                    filters: {\r\n                        is_group: 1  // only parent sales persons\r\n                    }\r\n                };\r\n            }\r\n        },\r\n        {\r\n            fieldname: \"sales_person\",\r\n            label: \"Sales Person\",\r\n            fieldtype: \"Link\",\r\n            options: \"Sales Person\",\r\n            get_query: () => {\r\n                return {\r\n                    filters: {\r\n                        is_group: 0  // only non-parent sales persons\r\n                    }\r\n                };\r\n            }\r\n        }\r\n    ],\r\n    // \ud83d\udeab prevents auto-loading\r\n    onload: function(report) {\r\n        report.page.set_primary_action(__('Refresh'), function() {\r\n            report.refresh();\r\n        });\r\n        report.page.set_primary_action(__('Refresh'), () => report.refresh());\r\n        report.page.set_primary_action(__('Run Report'), () => report.refresh());\r\n        report.page.set_title(__(\"Sales Person Target Variance by Item\"));\r\n    }",
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Sales Vs Forecast",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Sales Vs Forecast",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Sales Vs Forecast",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management User"
+   },
+   {
+    "parent": "Sales Vs Forecast",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Asset Management Head"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "No",
+  "javascript": null,
+  "json": null,
+  "letter_head": "QCMC",
+  "modified": "2025-08-27 15:51:08.411208",
+  "module": "HR",
+  "name": "Vehicle Summary Report",
+  "prepared_report": 0,
+  "query": "SELECT name as \"License Plate\", \nmake as \"Make\",\nmodel as Model,\nLast_odometer as \"Odometer\",\nchassis_no as \"Chassis No.\",\nLocation, \ncustom_easytrip_account_no as \"Easytrip Account No.\",\ncustom_autosweep_account_no as \"Autosweep Account No.\",\ncustom_month as \"Last Registration Month\",\ncustom_year as \"Last Registration Year\"\nFROM `tabVehicle`",
+  "ref_doctype": "Vehicle",
+  "reference_report": null,
+  "report_name": "Vehicle Summary Report",
+  "report_script": null,
+  "report_type": "Query Report",
+  "roles": [
+   {
+    "parent": "Vehicle Summary Report",
+    "parentfield": "roles",
+    "parenttype": "Report",
+    "role": "Fleet Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": "frappe.query_reports[\"Booklet Monitoring Report\"] = {\r\n    filters: []\r\n};",
+  "json": null,
+  "letter_head": null,
+  "modified": "2025-11-21 11:40:49.557998",
+  "module": "QCMC Logics",
+  "name": "booklet_monitoring_report",
+  "prepared_report": 1,
+  "query": "DECLARE done INT DEFAULT FALSE;\r\n    DECLARE v_docname VARCHAR(255);\r\n    DECLARE v_doctype VARCHAR(50);\r\n    DECLARE v_item_code VARCHAR(255);\r\n    DECLARE v_qty INT;\r\n    DECLARE v_series_start INT;\r\n    DECLARE n INT DEFAULT 0;\r\n\r\n    -- cursor and handler\r\n    DECLARE cur CURSOR FOR\r\n        SELECT\r\n            sri.parent AS In_document,\r\n            'Stock Requisition' AS In_Doctype,\r\n            sri.item_code,\r\n            sri.qty,\r\n            sri.custom_series_booklet_from\r\n        FROM `tabStock Reconciliation Item` sri\r\n        JOIN `tabItem` i ON i.item_code = sri.item_code\r\n        WHERE i.item_group = 'OS BB BOOKLET'\r\n          AND sri.warehouse = 'Office Supplies - QC'\r\n        UNION ALL\r\n        SELECT\r\n            pri.parent AS docname,\r\n            'Purchase Receipt' AS doctype,\r\n            pri.item_code,\r\n            pri.qty,\r\n            pri.custom_series_booklet_from\r\n        FROM `tabPurchase Receipt Item` pri\r\n        JOIN `tabItem` i ON i.item_code = pri.item_code\r\n        WHERE i.item_group = 'OS BB BOOKLET'\r\n          AND pri.warehouse = 'Office Supplies - QC';\r\n\r\n    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;\r\n\r\n    -- temporary table\r\n    DROP TEMPORARY TABLE IF EXISTS tmp_booklet_series;\r\n    CREATE TEMPORARY TABLE tmp_booklet_series (\r\n        In_document VARCHAR(255),\r\n        In_doctype VARCHAR(50),\r\n        item_code VARCHAR(255),\r\n        series_from INT,\r\n        series_to INT\r\n    );\r\n\r\n    -- open cursor\r\n    OPEN cur;\r\n\r\n    read_loop: LOOP\r\n        FETCH cur INTO v_docname, v_doctype, v_item_code, v_qty, v_series_start;\r\n        IF done THEN\r\n            LEAVE read_loop;\r\n        END IF;\r\n\r\n        SET n = 0;\r\n        WHILE n < v_qty DO\r\n            INSERT INTO tmp_booklet_series (In_document, In_doctype, item_code, series_from, series_to)\r\n            VALUES (\r\n                v_docname,\r\n                v_doctype,\r\n                v_item_code,\r\n                v_series_start + (n * 50),\r\n                v_series_start + (n * 50) + 49\r\n            );\r\n            SET n = n + 1;\r\n        END WHILE;\r\n\r\n    END LOOP;\r\n\r\n    CLOSE cur;\r\n\r\n    -- return result\r\n\tDROP TEMPORARY TABLE IF EXISTS TEMP_STOCK_ENTRY;\r\n\tCREATE TEMPORARY TABLE TEMP_STOCK_ENTRY (\r\n\t\tseries_from INT,\r\n\t\titem_code VARCHAR(255),\r\n\t\tOut_document VARCHAR(255),\r\n\t\tOut_doctype VARCHAR(50),\r\n\t\tOut_Date DATETIME,\r\n\t\tWarehouse VARCHAR(255)\r\n\t    );\r\n\t    \r\n\tINSERT INTO TEMP_STOCK_ENTRY (series_from, item_code, Out_document, Out_doctype, Out_Date, Warehouse)\r\n\tSELECT IFNULL(a.custom_series_booklet_from,0), a.item_code,b.name, b.stock_entry_type, b.Posting_date, b.from_warehouse\r\n\tFROM `tabStock Entry Detail` a, `tabStock Entry` b\r\n\tWHERE a.parent = b.name\r\n\tAND a.item_group = 'OS BB BOOKLET'\r\n\tAND  b.stock_entry_type IN ('Material Issue','Material Transfer')\r\n\tAND a.custom_series_booklet_from IS NOT NULL;\r\n    \r\n    \r\n    SELECT DISTINCT\r\n    a.*, \r\n    b.Out_document, \r\n    b.Out_doctype, \r\n    b.Out_Date, \r\n    b.Warehouse\r\n\tFROM tmp_booklet_series a\r\n\tLEFT JOIN TEMP_STOCK_ENTRY b \r\n\t    ON a.item_code = b.item_code\r\n\t   AND a.series_from = b.series_from\r\n\tORDER BY a.item_code, a.series_from ASC;",
+  "ref_doctype": "Stock Entry",
+  "reference_report": null,
+  "report_name": "booklet_monitoring_report",
+  "report_script": "",
+  "report_type": "Script Report",
+  "roles": [],
+  "timeout": 0
  }
 ]
