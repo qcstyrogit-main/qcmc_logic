@@ -2,7 +2,7 @@ import frappe
 from erpnext.stock.utils import get_incoming_rate
 from erpnext.accounts.general_ledger import make_reverse_gl_entries
 from qcmc_logic.utils import get_user_allowed_warehouses, _get_material_request_warehouses
-from frappe.utils import now, nowdate, cint, flt
+from frappe.utils import nowdate, nowtime, cint, flt
 from erpnext.stock.stock_ledger import make_sl_entries
 
 
@@ -81,7 +81,7 @@ def _validate_source_warehouse_access(doc):
 def _validate_material_request_references(doc):
     reference_names = []
     reference_names.extend(
-        row.reference_doc for row in (doc.get("transfer_items") or []) if row.reference_doc
+        _get_row_material_request(row) for row in (doc.get("transfer_items") or []) if _get_row_material_request(row)
     )
 
     for material_request in set(reference_names):
@@ -202,7 +202,15 @@ def _validate_receiving_update(doc, previous):
 
         if row.name in previous_items:
             previous_row = previous_items[row.name]
-            for field in ("item_code", "item_name", "uom", "issued_qty", "reference_doc"):
+            for field in (
+                "item_code",
+                "item_name",
+                "uom",
+                "issued_qty",
+                "reference_doc",
+                "material_request",
+                "material_request_item",
+            ):
                 if row.get(field) != previous_row.get(field):
                     frappe.throw("Receivers can only modify Received Qty on existing item rows.")
         else:
@@ -213,10 +221,14 @@ def _validate_receiving_update(doc, previous):
 
 
 def on_submit(doc, method=None):
-    """Handles workflow transitions while document is still in Draft (docstatus = 0)."""
-    new_state = doc.transfer_status
-    if new_state == "Transferred":   # Example: Draft → Transferred
+    """Post the source side when the transfer is submitted.
+
+    Workflow can set transfer_status around the submit event, so source posting
+    is intentionally based on docstatus and guarded by existing SLE checks.
+    """
+    if doc.docstatus == 1:
         create_source_stock_entry(doc.name)
+        update_material_request_progress(doc.name)
         if doc.source_company != doc.target_company:
             create_intercompany_gl(doc.name, source=True)
 
@@ -230,7 +242,9 @@ def on_update_after_submit(doc, method=None):
     previous_state = previous.transfer_status if previous else None
 
     if new_state == "Received" and previous_state != "Received":
+        create_source_stock_entry(doc.name)
         create_target_stock_entry(doc.name)
+        update_material_request_progress(doc.name)
         if doc.source_company != doc.target_company:
             create_intercompany_gl(doc.name, source=False)
 
@@ -238,12 +252,58 @@ def on_update_after_submit(doc, method=None):
 def get_in_transit_wh(warehouse):
     return frappe.db.get_value("Warehouse", warehouse, "default_in_transit_warehouse")
 
+
+def _get_row_material_request(row):
+    material_request = row.get("material_request")
+    if material_request:
+        return material_request
+
+    # Backward compatibility for rows created before Reference Doc became Remarks.
+    reference_doc = row.get("reference_doc")
+    if reference_doc and frappe.db.exists("Material Request", reference_doc):
+        return reference_doc
+
+    return None
+
+
+def _has_stock_ledger_entries(doc, warehouse, positive):
+    filters = {
+        "voucher_type": "Warehouse Transfer",
+        "voucher_no": doc.name,
+        "warehouse": warehouse,
+        "is_cancelled": 0,
+    }
+    if positive:
+        filters["actual_qty"] = [">", 0]
+    else:
+        filters["actual_qty"] = ["<", 0]
+
+    return frappe.db.exists("Stock Ledger Entry", filters)
+
+
+def _has_gl_entries(doc, source=True):
+    company = doc.source_company if source else doc.target_company
+    side = "Source" if source else "Target"
+    return frappe.db.exists(
+        "GL Entry",
+        {
+            "voucher_type": "Warehouse Transfer",
+            "voucher_no": doc.name,
+            "company": company,
+            "remarks": ["like", f"{side} side entry for WT {doc.name}%"],
+            "is_cancelled": 0,
+        },
+    )
+
 def create_source_stock_entry(docname):
     doc = frappe.get_doc("Warehouse Transfer", docname)
     try:
+        if _has_stock_ledger_entries(doc, doc.source_warehouse, positive=False):
+            return
+
         sl_entries = []
         posting_date = doc.date_transferred or nowdate()
-        posting_time = now()
+        posting_time = nowtime()
 
         for item in doc.transfer_items:
             qty = float(item.issued_qty or 0)
@@ -297,9 +357,12 @@ def create_target_stock_entry(docname):
 
     doc = frappe.get_doc("Warehouse Transfer", docname)
     try:
+        if _has_stock_ledger_entries(doc, doc.target_warehouse, positive=True):
+            return
+
         sl_entries = []
         posting_date = doc.date_received or nowdate()
-        posting_time = now()
+        posting_time = nowtime()
 
         for item in doc.transfer_items:
             qty = float(item.received_qty or 0)
@@ -331,8 +394,10 @@ def create_target_stock_entry(docname):
             sl_entries.append(sle)
 
         if not sl_entries:
-            frappe.msgprint(f"No valid items to post for Warehouse Transfer {doc.name}")
-            return
+            frappe.throw(
+                f"No received quantities to post for Warehouse Transfer {doc.name}. "
+                "Save Received Qty before marking the transfer as Received."
+            )
 
         # Debug: log first SLE structure to help trace problems in logs
         try:
@@ -348,11 +413,13 @@ def create_target_stock_entry(docname):
     except Exception as e:
 
         # rethrow with simple message for UI
-        frappe.throw(f"Error creating source Stock Ledger Entry: {e}")
+        frappe.throw(f"Error creating target Stock Ledger Entry: {e}")
 
 def create_intercompany_gl(docname, source=True):
 
     doc = frappe.get_doc("Warehouse Transfer", docname)
+    if _has_gl_entries(doc, source=source):
+        return
 
     totals_by_mapping = {}
     missing_mappings = set()
@@ -403,7 +470,8 @@ def create_intercompany_gl(docname, source=True):
             {
                 "item_code": row.item_code,
                 "warehouse": doc.source_warehouse ,
-                "posting_date": doc.date_transferred if source else doc.date_received,
+                "posting_date": (doc.date_transferred if source else doc.date_received) or nowdate(),
+                "posting_time": nowtime(),
                 "company": doc.source_company
             },
             raise_error_if_no_rate=False,
@@ -539,6 +607,68 @@ def create_intercompany_gl(docname, source=True):
 
     frappe.msgprint(f"✅ Intercompany GL Entries created for {doc.name}")
 
+
+def update_material_request_progress(docname):
+    doc = frappe.get_doc("Warehouse Transfer", docname)
+    material_requests = {
+        _get_row_material_request(row)
+        for row in (doc.get("transfer_items") or [])
+        if _get_row_material_request(row)
+    }
+
+    for material_request in material_requests:
+        mr = frappe.get_doc("Material Request", material_request)
+        mr_item_names = [row.name for row in mr.get("items") or []]
+        if not mr_item_names:
+            continue
+
+        transferred_by_item = frappe._dict(
+            frappe.db.sql(
+                """
+                select
+                    coalesce(wtd.material_request_item, mri.name) as material_request_item,
+                    sum(wtd.issued_qty) as transferred_qty
+                from `tabWarehouse Transfer Details` wtd
+                inner join `tabWarehouse Transfer` wt on wt.name = wtd.parent
+                left join `tabMaterial Request Item` mri
+                    on mri.parent = coalesce(wtd.material_request, wtd.reference_doc)
+                    and mri.item_code = wtd.item_code
+                where
+                    wt.docstatus = 1
+                    and ifnull(wt.transfer_status, '') in ('Transferred', 'Received')
+                    and (
+                        wtd.material_request = %(material_request)s
+                        or wtd.reference_doc = %(material_request)s
+                    )
+                    and coalesce(wtd.material_request_item, mri.name) in %(mr_item_names)s
+                group by coalesce(wtd.material_request_item, mri.name)
+                """,
+                {
+                    "material_request": material_request,
+                    "mr_item_names": tuple(mr_item_names),
+                },
+            )
+        )
+
+        for item in mr.get("items") or []:
+            qty = flt(transferred_by_item.get(item.name))
+            frappe.db.set_value("Material Request Item", item.name, "ordered_qty", qty)
+
+        mr.reload()
+        mr._update_percent_field(
+            {
+                "target_dt": "Material Request Item",
+                "target_parent_dt": mr.doctype,
+                "target_parent_field": "per_ordered",
+                "target_ref_field": "stock_qty",
+                "target_field": "ordered_qty",
+                "name": mr.name,
+            },
+            update_modified=True,
+        )
+        mr.reload()
+        mr.set_status(update=True)
+
 def on_cancel(doc, method):
     try:
         # make reverse_gl_entries automatically fetches and reverses all GL Entries
@@ -555,7 +685,7 @@ def on_cancel(doc, method):
                 "item_code": linked_sle.item_code,
                 "warehouse": linked_sle.warehouse,
                 "posting_date": nowdate(),
-                "posting_time": now(),
+                "posting_time": nowtime(),
                 "voucher_type": "Warehouse Transfer",
                 "voucher_no": doc.name,
                 "voucher_detail_no": linked_sle.name,
@@ -572,6 +702,8 @@ def on_cancel(doc, method):
                     linked_sle.company,
                 ),
             }], allow_negative_stock=True)
+
+        update_material_request_progress(doc.name)
 
     except Exception as e:
         frappe.log_error(

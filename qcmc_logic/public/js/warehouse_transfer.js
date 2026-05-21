@@ -168,7 +168,9 @@ qcmc_logic.warehouse_transfer.get_items_from_material_requests = function(frm, m
                 child.uom = item.uom;
                 child.issued_qty = flt(item.issued_qty || 0);
                 child.received_qty = 0;
-                child.reference_doc = item.reference_doc;
+                child.reference_doc = item.reference_doc || "";
+                child.material_request = item.material_request;
+                child.material_request_item = item.material_request_item;
             });
 
             frm.refresh_field("transfer_items");
@@ -188,9 +190,10 @@ qcmc_logic.warehouse_transfer.configure_receiving_state = function(frm) {
 
     if (frm.doc.transfer_status !== "Transferred") {
         grid.update_docfield_property("issued_qty", "read_only", 0);
-        grid.update_docfield_property("received_qty", "read_only", 0);
+        grid.update_docfield_property("received_qty", "read_only", 1);
         grid.update_docfield_property("item_code", "read_only", 0);
         grid.update_docfield_property("uom", "read_only", 0);
+        grid.update_docfield_property("reference_doc", "label", __("Remarks"));
         return;
     }
 
@@ -198,6 +201,7 @@ qcmc_logic.warehouse_transfer.configure_receiving_state = function(frm) {
     grid.update_docfield_property("received_qty", "read_only", 1);
     grid.update_docfield_property("item_code", "read_only", 1);
     grid.update_docfield_property("uom", "read_only", 1);
+    grid.update_docfield_property("reference_doc", "label", __("Remarks"));
 
     frappe.call({
         method: "qcmc_logic.utils.check_warehouse_access",
@@ -241,8 +245,9 @@ qcmc_logic.warehouse_transfer.open_receiving_dialog = function(frm) {
         ],
         primary_action_label: __("Save"),
         primary_action() {
-            qcmc_logic.warehouse_transfer.apply_receiving_rows(frm, dialog);
-            dialog.hide();
+            qcmc_logic.warehouse_transfer.apply_receiving_rows(frm, dialog).then(() => {
+                dialog.hide();
+            });
         },
     });
 
@@ -321,6 +326,8 @@ qcmc_logic.warehouse_transfer.make_item_control = function(dialog, idx) {
 };
 
 qcmc_logic.warehouse_transfer.apply_receiving_rows = function(frm, dialog) {
+    let has_changes = false;
+
     dialog.$wrapper.find(".wt-receive-row").each(function() {
         const $row = $(this);
         const is_new = cint($row.attr("data-new"));
@@ -340,15 +347,23 @@ qcmc_logic.warehouse_transfer.apply_receiving_rows = function(frm, dialog) {
             child.issued_qty = 0;
             child.received_qty = received_qty;
             child.reference_doc = "";
+            child.material_request = "";
+            child.material_request_item = "";
+            has_changes = true;
         } else {
             const row_name = $row.attr("data-name");
             const child = (frm.doc.transfer_items || []).find(item => item.name === row_name);
             if (child) {
                 child.received_qty = received_qty;
+                has_changes = true;
             }
         }
     });
 
+    if (has_changes) {
+        frm.dirty();
+    }
+
     frm.refresh_field("transfer_items");
-    frm.save();
+    return frm.save();
 };
