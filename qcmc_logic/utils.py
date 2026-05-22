@@ -168,7 +168,7 @@ def get_material_request_transfer_items(material_request):
     if mr.material_request_type != "Material Transfer":
         frappe.throw(f"Material Request {material_request} must be a Material Transfer request.")
 
-    item_fields = ["item_code", "item_name", "stock_uom", "qty", "warehouse"]
+    item_fields = ["name", "item_code", "item_name", "stock_uom", "qty", "warehouse"]
     if frappe.get_meta("Material Request Item").has_field("from_warehouse"):
         item_fields.append("from_warehouse")
 
@@ -318,7 +318,9 @@ def get_material_transfer_requests_for_warehouse_transfer(
                 "uom": item.stock_uom,
                 "issued_qty": item.qty,
                 "received_qty": 0,
-                "reference_doc": material_request,
+                "reference_doc": "",
+                "material_request": material_request,
+                "material_request_item": item.name,
             })
 
     return {
@@ -385,7 +387,9 @@ def make_warehouse_transfer_from_material_request(source_name, target_doc=None):
         row.uom = item.stock_uom
         row.issued_qty = remaining_qty
         row.received_qty = 0
-        row.reference_doc = source_name
+        row.reference_doc = ""
+        row.material_request = source_name
+        row.material_request_item = item.name
     if not target.get("transfer_items"):
         frappe.throw(f"Material Request {source_name} has no transferable items.")
 
