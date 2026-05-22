@@ -42,6 +42,13 @@ qcmc_logic.warehouse_transfer.can_get_items_from_material_request = function(frm
 };
 
 qcmc_logic.warehouse_transfer.set_queries = function(frm) {
+    frm.set_query("source_warehouse", () => ({
+        query: "qcmc_logic.utils.get_source_warehouse_query",
+        filters: {
+            user: frappe.session.user,
+        },
+    }));
+
     frm.set_query("target_warehouse", () => ({
         query: "qcmc_logic.utils.get_target_warehouse_query",
         filters: {

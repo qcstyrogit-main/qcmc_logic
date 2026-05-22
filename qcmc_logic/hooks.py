@@ -10,6 +10,9 @@ app_license = "mit"
 override_whitelisted_methods = {}
 
 doc_events = {
+    "*": {
+        "validate": "qcmc_logic.customs.warehouse_access_permissions.validate_warehouse_access"
+    },
     "Warehouse Transfer": {   # 👈 name of your GUI Doctype
         "validate": "qcmc_logic.customs.warehouse_transfer_events.validate_transfer_type_rules",
         "on_submit": "qcmc_logic.customs.warehouse_transfer_events.on_submit",
@@ -75,8 +78,12 @@ override_doctype_class = {
 }
 permission_query_conditions = {
      "Appraisal": "qcmc_logic.customs.permissions.appraisal_permission_query",
-     "Job Requisition": "qcmc_logic.customs.staffingplan_permission.mrf_permission_query_condition"
-    
+     "Job Requisition": "qcmc_logic.customs.staffingplan_permission.mrf_permission_query_condition",
+     "Warehouse Transfer": "qcmc_logic.customs.permissions.warehouse_transfer_permission_query"
+}
+
+has_permission = {
+    "Warehouse Transfer": "qcmc_logic.customs.permissions.warehouse_transfer_has_permission"
 }
 override_print_format = {
     "Purchase Order": "qcmc_logic.overrides.POPrint_Override.get_po_print_format"
@@ -141,6 +148,7 @@ fixtures = [
 # app_include_css = "/assets/qcmc_logic/css/qcmc_logic.css"
 app_include_js = [
     "/assets/qcmc_logic/js/hide_print_selection.js",
+    "/assets/qcmc_logic/js/warehouse_access.js",
     "/assets/qcmc_logic/js/warehouse_transfer.js"
 ]
 
