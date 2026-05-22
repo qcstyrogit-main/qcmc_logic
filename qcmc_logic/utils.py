@@ -38,6 +38,12 @@ def check_warehouse_access(user, warehouse, require_transact=False):
     return warehouse in allowed
 
 
+@frappe.whitelist()
+def get_default_warehouse_for_user(user=None, require_transact=False):
+    allowed = get_user_allowed_warehouses(user, require_transact=require_transact)
+    return allowed[0] if len(allowed) == 1 else None
+
+
 def _get_warehouse_company(warehouse):
     if not warehouse:
         return None
@@ -48,6 +54,75 @@ def _get_warehouse_type(warehouse):
     if not warehouse:
         return None
     return frappe.db.get_value("Warehouse", warehouse, "warehouse_type")
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_allowed_warehouse_query(doctype, txt, searchfield, start, page_len, filters):
+    """Generic Warehouse link query backed by Warehouse Access."""
+    if isinstance(filters, str):
+        filters = frappe.parse_json(filters)
+
+    filters = frappe._dict(filters or {})
+    user = filters.get("user") or frappe.session.user
+    require_transact = frappe.utils.cint(filters.get("require_transact"))
+    allowed_warehouses = get_user_allowed_warehouses(user, require_transact=require_transact)
+    if not allowed_warehouses:
+        return []
+
+    return frappe.db.sql(
+        f"""
+        select w.name, w.warehouse_name
+        from `tabWarehouse` w
+        where w.is_group = 0
+            and w.name in %(allowed_warehouses)s
+            and w.`{searchfield}` like %(txt)s
+        order by w.name
+        limit %(start)s, %(page_len)s
+        """,
+        {
+            "allowed_warehouses": tuple(allowed_warehouses),
+            "txt": f"%{txt}%",
+            "start": start,
+            "page_len": page_len,
+        },
+    )
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_source_warehouse_query(doctype, txt, searchfield, start, page_len, filters):
+    """Link query for Warehouse Transfer source warehouses.
+
+    Source warehouses are limited to Warehouse Access rows where the current
+    user is allowed to transact, matching the server-side transfer validation.
+    """
+    if isinstance(filters, str):
+        filters = frappe.parse_json(filters)
+
+    filters = frappe._dict(filters or {})
+    user = filters.get("user") or frappe.session.user
+    allowed_warehouses = get_user_allowed_warehouses(user, require_transact=True)
+    if not allowed_warehouses:
+        return []
+
+    return frappe.db.sql(
+        f"""
+        select w.name, w.warehouse_name
+        from `tabWarehouse` w
+        where w.is_group = 0
+            and w.name in %(allowed_warehouses)s
+            and w.`{searchfield}` like %(txt)s
+        order by w.name
+        limit %(start)s, %(page_len)s
+        """,
+        {
+            "allowed_warehouses": tuple(allowed_warehouses),
+            "txt": f"%{txt}%",
+            "start": start,
+            "page_len": page_len,
+        },
+    )
 
 
 @frappe.whitelist()

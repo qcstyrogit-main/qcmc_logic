@@ -2,7 +2,7 @@ import frappe
 from erpnext.stock.utils import get_incoming_rate
 from erpnext.accounts.general_ledger import make_reverse_gl_entries
 from qcmc_logic.utils import get_user_allowed_warehouses, _get_material_request_warehouses
-from frappe.utils import nowdate, nowtime, cint, flt
+from frappe.utils import nowdate, nowtime, cint, flt, getdate
 from erpnext.stock.stock_ledger import make_sl_entries
 
 
@@ -186,7 +186,7 @@ def _validate_receiving_update(doc, previous):
         "date_transferred",
     )
     for field in protected_fields:
-        if doc.get(field) != previous.get(field):
+        if not _same_protected_value(doc.get(field), previous.get(field), field):
             frappe.throw(f"Receivers cannot modify {frappe.unscrub(field)}.")
 
     previous_items = {row.name: row for row in (previous.get("transfer_items") or [])}
@@ -218,6 +218,15 @@ def _validate_receiving_update(doc, previous):
                 frappe.throw("Item is required for receiver-added rows.")
             if flt(row.issued_qty) != 0:
                 frappe.throw("Receiver-added item rows must have Issued Qty set to 0.")
+
+
+def _same_protected_value(current, previous, fieldname):
+    if fieldname in {"date_transferred"}:
+        if not current and not previous:
+            return True
+        return getdate(current) == getdate(previous)
+
+    return current == previous
 
 
 def on_submit(doc, method=None):
@@ -498,9 +507,6 @@ def create_intercompany_gl(docname, source=True):
     posting_date = doc.date_transferred if source else doc.date_received
     company = doc.source_company if source else doc.target_company
 
-    source_party = doc.source_company
-    target_party = doc.target_company
-
     gl_entries = []
 
     for accounts, total_amount in totals_by_mapping.items():
@@ -552,7 +558,7 @@ def create_intercompany_gl(docname, source=True):
                 "location": location
             })
             # Debit Accounts Receivable
-            gl_entries.append({
+            gl_entries.append(_with_required_party({
                 "account": src_rev,
                 "debit": total_amount,
                 "credit": 0,
@@ -560,11 +566,9 @@ def create_intercompany_gl(docname, source=True):
                 "voucher_type": "Warehouse Transfer",
                 "voucher_no": doc.name,
                 "posting_date": posting_date,
-                "party_type": "Customer",
                 "location": location,
-                "party": source_party,
                 "remarks": f"Source side entry for WT {doc.name}"
-            })
+            }, company=doc.target_company, party_type="Customer"))
         else:
             # target company entries
             # Debit Inventory
@@ -580,7 +584,7 @@ def create_intercompany_gl(docname, source=True):
                 "remarks": f"Target side entry for WT {doc.name}"
             })
             # Credit Accounts Payable (use location)
-            gl_entries.append({
+            gl_entries.append(_with_required_party({
                 "account": tgt_exp,
                 "credit": total_amount,
                 "debit": 0,
@@ -588,11 +592,9 @@ def create_intercompany_gl(docname, source=True):
                 "voucher_type": "Warehouse Transfer",
                 "voucher_no": doc.name,
                 "posting_date": posting_date,
-                "party_type": "Supplier",
-                "party": target_party,
                 "remarks": f"Target side entry for WT {doc.name}",
                 "location": location
-            })
+            }, company=doc.source_company, party_type="Supplier"))
 
     if not gl_entries:
         frappe.throw("⚠️ No valid Intercompany mappings found. GL Entries not created.")
@@ -606,6 +608,61 @@ def create_intercompany_gl(docname, source=True):
         gle_doc.submit()
 
     frappe.msgprint(f"✅ Intercompany GL Entries created for {doc.name}")
+
+
+def _with_required_party(gl_entry, company, party_type):
+    account_type = frappe.db.get_value("Account", gl_entry.get("account"), "account_type")
+    required_party_type = None
+    if account_type == "Receivable":
+        required_party_type = "Customer"
+    elif account_type == "Payable":
+        required_party_type = "Supplier"
+
+    if not required_party_type:
+        return gl_entry
+
+    if required_party_type != party_type:
+        frappe.throw(
+            "{0} is a {1} account, but Warehouse Transfer is trying to use {2} as party type.".format(
+                frappe.bold(gl_entry.get("account")),
+                account_type,
+                party_type,
+            )
+        )
+
+    party = _get_intercompany_party(company, party_type)
+    if not party:
+        frappe.throw(
+            "Set up a {0} master for company {1} before posting intercompany Warehouse Transfer GL. "
+            "The {2} account requires a valid {0} party.".format(
+                party_type,
+                frappe.bold(company),
+                frappe.bold(gl_entry.get("account")),
+            )
+        )
+
+    gl_entry["party_type"] = party_type
+    gl_entry["party"] = party
+    return gl_entry
+
+
+def _get_intercompany_party(company, party_type):
+    party_name_field = "customer_name" if party_type == "Customer" else "supplier_name"
+    company_abbr = frappe.db.get_value("Company", company, "abbr")
+
+    for value in (company, company_abbr):
+        if not value:
+            continue
+
+        party = frappe.db.get_value(party_type, value, "name")
+        if party:
+            return party
+
+        party = frappe.db.get_value(party_type, {party_name_field: value}, "name")
+        if party:
+            return party
+
+    return None
 
 
 def update_material_request_progress(docname):

@@ -1,0 +1,135 @@
+frappe.provide("qcmc_logic.warehouse_access");
+
+qcmc_logic.warehouse_access.skip_doctypes = new Set([
+    "Warehouse Access",
+    "Warehouse Transfer",
+]);
+
+qcmc_logic.warehouse_access.get_query = function(require_transact) {
+    return {
+        query: "qcmc_logic.utils.get_allowed_warehouse_query",
+        filters: {
+            user: frappe.session.user,
+            require_transact: require_transact ? 1 : 0,
+        },
+    };
+};
+
+qcmc_logic.warehouse_access.is_source_field = function(fieldname) {
+    return [
+        "from_warehouse",
+        "set_from_warehouse",
+        "source_warehouse",
+        "s_warehouse",
+    ].includes(fieldname);
+};
+
+qcmc_logic.warehouse_access.apply = function(frm) {
+    if (!frm || !frm.meta || qcmc_logic.warehouse_access.skip_doctypes.has(frm.doctype)) {
+        return;
+    }
+
+    qcmc_logic.warehouse_access.apply_top_level_queries(frm);
+    qcmc_logic.warehouse_access.apply_child_table_queries(frm);
+    qcmc_logic.warehouse_access.apply_single_warehouse_defaults(frm);
+};
+
+qcmc_logic.warehouse_access.apply_top_level_queries = function(frm) {
+    (frm.meta.fields || []).forEach(df => {
+        if (df.fieldtype !== "Link" || df.options !== "Warehouse" || !df.fieldname) {
+            return;
+        }
+
+        frm.set_query(df.fieldname, () => (
+            qcmc_logic.warehouse_access.get_query(
+                qcmc_logic.warehouse_access.is_source_field(df.fieldname)
+            )
+        ));
+    });
+};
+
+qcmc_logic.warehouse_access.apply_child_table_queries = function(frm) {
+    (frm.meta.fields || []).forEach(table_df => {
+        if (table_df.fieldtype !== "Table" || !table_df.options) {
+            return;
+        }
+
+        const child_meta = frappe.get_meta(table_df.options);
+        if (!child_meta) {
+            return;
+        }
+
+        (child_meta.fields || []).forEach(df => {
+            if (df.fieldtype !== "Link" || df.options !== "Warehouse" || !df.fieldname) {
+                return;
+            }
+
+            frm.set_query(df.fieldname, table_df.fieldname, () => (
+                qcmc_logic.warehouse_access.get_query(
+                    qcmc_logic.warehouse_access.is_source_field(df.fieldname)
+                )
+            ));
+        });
+    });
+};
+
+qcmc_logic.warehouse_access.apply_single_warehouse_defaults = function(frm) {
+    if ((frm.doc && frm.doc.docstatus !== 0) || !frm.is_new()) {
+        return;
+    }
+
+    frappe.call({
+        method: "qcmc_logic.utils.get_default_warehouse_for_user",
+        args: {
+            user: frappe.session.user,
+        },
+        callback(r) {
+            const default_warehouse = r.message;
+            if (!default_warehouse) {
+                return;
+            }
+
+            (frm.meta.fields || []).forEach(df => {
+                if (
+                    df.fieldtype === "Link" &&
+                    df.options === "Warehouse" &&
+                    df.fieldname &&
+                    !frm.doc[df.fieldname] &&
+                    !qcmc_logic.warehouse_access.is_source_field(df.fieldname)
+                ) {
+                    frm.set_value(df.fieldname, default_warehouse);
+                }
+            });
+        },
+    });
+
+    frappe.call({
+        method: "qcmc_logic.utils.get_default_warehouse_for_user",
+        args: {
+            user: frappe.session.user,
+            require_transact: 1,
+        },
+        callback(r) {
+            const default_warehouse = r.message;
+            if (!default_warehouse) {
+                return;
+            }
+
+            (frm.meta.fields || []).forEach(df => {
+                if (
+                    df.fieldtype === "Link" &&
+                    df.options === "Warehouse" &&
+                    df.fieldname &&
+                    !frm.doc[df.fieldname] &&
+                    qcmc_logic.warehouse_access.is_source_field(df.fieldname)
+                ) {
+                    frm.set_value(df.fieldname, default_warehouse);
+                }
+            });
+        },
+    });
+};
+
+$(document).on("form-refresh", (_event, frm) => {
+    qcmc_logic.warehouse_access.apply(frm);
+});
