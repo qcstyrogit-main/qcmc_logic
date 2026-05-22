@@ -1,9 +1,27 @@
 frappe.provide("qcmc_logic.warehouse_access");
 
 qcmc_logic.warehouse_access.skip_doctypes = new Set([
+    "Stock Settings",
     "Warehouse Access",
     "Warehouse Transfer",
 ]);
+
+qcmc_logic.warehouse_access.enabled = null;
+
+qcmc_logic.warehouse_access.is_enabled = function(callback) {
+    if (qcmc_logic.warehouse_access.enabled !== null) {
+        callback(qcmc_logic.warehouse_access.enabled);
+        return;
+    }
+
+    frappe.call({
+        method: "qcmc_logic.utils.is_global_warehouse_access_enabled",
+        callback(r) {
+            qcmc_logic.warehouse_access.enabled = !!r.message;
+            callback(qcmc_logic.warehouse_access.enabled);
+        },
+    });
+};
 
 qcmc_logic.warehouse_access.get_query = function(require_transact) {
     return {
@@ -131,5 +149,9 @@ qcmc_logic.warehouse_access.apply_single_warehouse_defaults = function(frm) {
 };
 
 $(document).on("form-refresh", (_event, frm) => {
-    qcmc_logic.warehouse_access.apply(frm);
+    qcmc_logic.warehouse_access.is_enabled(enabled => {
+        if (enabled) {
+            qcmc_logic.warehouse_access.apply(frm);
+        }
+    });
 });

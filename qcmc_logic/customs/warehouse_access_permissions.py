@@ -1,12 +1,16 @@
 import frappe
 
-from qcmc_logic.utils import get_user_allowed_warehouses
+from qcmc_logic.utils import (
+    get_user_allowed_warehouses,
+    is_global_warehouse_access_enabled,
+)
 
 
 SKIP_DOCTYPES = {
     "Warehouse Access",
     "Allowed Warehouse",
     "Cost Center Warehouse Mapping",
+    "Stock Settings",
     "Warehouse Transfer",
     "Warehouse",
     "User Permission",
@@ -21,7 +25,11 @@ SOURCE_WAREHOUSE_FIELDS = {
 
 
 def validate_warehouse_access(doc, method=None):
-    if frappe.session.user == "Administrator" or doc.doctype in SKIP_DOCTYPES:
+    if (
+        frappe.session.user == "Administrator"
+        or doc.doctype in SKIP_DOCTYPES
+        or not is_global_warehouse_access_enabled()
+    ):
         return
 
     allowed = set(get_user_allowed_warehouses(frappe.session.user))

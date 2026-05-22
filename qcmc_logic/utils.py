@@ -1,6 +1,23 @@
 import frappe
 from frappe.utils import flt
 
+
+@frappe.whitelist()
+def is_global_warehouse_access_enabled():
+    meta = frappe.get_meta("Stock Settings")
+    if not meta.has_field("custom_enable_global_warehouse_access"):
+        return False
+
+    return bool(
+        frappe.utils.cint(
+            frappe.db.get_single_value(
+                "Stock Settings",
+                "custom_enable_global_warehouse_access",
+            )
+        )
+    )
+
+
 @frappe.whitelist()
 def get_user_allowed_warehouses(user=None, require_transact=False):
     """Fetch warehouses from Warehouse Access for the given user.
