@@ -478,5 +478,20 @@
   "modified": "2026-05-24 21:25:52.937582",
   "name": "MS Request Code",
   "show_tags": 0
+ },
+ {
+  "allow_edit": 0,
+  "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
+  "disable_comment_count": 0,
+  "disable_count": 0,
+  "disable_scrolling": 0,
+  "disable_sidebar_stats": 0,
+  "docstatus": 0,
+  "doctype": "List View Settings",
+  "fields": "[{\"fieldname\":\"msjr_no\",\"label\":\"MSJR No\"},{\"fieldname\":\"asset\",\"label\":\"Asset\"},{\"fieldname\":\"date_posted\",\"label\":\"Date Posted\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"}]",
+  "modified": "2026-05-25 14:02:03.795230",
+  "name": "Machine Shop Repairs and Project",
+  "show_tags": 0
  }
 ]
