@@ -1142,5 +1142,16 @@
   "name": "AM - Print Default",
   "script": "frappe.ui.form.on('Asset Movement', {\r\n    onload(frm) {\r\n        set_print_format(frm);\r\n    },\r\n\r\n    refresh(frm) {\r\n        set_print_format(frm);\r\n    },\r\n\r\n    material_request_type(frm) {\r\n        set_print_format(frm);\r\n    }\r\n});\r\n\r\nfunction set_print_format(frm) {\r\n    let print_format = \"\";\r\n\r\n    if (frm.doc.material_request_type === \"Material Issue\") {\r\n        print_format = \"Issuance to Production\";\r\n    } else {\r\n        print_format = \"PR_Form_Jinja\";\r\n    }\r\n\r\n    frm.meta.default_print_format = print_format;\r\n\r\n}",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Machine Shop Job Request",
+  "enabled": 1,
+  "modified": "2026-05-25 16:04:07.851082",
+  "module": "QCMC Logics",
+  "name": "Machine Shop Job Request Generate Project Plan",
+  "script": "frappe.provide(\"qcmc_logic.machine_shop_job_request\");\n\nconsole.log(\"Machine Shop Job Request client script loaded\");\n\nfrappe.ui.form.on(\"Machine Shop Job Request\", {\n    refresh(frm) {\n        console.log(\"Machine Shop Job Request refresh\", {\n            name: frm.doc.name,\n            is_new: frm.is_new(),\n            docstatus: frm.doc.docstatus,\n            workflow_state: frm.doc.workflow_state,\n            can_generate_project_plan: qcmc_logic.machine_shop_job_request.can_generate_project_plan(frm),\n        });\n\n        if (qcmc_logic.machine_shop_job_request.can_generate_project_plan(frm)) {\n            frm.add_custom_button(\n                __(\"Generate Project Plan\"),\n                () => qcmc_logic.machine_shop_job_request.make_project_plan(frm),\n                __(\"Create\")\n            );\n        }\n    },\n\n    generate_plan(frm) {\n        console.log(\"Generate Project Plan button clicked\", frm.doc.name, frm.doc.workflow_state);\n        qcmc_logic.machine_shop_job_request.make_project_plan(frm);\n    },\n});\n\nqcmc_logic.machine_shop_job_request.can_generate_project_plan = function(frm) {\n    return !frm.is_new() && frm.doc.workflow_state === \"Pending Machine Shop\";\n};\n\nqcmc_logic.machine_shop_job_request.make_project_plan = function(frm) {\n    console.log(\"make_project_plan called\", frm.doc.name, frm.doc.workflow_state);\n\n    if (!qcmc_logic.machine_shop_job_request.can_generate_project_plan(frm)) {\n        frappe.msgprint(__(\"Project Plan can only be generated from a saved request in Pending Machine Shop.\"));\n        return;\n    }\n\n    frappe.model.open_mapped_doc({\n        method: \"qcmc_logic.utils.make_machine_shop_repairs_and_project\",\n        frm: frm,\n    });\n};\n",
+  "view": "Form"
  }
 ]

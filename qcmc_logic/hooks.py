@@ -40,7 +40,6 @@ after_request = [
 doctype_js = {
     "Material Request": "public/js/material_request.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
-    "Machine Shop Job Request": "public/js/machine_shop_job_request.js",
 }
 
 # override_doctype_class = {
