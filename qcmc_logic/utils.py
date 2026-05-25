@@ -488,6 +488,19 @@ def make_warehouse_transfer_from_material_request(source_name, target_doc=None):
     return target
 
 
+@frappe.whitelist()
+def make_machine_shop_repairs_and_project(source_name, target_doc=None):
+    msjr = frappe.get_doc("Machine Shop Job Request", source_name)
+
+    target = frappe.get_doc(frappe.parse_json(target_doc)) if target_doc else frappe.new_doc("Machine Shop Repairs and Project")
+    target.msjr_no = source_name
+    target.asset = msjr.asset_name
+    target.subject = msjr.work_instruction
+    target.date_posted = frappe.utils.today()
+
+    return target
+
+
 def _get_transfer_type_for_warehouses(source_warehouse, target_warehouse):
     source_company = _get_warehouse_company(source_warehouse)
     target_company = _get_warehouse_company(target_warehouse)
