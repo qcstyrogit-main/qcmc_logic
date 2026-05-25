@@ -16,27 +16,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-02-11 13:07:54.102923",
-  "name": "Approve",
-  "workflow_action_name": "Approve"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-05-08 14:11:20.380611",
-  "name": "Submit for SMB Maintenance",
-  "workflow_action_name": "Submit for SMB Maintenance"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-05-08 14:11:41.822667",
-  "name": "Submit for Machine Shop",
-  "workflow_action_name": "Submit for Machine Shop"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2026-02-20 09:40:06.848521",
   "name": "Run Basic Rules",
   "workflow_action_name": "Run Basic Rules"
@@ -142,13 +121,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-06-02 15:02:12.989050",
-  "name": "Submit for Stock Confirmation",
-  "workflow_action_name": "Submit for Stock Confirmation"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2025-06-02 15:02:57.731993",
   "name": "Submit For DR Printing",
   "workflow_action_name": "Submit For DR Printing"
@@ -159,13 +131,6 @@
   "modified": "2025-06-02 15:04:06.291450",
   "name": "Submit for Delivery",
   "workflow_action_name": "Submit for Delivery"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-06-02 15:05:11.755955",
-  "name": "Tag To Active",
-  "workflow_action_name": "Tag To Active"
  },
  {
   "docstatus": 0,
@@ -226,13 +191,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-03-19 10:07:39.093046",
-  "name": "Send back for Modification",
-  "workflow_action_name": "Send back for Modification"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2026-01-27 09:38:14.612225",
   "name": "For VP Sales Approval",
   "workflow_action_name": "For VP Sales Approval"
@@ -289,23 +247,30 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-04-16 16:52:13.213459",
-  "name": "Mark as Completed",
-  "workflow_action_name": "Mark as Completed"
+  "modified": "2024-04-15 21:25:15.987329",
+  "name": "Process",
+  "workflow_action_name": "Process"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-10-20 15:59:53.086519",
-  "name": "Acknowledge",
-  "workflow_action_name": "Acknowledge"
+  "modified": "2025-05-14 13:36:08.460123",
+  "name": "Cancel",
+  "workflow_action_name": "Cancel"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-03-19 10:05:52.014185",
-  "name": "Submit for Approval",
-  "workflow_action_name": "Submit for Approval"
+  "modified": "2025-06-02 15:02:12.989050",
+  "name": "Submit for Stock Confirmation",
+  "workflow_action_name": "Submit for Stock Confirmation"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-03-19 10:07:39.093046",
+  "name": "Send back for Modification",
+  "workflow_action_name": "Send back for Modification"
  },
  {
   "docstatus": 0,
@@ -317,9 +282,30 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2024-04-15 21:25:15.987329",
-  "name": "Process",
-  "workflow_action_name": "Process"
+  "modified": "2026-05-22 22:00:34.678500",
+  "name": "Submit to Maintenance",
+  "workflow_action_name": "Submit to Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-05-24 13:04:32.033245",
+  "name": "Send to MC Maintenance",
+  "workflow_action_name": "Send to MC Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-06-02 15:05:11.755955",
+  "name": "Tag To Active",
+  "workflow_action_name": "Tag To Active"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-03-19 10:05:52.014185",
+  "name": "Submit for Approval",
+  "workflow_action_name": "Submit for Approval"
  },
  {
   "docstatus": 0,
@@ -331,8 +317,36 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-05-14 13:36:08.460123",
-  "name": "Cancel",
-  "workflow_action_name": "Cancel"
+  "modified": "2025-10-20 15:59:53.086519",
+  "name": "Acknowledge",
+  "workflow_action_name": "Acknowledge"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-02-11 13:07:54.102923",
+  "name": "Approve",
+  "workflow_action_name": "Approve"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-05-08 14:11:20.380611",
+  "name": "Send to SMB Maintenance",
+  "workflow_action_name": "Send to SMB Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-05-08 14:11:41.822667",
+  "name": "For Service Request to EDSA",
+  "workflow_action_name": "For Service Request to EDSA"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-04-16 16:52:13.213459",
+  "name": "Mark as Completed",
+  "workflow_action_name": "Mark as Completed"
  }
 ]

@@ -20,33 +20,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow State",
-  "icon": "ok-sign",
-  "modified": "2025-02-11 13:07:54.034840",
-  "name": "Approved",
-  "style": "Success",
-  "workflow_state_name": "Approved"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2026-05-08 14:12:12.589860",
-  "name": "Pending SMB Maintenance",
-  "style": "",
-  "workflow_state_name": "Pending SMB Maintenance"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2026-05-08 14:12:41.322630",
-  "name": "Pending Machine Shop",
-  "style": "",
-  "workflow_state_name": "Pending Machine Shop"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
   "icon": "",
   "modified": "2026-02-20 09:40:06.663047",
   "name": "Incoming",
@@ -282,15 +255,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-06-02 14:47:48.706180",
-  "name": "For DR Printing",
-  "style": "",
-  "workflow_state_name": "For DR Printing"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2025-06-02 14:46:44.771752",
   "name": "For Stock Confirmation",
   "style": "",
@@ -453,73 +417,10 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-07-24 16:37:52.771949",
-  "name": "Pending PPIC Supervisor",
-  "style": "",
-  "workflow_state_name": "Pending PPIC Supervisor"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-06-19 17:22:55.011080",
-  "name": "Pending Approval",
-  "style": "",
-  "workflow_state_name": "Pending Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2025-07-31 13:50:14.387468",
   "name": "Pending Machine Shop Supervisor Approval",
   "style": "",
   "workflow_state_name": "Pending Machine Shop Supervisor Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-05-27 13:11:36.687166",
-  "name": "Pending PM Approval",
-  "style": "",
-  "workflow_state_name": "Pending PM Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-07-18 16:58:15.486500",
-  "name": "To Received",
-  "style": "",
-  "workflow_state_name": "To Received"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-06-26 11:40:38.894485",
-  "name": "Received",
-  "style": "",
-  "workflow_state_name": "Received"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2026-04-16 16:37:14.859683",
-  "name": "Completed",
-  "style": "Success",
-  "workflow_state_name": "Completed"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-10-20 11:16:47.071286",
-  "name": "For Approval",
-  "style": "",
-  "workflow_state_name": "For Approval"
  },
  {
   "docstatus": 0,
@@ -552,6 +453,96 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "modified": "2025-05-14 11:53:38.107266",
+  "name": "Cancelled",
+  "style": "",
+  "workflow_state_name": "Cancelled"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-22 21:36:32.127672",
+  "name": "Send to Machine Shop",
+  "style": "",
+  "workflow_state_name": "Send to Machine Shop"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-23 22:13:42.304935",
+  "name": "To Received by SMB Maintenance",
+  "style": "",
+  "workflow_state_name": "To Received by SMB Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-23 22:57:48.620684",
+  "name": "For Machine Shop Acknowledgement",
+  "style": "",
+  "workflow_state_name": "For Machine Shop Acknowledgement"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-24 13:05:01.973951",
+  "name": "To Receive by MC Maintenance",
+  "style": "",
+  "workflow_state_name": "To Receive by MC Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-26 11:40:38.894485",
+  "name": "Received",
+  "style": "",
+  "workflow_state_name": "Received"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-22 21:28:01.234901",
+  "name": "Pending Sta Clara Maintenance",
+  "style": "",
+  "workflow_state_name": "Pending Sta Clara Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-02 14:47:48.706180",
+  "name": "For DR Printing",
+  "style": "",
+  "workflow_state_name": "For DR Printing"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-07-24 16:37:52.771949",
+  "name": "Pending PPIC Supervisor",
+  "style": "",
+  "workflow_state_name": "Pending PPIC Supervisor"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-10-20 11:16:47.071286",
+  "name": "For Approval",
+  "style": "",
+  "workflow_state_name": "For Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "modified": "2025-02-07 09:07:33.779764",
   "name": "Submitted",
   "style": "Success",
@@ -561,10 +552,91 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-05-14 11:53:38.107266",
-  "name": "Cancelled",
+  "modified": "2025-05-27 13:11:36.687166",
+  "name": "Pending PM Approval",
   "style": "",
-  "workflow_state_name": "Cancelled"
+  "workflow_state_name": "Pending PM Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-23 21:55:47.316614",
+  "name": "For Service Request to EDSA",
+  "style": "",
+  "workflow_state_name": "For Service Request to EDSA"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-07-18 16:58:15.486500",
+  "name": "To Received",
+  "style": "",
+  "workflow_state_name": "To Received"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-22 20:38:17.552124",
+  "name": "Pending MC Maintenance",
+  "style": "",
+  "workflow_state_name": "Pending MC Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-23 22:24:54.358207",
+  "name": "To Receive by SMB Maintenance",
+  "style": "",
+  "workflow_state_name": "To Receive by SMB Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-19 17:22:55.011080",
+  "name": "Pending Approval",
+  "style": "",
+  "workflow_state_name": "Pending Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-08 14:12:41.322630",
+  "name": "Pending Machine Shop",
+  "style": "",
+  "workflow_state_name": "Pending Machine Shop"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "ok-sign",
+  "modified": "2025-02-11 13:07:54.034840",
+  "name": "Approved",
+  "style": "Success",
+  "workflow_state_name": "Approved"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-04-16 16:37:14.859683",
+  "name": "Completed",
+  "style": "Success",
+  "workflow_state_name": "Completed"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-08 14:12:12.589860",
+  "name": "Pending SMB Maintenance",
+  "style": "",
+  "workflow_state_name": "Pending SMB Maintenance"
  },
  {
   "docstatus": 0,
