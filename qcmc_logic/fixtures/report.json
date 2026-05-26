@@ -126,7 +126,7 @@
   "query": null,
   "ref_doctype": "Stock Ledger Entry",
   "reference_report": null,
-  "report_name": "Supplier-Wise Sales Analytics",
+  "report_name": "BOA Inventory Book",
   "report_script": null,
   "report_type": "Script Report",
   "roles": [
