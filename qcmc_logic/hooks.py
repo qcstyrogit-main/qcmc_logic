@@ -23,8 +23,11 @@ doc_events = {
     "Purchase Receipt": {
         "before_save": "qcmc_logic.overrides.wrr_override.validate"
     },
-    "Sales Invoice": { 
+    "Sales Invoice": {
          "validate": "qcmc_logic.overrides.sales_invoice_override.validate"
+    },
+    "BOM": {
+        "before_validate": "qcmc_logic.customs.bom_rate.fetch_missing_component_rates"
     }
 }
 
