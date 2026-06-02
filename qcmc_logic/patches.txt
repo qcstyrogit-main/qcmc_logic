@@ -6,3 +6,5 @@
 # Patches added in this section will be executed after doctypes are migrated
 qcmc_logic.patches.remove_legacy_inventory_dimension_fields
 qcmc_logic.patches.remove_stale_inventory_dimension_fields
+qcmc_logic.patches.remove_legacy_si_history
+qcmc_logic.patches.remove_title_from_transaction_forms
