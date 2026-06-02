@@ -2,6 +2,17 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
+  "dt": "Sales Order",
+  "enabled": 1,
+  "modified": "2026-05-29 14:21:00.477208",
+  "module": "Selling",
+  "name": "SO Decimal Place",
+  "script": "frappe.ui.form.on('Sales Order', {\n    onload: function(frm) { set_rate_precision(frm); },\n    customer: function(frm) { set_rate_precision(frm); },\n    refresh: function(frm) { set_rate_precision(frm); }\n});\n\nfunction set_rate_precision(frm) {\n    if (!frm.doc.customer) return;\n\n    frappe.db.get_value('Customer', frm.doc.customer, 'custom_decimal_place', function(r) {\n        if (r && r.custom_decimal_place) {\n            let precision = cint(r.custom_decimal_place);\n            frm.fields_dict.items.grid.update_docfield_property('rate', 'precision', precision);\n        }\n    });\n}",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
   "dt": "Material Request",
   "enabled": 1,
   "modified": "2026-05-18 09:51:17.191913",
@@ -1163,6 +1174,28 @@
   "module": "QCMC Logics",
   "name": "Machine Shop Job Request Generate Project Plan",
   "script": "frappe.provide(\"qcmc_logic.machine_shop_job_request\");\n\nconsole.log(\"Machine Shop Job Request client script loaded\");\n\nfrappe.ui.form.on(\"Machine Shop Job Request\", {\n    refresh(frm) {\n        console.log(\"Machine Shop Job Request refresh\", {\n            name: frm.doc.name,\n            is_new: frm.is_new(),\n            docstatus: frm.doc.docstatus,\n            workflow_state: frm.doc.workflow_state,\n            can_generate_project_plan: qcmc_logic.machine_shop_job_request.can_generate_project_plan(frm),\n        });\n\n        if (qcmc_logic.machine_shop_job_request.can_generate_project_plan(frm)) {\n            frm.add_custom_button(\n                __(\"Generate Project Plan\"),\n                () => qcmc_logic.machine_shop_job_request.make_project_plan(frm),\n                __(\"Create\")\n            );\n        }\n    },\n\n    generate_plan(frm) {\n        console.log(\"Generate Project Plan button clicked\", frm.doc.name, frm.doc.workflow_state);\n        qcmc_logic.machine_shop_job_request.make_project_plan(frm);\n    },\n});\n\nqcmc_logic.machine_shop_job_request.can_generate_project_plan = function(frm) {\n    return !frm.is_new() && frm.doc.workflow_state === \"Pending Machine Shop\";\n};\n\nqcmc_logic.machine_shop_job_request.make_project_plan = function(frm) {\n    console.log(\"make_project_plan called\", frm.doc.name, frm.doc.workflow_state);\n\n    if (!qcmc_logic.machine_shop_job_request.can_generate_project_plan(frm)) {\n        frappe.msgprint(__(\"Project Plan can only be generated from a saved request in Pending Machine Shop.\"));\n        return;\n    }\n\n    frappe.model.open_mapped_doc({\n        method: \"qcmc_logic.utils.make_machine_shop_repairs_and_project\",\n        frm: frm,\n    });\n};\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Machine Shop Job Request",
+  "enabled": 1,
+  "modified": "2026-06-03 06:08:09.492502",
+  "module": null,
+  "name": "Machine Shop Job Request - Auto Series and Project Plan",
+  "script": "frappe.ui.form.on(\"Machine Shop Job Request\", {\n    refresh(frm) {\n        if (!frm.is_new() && frm.doc.workflow_state === \"Pending Machine Shop\") {\n            frm.add_custom_button(\n                __(\"Generate Project Plan\"),\n                () => {\n                    frappe.model.open_mapped_doc({\n                        method: \"qcmc_logic.utils.make_machine_shop_repairs_and_project\",\n                        frm: frm,\n                    });\n                },\n                __(\"Create\")\n            );\n        }\n    },\n\n    bd_class(frm) {\n        if (!frm.is_new()) return;\n        if (!frm.doc.bd_class) {\n            frm.set_value(\"naming_series\", \"MSJR-.YY.-\");\n            frm.set_value(\"request\", \"\");\n            frm.set_df_property(\"request\", \"read_only\", 0);\n            return;\n        }\n        frappe.db.get_value(\"BD Class\", frm.doc.bd_class, \"description\", ({ description }) => {\n            const desc = (description || \"\").toUpperCase();\n            if (desc.includes(\"PREVENTIVE\")) {\n                frm.set_value(\"naming_series\", \"PREVMA-.YY.-\");\n                frappe.db.get_value(\"MS Request Code\", { description: \"Preventive Maintenance\" }, [\"name\", \"description\"], (r) => {\n                    if (r && r.name) {\n                        // Pre-populate link title cache so field shows description, not hashed name\n                        if (!frappe.boot.link_title_map) frappe.boot.link_title_map = {};\n                        if (!frappe.boot.link_title_map[\"MS Request Code\"]) frappe.boot.link_title_map[\"MS Request Code\"] = {};\n                        frappe.boot.link_title_map[\"MS Request Code\"][r.name] = r.description;\n                        frm.set_value(\"request\", r.name);\n                        frm.set_df_property(\"request\", \"read_only\", 1);\n                    }\n                });\n            } else {\n                frm.set_value(\"naming_series\", desc.includes(\"MOULD\") ? \"MOJR-.YY.-\" : \"MSJR-.YY.-\");\n                frm.set_value(\"request\", \"\");\n                frm.set_df_property(\"request\", \"read_only\", 0);\n            }\n        });\n    },\n\n    failure_date(frm) {\n        qcmc_logic.msjr.validate_dates(frm);\n    },\n\n    date_needed(frm) {\n        qcmc_logic.msjr.validate_dates(frm);\n    },\n\n    validate(frm) {\n        qcmc_logic.msjr.validate_dates(frm);\n    },\n});\n\nfrappe.provide(\"qcmc_logic.msjr\");\n\nqcmc_logic.msjr.validate_dates = function(frm) {\n    if (frm.doc.failure_date && frm.doc.date_needed) {\n        if (frappe.datetime.get_diff(frm.doc.date_needed, frm.doc.failure_date) < 0) {\n            frappe.msgprint({\n                title: __(\"Invalid Date\"),\n                message: __(\"Failure Date cannot be later than Date Needed.\"),\n                indicator: \"red\",\n            });\n            frm.set_value(\"failure_date\", \"\");\n        }\n    }\n};",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Machine Shop Repairs and Project",
+  "enabled": 1,
+  "modified": "2026-06-03 06:08:09.510549",
+  "module": null,
+  "name": "Machine Shop Repairs and Project - Update Commitment Date",
+  "script": "frappe.ui.form.on(\"Machine Shop Repairs and Project\", {\n    refresh(frm) {\n        const is_active = frm.doc.workflow_state === \"Active\";\n\n        // Editable freely when NOT Active; locked when Active\n        if (!frm._recommitment_unlocked) {\n            frm.set_df_property(\"commitment_date\", \"read_only\", is_active ? 1 : 0);\n            frm.refresh_field(\"commitment_date\");\n        }\n\n        // Show Re-Commitment Date button only when Active\n        if (is_active) {\n            frm.add_custom_button(__(\"Re-Commitment Date\"), () => {\n                frm._recommitment_unlocked = true;\n                frm.set_df_property(\"commitment_date\", \"read_only\", 0);\n                frm.refresh_field(\"commitment_date\");\n                frappe.show_alert({ message: __(\"Commitment Date is now editable. Save to confirm.\"), indicator: \"blue\" });\n            });\n        }\n    },\n\n    after_save(frm) {\n        frm._recommitment_unlocked = false;\n        if (frm.doc.workflow_state === \"Active\") {\n            frm.set_df_property(\"commitment_date\", \"read_only\", 1);\n            frm.refresh_field(\"commitment_date\");\n        }\n    },\n});",
   "view": "Form"
  }
 ]
