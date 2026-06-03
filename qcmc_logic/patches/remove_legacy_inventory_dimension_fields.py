@@ -55,6 +55,7 @@ LEGACY_DOCTYPES = {
 
 
 def execute():
+	deleted_mismatched_custom_fields = remove_mismatched_custom_fields()
 	deleted_custom_fields = remove_legacy_custom_fields()
 	updated_property_setters = clean_field_order_property_setters()
 
@@ -64,9 +65,30 @@ def execute():
 	frappe.clear_cache(doctype="Inventory Dimension")
 
 	return {
+		"deleted_mismatched_custom_fields": deleted_mismatched_custom_fields,
 		"deleted_custom_fields": deleted_custom_fields,
 		"updated_property_setters": updated_property_setters,
 	}
+
+
+def remove_mismatched_custom_fields():
+	fields = frappe.get_all(
+		"Custom Field",
+		fields=["name", "dt", "fieldname"],
+	)
+
+	deleted = 0
+	affected_doctypes = set()
+	for field in fields:
+		if field.name != f"{field.dt}-{field.fieldname}":
+			affected_doctypes.add(field.dt)
+			frappe.delete_doc("Custom Field", field.name, ignore_permissions=True, force=True)
+			deleted += 1
+
+	for doctype in affected_doctypes:
+		frappe.clear_cache(doctype=doctype)
+
+	return deleted
 
 
 def remove_legacy_custom_fields():

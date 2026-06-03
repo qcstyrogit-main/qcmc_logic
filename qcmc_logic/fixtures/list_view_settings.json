@@ -10,7 +10,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Series Abbr.\",\"fieldname\":\"pr_series\"},{\"label\":\"Material Request Type\",\"fieldname\":\"material_request_type\"},{\"label\":\"PR Section\",\"fieldname\":\"pr_section\"}]",
-  "modified": "2026-05-08 11:19:30.736303",
   "name": "PRSection",
   "show_tags": 0
  },
@@ -25,7 +24,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Description\",\"fieldname\":\"description\"}]",
-  "modified": "2026-04-27 15:00:48.627062",
   "name": "BD Class",
   "show_tags": 0
  },
@@ -40,7 +38,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"asset_name\",\"label\":\"Asset Name\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"asset\",\"label\":\"Asset\"},{\"fieldname\":\"repair_status\",\"label\":\"Repair Status\"}]",
-  "modified": "2026-04-28 15:13:56.610221",
   "name": "Asset Repair",
   "show_tags": 0
  },
@@ -55,7 +52,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"asset_name\",\"label\":\"Asset Name\"},{\"fieldname\":\"item_name\",\"label\":\"Item Name\"},{\"fieldname\":\"maintenance_team\",\"label\":\"Maintenance Team\"}]",
-  "modified": "2026-03-31 14:23:51.449127",
   "name": "Asset Maintenance",
   "show_tags": 0
  },
@@ -70,7 +66,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"item\",\"label\":\"Item\"},{\"fieldname\":\"custom_rate_per_minute\",\"label\":\"Rate Per Minute\"},{\"fieldname\":\"custom_number_of_cavity\",\"label\":\"Number of Cavity\"},{\"fieldname\":\"is_active\",\"label\":\"Is Active\"},{\"fieldname\":\"is_default\",\"label\":\"Is Default\"},{\"fieldname\":\"total_cost\",\"label\":\"Total Cost\"},{\"fieldname\":\"has_variants\",\"label\":\"Has Variants\"}]",
-  "modified": "2026-04-13 17:51:41.183146",
   "name": "BOM",
   "show_tags": 0
  },
@@ -85,7 +80,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"assign_to_name\",\"label\":\"Assign To\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"completion_date\",\"label\":\"Completion Date\"},{\"fieldname\":\"due_date\",\"label\":\"Due Date\"}]",
-  "modified": "2026-04-20 07:37:14.464424",
   "name": "Asset Maintenance Log",
   "show_tags": 0
  },
@@ -100,7 +94,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"Employee Name\",\"fieldname\":\"employee_name\"},{\"type\":\"Status\",\"label\":\"Status\",\"fieldname\":\"status_field\"},{\"label\":\"Appraisal Cycle\",\"fieldname\":\"appraisal_cycle\"},{\"label\":\"Final Score\",\"fieldname\":\"final_score\"},{\"label\":\"Appraisal Section\",\"fieldname\":\"custom_appraisal_section\"}]",
-  "modified": "2026-01-20 10:32:48.393046",
   "name": "Appraisal",
   "show_tags": 0
  },
@@ -115,7 +108,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Delivery Trip\",\"fieldname\":\"delivery_trip\"},{\"label\":\"Date and Time\",\"fieldname\":\"date_and_time\"},{\"label\":\"Status\",\"fieldname\":\"status\"}]",
-  "modified": "2026-02-13 14:09:50.620589",
   "name": "Delivery Monitoring",
   "show_tags": 0
  },
@@ -130,7 +122,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"is_group\",\"label\":\"Is Group\"},{\"fieldname\":\"parent_sales_person\",\"label\":\"Parent Sales Person\"},{\"fieldname\":\"employee\",\"label\":\"Employee\"}]",
-  "modified": "2026-02-11 11:10:44.213181",
   "name": "Sales Person",
   "show_tags": 0
  },
@@ -145,7 +136,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Greetings\",\"fieldname\":\"greetings\"}]",
-  "modified": "2026-01-20 12:54:09.500371",
   "name": "Chatbot Settings",
   "show_tags": 0
  },
@@ -160,7 +150,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"template_title\",\"label\":\"Appraisal Template Title\"},{\"fieldname\":\"custom_appraisal_group\",\"label\":\"Appraisal Group\"}]",
-  "modified": "2025-12-17 08:47:51.641320",
   "name": "Appraisal Template",
   "show_tags": 0
  },
@@ -175,7 +164,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"Title\",\"fieldname\":\"title\"},{\"label\":\"Status\",\"fieldname\":\"status\"},{\"label\":\"Published On\",\"fieldname\":\"published_on\"}]",
-  "modified": "2025-12-18 09:45:32.611524",
   "name": "LMS Course",
   "show_tags": 0
  },
@@ -190,7 +178,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"department_name\",\"label\":\"Department\"},{\"fieldname\":\"custom_appraisal_group\",\"label\":\"Appraisal Group\"}]",
-  "modified": "2025-12-22 13:23:09.177632",
   "name": "Department",
   "show_tags": 0
  },
@@ -205,7 +192,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"Member Name\",\"fieldname\":\"member_name\"},{\"label\":\"Course\",\"fieldname\":\"course\"},{\"label\":\"Member\",\"fieldname\":\"member\"},{\"label\":\"Date Enrolled\",\"fieldname\":\"custom_date_enrolled\"}]",
-  "modified": "2025-12-11 17:51:48.009255",
   "name": "LMS Enrollment",
   "show_tags": 0
  },
@@ -220,7 +206,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"type\":\"Status\",\"label\":\"Status\",\"fieldname\":\"status_field\"},{\"label\":\"Company\",\"fieldname\":\"company\"},{\"label\":\"Default In-Transit Warehouse\",\"fieldname\":\"default_in_transit_warehouse\"}]",
-  "modified": "2025-09-22 13:34:49.371247",
   "name": "Warehouse",
   "show_tags": 0
  },
@@ -235,7 +220,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"Asset Name\",\"fieldname\":\"asset_name\"},{\"type\":\"Status\",\"label\":\"Status\",\"fieldname\":\"status_field\"},{\"label\":\"Asset Category\",\"fieldname\":\"asset_category\"},{\"label\":\"Custodian Name\",\"fieldname\":\"custom_custodian_name\"},{\"label\":\"Location\",\"fieldname\":\"location\"},{\"label\":\"Status\",\"fieldname\":\"status\"}]",
-  "modified": "2025-08-14 16:05:21.164251",
   "name": "Asset",
   "show_tags": 0
  },
@@ -250,7 +234,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"customer_name\",\"label\":\"Customer Name\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"per_delivered\",\"label\":\"%  Delivered\"},{\"fieldname\":\"delivery_date\",\"label\":\"Delivery Date\"},{\"fieldname\":\"grand_total\",\"label\":\"Grand Total\"},{\"fieldname\":\"custom_account_manager\",\"label\":\"Account Manager\"},{\"fieldname\":\"custom_so_type\",\"label\":\"SO Type\"}]",
-  "modified": "2025-07-21 13:36:45.241885",
   "name": "Sales Order",
   "show_tags": 0
  },
@@ -265,7 +248,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"title\",\"label\":\"Title\"},{\"fieldname\":\"custom_sales_order\",\"label\":\"Sales Order\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"posting_date\",\"label\":\"Date\"}]",
-  "modified": "2026-05-06 10:20:33.089743",
   "name": "Delivery Note",
   "show_tags": 0
  },
@@ -280,7 +262,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"Supplier Name\",\"fieldname\":\"supplier_name\"},{\"type\":\"Status\",\"label\":\"Status\",\"fieldname\":\"status_field\"},{\"label\":\"% Billed\",\"fieldname\":\"per_billed\"},{\"label\":\"% Received\",\"fieldname\":\"per_received\"},{\"label\":\"Date\",\"fieldname\":\"transaction_date\"},{\"label\":\"Group same items\",\"fieldname\":\"group_same_items\"}]",
-  "modified": "2025-06-16 17:28:19.362554",
   "name": "Purchase Order",
   "show_tags": 0
  },
@@ -295,7 +276,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Employee\",\"fieldname\":\"employee\"},{\"label\":\"Employee Name\",\"fieldname\":\"employee_name\"}]",
-  "modified": "2025-06-18 17:12:41.347740",
   "name": "Accountability Per Employee",
   "show_tags": 0
  },
@@ -310,7 +290,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"title\",\"label\":\"Title\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"custom_request_type\",\"label\":\"Request Type\"},{\"fieldname\":\"material_request_type\",\"label\":\"Purpose\"},{\"fieldname\":\"schedule_date\",\"label\":\"Required By\"},{\"fieldname\":\"set_warehouse\",\"label\":\"Set Target Warehouse\"}]",
-  "modified": "2025-07-17 15:11:42.451869",
   "name": "Material Request",
   "show_tags": 0
  },
@@ -325,7 +304,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"workflow_state\",\"label\":\"Workflow State\"},{\"fieldname\":\"company\",\"label\":\"Company\"},{\"fieldname\":\"purpose\",\"label\":\"Purpose\"},{\"fieldname\":\"custom_remarks\",\"label\":\"Remarks\"},{\"fieldname\":\"transaction_date\",\"label\":\"Transaction Date\"}]",
-  "modified": "2025-07-21 10:58:02.615876",
   "name": "Asset Movement",
   "show_tags": 0
  },
@@ -340,7 +318,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Transaction Date\",\"fieldname\":\"transaction_date\"},{\"label\":\"Notes\",\"fieldname\":\"notes\"}]",
-  "modified": "2025-07-22 11:06:14.888377",
   "name": "Asset Tag Batch",
   "show_tags": 0
  },
@@ -355,7 +332,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"Full Name\",\"fieldname\":\"employee_name\"},{\"type\":\"Status\",\"label\":\"Status\",\"fieldname\":\"status_field\"},{\"label\":\"Designation\",\"fieldname\":\"designation\"},{\"label\":\"Department\",\"fieldname\":\"department\"}]",
-  "modified": "2025-12-17 17:22:34.683443",
   "name": "Employee",
   "show_tags": 0
  },
@@ -370,7 +346,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"applicant_name\",\"label\":\"Applicant Name\"},{\"fieldname\":\"custom_hr_status\",\"label\":\"HR Status\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"job_title\",\"label\":\"Job Opening\"},{\"fieldname\":\"applicant_rating\",\"label\":\"Applicant Rating\"}]",
-  "modified": "2025-10-20 15:36:19.804119",
   "name": "Job Applicant",
   "show_tags": 0
  },
@@ -385,7 +360,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Employee Name\",\"fieldname\":\"employee_name\"},{\"label\":\"Date Created\",\"fieldname\":\"date_created\"}]",
-  "modified": "2025-12-05 16:36:00.279033",
   "name": "Salary Notice",
   "show_tags": 0
  },
@@ -400,7 +374,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"custom_level_name\",\"label\":\"Level Name\"},{\"fieldname\":\"custom_min1\",\"label\":\"Min\"},{\"fieldname\":\"custom_max2\",\"label\":\"Max\"},{\"fieldname\":\"custom_salary_rate_type\",\"label\":\"Salary Rate Type\"}]",
-  "modified": "2026-01-06 10:59:02.043167",
   "name": "Employee Grade",
   "show_tags": 0
  },
@@ -415,7 +388,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Designation\",\"fieldname\":\"designation_name\"},{\"label\":\"Appraisal Template\",\"fieldname\":\"appraisal_template\"}]",
-  "modified": "2026-01-07 13:43:51.472744",
   "name": "Designation",
   "show_tags": 0
  },
@@ -430,7 +402,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Announcement \",\"fieldname\":\"announcement\"}]",
-  "modified": "2026-01-26 10:56:35.525271",
   "name": "Announcements",
   "show_tags": 0
  },
@@ -445,7 +416,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Employee\",\"fieldname\":\"employee\"},{\"label\":\"Testimonial\",\"fieldname\":\"testimonial\"}]",
-  "modified": "2026-01-26 14:07:23.334328",
   "name": "Testimonials",
   "show_tags": 0
  },
@@ -460,7 +430,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"transfer_type\",\"label\":\"Transfer Type\"},{\"fieldname\":\"source_company\",\"label\":\"Company\"},{\"fieldname\":\"source_warehouse\",\"label\":\"Source Warehouse\"},{\"fieldname\":\"target_warehouse\",\"label\":\"Target Warehouse\"}]",
-  "modified": "2026-05-06 16:41:02.419170",
   "name": "Warehouse Transfer",
   "show_tags": 0
  },
@@ -475,7 +444,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"description\",\"label\":\"Description\"},{\"fieldname\":\"measure\",\"label\":\"Measure\"},{\"fieldname\":\"estimation\",\"label\":\"Estimation\"}]",
-  "modified": "2026-05-24 21:25:52.937582",
   "name": "MS Request Code",
   "show_tags": 0
  },
@@ -490,7 +458,6 @@
   "docstatus": 0,
   "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"msjr_no\",\"label\":\"MSJR No\"},{\"fieldname\":\"asset\",\"label\":\"Asset\"},{\"fieldname\":\"date_posted\",\"label\":\"Date Posted\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"}]",
-  "modified": "2026-05-25 14:02:03.795230",
   "name": "Machine Shop Repairs and Project",
   "show_tags": 0
  }

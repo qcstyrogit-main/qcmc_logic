@@ -2,7 +2,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2026-03-03 08:22:30.679799",
   "name": "Delivery Driver",
   "role_profile": "Delivery Driver",
   "roles": [
@@ -35,7 +34,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-02-11 13:17:12.399402",
   "name": "Manufacturing",
   "role_profile": "Manufacturing",
   "roles": [
@@ -62,7 +60,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-10-20 09:33:12.444161",
   "name": "ExemptWorkflow",
   "role_profile": "ITEM_Exempt Workflow",
   "roles": [
@@ -545,7 +542,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-09-12 17:24:53.011391",
   "name": "HR Manager",
   "role_profile": "HR Manager",
   "roles": [
@@ -584,7 +580,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-09-12 17:25:22.220954",
   "name": "HR Supervisor",
   "role_profile": "HR Supervisor",
   "roles": [
@@ -617,7 +612,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-10-02 15:43:28.876791",
   "name": "Procurement",
   "role_profile": "Procurement",
   "roles": [
@@ -644,7 +638,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-10-28 11:58:11.248321",
   "name": "MC Toolroom",
   "role_profile": "MC Toolroom",
   "roles": [
@@ -677,7 +670,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-02-11 13:17:12.492676",
   "name": "Purchase",
   "role_profile": "Purchase",
   "roles": [
@@ -710,7 +702,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-06-27 10:39:55.933206",
   "name": "PPIC",
   "role_profile": "PPIC",
   "roles": [
@@ -779,7 +770,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2026-02-11 11:04:10.976554",
   "name": "General Accounting Staff",
   "role_profile": "General Accounting Staff",
   "roles": [
@@ -830,7 +820,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-02-11 13:17:12.385631",
   "name": "Inventory",
   "role_profile": "Inventory",
   "roles": [
@@ -857,7 +846,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-06-27 09:33:01.892238",
   "name": "CandC",
   "role_profile": "CandC",
   "roles": [
@@ -914,7 +902,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-08-11 10:45:40.288861",
   "name": "Edsa Warehouse",
   "role_profile": "Edsa Warehouse",
   "roles": [
@@ -941,7 +928,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-08-11 13:17:56.795284",
   "name": "Motorpool",
   "role_profile": "Motorpool",
   "roles": [
@@ -968,7 +954,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-09-24 16:41:03.952990",
   "name": "HR Learning",
   "role_profile": "HR Learning",
   "roles": [
@@ -1025,7 +1010,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-06-19 15:22:36.484571",
   "name": "Sales",
   "role_profile": "Sales",
   "roles": [
@@ -1064,7 +1048,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-02-11 13:17:12.445911",
   "name": "Accounts",
   "role_profile": "Accounts",
   "roles": [
@@ -1085,7 +1068,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-10-29 16:30:14.985269",
   "name": "Employee",
   "role_profile": "Employee",
   "roles": [
@@ -1106,7 +1088,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2025-09-12 17:24:24.148479",
   "name": "HR",
   "role_profile": "HR",
   "roles": [
