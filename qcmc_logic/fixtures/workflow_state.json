@@ -323,6 +323,38 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "name": "OS Draft",
+  "style": "",
+  "workflow_state_name": "OS Draft"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "name": "OT Slip Approved",
+  "style": "Success",
+  "workflow_state_name": "OT Slip Approved"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "name": "OT Slip Cancelled",
+  "style": "Danger",
+  "workflow_state_name": "OT Slip Cancelled"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "name": "OT Slip Rejected",
+  "style": "Danger",
+  "workflow_state_name": "OT Slip Rejected"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "name": "On Hold",
   "style": "Inverse",
   "workflow_state_name": "On Hold"
@@ -398,6 +430,14 @@
   "name": "Pending Machine Shop Supervisor Approval",
   "style": "",
   "workflow_state_name": "Pending Machine Shop Supervisor Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "name": "Pending OT Approval",
+  "style": "Warning",
+  "workflow_state_name": "Pending OT Approval"
  },
  {
   "docstatus": 0,

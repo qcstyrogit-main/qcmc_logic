@@ -20,8 +20,20 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "name": "Approve Overtime",
+  "workflow_action_name": "Approve Overtime"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "name": "Cancel",
   "workflow_action_name": "Cancel"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Cancel OT Slip",
+  "workflow_action_name": "Cancel OT Slip"
  },
  {
   "docstatus": 0,
@@ -152,6 +164,12 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "name": "Reject Overtime",
+  "workflow_action_name": "Reject Overtime"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "name": "Resubmit for Approval",
   "workflow_action_name": "Resubmit for Approval"
  },
@@ -220,6 +238,12 @@
   "doctype": "Workflow Action Master",
   "name": "Submit For DR Printing",
   "workflow_action_name": "Submit For DR Printing"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit Overtime",
+  "workflow_action_name": "Submit Overtime"
  },
  {
   "docstatus": 0,
