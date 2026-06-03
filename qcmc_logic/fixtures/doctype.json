@@ -23131,12 +23131,12 @@
   "engine": "InnoDB",
   "fields": [
    {
-    "alignment": null,
+    "alignment": "",
     "allow_bulk_edit": 0,
     "allow_in_quick_entry": 0,
     "allow_on_submit": 0,
     "bold": 0,
-    "button_color": null,
+    "button_color": "",
     "collapsible": 0,
     "collapsible_depends_on": null,
     "columns": 0,
@@ -23196,12 +23196,12 @@
     "width": null
    },
    {
-    "alignment": null,
+    "alignment": "",
     "allow_bulk_edit": 0,
     "allow_in_quick_entry": 0,
     "allow_on_submit": 0,
     "bold": 0,
-    "button_color": null,
+    "button_color": "",
     "collapsible": 0,
     "collapsible_depends_on": null,
     "columns": 0,
@@ -23261,12 +23261,12 @@
     "width": null
    },
    {
-    "alignment": null,
+    "alignment": "",
     "allow_bulk_edit": 0,
     "allow_in_quick_entry": 0,
     "allow_on_submit": 0,
     "bold": 0,
-    "button_color": null,
+    "button_color": "",
     "collapsible": 0,
     "collapsible_depends_on": null,
     "columns": 0,
@@ -23274,7 +23274,7 @@
     "depends_on": null,
     "description": null,
     "documentation_url": null,
-    "fetch_from": null,
+    "fetch_from": "item_code.default_bom",
     "fetch_if_empty": 0,
     "fieldname": "uom",
     "fieldtype": "Link",
@@ -23326,12 +23326,12 @@
     "width": null
    },
    {
-    "alignment": null,
+    "alignment": "",
     "allow_bulk_edit": 0,
     "allow_in_quick_entry": 0,
     "allow_on_submit": 0,
     "bold": 0,
-    "button_color": null,
+    "button_color": "",
     "collapsible": 0,
     "collapsible_depends_on": null,
     "columns": 0,
@@ -23391,12 +23391,12 @@
     "width": null
    },
    {
-    "alignment": null,
+    "alignment": "",
     "allow_bulk_edit": 0,
     "allow_in_quick_entry": 0,
     "allow_on_submit": 1,
     "bold": 0,
-    "button_color": null,
+    "button_color": "",
     "collapsible": 0,
     "collapsible_depends_on": null,
     "columns": 0,
@@ -23456,12 +23456,12 @@
     "width": null
    },
    {
-    "alignment": null,
+    "alignment": "",
     "allow_bulk_edit": 0,
     "allow_in_quick_entry": 0,
     "allow_on_submit": 0,
     "bold": 0,
-    "button_color": null,
+    "button_color": "",
     "collapsible": 0,
     "collapsible_depends_on": null,
     "columns": 0,
@@ -23521,12 +23521,12 @@
     "width": null
    },
    {
-    "alignment": null,
+    "alignment": "",
     "allow_bulk_edit": 0,
     "allow_in_quick_entry": 0,
     "allow_on_submit": 0,
     "bold": 0,
-    "button_color": null,
+    "button_color": "",
     "collapsible": 0,
     "collapsible_depends_on": null,
     "columns": 0,
@@ -23586,12 +23586,12 @@
     "width": null
    },
    {
-    "alignment": null,
+    "alignment": "",
     "allow_bulk_edit": 0,
     "allow_in_quick_entry": 0,
     "allow_on_submit": 0,
     "bold": 0,
-    "button_color": null,
+    "button_color": "",
     "collapsible": 0,
     "collapsible_depends_on": null,
     "columns": 0,
