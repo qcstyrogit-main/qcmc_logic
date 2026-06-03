@@ -93,7 +93,23 @@ override_print_format = {
 }
 
 fixtures = [
-    {"doctype": "Custom Field", "filters": [["fieldname", "not in", ["workflow_state"]]]},
+    {
+        "doctype": "Custom Field",
+        "filters": [
+            ["fieldname", "not in", ["workflow_state"]],
+            [
+                "name",
+                "not in",
+                [
+                    "User-hide_private",
+                    "User-hide_my_private_information_from_others",
+                    "Purchase Invoice Item-to_room",
+                    "Employee-from_bin",
+                    "Employee-from_room",
+                ],
+            ],
+        ],
+    },
     {"doctype": "Client Script"},
     {"doctype": "Server Script"},
     {"doctype": "List View Settings"},
