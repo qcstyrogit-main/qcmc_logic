@@ -1975,7 +1975,7 @@
   "doctype": "Workflow",
   "document_type": "Item",
   "enable_action_confirmation": 0,
-  "is_active": 1,
+  "is_active": 0,
   "name": "Item Master File (non production)",
   "override_status": 0,
   "send_email_alert": 0,
