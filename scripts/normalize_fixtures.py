@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -43,6 +44,11 @@ def normalize_value(value: Any) -> Any:
 
 def normalize_file(path: Path, *, dry_run: bool) -> bool:
 	original_text = path.read_text(encoding="utf-8")
+	if has_conflict_markers(original_text):
+		raise ValueError(
+			f"{path}: contains Git conflict markers. Run resolve_fixture_conflicts.py first."
+		)
+
 	data = json.loads(original_text)
 	normalized = normalize_value(data)
 	normalized_text = json.dumps(normalized, indent=1, ensure_ascii=False) + "\n"
@@ -58,6 +64,10 @@ def normalize_file(path: Path, *, dry_run: bool) -> bool:
 
 def get_fixture_files(fixtures_dir: Path) -> list[Path]:
 	return sorted(fixtures_dir.glob("*.json"))
+
+
+def has_conflict_markers(text: str) -> bool:
+	return re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)", text) is not None
 
 
 def main() -> int:
@@ -76,9 +86,13 @@ def main() -> int:
 	args = parser.parse_args()
 
 	changed_files = []
-	for fixture_file in get_fixture_files(args.fixtures_dir):
-		if normalize_file(fixture_file, dry_run=args.dry_run):
-			changed_files.append(fixture_file)
+	try:
+		for fixture_file in get_fixture_files(args.fixtures_dir):
+			if normalize_file(fixture_file, dry_run=args.dry_run):
+				changed_files.append(fixture_file)
+	except (ValueError, json.JSONDecodeError) as error:
+		print(error)
+		return 1
 
 	for fixture_file in changed_files:
 		print(fixture_file)

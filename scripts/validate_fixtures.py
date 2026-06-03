@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -16,7 +17,13 @@ DEFAULT_FIXTURES_DIR = APP_ROOT / "qcmc_logic" / "fixtures"
 
 def iter_fixture_docs(fixtures_dir: Path) -> tuple[Path, list[dict[str, Any]]]:
 	for fixture_file in sorted(fixtures_dir.glob("*.json")):
-		data = json.loads(fixture_file.read_text(encoding="utf-8"))
+		text = fixture_file.read_text(encoding="utf-8")
+		if has_conflict_markers(text):
+			raise ValueError(
+				f"{fixture_file}: contains Git conflict markers. Run resolve_fixture_conflicts.py first."
+			)
+
+		data = json.loads(text)
 		if not isinstance(data, list):
 			raise ValueError(f"{fixture_file}: expected top-level JSON array")
 
@@ -27,6 +34,10 @@ def iter_fixture_docs(fixtures_dir: Path) -> tuple[Path, list[dict[str, Any]]]:
 			docs.append(doc)
 
 		yield fixture_file, docs
+
+
+def has_conflict_markers(text: str) -> bool:
+	return re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)", text) is not None
 
 
 def validate_custom_fields(fixtures_dir: Path) -> list[str]:
@@ -80,7 +91,12 @@ def main() -> int:
 	)
 	args = parser.parse_args()
 
-	errors = validate_custom_fields(args.fixtures_dir)
+	try:
+		errors = validate_custom_fields(args.fixtures_dir)
+	except (ValueError, json.JSONDecodeError) as error:
+		print(error)
+		return 1
+
 	if errors:
 		for error in errors:
 			print(error)

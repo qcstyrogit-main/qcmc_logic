@@ -27,6 +27,7 @@ class FixtureVersion:
 	docs: list[dict[str, Any]]
 	by_key: dict[tuple[Any, ...], dict[str, Any]]
 	order: list[tuple[Any, ...]]
+	duplicate_warnings: list[str]
 
 
 def run_git(args: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -80,18 +81,30 @@ def doc_key(doc: dict[str, Any], index: int) -> tuple[Any, ...]:
 
 def build_version(docs: list[dict[str, Any]] | None, label: str) -> FixtureVersion:
 	if docs is None:
-		return FixtureVersion(docs=[], by_key={}, order=[])
+		return FixtureVersion(docs=[], by_key={}, order=[], duplicate_warnings=[])
 
 	by_key = {}
 	order = []
+	duplicate_warnings = []
 	for index, doc in enumerate(docs):
 		key = doc_key(doc, index)
 		if key in by_key:
-			raise ValueError(f"{label}: duplicate fixture key {format_key(key)}")
+			if by_key[key] == doc:
+				duplicate_warnings.append(
+					f"{label}: collapsed identical duplicate fixture key {format_key(key)}"
+				)
+				continue
+
+			raise ValueError(f"{label}: duplicate fixture key {format_key(key)} has different data")
 		by_key[key] = doc
 		order.append(key)
 
-	return FixtureVersion(docs=docs, by_key=by_key, order=order)
+	return FixtureVersion(
+		docs=docs,
+		by_key=by_key,
+		order=order,
+		duplicate_warnings=duplicate_warnings,
+	)
 
 
 def format_key(key: tuple[Any, ...]) -> str:
@@ -162,9 +175,15 @@ def merge_versions(
 
 def resolve_file(path: Path, *, dry_run: bool) -> list[str]:
 	relative_path = path.relative_to(APP_ROOT).as_posix()
-	base = build_version(read_stage(relative_path, 1), f"{relative_path} base")
-	ours = build_version(read_stage(relative_path, 2), f"{relative_path} ours")
-	theirs = build_version(read_stage(relative_path, 3), f"{relative_path} theirs")
+	try:
+		base = build_version(read_stage(relative_path, 1), f"{relative_path} base")
+		ours = build_version(read_stage(relative_path, 2), f"{relative_path} ours")
+		theirs = build_version(read_stage(relative_path, 3), f"{relative_path} theirs")
+	except ValueError as error:
+		return [f"{relative_path}: {error}"]
+
+	for warning in [*base.duplicate_warnings, *ours.duplicate_warnings, *theirs.duplicate_warnings]:
+		print(warning)
 
 	merged, conflicts = merge_versions(base, ours, theirs)
 	if conflicts:
