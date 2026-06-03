@@ -20,6 +20,9 @@ doc_events = {
         "on_cancel": "qcmc_logic.customs.warehouse_transfer_events.on_cancel",
         "on_trash": "qcmc_logic.customs.warehouse_transfer_events.on_trash"
     },
+    "Warehouse Access": {
+        "validate": "qcmc_logic.doctype.warehouse_access.warehouse_access.validate_default_warehouse",
+    },
     "Purchase Receipt": {
         "before_save": "qcmc_logic.overrides.wrr_override.validate"
     },
