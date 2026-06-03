@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +26,7 @@ VOLATILE_KEYS = {
 	"_comments",
 	"_assign",
 	"_liked_by",
+	"migration_hash",
 }
 
 
@@ -90,6 +92,39 @@ def has_conflict_markers(text: str) -> bool:
 	return re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)", text) is not None
 
 
+def get_git_head_text(path: Path) -> str | None:
+	try:
+		relative_path = path.relative_to(APP_ROOT)
+	except ValueError:
+		relative_path = path
+
+	result = subprocess.run(
+		["git", "show", f"HEAD:{relative_path}"],
+		cwd=APP_ROOT,
+		check=False,
+		capture_output=True,
+		text=True,
+	)
+	if result.returncode:
+		return None
+
+	return result.stdout
+
+
+def has_meaningful_git_diff(path: Path) -> bool:
+	head_text = get_git_head_text(path)
+	if head_text is None:
+		return True
+
+	try:
+		head_data = json.loads(head_text)
+		working_data = json.loads(path.read_text(encoding="utf-8"))
+	except json.JSONDecodeError:
+		return True
+
+	return normalize_fixture_docs(head_data) != normalize_fixture_docs(working_data)
+
+
 def main() -> int:
 	parser = argparse.ArgumentParser(description="Normalize qcmc_logic fixture JSON files.")
 	parser.add_argument(
@@ -123,6 +158,20 @@ def main() -> int:
 		print(f"Normalized {len(changed_files)} fixture file(s).")
 	else:
 		print("Fixtures already normalized.")
+
+	if not args.dry_run:
+		meaningful_files = [
+			fixture_file
+			for fixture_file in get_fixture_files(args.fixtures_dir)
+			if has_meaningful_git_diff(fixture_file)
+		]
+		if meaningful_files:
+			print(
+				"Meaningful fixture changes remain after normalization "
+				"(not volatile metadata, migration hashes, or order-only):"
+			)
+			for fixture_file in meaningful_files:
+				print(fixture_file)
 
 	return 0
 

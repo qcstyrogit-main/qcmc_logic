@@ -37,9 +37,11 @@ python3 apps/qcmc_logic/scripts/validate_fixtures.py
 git diff
 ```
 
-`normalize_fixtures.py` removes volatile metadata such as timestamps, owners, and
-assignment tags, then sorts top-level fixture records by stable identity so
-timestamp-only and order-only fixture exports do not create noisy diffs.
+`normalize_fixtures.py` removes volatile metadata such as timestamps, owners,
+assignment tags, and DocType migration hashes, then sorts top-level fixture
+records by stable identity so timestamp-only, migration-hash-only, and
+order-only fixture exports do not create noisy diffs. After normalization, it
+prints a warning when meaningful fixture changes remain.
 
 `fix_fixture_validation_errors.py` fixes safe validation errors, currently
 `Custom Field` records whose `name` does not match `{dt}-{fieldname}`.
