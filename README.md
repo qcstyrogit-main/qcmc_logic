@@ -7,12 +7,18 @@ Company Business Rules and Logics
 Use the wrapper instead of running `bench export-fixtures` directly:
 
 ```bash
-python3 apps/qcmc_logic/scripts/export_fixtures_clean.py
+python3 apps/qcmc_logic/scripts/export_fixtures_clean.py --site erp.qcstyro.local
 git diff
 ```
 
 This runs `bench export-fixtures`, normalizes exported JSON, fixes safe validation
 issues, and validates the result.
+
+To export only this app's fixtures, add `--app qcmc_logic`:
+
+```bash
+python3 apps/qcmc_logic/scripts/export_fixtures_clean.py --site erp.qcstyro.local --app qcmc_logic
+```
 
 If you already ran `bench export-fixtures` manually, use:
 

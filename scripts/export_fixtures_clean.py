@@ -7,6 +7,7 @@ Use this instead of running `bench export-fixtures` directly.
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -33,11 +34,27 @@ def main() -> int:
 		action="store_true",
 		help="Only run normalize, fix, and validate. Useful after a manual export.",
 	)
+	parser.add_argument(
+		"--site",
+		default=os.environ.get("FRAPPE_SITE"),
+		help="Site name to pass to bench export-fixtures. Can also be set with FRAPPE_SITE.",
+	)
+	parser.add_argument(
+		"--app",
+		help="Optional app name to pass to bench export-fixtures --app.",
+	)
 	args = parser.parse_args()
 
 	steps = []
 	if not args.skip_export:
-		steps.append((["bench", "export-fixtures"], BENCH_ROOT))
+		if not args.site:
+			parser.error("--site is required unless --skip-export is used")
+
+		export_command = ["bench", "--site", args.site, "export-fixtures"]
+		if args.app:
+			export_command.extend(["--app", args.app])
+
+		steps.append((export_command, BENCH_ROOT))
 
 	steps.extend(
 		[
