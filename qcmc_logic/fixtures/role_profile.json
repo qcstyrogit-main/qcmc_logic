@@ -2,6 +2,82 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "name": "Accounts",
+  "role_profile": "Accounts",
+  "roles": [
+   {
+    "parent": "Accounts",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "Accounts",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Accounts Manager"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "name": "CandC",
+  "role_profile": "CandC",
+  "roles": [
+   {
+    "parent": "CandC",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "CandC",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "CandC",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Credit and Collection Section Head"
+   },
+   {
+    "parent": "CandC",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Projects User"
+   },
+   {
+    "parent": "CandC",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Sales Master Manager"
+   },
+   {
+    "parent": "CandC",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Sales User"
+   },
+   {
+    "parent": "CandC",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Sales Manager"
+   },
+   {
+    "parent": "CandC",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Item Manager"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
   "name": "Delivery Driver",
   "role_profile": "Delivery Driver",
   "roles": [
@@ -34,26 +110,46 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Manufacturing",
-  "role_profile": "Manufacturing",
+  "name": "Edsa Warehouse",
+  "role_profile": "Edsa Warehouse",
   "roles": [
    {
-    "parent": "Manufacturing",
+    "parent": "Edsa Warehouse",
     "parentfield": "roles",
     "parenttype": "Role Profile",
-    "role": "Stock User"
+    "role": "Fleet Manager"
    },
    {
-    "parent": "Manufacturing",
+    "parent": "Edsa Warehouse",
     "parentfield": "roles",
     "parenttype": "Role Profile",
-    "role": "Manufacturing User"
+    "role": "WH_PR_EDSA_Lv1"
    },
    {
-    "parent": "Manufacturing",
+    "parent": "Edsa Warehouse",
     "parentfield": "roles",
     "parenttype": "Role Profile",
-    "role": "Manufacturing Manager"
+    "role": "Stockroom_PR_EDSA_lv1"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "name": "Employee",
+  "role_profile": "Employee",
+  "roles": [
+   {
+    "parent": "Employee",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "LMS Student"
+   },
+   {
+    "parent": "Employee",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Employee"
    }
   ]
  },
@@ -542,6 +638,138 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "name": "General Accounting Staff",
+  "role_profile": "General Accounting Staff",
+  "roles": [
+   {
+    "parent": "General Accounting Staff",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "General Accounting Staff",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Accounts User"
+   },
+   {
+    "parent": "General Accounting Staff",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Expense Approver"
+   },
+   {
+    "parent": "General Accounting Staff",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Payroll Master"
+   },
+   {
+    "parent": "General Accounting Staff",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Purchase User"
+   },
+   {
+    "parent": "General Accounting Staff",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Chat Support"
+   },
+   {
+    "parent": "General Accounting Staff",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "name": "HR",
+  "role_profile": "HR",
+  "roles": [
+   {
+    "parent": "HR",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "HR User"
+   },
+   {
+    "parent": "HR",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Leave Approver"
+   },
+   {
+    "parent": "HR",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Expense Approver"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "name": "HR Learning",
+  "role_profile": "HR Learning",
+  "roles": [
+   {
+    "parent": "HR Learning",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "HR User"
+   },
+   {
+    "parent": "HR Learning",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Moderator"
+   },
+   {
+    "parent": "HR Learning",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Batch Evaluator"
+   },
+   {
+    "parent": "HR Learning",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Academics User"
+   },
+   {
+    "parent": "HR Learning",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Knowledge Base Contributor"
+   },
+   {
+    "parent": "HR Learning",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Knowledge Base Editor"
+   },
+   {
+    "parent": "HR Learning",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Course Creator"
+   },
+   {
+    "parent": "HR Learning",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "LMS Student"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
   "name": "HR Manager",
   "role_profile": "HR Manager",
   "roles": [
@@ -612,26 +840,26 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Procurement",
-  "role_profile": "Procurement",
+  "name": "Inventory",
+  "role_profile": "Inventory",
   "roles": [
    {
-    "parent": "Procurement",
+    "parent": "Inventory",
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Stock User"
    },
    {
-    "parent": "Procurement",
+    "parent": "Inventory",
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Stock Manager"
    },
    {
-    "parent": "Procurement",
+    "parent": "Inventory",
     "parentfield": "roles",
     "parenttype": "Role Profile",
-    "role": "Purchase User"
+    "role": "Item Manager"
    }
   ]
  },
@@ -670,32 +898,52 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Purchase",
-  "role_profile": "Purchase",
+  "name": "Manufacturing",
+  "role_profile": "Manufacturing",
   "roles": [
    {
-    "parent": "Purchase",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Item Manager"
-   },
-   {
-    "parent": "Purchase",
+    "parent": "Manufacturing",
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Stock User"
    },
    {
-    "parent": "Purchase",
+    "parent": "Manufacturing",
     "parentfield": "roles",
     "parenttype": "Role Profile",
-    "role": "Purchase User"
+    "role": "Manufacturing User"
    },
    {
-    "parent": "Purchase",
+    "parent": "Manufacturing",
     "parentfield": "roles",
     "parenttype": "Role Profile",
-    "role": "Purchase Manager"
+    "role": "Manufacturing Manager"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "name": "Motorpool",
+  "role_profile": "Motorpool",
+  "roles": [
+   {
+    "parent": "Motorpool",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Fleet Manager"
+   },
+   {
+    "parent": "Motorpool",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Motorpool_PR_QC_lv1"
+   },
+   {
+    "parent": "Motorpool",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Stock User"
    }
   ]
  },
@@ -770,240 +1018,58 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "General Accounting Staff",
-  "role_profile": "General Accounting Staff",
+  "name": "Procurement",
+  "role_profile": "Procurement",
   "roles": [
    {
-    "parent": "General Accounting Staff",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Accounts Manager"
-   },
-   {
-    "parent": "General Accounting Staff",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Accounts User"
-   },
-   {
-    "parent": "General Accounting Staff",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Expense Approver"
-   },
-   {
-    "parent": "General Accounting Staff",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Payroll Master"
-   },
-   {
-    "parent": "General Accounting Staff",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Purchase User"
-   },
-   {
-    "parent": "General Accounting Staff",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Chat Support"
-   },
-   {
-    "parent": "General Accounting Staff",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Inventory",
-  "role_profile": "Inventory",
-  "roles": [
-   {
-    "parent": "Inventory",
+    "parent": "Procurement",
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Stock User"
    },
    {
-    "parent": "Inventory",
+    "parent": "Procurement",
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Stock Manager"
    },
    {
-    "parent": "Inventory",
+    "parent": "Procurement",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Purchase User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "name": "Purchase",
+  "role_profile": "Purchase",
+  "roles": [
+   {
+    "parent": "Purchase",
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Item Manager"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "CandC",
-  "role_profile": "CandC",
-  "roles": [
-   {
-    "parent": "CandC",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Accounts Manager"
    },
    {
-    "parent": "CandC",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Accounts User"
-   },
-   {
-    "parent": "CandC",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Credit and Collection Section Head"
-   },
-   {
-    "parent": "CandC",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Projects User"
-   },
-   {
-    "parent": "CandC",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Sales Master Manager"
-   },
-   {
-    "parent": "CandC",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Sales User"
-   },
-   {
-    "parent": "CandC",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Sales Manager"
-   },
-   {
-    "parent": "CandC",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Item Manager"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Edsa Warehouse",
-  "role_profile": "Edsa Warehouse",
-  "roles": [
-   {
-    "parent": "Edsa Warehouse",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Fleet Manager"
-   },
-   {
-    "parent": "Edsa Warehouse",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "WH_PR_EDSA_Lv1"
-   },
-   {
-    "parent": "Edsa Warehouse",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Stockroom_PR_EDSA_lv1"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Motorpool",
-  "role_profile": "Motorpool",
-  "roles": [
-   {
-    "parent": "Motorpool",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Fleet Manager"
-   },
-   {
-    "parent": "Motorpool",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Motorpool_PR_QC_lv1"
-   },
-   {
-    "parent": "Motorpool",
+    "parent": "Purchase",
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Stock User"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "HR Learning",
-  "role_profile": "HR Learning",
-  "roles": [
-   {
-    "parent": "HR Learning",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "HR User"
    },
    {
-    "parent": "HR Learning",
+    "parent": "Purchase",
     "parentfield": "roles",
     "parenttype": "Role Profile",
-    "role": "Moderator"
+    "role": "Purchase User"
    },
    {
-    "parent": "HR Learning",
+    "parent": "Purchase",
     "parentfield": "roles",
     "parenttype": "Role Profile",
-    "role": "Batch Evaluator"
-   },
-   {
-    "parent": "HR Learning",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Academics User"
-   },
-   {
-    "parent": "HR Learning",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Knowledge Base Contributor"
-   },
-   {
-    "parent": "HR Learning",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Knowledge Base Editor"
-   },
-   {
-    "parent": "HR Learning",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Course Creator"
-   },
-   {
-    "parent": "HR Learning",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "LMS Student"
+    "role": "Purchase Manager"
    }
   ]
  },
@@ -1042,72 +1108,6 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Sales Master Manager"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Accounts",
-  "role_profile": "Accounts",
-  "roles": [
-   {
-    "parent": "Accounts",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Accounts User"
-   },
-   {
-    "parent": "Accounts",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Accounts Manager"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Employee",
-  "role_profile": "Employee",
-  "roles": [
-   {
-    "parent": "Employee",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "LMS Student"
-   },
-   {
-    "parent": "Employee",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "HR",
-  "role_profile": "HR",
-  "roles": [
-   {
-    "parent": "HR",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "HR User"
-   },
-   {
-    "parent": "HR",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Leave Approver"
-   },
-   {
-    "parent": "HR",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Expense Approver"
    }
   ]
  }

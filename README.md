@@ -38,7 +38,8 @@ git diff
 ```
 
 `normalize_fixtures.py` removes volatile metadata such as timestamps, owners, and
-assignment tags so timestamp-only fixture exports do not create noisy diffs.
+assignment tags, then sorts top-level fixture records by stable identity so
+timestamp-only and order-only fixture exports do not create noisy diffs.
 
 `fix_fixture_validation_errors.py` fixes safe validation errors, currently
 `Custom Field` records whose `name` does not match `{dt}-{fieldname}`.

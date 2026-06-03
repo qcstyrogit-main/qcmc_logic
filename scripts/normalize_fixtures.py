@@ -42,6 +42,26 @@ def normalize_value(value: Any) -> Any:
 	return value
 
 
+def fixture_sort_key(doc: Any) -> tuple[str, str, str, str]:
+	if not isinstance(doc, dict):
+		return ("", "", "", "")
+
+	return (
+		str(doc.get("doctype") or ""),
+		str(doc.get("dt") or doc.get("doc_type") or ""),
+		str(doc.get("fieldname") or doc.get("field_name") or ""),
+		str(doc.get("name") or ""),
+	)
+
+
+def normalize_fixture_docs(data: Any) -> Any:
+	normalized = normalize_value(data)
+	if isinstance(normalized, list) and all(isinstance(doc, dict) for doc in normalized):
+		return sorted(normalized, key=fixture_sort_key)
+
+	return normalized
+
+
 def normalize_file(path: Path, *, dry_run: bool) -> bool:
 	original_text = path.read_text(encoding="utf-8")
 	if has_conflict_markers(original_text):
@@ -50,7 +70,7 @@ def normalize_file(path: Path, *, dry_run: bool) -> bool:
 		)
 
 	data = json.loads(original_text)
-	normalized = normalize_value(data)
+	normalized = normalize_fixture_docs(data)
 	normalized_text = json.dumps(normalized, indent=1, ensure_ascii=False) + "\n"
 
 	if normalized_text == original_text:
