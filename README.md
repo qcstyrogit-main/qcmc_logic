@@ -67,3 +67,12 @@ record differently, it stops and prints the exact record that needs human review
 #### License
 
 mit
+### For faster export fixtures 
+```bash
+alias export-fixtures='python3 apps/qcmc_logic/scripts/export_fixtures_clean.py'
+```
+usage: export_fixtures_clean.py [-h] [--skip-export] [--site SITE] [--app APP]
+
+```bash
+export_fixtures --site erp.qcstyro.local 
+```
