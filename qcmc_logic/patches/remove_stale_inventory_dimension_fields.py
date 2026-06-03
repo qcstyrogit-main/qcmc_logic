@@ -1,0 +1,1 @@
+from qcmc_logic.patches.remove_legacy_inventory_dimension_fields import execute

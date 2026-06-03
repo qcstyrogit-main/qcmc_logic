@@ -7,21 +7,21 @@ frappe.ui.form.on("Warehouse Transfer", {
 
     refresh(frm) {
         qcmc_logic.warehouse_transfer.set_queries(frm);
+        qcmc_logic.warehouse_transfer.apply_default_source_warehouse(frm);
         qcmc_logic.warehouse_transfer.configure_receiving_state(frm);
         qcmc_logic.warehouse_transfer.add_get_items_buttons(frm);
     },
 
     source_warehouse(frm) {
-        frm.set_value("target_warehouse", "");
         qcmc_logic.warehouse_transfer.set_queries(frm);
     },
 
     transfer_type(frm) {
-        frm.set_value("target_warehouse", "");
         qcmc_logic.warehouse_transfer.set_queries(frm);
     },
 
     target_warehouse(frm) {
+        qcmc_logic.warehouse_transfer.set_queries(frm);
         qcmc_logic.warehouse_transfer.configure_receiving_state(frm);
     },
 });
@@ -46,6 +46,8 @@ qcmc_logic.warehouse_transfer.set_queries = function(frm) {
         query: "qcmc_logic.utils.get_source_warehouse_query",
         filters: {
             user: frappe.session.user,
+            target_warehouse: frm.doc.target_warehouse,
+            transfer_type: frm.doc.transfer_type,
         },
     }));
 
@@ -58,6 +60,25 @@ qcmc_logic.warehouse_transfer.set_queries = function(frm) {
         },
     }));
 
+};
+
+qcmc_logic.warehouse_transfer.apply_default_source_warehouse = function(frm) {
+    if (!frm.is_new() || frm.doc.docstatus !== 0 || frm.doc.source_warehouse) {
+        return;
+    }
+
+    frappe.call({
+        method: "qcmc_logic.utils.get_default_warehouse_for_user",
+        args: {
+            user: frappe.session.user,
+            require_transact: 1,
+        },
+        callback(r) {
+            if (r.message && !frm.doc.source_warehouse) {
+                frm.set_value("source_warehouse", r.message);
+            }
+        },
+    });
 };
 
 qcmc_logic.warehouse_transfer.open_material_request_picker = function(frm) {

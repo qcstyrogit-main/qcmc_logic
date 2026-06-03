@@ -26,6 +26,9 @@ class CustomMaterialRequest(MaterialRequest):
             if getattr(d, "from_warehouse", None))
         )
 
+        if getattr(self, "set_from_warehouse", None):
+            from_warehouses.append(self.set_from_warehouse)
+
         warehouses.extend(from_warehouses)
 
         for w in warehouses:
@@ -38,3 +41,12 @@ class CustomMaterialRequest(MaterialRequest):
                 continue
 
             validate_warehouse_company(w, self.company)
+
+        if self.material_request_type == "Material Transfer":
+            self.validate_material_transfer_source_warehouses(from_warehouses)
+
+    def validate_material_transfer_source_warehouses(self, from_warehouses):
+        from qcmc_logic.utils import _validate_material_request_source_warehouse
+
+        for warehouse in from_warehouses:
+            _validate_material_request_source_warehouse(warehouse)

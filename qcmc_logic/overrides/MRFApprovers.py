@@ -54,6 +54,44 @@ class MRFApproverSetCustomFields(OriginalJobRequisition):
                     self.custom_acknowledged_by = frappe.utils.get_fullname(frappe.session.user)
                     self.custom_hr_acknowledged_date = frappe.utils.now_datetime()
 
+    def validate_duplicates(self):
+        # Skip duplicate validation
+        if not self.custom_staffing_plan or not self.designation:
+            return
+
+        staffing_plan = self.custom_staffing_plan
+
+        vacancy = frappe.db.get_value(
+            "Staffing Plan Detail",
+            {
+                "parent": staffing_plan,
+                "designation": self.designation
+            },
+            "vacancies",
+        )
+
+        vacancy = int(vacancy)
+
+        existing_count = frappe.db.count(
+            "Job Requisition",
+            {
+                "custom_staffing_plan": staffing_plan,
+                "designation": self.designation,
+                "company": self.company,
+                "status": ["in", ["Pending", "Open & Approved"]],
+            },
+        )
+
+        if existing_count >= vacancy:
+            frappe.throw(
+                (
+                    "Cannot create Job Requisition. Existing open/approved requisitions already reached the vacancy limit ({0}) for designation {1}."
+                ).format(
+                    frappe.bold(vacancy),
+                    frappe.bold(self.designation),
+                ),
+                title = ("Vacancy Limit Reached"),
+            )
 
 
 

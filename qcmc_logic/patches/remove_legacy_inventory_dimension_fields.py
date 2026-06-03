@@ -44,7 +44,9 @@ LEGACY_DOCTYPES = {
 	"Putaway Rule",
 	"Quality Inspection",
 	"Sales Invoice Item",
+	"Stock Closing Balance",
 	"Stock Entry Detail",
+	"Stock Ledger Entry",
 	"Stock Reconciliation Item",
 	"Subcontracting Receipt Item",
 	"Subcontracting Receipt Supplied Item",
@@ -53,6 +55,7 @@ LEGACY_DOCTYPES = {
 
 
 def execute():
+	deleted_mismatched_custom_fields = remove_mismatched_custom_fields()
 	deleted_custom_fields = remove_legacy_custom_fields()
 	updated_property_setters = clean_field_order_property_setters()
 
@@ -62,38 +65,89 @@ def execute():
 	frappe.clear_cache(doctype="Inventory Dimension")
 
 	return {
+		"deleted_mismatched_custom_fields": deleted_mismatched_custom_fields,
 		"deleted_custom_fields": deleted_custom_fields,
 		"updated_property_setters": updated_property_setters,
 	}
 
 
+def remove_mismatched_custom_fields():
+	fields = frappe.get_all(
+		"Custom Field",
+		fields=["name", "dt", "fieldname"],
+	)
+
+	deleted = 0
+	affected_doctypes = set()
+	for field in fields:
+		if field.name != f"{field.dt}-{field.fieldname}":
+			affected_doctypes.add(field.dt)
+			frappe.delete_doc("Custom Field", field.name, ignore_permissions=True, force=True)
+			deleted += 1
+
+	for doctype in affected_doctypes:
+		frappe.clear_cache(doctype=doctype)
+
+	return deleted
+
+
 def remove_legacy_custom_fields():
+	active_fieldnames = get_active_inventory_dimension_fieldnames()
 	fields = frappe.get_all(
 		"Custom Field",
 		filters={
-			"dt": ("in", tuple(LEGACY_DOCTYPES)),
 			"fieldname": ("in", tuple(LEGACY_FIELDNAMES)),
+			"is_system_generated": 1,
 		},
-		fields=["name", "fieldname", "options", "is_system_generated"],
+		fields=["name", "dt", "fieldname", "options", "is_system_generated"],
 	)
 
 	deleted = 0
 	for field in fields:
-		if is_legacy_inventory_dimension_field(field):
+		if is_stale_inventory_dimension_field(field, active_fieldnames):
 			frappe.delete_doc("Custom Field", field.name, ignore_permissions=True, force=True)
 			deleted += 1
 
 	return deleted
 
 
-def is_legacy_inventory_dimension_field(field):
-	if not field.is_system_generated:
+def get_active_inventory_dimension_fieldnames():
+	fieldnames = set()
+
+	for dimension in frappe.get_all(
+		"Inventory Dimension",
+		fields=["source_fieldname", "target_fieldname"],
+	):
+		source_fieldname = dimension.source_fieldname
+		target_fieldname = dimension.target_fieldname
+
+		for fieldname in {source_fieldname, target_fieldname}:
+			if fieldname:
+				fieldnames.add(fieldname)
+
+		if source_fieldname:
+			fieldnames.update(
+				{
+					f"to_{source_fieldname}",
+					f"from_{source_fieldname}",
+					f"rejected_{source_fieldname}",
+				}
+			)
+
+	return fieldnames
+
+
+def is_stale_inventory_dimension_field(field, active_fieldnames):
+	if field.fieldname in active_fieldnames:
 		return False
 
 	if field.fieldname in LEGACY_SECTION_FIELDNAMES:
+		return not active_fieldnames
+
+	if field.fieldname in LEGACY_FIELDNAMES:
 		return True
 
-	return field.options == "Bin"
+	return False
 
 
 def clean_field_order_property_setters():

@@ -23,6 +23,16 @@ SOURCE_WAREHOUSE_FIELDS = {
     "s_warehouse",
 }
 
+MATERIAL_REQUEST_SOURCE_FIELDS = {
+    "from_warehouse",
+    "set_from_warehouse",
+}
+
+MATERIAL_REQUEST_TARGET_FIELDS = {
+    "warehouse",
+    "set_warehouse",
+}
+
 
 def validate_warehouse_access(doc, method=None):
     if (
@@ -51,12 +61,15 @@ def validate_warehouse_access(doc, method=None):
 def _iter_warehouse_values(doc):
     for df in doc.meta.fields:
         if df.fieldtype == "Link" and df.options == "Warehouse":
+            if _is_material_request_source_field(doc, df.fieldname):
+                continue
+
             warehouse = doc.get(df.fieldname)
             if warehouse:
                 yield (
                     df.fieldname,
                     warehouse,
-                    df.fieldname in SOURCE_WAREHOUSE_FIELDS,
+                    _requires_transact(doc, df.fieldname),
                 )
 
         if df.fieldtype != "Table" or not df.options:
@@ -73,10 +86,32 @@ def _iter_warehouse_values(doc):
 
         for row in doc.get(df.fieldname) or []:
             for child_df in warehouse_fields:
+                if _is_material_request_source_field(doc, child_df.fieldname):
+                    continue
+
                 warehouse = row.get(child_df.fieldname)
                 if warehouse:
                     yield (
                         child_df.fieldname,
                         warehouse,
-                        child_df.fieldname in SOURCE_WAREHOUSE_FIELDS,
+                        _requires_transact(doc, child_df.fieldname),
                     )
+
+
+def _is_material_transfer_request(doc):
+    return (
+        doc.doctype == "Material Request"
+        and doc.get("material_request_type") == "Material Transfer"
+    )
+
+
+def _requires_transact(doc, fieldname):
+    if _is_material_transfer_request(doc):
+        if fieldname in MATERIAL_REQUEST_TARGET_FIELDS:
+            return True
+
+    return fieldname in SOURCE_WAREHOUSE_FIELDS
+
+
+def _is_material_request_source_field(doc, fieldname):
+    return _is_material_transfer_request(doc) and fieldname in MATERIAL_REQUEST_SOURCE_FIELDS

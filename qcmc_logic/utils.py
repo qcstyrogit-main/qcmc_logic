@@ -49,6 +49,29 @@ def get_user_allowed_warehouses(user=None, require_transact=False):
 
     return allowed
 
+
+def _get_allowed_warehouse_filters(user=None, require_transact=False, is_default=False):
+    if not user:
+        user = frappe.session.user
+
+    access_doc = frappe.get_all(
+        "Warehouse Access",
+        filters={"user": user},
+        fields=["name"]
+    )
+
+    if not access_doc:
+        return None
+
+    filters = {"parent": ["in", [d.name for d in access_doc]]}
+    if frappe.utils.cint(require_transact):
+        filters["allow_transact"] = 1
+    if frappe.utils.cint(is_default):
+        filters["is_default"] = 1
+
+    return filters
+
+
 @frappe.whitelist()
 def check_warehouse_access(user, warehouse, require_transact=False):
     allowed = get_user_allowed_warehouses(user, require_transact=require_transact)
@@ -57,8 +80,26 @@ def check_warehouse_access(user, warehouse, require_transact=False):
 
 @frappe.whitelist()
 def get_default_warehouse_for_user(user=None, require_transact=False):
-    allowed = get_user_allowed_warehouses(user, require_transact=require_transact)
-    return allowed[0] if len(allowed) == 1 else None
+    if not frappe.get_meta("Allowed Warehouse").has_field("is_default"):
+        return None
+
+    filters = _get_allowed_warehouse_filters(
+        user,
+        require_transact=require_transact,
+        is_default=True,
+    )
+    if not filters:
+        return None
+
+    defaults = frappe.get_all(
+        "Allowed Warehouse",
+        filters=filters,
+        pluck="warehouse",
+        order_by="idx",
+        limit_page_length=1,
+    )
+
+    return defaults[0] if defaults else None
 
 
 def _get_warehouse_company(warehouse):
@@ -108,6 +149,58 @@ def get_allowed_warehouse_query(doctype, txt, searchfield, start, page_len, filt
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
+def get_material_request_source_warehouse_query(doctype, txt, searchfield, start, page_len, filters):
+    """Warehouses that can serve Material Transfer requests.
+
+    Requesters may ask stock from a serving warehouse, but this does not grant
+    authority to issue stock from that warehouse. Issuing is enforced on the
+    Warehouse Transfer source warehouse.
+    """
+    if isinstance(filters, str):
+        filters = frappe.parse_json(filters)
+
+    filters = frappe._dict(filters or {})
+    target_warehouse = filters.get("target_warehouse")
+    conditions = [
+        "w.is_group = 0",
+        f"w.`{searchfield}` like %(txt)s",
+        "ifnull(w.custom_is_province, 0) = 0",
+    ]
+    values = {
+        "txt": f"%{txt}%",
+        "start": start,
+        "page_len": page_len,
+    }
+
+    if frappe.get_meta("Warehouse").has_field("custom_can_serve_material_requests"):
+        conditions.append("ifnull(w.custom_can_serve_material_requests, 0) = 1")
+
+    if target_warehouse:
+        conditions.append("w.name != %(target_warehouse)s")
+        values["target_warehouse"] = target_warehouse
+
+        target_is_province = frappe.utils.cint(
+            frappe.db.get_value("Warehouse", target_warehouse, "custom_is_province")
+        )
+        target_warehouse_type = _get_warehouse_type(target_warehouse)
+        if not target_is_province and target_warehouse_type:
+            conditions.append("w.warehouse_type = %(target_warehouse_type)s")
+            values["target_warehouse_type"] = target_warehouse_type
+
+    return frappe.db.sql(
+        f"""
+        select w.name, w.warehouse_name
+        from `tabWarehouse` w
+        where {" and ".join(conditions)}
+        order by w.name
+        limit %(start)s, %(page_len)s
+        """,
+        values,
+    )
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
 def get_source_warehouse_query(doctype, txt, searchfield, start, page_len, filters):
     """Link query for Warehouse Transfer source warehouses.
 
@@ -119,26 +212,63 @@ def get_source_warehouse_query(doctype, txt, searchfield, start, page_len, filte
 
     filters = frappe._dict(filters or {})
     user = filters.get("user") or frappe.session.user
+    target_warehouse = filters.get("target_warehouse")
+    transfer_type = filters.get("transfer_type")
     allowed_warehouses = get_user_allowed_warehouses(user, require_transact=True)
     if not allowed_warehouses:
         return []
+
+    conditions = [
+        "w.is_group = 0",
+        "w.name in %(allowed_warehouses)s",
+        f"w.`{searchfield}` like %(txt)s",
+    ]
+    values = {
+        "allowed_warehouses": tuple(allowed_warehouses),
+        "txt": f"%{txt}%",
+        "start": start,
+        "page_len": page_len,
+    }
+
+    if target_warehouse:
+        conditions.append("w.name != %(target_warehouse)s")
+        values["target_warehouse"] = target_warehouse
+
+        target_company = _get_warehouse_company(target_warehouse)
+        target_warehouse_type = _get_warehouse_type(target_warehouse)
+        target_is_province = frappe.utils.cint(
+            frappe.db.get_value("Warehouse", target_warehouse, "custom_is_province")
+        )
+
+        if transfer_type == "Warehouse Transfer":
+            if target_company:
+                conditions.append("w.company = %(target_company)s")
+                values["target_company"] = target_company
+            if target_warehouse_type:
+                conditions.append("w.warehouse_type = %(target_warehouse_type)s")
+                values["target_warehouse_type"] = target_warehouse_type
+            conditions.append("ifnull(w.custom_is_province, 0) = 0")
+        elif transfer_type == "Intercompany Warehouse Transfer":
+            if target_company:
+                conditions.append("w.company != %(target_company)s")
+                values["target_company"] = target_company
+            if target_warehouse_type:
+                conditions.append("w.warehouse_type = %(target_warehouse_type)s")
+                values["target_warehouse_type"] = target_warehouse_type
+            conditions.append("ifnull(w.custom_is_province, 0) = 0")
+        elif transfer_type == "Provincial Warehouse Transfer":
+            if not target_is_province:
+                return []
 
     return frappe.db.sql(
         f"""
         select w.name, w.warehouse_name
         from `tabWarehouse` w
-        where w.is_group = 0
-            and w.name in %(allowed_warehouses)s
-            and w.`{searchfield}` like %(txt)s
+        where {" and ".join(conditions)}
         order by w.name
         limit %(start)s, %(page_len)s
         """,
-        {
-            "allowed_warehouses": tuple(allowed_warehouses),
-            "txt": f"%{txt}%",
-            "start": start,
-            "page_len": page_len,
-        },
+        values,
     )
 
 
@@ -193,6 +323,54 @@ def get_target_warehouse_query(doctype, txt, searchfield, start, page_len, filte
         conditions.append("ifnull(w.custom_is_province, 0) = 0")
     elif transfer_type == "Provincial Warehouse Transfer":
         conditions.append("ifnull(w.custom_is_province, 0) = 1")
+
+    return frappe.db.sql(
+        f"""
+        select w.name, w.warehouse_name
+        from `tabWarehouse` w
+        where {" and ".join(conditions)}
+        order by w.name
+        limit %(start)s, %(page_len)s
+        """,
+        values,
+    )
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_material_request_target_warehouse_query(doctype, txt, searchfield, start, page_len, filters):
+    if isinstance(filters, str):
+        filters = frappe.parse_json(filters)
+
+    filters = frappe._dict(filters or {})
+    user = filters.get("user") or frappe.session.user
+    source_warehouse = filters.get("source_warehouse")
+    allowed_warehouses = get_user_allowed_warehouses(user, require_transact=True)
+    if not allowed_warehouses:
+        return []
+
+    conditions = [
+        "w.is_group = 0",
+        "w.name in %(allowed_warehouses)s",
+        f"w.`{searchfield}` like %(txt)s",
+    ]
+    values = {
+        "allowed_warehouses": tuple(allowed_warehouses),
+        "txt": f"%{txt}%",
+        "start": start,
+        "page_len": page_len,
+    }
+
+    if source_warehouse:
+        source_warehouse_type = _get_warehouse_type(source_warehouse)
+        conditions.append("w.name != %(source_warehouse)s")
+        values["source_warehouse"] = source_warehouse
+
+        if source_warehouse_type:
+            conditions.append(
+                "(ifnull(w.custom_is_province, 0) = 1 or w.warehouse_type = %(source_warehouse_type)s)"
+            )
+            values["source_warehouse_type"] = source_warehouse_type
 
     return frappe.db.sql(
         f"""
@@ -334,9 +512,67 @@ def _validate_transfer_picker_context(transfer_type, source_warehouse, target_wa
             frappe.throw("Provincial Warehouse Transfer requires a provincial target warehouse.")
 
 
+def _can_serve_material_requests(warehouse):
+    if not warehouse:
+        return False
+
+    if frappe.utils.cint(frappe.db.get_value("Warehouse", warehouse, "custom_is_province")):
+        return False
+
+    if frappe.get_meta("Warehouse").has_field("custom_can_serve_material_requests"):
+        return bool(
+            frappe.utils.cint(
+                frappe.db.get_value(
+                    "Warehouse",
+                    warehouse,
+                    "custom_can_serve_material_requests",
+                )
+            )
+        )
+
+    return True
+
+
+def _validate_material_request_source_warehouse(source_warehouse):
+    if source_warehouse and not _can_serve_material_requests(source_warehouse):
+        frappe.throw(
+            "{0} cannot serve Material Transfer requests.".format(
+                frappe.bold(source_warehouse)
+            )
+        )
+
+
+def _can_transact_from_warehouse(source_warehouse, user=None):
+    if not source_warehouse:
+        return False
+    if (user or frappe.session.user) == "Administrator":
+        return True
+
+    return source_warehouse in get_user_allowed_warehouses(
+        user or frappe.session.user,
+        require_transact=True,
+    )
+
+
+def _validate_source_warehouse_transact_access(source_warehouse, user=None):
+    if not _can_transact_from_warehouse(source_warehouse, user=user):
+        frappe.throw("You are not allowed to create transfers from this source warehouse.")
+
+
+@frappe.whitelist()
+def can_create_warehouse_transfer_from_material_request(material_request, user=None):
+    source_warehouse, target_warehouse = _get_material_request_warehouses(material_request)
+    if not source_warehouse or not target_warehouse:
+        return False
+
+    return _can_transact_from_warehouse(source_warehouse, user=user)
+
+
 @frappe.whitelist()
 def get_possible_material_transfer_requests(transfer_type=None, source_warehouse=None, target_warehouse=None):
     _validate_transfer_picker_context(transfer_type, source_warehouse, target_warehouse)
+    _validate_source_warehouse_transact_access(source_warehouse)
+    _validate_material_request_source_warehouse(source_warehouse)
 
     filters = {
         "docstatus": 1,
@@ -380,6 +616,8 @@ def get_material_transfer_requests_for_warehouse_transfer(
         frappe.throw("Select at least one Material Request.")
 
     _validate_transfer_picker_context(transfer_type, source_warehouse, target_warehouse)
+    _validate_source_warehouse_transact_access(source_warehouse)
+    _validate_material_request_source_warehouse(source_warehouse)
 
     rows = []
 
@@ -448,6 +686,9 @@ def make_warehouse_transfer_from_material_request(source_name, target_doc=None):
     if not source_warehouse or not target_warehouse:
         frappe.throw("Material Request must have source and target warehouses.")
 
+    _validate_source_warehouse_transact_access(source_warehouse)
+    _validate_material_request_source_warehouse(source_warehouse)
+
     transfer_type = _get_transfer_type_for_warehouses(source_warehouse, target_warehouse)
     _validate_transfer_picker_context(transfer_type, source_warehouse, target_warehouse)
 
@@ -491,8 +732,11 @@ def make_warehouse_transfer_from_material_request(source_name, target_doc=None):
 @frappe.whitelist()
 def make_machine_shop_repairs_and_project(source_name, target_doc=None):
     msjr = frappe.get_doc("Machine Shop Job Request", source_name)
+    if msjr.workflow_state != "Pending Machine Shop":
+        frappe.throw("Project Plan can only be generated from a request in Pending Machine Shop.")
 
     target = frappe.get_doc(frappe.parse_json(target_doc)) if target_doc else frappe.new_doc("Machine Shop Repairs and Project")
+    target.naming_series = "MSRP-.YYYY.-"
     target.msjr_no = source_name
     target.asset = msjr.asset_name
     target.subject = msjr.work_instruction

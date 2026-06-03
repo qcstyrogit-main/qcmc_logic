@@ -20,11 +20,17 @@ doc_events = {
         "on_cancel": "qcmc_logic.customs.warehouse_transfer_events.on_cancel",
         "on_trash": "qcmc_logic.customs.warehouse_transfer_events.on_trash"
     },
+    "Warehouse Access": {
+        "validate": "qcmc_logic.doctype.warehouse_access.warehouse_access.validate_default_warehouse",
+    },
     "Purchase Receipt": {
         "before_save": "qcmc_logic.overrides.wrr_override.validate"
     },
-    "Sales Invoice": { 
+    "Sales Invoice": {
          "validate": "qcmc_logic.overrides.sales_invoice_override.validate"
+    },
+    "BOM": {
+        "before_validate": "qcmc_logic.customs.bom_rate.fetch_missing_component_rates"
     }
 }
 
@@ -40,7 +46,6 @@ after_request = [
 doctype_js = {
     "Material Request": "public/js/material_request.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
-    "Machine Shop Job Request": "public/js/machine_shop_job_request.js",
 }
 
 # override_doctype_class = {
@@ -91,7 +96,26 @@ override_print_format = {
 }
 
 fixtures = [
-    {"doctype": "Custom Field", "filters": [["fieldname", "not in", ["workflow_state"]]]},
+    {
+        "doctype": "Custom Field",
+        "filters": [
+            ["fieldname", "not in", ["workflow_state"]],
+            [
+                "name",
+                "not in",
+                [
+                    "User-hide_private",
+                    "User-hide_my_private_information_from_others",
+                    "Purchase Invoice Item-to_room",
+                    "Employee-from_bin",
+                    "Employee-from_room",
+                    "Delivery Note Item-to_room",
+                    "Purchase Receipt Item-from_bin",
+                    "Purchase Receipt Item-from_room",
+                ],
+            ],
+        ],
+    },
     {"doctype": "Client Script"},
     {"doctype": "Server Script"},
     {"doctype": "List View Settings"},
