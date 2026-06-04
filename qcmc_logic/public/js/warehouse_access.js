@@ -89,7 +89,7 @@ qcmc_logic.warehouse_access.requires_transact = function(frm, fieldname) {
         return true;
     }
 
-    return qcmc_logic.warehouse_access.is_source_field(fieldname);
+    return true;
 };
 
 qcmc_logic.warehouse_access.apply = function(frm) {

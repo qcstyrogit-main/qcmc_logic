@@ -106,11 +106,14 @@ def _is_material_transfer_request(doc):
 
 
 def _requires_transact(doc, fieldname):
+    if _is_material_request_source_field(doc, fieldname):
+        return False
+
     if _is_material_transfer_request(doc):
         if fieldname in MATERIAL_REQUEST_TARGET_FIELDS:
             return True
 
-    return fieldname in SOURCE_WAREHOUSE_FIELDS
+    return True
 
 
 def _is_material_request_source_field(doc, fieldname):
