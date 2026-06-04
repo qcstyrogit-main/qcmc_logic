@@ -85,11 +85,31 @@ override_doctype_class = {
 permission_query_conditions = {
      "Appraisal": "qcmc_logic.customs.permissions.appraisal_permission_query",
      "Job Requisition": "qcmc_logic.customs.staffingplan_permission.mrf_permission_query_condition",
-     "Warehouse Transfer": "qcmc_logic.customs.permissions.warehouse_transfer_permission_query"
+     "Delivery Note": "qcmc_logic.customs.permissions.delivery_note_permission_query",
+     "Material Request": "qcmc_logic.customs.permissions.material_request_permission_query",
+     "Pick List": "qcmc_logic.customs.permissions.pick_list_permission_query",
+     "Purchase Invoice": "qcmc_logic.customs.permissions.purchase_invoice_permission_query",
+     "Purchase Order": "qcmc_logic.customs.permissions.purchase_order_permission_query",
+     "Purchase Receipt": "qcmc_logic.customs.permissions.purchase_receipt_permission_query",
+     "Sales Invoice": "qcmc_logic.customs.permissions.sales_invoice_permission_query",
+     "Stock Entry": "qcmc_logic.customs.permissions.stock_entry_permission_query",
+     "Stock Reconciliation": "qcmc_logic.customs.permissions.stock_reconciliation_permission_query",
+     "Warehouse Transfer": "qcmc_logic.customs.permissions.warehouse_transfer_permission_query",
+     "Work Order": "qcmc_logic.customs.permissions.work_order_permission_query",
 }
 
 has_permission = {
-    "Warehouse Transfer": "qcmc_logic.customs.permissions.warehouse_transfer_has_permission"
+    "Delivery Note": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Material Request": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Pick List": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Purchase Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Purchase Order": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Purchase Receipt": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Sales Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Stock Entry": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Stock Reconciliation": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Warehouse Transfer": "qcmc_logic.customs.permissions.warehouse_transfer_has_permission",
+    "Work Order": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
 }
 override_print_format = {
     "Purchase Order": "qcmc_logic.overrides.POPrint_Override.get_po_print_format"
@@ -298,23 +318,13 @@ app_include_js = [
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"qcmc_logic.tasks.all"
-# 	],
-# 	"daily": [
-# 		"qcmc_logic.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"qcmc_logic.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"qcmc_logic.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"qcmc_logic.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+    "cron": {
+        "*/30 * * * *": [
+            "qcmc_logic.api.zkteco.fetch_and_insert_attendance_logs"
+        ]
+    }
+}
 
 # Testing
 # -------
