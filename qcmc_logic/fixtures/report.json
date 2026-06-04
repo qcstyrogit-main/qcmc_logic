@@ -700,6 +700,154 @@
   "javascript": null,
   "json": null,
   "letter_head": null,
+  "module": "PH Localization",
+  "name": "BIR 0619-E",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Payment Entry",
+  "reference_report": null,
+  "report_name": "BIR 0619-E",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "System Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "BIR 0619-F",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Payment Entry",
+  "reference_report": null,
+  "report_name": "BIR 0619-F",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "System Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "BIR 1601-EQ",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Purchase Invoice",
+  "reference_report": null,
+  "report_name": "BIR 1601-EQ",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Purchase User"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Auditor"
+   },
+   {
+    "role": "System Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "BIR 1601-FQ",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Purchase Invoice",
+  "reference_report": null,
+  "report_name": "BIR 1601-FQ",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Purchase User"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Auditor"
+   },
+   {
+    "role": "System Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
   "module": "XSI Payroll",
   "name": "BIR 1604-C Schedule 1",
   "prepared_report": 0,
@@ -715,6 +863,398 @@
    },
    {
     "role": "Payroll Master"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "BIR 2306",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Purchase Invoice",
+  "reference_report": null,
+  "report_name": "BIR 2306",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Purchase User"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Auditor"
+   },
+   {
+    "role": "System Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "BIR 2307",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Purchase Invoice",
+  "reference_report": null,
+  "report_name": "BIR 2307",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Purchase User"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Auditor"
+   },
+   {
+    "role": "System Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "BIR 2550M",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "BIR 2550M",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "System Manager"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Auditor"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "BIR 2550Q",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "BIR 2550Q",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "System Manager"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Auditor"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": "{}",
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "BOA Cash Disbursements Journal",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "GL Entry",
+  "reference_report": null,
+  "report_name": "BOA Cash Disbursements Journal",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Auditor"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": "{}",
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "BOA Cash Receipts Journal",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "GL Entry",
+  "reference_report": null,
+  "report_name": "BOA Cash Receipts Journal",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Auditor"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": "{}",
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "BOA General Journal",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "GL Entry",
+  "reference_report": null,
+  "report_name": "BOA General Journal",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Auditor"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "BOA General Ledger",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "GL Entry",
+  "reference_report": null,
+  "report_name": "BOA General Ledger",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Auditor"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": "{}",
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "BOA Inventory Book",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Stock Ledger Entry",
+  "reference_report": null,
+  "report_name": "BOA Inventory Book",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Accounts Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "BOA Purchase Journal",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Purchase Invoice",
+  "reference_report": null,
+  "report_name": "BOA Purchase Journal",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Purchase User"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Auditor"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": "{}",
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "BOA Sales Journal",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "BOA Sales Journal",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Employee Self Service"
    }
   ],
   "timeout": 0
@@ -5542,6 +6082,74 @@
   "javascript": null,
   "json": null,
   "letter_head": null,
+  "module": "PH Localization",
+  "name": "RELIEF Summary List of Purchases",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Purchase Invoice",
+  "reference_report": null,
+  "report_name": "RELIEF Summary List of Purchases",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Employee Self Service"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "RELIEF Summary List of Sales",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "RELIEF Summary List of Sales",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Employee Self Service"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
   "module": "Accounts",
   "name": "Received Items To Be Billed",
   "prepared_report": 0,
@@ -7408,6 +8016,43 @@
    },
    {
     "role": "Purchase User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 1,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "module": "PH Localization",
+  "name": "Summary Alphalist of Withholding Taxes",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Sales Invoice",
+  "reference_report": null,
+  "report_name": "Summary Alphalist of Withholding Taxes",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Purchase User"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Auditor"
    }
   ],
   "timeout": 0
