@@ -298,23 +298,13 @@ app_include_js = [
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"qcmc_logic.tasks.all"
-# 	],
-# 	"daily": [
-# 		"qcmc_logic.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"qcmc_logic.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"qcmc_logic.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"qcmc_logic.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+    "cron": {
+        "*/30 * * * *": [
+            "qcmc_logic.api.zkteco.fetch_and_insert_attendance_logs"
+        ]
+    }
+}
 
 # Testing
 # -------
