@@ -745,6 +745,20 @@ def make_machine_shop_repairs_and_project(source_name, target_doc=None):
     return target
 
 
+@frappe.whitelist()
+def make_daily_job_report(process_name):
+    process = frappe.get_doc("MSRP Process", process_name)
+
+    target = frappe.new_doc("Daily Job Report")
+    target.naming_series = "DJRP-.YYYY.-.####"
+    target.process_no = process_name
+    target.process_title = process.process_name
+    target.project_no = process.parent
+    target.flags.ignore_permissions = True
+
+    return target
+
+
 def _get_transfer_type_for_warehouses(source_warehouse, target_warehouse):
     source_company = _get_warehouse_company(source_warehouse)
     target_company = _get_warehouse_company(target_warehouse)

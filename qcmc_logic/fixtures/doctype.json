@@ -14602,13 +14602,13 @@
   "sender_name_field": null,
   "show_name_in_global_search": 0,
   "show_preview_popup": 0,
-  "show_title_field_in_link": 0,
+  "show_title_field_in_link": 1,
   "sort_field": "creation",
   "sort_order": "DESC",
   "states": [],
   "subject_field": null,
   "timeline_field": null,
-  "title_field": null,
+  "title_field": "process_name",
   "track_changes": 0,
   "track_seen": 0,
   "track_views": 0,
@@ -15647,6 +15647,19 @@
   "engine": "InnoDB",
   "fields": [
    {
+    "fieldname": "project_no",
+    "fieldtype": "Data",
+    "label": "Project No",
+    "read_only": 1,
+    "bold": 1,
+    "in_list_view": 1,
+    "no_copy": 1,
+    "permlevel": 0,
+    "reqd": 0,
+    "allow_bulk_edit": 0,
+    "hidden": 0
+   },
+   {
     "alignment": "",
     "allow_bulk_edit": 0,
     "allow_in_quick_entry": 0,
@@ -16555,6 +16568,22 @@
     "translatable": 0,
     "unique": 0,
     "width": null
+   },
+   {
+    "fieldname": "tab_connections",
+    "fieldtype": "Tab Break",
+    "label": "Connections",
+    "permlevel": 0,
+    "hidden": 0,
+    "allow_bulk_edit": 0
+   },
+   {
+    "fieldname": "connections_html",
+    "fieldtype": "HTML",
+    "label": "Connections HTML",
+    "permlevel": 0,
+    "hidden": 0,
+    "allow_bulk_edit": 0
    }
   ],
   "force_re_route_to_default_view": 0,
@@ -16622,7 +16651,7 @@
   "states": [],
   "subject_field": null,
   "timeline_field": null,
-  "title_field": "msjr_no",
+  "title_field": "project_no",
   "track_changes": 0,
   "track_seen": 0,
   "track_views": 0,
@@ -29428,5 +29457,192 @@
   "track_views": 0,
   "translated_doctype": 0,
   "website_search_field": null
+ },
+ {
+  "name": "Daily Job Report",
+  "doctype": "DocType",
+  "module": "Assets",
+  "custom": 1,
+  "is_submittable": 0,
+  "istable": 0,
+  "editable_grid": 1,
+  "autoname": "naming_series:",
+  "title_field": "djr_id",
+  "track_changes": 1,
+  "fields": [
+   {
+    "fieldname": "naming_series",
+    "fieldtype": "Select",
+    "label": "Series",
+    "options": "DJRP-.YYYY.-.####",
+    "permlevel": 0,
+    "reqd": 0,
+    "hidden": 0,
+    "allow_bulk_edit": 0,
+    "default": "DJRP-.YYYY.-.####"
+   },
+   {
+    "fieldname": "project_no",
+    "fieldtype": "Link",
+    "label": "Project No",
+    "options": "Machine Shop Repairs and Project",
+    "read_only": 0,
+    "bold": 1,
+    "in_list_view": 1,
+    "permlevel": 0,
+    "reqd": 1,
+    "allow_bulk_edit": 0,
+    "hidden": 0,
+    "no_copy": 1
+   },
+   {
+    "fieldname": "process_no",
+    "fieldtype": "Link",
+    "label": "Process No",
+    "options": "MSRP Process",
+    "reqd": 1,
+    "bold": 1,
+    "in_list_view": 0,
+    "permlevel": 0,
+    "allow_bulk_edit": 0,
+    "hidden": 0,
+    "no_copy": 0
+   },
+   {
+    "fieldname": "djr_id",
+    "fieldtype": "Data",
+    "label": "DJR ID",
+    "read_only": 1,
+    "bold": 1,
+    "in_list_view": 1,
+    "no_copy": 1,
+    "permlevel": 0,
+    "reqd": 0,
+    "allow_bulk_edit": 0,
+    "hidden": 0
+   },
+   {
+    "fieldname": "process_title",
+    "fieldtype": "Data",
+    "label": "Process",
+    "fetch_from": "process_no.process_name",
+    "fetch_if_empty": 1,
+    "read_only": 1,
+    "in_list_view": 1,
+    "permlevel": 0,
+    "reqd": 0,
+    "allow_bulk_edit": 0,
+    "hidden": 0,
+    "no_copy": 1
+   },
+   {
+    "fieldname": "action_taken",
+    "fieldtype": "Data",
+    "label": "Action Taken",
+    "permlevel": 0,
+    "in_list_view": 1,
+    "reqd": 1,
+    "allow_bulk_edit": 0,
+    "hidden": 0
+   },
+   {
+    "fieldname": "date_started",
+    "fieldtype": "Datetime",
+    "label": "Date Started",
+    "permlevel": 0,
+    "in_list_view": 1,
+    "reqd": 1,
+    "allow_bulk_edit": 0,
+    "hidden": 0
+   },
+   {
+    "fieldname": "date_finished",
+    "fieldtype": "Datetime",
+    "label": "Date Finished",
+    "permlevel": 0,
+    "in_list_view": 1,
+    "reqd": 1,
+    "allow_bulk_edit": 0,
+    "hidden": 0
+   },
+   {
+    "fieldname": "quantity",
+    "fieldtype": "Int",
+    "label": "Quantity",
+    "permlevel": 0,
+    "in_list_view": 1,
+    "reqd": 1,
+    "allow_bulk_edit": 0,
+    "hidden": 0,
+    "default": "0"
+   },
+   {
+    "fieldname": "machine",
+    "fieldtype": "Link",
+    "label": "Machine",
+    "options": "MS Machine",
+    "in_list_view": 1,
+    "permlevel": 0,
+    "reqd": 1,
+    "hidden": 0,
+    "allow_bulk_edit": 0
+   },
+   {
+    "fieldname": "worked_by",
+    "fieldtype": "Link",
+    "label": "Worked By",
+    "options": "Employee",
+    "link_filters": "[[\"Employee\",\"department\",\"in\",[\"Engineering - QC\",\"Engineering - MC\"]],[\"Employee\",\"status\",\"=\",\"Active\"]]",
+    "in_list_view": 1,
+    "permlevel": 0,
+    "reqd": 0,
+    "hidden": 0,
+    "allow_bulk_edit": 0
+   },
+   {
+    "fieldname": "bddt",
+    "fieldtype": "Select",
+    "label": "BDDT",
+    "options": "\nDT-MACHINE \u2013 Machine Problem\nDT-MACHINE \u2013 No Electricity",
+    "in_list_view": 0,
+    "permlevel": 0,
+    "reqd": 0,
+    "hidden": 0,
+    "allow_bulk_edit": 0
+   },
+   {
+    "fieldname": "bddt_hours",
+    "fieldtype": "Int",
+    "label": "BDDT Hours",
+    "in_list_view": 0,
+    "permlevel": 0,
+    "reqd": 0,
+    "hidden": 0,
+    "allow_bulk_edit": 0
+   },
+   {
+    "fieldname": "remarks",
+    "fieldtype": "Data",
+    "label": "Remarks",
+    "permlevel": 0,
+    "reqd": 0,
+    "hidden": 0,
+    "allow_bulk_edit": 0
+   }
+  ],
+  "permissions": [
+   {
+    "role": "Machine Shop Foreman",
+    "read": 1,
+    "write": 1,
+    "create": 1,
+    "delete": 1,
+    "submit": 0,
+    "cancel": 0,
+    "amend": 0,
+    "permlevel": 0
+   }
+  ],
+  "show_title_field_in_link": 1
  }
 ]

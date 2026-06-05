@@ -27358,5 +27358,15 @@
   "property_type": "Check",
   "row_name": null,
   "value": "0"
+ },
+ {
+  "name": "Employee-main-show_title_field_in_link",
+  "doctype": "Property Setter",
+  "doc_type": "Employee",
+  "doctype_or_field": "DocType",
+  "field_name": null,
+  "property": "show_title_field_in_link",
+  "property_type": "Check",
+  "value": "1"
  }
 ]
