@@ -95,7 +95,8 @@ override_doctype_class = {
     "Staffing Plan": "qcmc_logic.overrides.StaffingPlanOverrides.CustomStaffingPlan",
     "Payment Entry": "qcmc_logic.overrides.payment_entry.CustomPaymentEntry",
     "Job Opening": "qcmc_logic.overrides.jobopening_overrides.CustomJobOpening",
-    "Material Request":"qcmc_logic.overrides.material_request_override.CustomMaterialRequest"
+    "Material Request":"qcmc_logic.overrides.material_request_override.CustomMaterialRequest",
+    "Stock Reconciliation": "qcmc_logic.overrides.stock_reconciliation.CustomStockReconciliation"
 }
 permission_query_conditions = {
      "Appraisal": "qcmc_logic.customs.permissions.appraisal_permission_query",
