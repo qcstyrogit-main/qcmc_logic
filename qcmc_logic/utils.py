@@ -20,50 +20,91 @@ def is_global_warehouse_access_enabled():
 
 @frappe.whitelist()
 def get_user_allowed_warehouses(user=None, require_transact=False):
-    """Fetch warehouses from Warehouse Access for the given user.
+    """Fetch effective warehouse access for the given user.
 
-    Rows in Allowed Warehouse grant selection access by default. When
-    require_transact is true, only rows with allow_transact checked are returned.
+    User-level Warehouse Access and Role Profile Warehouse Access are additive.
+    Rows grant view/select access by default. When require_transact is true,
+    only rows with allow_transact checked are returned.
     """
     if not user:
         user = frappe.session.user
 
-    access_doc = frappe.get_all(
-        "Warehouse Access",
-        filters={"user": user},
-        fields=["name"]
-    )
-
-    if not access_doc:
+    access_names = _get_effective_warehouse_access_names(user)
+    if not access_names:
         return []
 
-    filters = {"parent": ["in", [d.name for d in access_doc]]}
+    filters = {"parent": ["in", access_names]}
     if frappe.utils.cint(require_transact):
         filters["allow_transact"] = 1
 
-    allowed = frappe.get_all(
+    warehouses = frappe.get_all(
         "Allowed Warehouse",
         filters=filters,
-        pluck="warehouse"
+        pluck="warehouse",
+        order_by="idx",
     )
+    return list(dict.fromkeys(filter(None, warehouses)))
 
-    return allowed
+
+def _get_user_role_profiles(user):
+    role_profiles = []
+
+    role_profile_name = frappe.db.get_value("User", user, "role_profile_name")
+    if role_profile_name:
+        role_profiles.append(role_profile_name)
+
+    if frappe.db.table_exists("User Role Profile"):
+        role_profiles.extend(
+            frappe.get_all(
+                "User Role Profile",
+                filters={"parent": user},
+                pluck="role_profile",
+            )
+        )
+
+    return list(dict.fromkeys(filter(None, role_profiles)))
 
 
-def _get_allowed_warehouse_filters(user=None, require_transact=False, is_default=False):
+def _get_effective_warehouse_access_names(user=None, source=None):
     if not user:
         user = frappe.session.user
 
-    access_doc = frappe.get_all(
-        "Warehouse Access",
-        filters={"user": user},
-        fields=["name"]
-    )
+    access_names = []
 
-    if not access_doc:
+    if source in (None, "User"):
+        access_names.extend(
+            frappe.get_all(
+                "Warehouse Access",
+                filters={"user": user},
+                pluck="name",
+            )
+        )
+
+    if source in (None, "Role Profile") and frappe.db.table_exists(
+        "Role Profile Warehouse Access"
+    ):
+        role_profiles = _get_user_role_profiles(user)
+        if role_profiles:
+            access_names.extend(
+                frappe.get_all(
+                    "Role Profile Warehouse Access",
+                    filters={"role_profile": ["in", role_profiles]},
+                    pluck="name",
+                )
+            )
+
+    return list(dict.fromkeys(access_names))
+
+
+def _get_allowed_warehouse_filters(user=None, require_transact=False, is_default=False, source=None):
+    if not user:
+        user = frappe.session.user
+
+    access_names = _get_effective_warehouse_access_names(user, source=source)
+    if not access_names:
         return None
 
-    filters = {"parent": ["in", [d.name for d in access_doc]]}
+    filters = {"parent": ["in", access_names]}
     if frappe.utils.cint(require_transact):
         filters["allow_transact"] = 1
     if frappe.utils.cint(is_default):
@@ -72,21 +113,12 @@ def _get_allowed_warehouse_filters(user=None, require_transact=False, is_default
     return filters
 
 
-@frappe.whitelist()
-def check_warehouse_access(user, warehouse, require_transact=False):
-    allowed = get_user_allowed_warehouses(user, require_transact=require_transact)
-    return warehouse in allowed
-
-
-@frappe.whitelist()
-def get_default_warehouse_for_user(user=None, require_transact=False):
-    if not frappe.get_meta("Allowed Warehouse").has_field("is_default"):
-        return None
-
+def _get_default_warehouse_from_source(user=None, require_transact=False, source=None):
     filters = _get_allowed_warehouse_filters(
         user,
         require_transact=require_transact,
         is_default=True,
+        source=source,
     )
     if not filters:
         return None
@@ -100,6 +132,205 @@ def get_default_warehouse_for_user(user=None, require_transact=False):
     )
 
     return defaults[0] if defaults else None
+
+
+@frappe.whitelist()
+def get_user_allowed_inventory_groups(user=None, require_transact=False):
+    """Fetch effective inventory group access for the given user.
+
+    Missing Inventory Group Access means unrestricted access, so this can be
+    rolled out role profile by role profile without blocking older users.
+    """
+    if not user:
+        user = frappe.session.user
+
+    access_names = _get_effective_inventory_group_access_names(user)
+    if not access_names:
+        return []
+
+    filters = {"parent": ["in", access_names]}
+    if frappe.utils.cint(require_transact):
+        filters["allow_transact"] = 1
+
+    inventory_groups = frappe.get_all(
+        "Allowed Inventory Group",
+        filters=filters,
+        pluck="inventory_group",
+        order_by="idx",
+    )
+    return list(dict.fromkeys(filter(None, inventory_groups)))
+
+
+def _get_effective_inventory_group_access_names(user=None, source=None):
+    if not user:
+        user = frappe.session.user
+
+    access_names = []
+
+    if source in (None, "User") and frappe.db.table_exists("Inventory Group Access"):
+        access_names.extend(
+            frappe.get_all(
+                "Inventory Group Access",
+                filters={"user": user},
+                pluck="name",
+            )
+        )
+
+    if source in (None, "Role Profile") and frappe.db.table_exists(
+        "Role Profile Inventory Group Access"
+    ):
+        role_profiles = _get_user_role_profiles(user)
+        if role_profiles:
+            access_names.extend(
+                frappe.get_all(
+                    "Role Profile Inventory Group Access",
+                    filters={"role_profile": ["in", role_profiles]},
+                    pluck="name",
+                )
+            )
+
+    return list(dict.fromkeys(access_names))
+
+
+def _get_allowed_inventory_group_filters(
+    user=None,
+    require_transact=False,
+    is_default=False,
+    source=None,
+):
+    if not user:
+        user = frappe.session.user
+
+    access_names = _get_effective_inventory_group_access_names(user, source=source)
+    if not access_names:
+        return None
+
+    filters = {"parent": ["in", access_names]}
+    if frappe.utils.cint(require_transact):
+        filters["allow_transact"] = 1
+    if frappe.utils.cint(is_default):
+        filters["is_default"] = 1
+
+    return filters
+
+
+def _get_default_inventory_group_from_source(user=None, require_transact=False, source=None):
+    filters = _get_allowed_inventory_group_filters(
+        user,
+        require_transact=require_transact,
+        is_default=True,
+        source=source,
+    )
+    if not filters:
+        return None
+
+    defaults = frappe.get_all(
+        "Allowed Inventory Group",
+        filters=filters,
+        pluck="inventory_group",
+        order_by="idx",
+        limit_page_length=1,
+    )
+
+    return defaults[0] if defaults else None
+
+
+@frappe.whitelist()
+def has_inventory_group_access(user=None):
+    if not user:
+        user = frappe.session.user
+    return bool(_get_effective_inventory_group_access_names(user))
+
+
+@frappe.whitelist()
+def get_inventory_group_item_query_filter(user=None, require_transact=True):
+    if not user:
+        user = frappe.session.user
+    if not has_inventory_group_access(user):
+        return {}
+
+    allowed_inventory_groups = get_user_allowed_inventory_groups(
+        user,
+        require_transact=require_transact,
+    )
+    if not allowed_inventory_groups:
+        return {"name": ["in", []]}
+
+    return {"custom_inventory_group": ["in", allowed_inventory_groups]}
+
+
+@frappe.whitelist()
+def check_inventory_group_access(user, inventory_group, require_transact=False):
+    if not has_inventory_group_access(user):
+        return True
+
+    allowed = get_user_allowed_inventory_groups(
+        user,
+        require_transact=require_transact,
+    )
+    return inventory_group in allowed
+
+
+@frappe.whitelist()
+def check_item_inventory_group_access(user, item_code, require_transact=False):
+    if not has_inventory_group_access(user):
+        return True
+
+    inventory_group = frappe.db.get_value("Item", item_code, "custom_inventory_group")
+    if not inventory_group:
+        return False
+
+    return check_inventory_group_access(
+        user,
+        inventory_group,
+        require_transact=require_transact,
+    )
+
+
+@frappe.whitelist()
+def get_default_inventory_group_for_user(user=None, require_transact=False):
+    if not frappe.db.table_exists("Allowed Inventory Group"):
+        return None
+
+    user_default = _get_default_inventory_group_from_source(
+        user,
+        require_transact=require_transact,
+        source="User",
+    )
+    if user_default:
+        return user_default
+
+    return _get_default_inventory_group_from_source(
+        user,
+        require_transact=require_transact,
+        source="Role Profile",
+    )
+
+
+@frappe.whitelist()
+def check_warehouse_access(user, warehouse, require_transact=False):
+    allowed = get_user_allowed_warehouses(user, require_transact=require_transact)
+    return warehouse in allowed
+
+
+@frappe.whitelist()
+def get_default_warehouse_for_user(user=None, require_transact=False):
+    if not frappe.get_meta("Allowed Warehouse").has_field("is_default"):
+        return None
+
+    user_default = _get_default_warehouse_from_source(
+        user,
+        require_transact=require_transact,
+        source="User",
+    )
+    if user_default:
+        return user_default
+
+    return _get_default_warehouse_from_source(
+        user,
+        require_transact=require_transact,
+        source="Role Profile",
+    )
 
 
 def _get_warehouse_company(warehouse):
@@ -144,6 +375,52 @@ def get_allowed_warehouse_query(doctype, txt, searchfield, start, page_len, filt
             "start": start,
             "page_len": page_len,
         },
+    )
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_allowed_item_query(doctype, txt, searchfield, start, page_len, filters):
+    """Item link query filtered by transact-allowed Inventory Groups.
+
+    Users without Inventory Group Access records are unrestricted for rollout.
+    """
+    if isinstance(filters, str):
+        filters = frappe.parse_json(filters)
+
+    filters = frappe._dict(filters or {})
+    user = filters.get("user") or frappe.session.user
+    require_transact = frappe.utils.cint(filters.get("require_transact", 1))
+    conditions = [
+        f"i.`{searchfield}` like %(txt)s",
+        "ifnull(i.disabled, 0) = 0",
+    ]
+    values = {
+        "txt": f"%{txt}%",
+        "start": start,
+        "page_len": page_len,
+    }
+
+    if has_inventory_group_access(user):
+        allowed_inventory_groups = get_user_allowed_inventory_groups(
+            user,
+            require_transact=require_transact,
+        )
+        if not allowed_inventory_groups:
+            return []
+
+        conditions.append("i.custom_inventory_group in %(allowed_inventory_groups)s")
+        values["allowed_inventory_groups"] = tuple(allowed_inventory_groups)
+
+    return frappe.db.sql(
+        f"""
+        select i.name, i.item_name
+        from `tabItem` i
+        where {" and ".join(conditions)}
+        order by i.name
+        limit %(start)s, %(page_len)s
+        """,
+        values,
     )
 
 
@@ -741,6 +1018,20 @@ def make_machine_shop_repairs_and_project(source_name, target_doc=None):
     target.asset = msjr.asset_name
     target.subject = msjr.work_instruction
     target.date_posted = frappe.utils.today()
+
+    return target
+
+
+@frappe.whitelist()
+def make_daily_job_report(process_name):
+    process = frappe.get_doc("MSRP Process", process_name)
+
+    target = frappe.new_doc("Daily Job Report")
+    target.naming_series = "DJRP-.YYYY.-.####"
+    target.process_no = process_name
+    target.process_title = process.process_name
+    target.project_no = process.parent
+    target.flags.ignore_permissions = True
 
     return target
 
