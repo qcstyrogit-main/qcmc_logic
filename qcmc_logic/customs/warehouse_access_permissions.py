@@ -23,6 +23,39 @@ SOURCE_WAREHOUSE_FIELDS = {
     "s_warehouse",
 }
 
+TARGET_WAREHOUSE_FIELDS = {
+    "to_warehouse",
+    "set_warehouse",
+    "target_warehouse",
+    "t_warehouse",
+    "warehouse",
+}
+
+STOCK_ENTRY_SOURCE_PURPOSES = {
+    "Material Issue",
+    "Material Transfer",
+    "Send to Subcontractor",
+    "Material Transfer for Manufacture",
+    "Material Consumption for Manufacture",
+    "Return Raw Material to Customer",
+    "Subcontracting Delivery",
+    "Manufacture",
+    "Repack",
+    "Disassemble",
+}
+
+STOCK_ENTRY_TARGET_PURPOSES = {
+    "Material Receipt",
+    "Material Transfer",
+    "Send to Subcontractor",
+    "Material Transfer for Manufacture",
+    "Receive from Customer",
+    "Subcontracting Return",
+    "Manufacture",
+    "Repack",
+    "Disassemble",
+}
+
 MATERIAL_REQUEST_SOURCE_FIELDS = {
     "from_warehouse",
     "set_from_warehouse",
@@ -109,12 +142,35 @@ def _requires_transact(doc, fieldname):
     if _is_material_request_source_field(doc, fieldname):
         return False
 
-    if _is_material_transfer_request(doc):
-        if fieldname in MATERIAL_REQUEST_TARGET_FIELDS:
-            return True
+    if doc.doctype == "Stock Entry":
+        return _stock_entry_field_requires_transact(doc, fieldname)
 
-    return True
+    if doc.doctype == "Material Request":
+        return fieldname in MATERIAL_REQUEST_TARGET_FIELDS
+
+    if doc.doctype in {"Delivery Note", "Sales Invoice", "Pick List"}:
+        return fieldname == "warehouse"
+
+    if doc.doctype in {"Purchase Invoice", "Purchase Order", "Purchase Receipt"}:
+        return fieldname in {"set_warehouse", "warehouse"}
+
+    if doc.doctype == "Stock Reconciliation":
+        return fieldname == "warehouse"
+
+    return fieldname in SOURCE_WAREHOUSE_FIELDS or fieldname in TARGET_WAREHOUSE_FIELDS
 
 
 def _is_material_request_source_field(doc, fieldname):
     return _is_material_transfer_request(doc) and fieldname in MATERIAL_REQUEST_SOURCE_FIELDS
+
+
+def _stock_entry_field_requires_transact(doc, fieldname):
+    purpose = doc.get("purpose")
+
+    if fieldname in {"from_warehouse", "s_warehouse"}:
+        return purpose in STOCK_ENTRY_SOURCE_PURPOSES
+
+    if fieldname in {"to_warehouse", "t_warehouse"}:
+        return purpose in STOCK_ENTRY_TARGET_PURPOSES
+
+    return False

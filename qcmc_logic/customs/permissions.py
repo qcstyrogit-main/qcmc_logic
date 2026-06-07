@@ -11,8 +11,8 @@ WAREHOUSE_TRANSACTION_DOCTYPES = {
         "children": {"Delivery Note Item": ["warehouse"]},
     },
     "Material Request": {
-        "fields": ["set_from_warehouse", "set_warehouse"],
-        "children": {"Material Request Item": ["from_warehouse", "warehouse"]},
+        "fields": ["set_warehouse"],
+        "children": {"Material Request Item": ["warehouse"]},
     },
     "Pick List": {
         "children": {"Pick List Item": ["warehouse"], "Pick List Item Location": ["warehouse"]},
@@ -226,29 +226,6 @@ def warehouse_transaction_has_permission(doc, ptype=None, user=None):
         return True
 
     return warehouses.issubset(allowed_warehouses)
-
-
-def _get_warehouse_access_values(user, require_transact=False):
-    if not user:
-        user = frappe.session.user
-
-    access_names = frappe.get_all(
-        "Warehouse Access",
-        filters={"user": user},
-        pluck="name",
-    )
-    if not access_names:
-        return []
-
-    filters = {"parent": ["in", access_names]}
-    if require_transact:
-        filters["allow_transact"] = 1
-
-    return frappe.get_all(
-        "Allowed Warehouse",
-        filters=filters,
-        pluck="warehouse",
-    )
 
 
 def warehouse_transfer_permission_query(user):

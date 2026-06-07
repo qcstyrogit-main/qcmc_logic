@@ -62,6 +62,41 @@ qcmc_logic.warehouse_access.is_source_field = function(fieldname) {
     ].includes(fieldname);
 };
 
+qcmc_logic.warehouse_access.is_target_field = function(fieldname) {
+    return [
+        "to_warehouse",
+        "set_warehouse",
+        "target_warehouse",
+        "t_warehouse",
+        "warehouse",
+    ].includes(fieldname);
+};
+
+qcmc_logic.warehouse_access.stock_entry_source_purposes = new Set([
+    "Material Issue",
+    "Material Transfer",
+    "Send to Subcontractor",
+    "Material Transfer for Manufacture",
+    "Material Consumption for Manufacture",
+    "Return Raw Material to Customer",
+    "Subcontracting Delivery",
+    "Manufacture",
+    "Repack",
+    "Disassemble",
+]);
+
+qcmc_logic.warehouse_access.stock_entry_target_purposes = new Set([
+    "Material Receipt",
+    "Material Transfer",
+    "Send to Subcontractor",
+    "Material Transfer for Manufacture",
+    "Receive from Customer",
+    "Subcontracting Return",
+    "Manufacture",
+    "Repack",
+    "Disassemble",
+]);
+
 qcmc_logic.warehouse_access.is_material_transfer_request = function(frm) {
     return frm && frm.doctype === "Material Request" && frm.doc.material_request_type === "Material Transfer";
 };
@@ -85,11 +120,47 @@ qcmc_logic.warehouse_access.requires_transact = function(frm, fieldname) {
         return false;
     }
 
-    if (qcmc_logic.warehouse_access.is_material_request_target_field(frm, fieldname)) {
-        return true;
+    if (frm && frm.doctype === "Stock Entry") {
+        return qcmc_logic.warehouse_access.stock_entry_requires_transact(frm, fieldname);
     }
 
-    return true;
+    if (frm && frm.doctype === "Material Request") {
+        return qcmc_logic.warehouse_access.is_material_request_target_field(frm, fieldname);
+    }
+
+    if (frm && ["Delivery Note", "Sales Invoice", "Pick List"].includes(frm.doctype)) {
+        return fieldname === "warehouse";
+    }
+
+    if (
+        frm &&
+        ["Purchase Invoice", "Purchase Order", "Purchase Receipt"].includes(frm.doctype)
+    ) {
+        return ["set_warehouse", "warehouse"].includes(fieldname);
+    }
+
+    if (frm && frm.doctype === "Stock Reconciliation") {
+        return fieldname === "warehouse";
+    }
+
+    return (
+        qcmc_logic.warehouse_access.is_source_field(fieldname) ||
+        qcmc_logic.warehouse_access.is_target_field(fieldname)
+    );
+};
+
+qcmc_logic.warehouse_access.stock_entry_requires_transact = function(frm, fieldname) {
+    const purpose = frm.doc ? frm.doc.purpose : "";
+
+    if (["from_warehouse", "s_warehouse"].includes(fieldname)) {
+        return qcmc_logic.warehouse_access.stock_entry_source_purposes.has(purpose);
+    }
+
+    if (["to_warehouse", "t_warehouse"].includes(fieldname)) {
+        return qcmc_logic.warehouse_access.stock_entry_target_purposes.has(purpose);
+    }
+
+    return false;
 };
 
 qcmc_logic.warehouse_access.apply = function(frm) {
@@ -174,29 +245,80 @@ qcmc_logic.warehouse_access.apply_single_warehouse_defaults = function(frm) {
                 return;
             }
 
-            if (qcmc_logic.warehouse_access.is_material_transfer_request(frm)) {
-                if (!frm.doc.set_warehouse) {
-                    frm.set_value("set_warehouse", default_warehouse);
-                }
-                return;
-            }
-
             (frm.meta.fields || []).forEach(df => {
-                if (qcmc_logic.warehouse_access.is_material_request_source_field(frm, df.fieldname)) {
-                    return;
-                }
-
                 if (
                     df.fieldtype === "Link" &&
                     df.options === "Warehouse" &&
                     df.fieldname &&
                     !frm.doc[df.fieldname] &&
-                    qcmc_logic.warehouse_access.requires_transact(frm, df.fieldname)
+                    qcmc_logic.warehouse_access.should_default_warehouse(frm, df.fieldname)
                 ) {
                     frm.set_value(df.fieldname, default_warehouse);
                 }
             });
         },
+    });
+};
+
+qcmc_logic.warehouse_access.should_default_warehouse = function(frm, fieldname) {
+    if (!frm || !frm.doc) {
+        return false;
+    }
+
+    if (frm.doctype === "Stock Entry") {
+        if (frm.doc.purpose === "Material Issue") {
+            return fieldname === "from_warehouse";
+        }
+
+        if (frm.doc.purpose === "Material Receipt") {
+            return fieldname === "to_warehouse";
+        }
+
+        return false;
+    }
+
+    if (frm.doctype === "Material Request") {
+        return fieldname === "set_warehouse";
+    }
+
+    if (["Purchase Order", "Purchase Receipt"].includes(frm.doctype)) {
+        return fieldname === "set_warehouse";
+    }
+
+    return false;
+};
+
+qcmc_logic.warehouse_access.clear_stock_entry_warehouses = function(frm) {
+    if (!frm || !frm.doc || frm.doctype !== "Stock Entry" || frm.doc.docstatus !== 0) {
+        return;
+    }
+
+    ["from_warehouse", "to_warehouse"].forEach(fieldname => {
+        if (frm.doc[fieldname]) {
+            frm.set_value(fieldname, "");
+        }
+    });
+
+    (frm.doc.items || []).forEach(row => {
+        ["s_warehouse", "t_warehouse"].forEach(fieldname => {
+            if (row[fieldname]) {
+                frappe.model.set_value(row.doctype, row.name, fieldname, "");
+            }
+        });
+    });
+};
+
+qcmc_logic.warehouse_access.handle_stock_entry_type_change = function(frm) {
+    qcmc_logic.warehouse_access.is_enabled(enabled => {
+        if (!enabled) {
+            return;
+        }
+
+        qcmc_logic.warehouse_access.clear_stock_entry_warehouses(frm);
+
+        setTimeout(() => {
+            qcmc_logic.warehouse_access.apply(frm);
+        }, 300);
     });
 };
 
@@ -206,4 +328,18 @@ $(document).on("form-refresh", (_event, frm) => {
             qcmc_logic.warehouse_access.apply(frm);
         }
     });
+});
+
+frappe.ui.form.on("Stock Entry", {
+    stock_entry_type(frm) {
+        qcmc_logic.warehouse_access.handle_stock_entry_type_change(frm);
+    },
+
+    purpose(frm) {
+        qcmc_logic.warehouse_access.is_enabled(enabled => {
+            if (enabled) {
+                qcmc_logic.warehouse_access.apply(frm);
+            }
+        });
+    },
 });

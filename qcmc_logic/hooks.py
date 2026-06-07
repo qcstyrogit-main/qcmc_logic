@@ -11,7 +11,10 @@ override_whitelisted_methods = {}
 
 doc_events = {
     "*": {
-        "validate": "qcmc_logic.customs.warehouse_access_permissions.validate_warehouse_access"
+        "validate": [
+            "qcmc_logic.customs.warehouse_access_permissions.validate_warehouse_access",
+            "qcmc_logic.customs.inventory_group_access_permissions.validate_inventory_group_access",
+        ]
     },
     "Warehouse Transfer": {   # 👈 name of your GUI Doctype
         "validate": "qcmc_logic.customs.warehouse_transfer_events.validate_transfer_type_rules",
@@ -22,6 +25,18 @@ doc_events = {
     },
     "Warehouse Access": {
         "validate": "qcmc_logic.doctype.warehouse_access.warehouse_access.validate_default_warehouse",
+    },
+    "Role Profile Warehouse Access": {
+        "validate": "qcmc_logic.doctype.warehouse_access.warehouse_access.validate_role_profile_default_warehouse",
+        "after_insert": "qcmc_logic.doctype.warehouse_access.warehouse_access.sync_role_profile_warehouse_user_permissions",
+        "on_update": "qcmc_logic.doctype.warehouse_access.warehouse_access.sync_role_profile_warehouse_user_permissions",
+        "after_delete": "qcmc_logic.doctype.warehouse_access.warehouse_access.sync_role_profile_warehouse_user_permissions",
+    },
+    "Inventory Group Access": {
+        "validate": "qcmc_logic.doctype.inventory_group_access.inventory_group_access.validate_default_inventory_group",
+    },
+    "Role Profile Inventory Group Access": {
+        "validate": "qcmc_logic.doctype.inventory_group_access.inventory_group_access.validate_role_profile_default_inventory_group",
     },
     "Purchase Receipt": {
         "before_save": "qcmc_logic.overrides.wrr_override.validate"
@@ -194,6 +209,7 @@ fixtures = [
 app_include_js = [
     "/assets/qcmc_logic/js/hide_print_selection.js",
     "/assets/qcmc_logic/js/warehouse_access.js",
+    "/assets/qcmc_logic/js/inventory_group_access.js",
     "/assets/qcmc_logic/js/warehouse_transfer.js"
 ]
 
