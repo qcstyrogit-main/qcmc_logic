@@ -24965,6 +24965,21 @@
   "docstatus": 0,
   "doctype": "Property Setter",
   "doctype_or_field": "DocField",
+  "field_name": "items",
+  "is_system_generated": 0,
+  "module": null,
+  "name": "Stock Reconciliation-items-reqd",
+  "property": "reqd",
+  "property_type": "Check",
+  "row_name": null,
+  "value": "0"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Stock Reconciliation",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocField",
   "field_name": "naming_series",
   "is_system_generated": 1,
   "module": null,
@@ -27102,7 +27117,7 @@
   "property": "default_print_format",
   "property_type": "Data",
   "row_name": null,
-  "value": "CPS Job Order"
+  "value": "CPS"
  },
  {
   "default_value": null,
@@ -27373,6 +27388,21 @@
   "property_type": "Check",
   "row_name": null,
   "value": "1"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Workstation",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocType",
+  "field_name": null,
+  "is_system_generated": 0,
+  "module": null,
+  "name": "Workstation-main-field_order",
+  "property": "field_order",
+  "property_type": "Data",
+  "row_name": null,
+  "value": "[\"dashboard_tab\", \"section_break_mqqv\", \"workstation_dashboard\", \"details_tab\", \"workstation_name\", \"workstation_type\", \"plant_floor\", \"disabled\", \"column_break_3\", \"production_capacity\", \"warehouse\", \"custom_print_format\", \"workstation_status_tab\", \"status\", \"column_break_glcv\", \"illustration_section\", \"on_status_image\", \"column_break_etmc\", \"off_status_image\", \"over_heads\", \"section_break_auzm\", \"workstation_costs\", \"section_break_11\", \"hour_rate\", \"workstaion_description\", \"description\", \"working_hours_section\", \"holiday_list\", \"working_hours\", \"total_working_hours\", \"connections_tab\"]"
  },
  {
   "default_value": null,

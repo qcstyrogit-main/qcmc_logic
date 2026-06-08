@@ -239,6 +239,7 @@ def login(username, password):
             "success": True,
             "message": "Login successful",
             "sid": frappe.session.sid,
+            "csrf_token": frappe.session.data.csrf_token,
             "user": {
                 "name": user_id,
                 "email": user_doc.get("email") or username,
