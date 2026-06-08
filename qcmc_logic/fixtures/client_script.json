@@ -1122,6 +1122,16 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
+  "dt": "Work Order",
+  "enabled": 1,
+  "module": null,
+  "name": "Work Order - Custom Print Format from Workstation",
+  "script": "// Work Order: Override ALL print triggers via frm.print_doc\n// Chain: Work Order.operations[].workstation -> Workstation.custom_print_format\n\nfrappe.ui.form.on('Work Order', {\n    refresh: function(frm) {\n        // Override frm.print_doc - called by sidebar icon, toolbar, Ctrl+P, menu\n        frm.print_doc = function() {\n            handle_custom_print(frm);\n        };\n\n        if (frm.toolbar && frm.toolbar.print_me) {\n            frm.toolbar.print_me = function() {\n                handle_custom_print(frm);\n            };\n        }\n\n        // Add visible custom Print button\n        frm.add_custom_button(__('Print'), function() {\n            handle_custom_print(frm);\n        }).removeClass('btn-default').addClass('btn-primary');\n    }\n});\n\nasync function handle_custom_print(frm) {\n    try {\n        let workstation = null;\n\n        // Get workstation from Work Order operations (already loaded in frm.doc)\n        if (frm.doc.operations && frm.doc.operations.length > 0) {\n            for (let op of frm.doc.operations) {\n                if (op.workstation) {\n                    workstation = op.workstation;\n                    break;\n                }\n            }\n        }\n\n        // Fallback: query BOM Operations table\n        if (!workstation && frm.doc.bom_no) {\n            const r = await frappe.call({\n                method: 'frappe.client.get_list',\n                args: {\n                    doctype: 'BOM Operation',\n                    filters: [['parent', '=', frm.doc.bom_no], ['parenttype', '=', 'BOM']],\n                    fields: ['workstation'],\n                    limit_page_length: 1,\n                    order_by: 'idx asc'\n                }\n            });\n            if (r.message && r.message.length > 0) {\n                workstation = r.message[0].workstation;\n            }\n        }\n\n        let print_format = null;\n\n        if (workstation) {\n            const r = await frappe.call({\n                method: 'frappe.client.get_value',\n                args: {\n                    doctype: 'Workstation',\n                    filters: { name: workstation },\n                    fieldname: 'custom_print_format'\n                }\n            });\n            if (r.message && r.message.custom_print_format) {\n                print_format = r.message.custom_print_format;\n            }\n        }\n\n        console.log('[WO Print]', { workstation, print_format });\n\n        var w = window.open('/printview?' + $.param({\n            doctype: frm.doc.doctype,\n            name: frm.doc.name,\n            format: print_format || '',\n            no_letterhead: 0\n        }));\n\n        if (!w) frappe.msgprint(__('Please allow pop-ups to continue.'));\n\n    } catch (err) {\n        console.error('[WO Print] Error:', err);\n        window.open('/printview?' + $.param({\n            doctype: frm.doc.doctype,\n            name: frm.doc.name\n        }));\n    }\n}",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
   "dt": "ZKTeco Device",
   "enabled": 1,
   "module": "Zkteco Integration",

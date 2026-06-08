@@ -42663,7 +42663,7 @@
   "is_virtual": 0,
   "label": "Print Format",
   "length": 0,
-  "link_filters": null,
+  "link_filters": "[[\"Print Format\",\"doc_type\",\"=\",\"Work Order\"]]",
   "mandatory_depends_on": null,
   "module": null,
   "name": "Workstation-custom_print_format",
