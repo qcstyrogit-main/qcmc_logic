@@ -1,10 +1,5 @@
 import frappe
 
-from qcmc_logic.utils import (
-    get_user_allowed_inventory_groups,
-    has_inventory_group_access,
-)
-
 
 TRANSACTION_DOCTYPES = {
     "Delivery Note",
@@ -21,6 +16,7 @@ TRANSACTION_DOCTYPES = {
 
 SKIP_DOCTYPES = {
     "Allowed Inventory Group",
+    "Error Log",
     "Inventory Group",
     "Inventory Group Access",
     "Item",
@@ -33,8 +29,15 @@ def validate_inventory_group_access(doc, method=None):
         frappe.session.user == "Administrator"
         or doc.doctype in SKIP_DOCTYPES
         or doc.doctype not in TRANSACTION_DOCTYPES
-        or not has_inventory_group_access(frappe.session.user)
     ):
+        return
+
+    from qcmc_logic.utils import (
+        get_user_allowed_inventory_groups,
+        has_inventory_group_access,
+    )
+
+    if not has_inventory_group_access(frappe.session.user):
         return
 
     allowed_inventory_groups = set(
