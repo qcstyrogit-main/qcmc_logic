@@ -1012,19 +1012,47 @@ def make_machine_shop_repairs_and_project(source_name, target_doc=None):
     if msjr.workflow_state != "Pending Machine Shop":
         frappe.throw("Project Plan can only be generated from a request in Pending Machine Shop.")
 
+    existing = frappe.db.exists(
+        "Machine Shop Repairs and Project",
+        {"msjr_no": source_name, "docstatus": ["!=", 2]}
+    )
+    if existing:
+        frappe.throw(
+            f"MSJR No <b>{source_name}</b> is already referenced in an active "
+            f"Machine Shop Repairs and Project: <b>{existing}</b>."
+        )
+
     target = frappe.get_doc(frappe.parse_json(target_doc)) if target_doc else frappe.new_doc("Machine Shop Repairs and Project")
     target.naming_series = "MSRP-.YYYY.-"
     target.msjr_no = source_name
     target.asset = msjr.asset_name
     target.subject = msjr.work_instruction
+    target.msjr_document_date = msjr.document_date
     target.date_posted = frappe.utils.today()
 
     return target
 
 
 @frappe.whitelist()
+def get_msrp_process_details(process_no):
+    data = frappe.db.get_value(
+        "Machine Shop Repairs and Project Process", process_no, ["process_name", "machine"], as_dict=True
+    )
+    return data or {}
+
+
+@frappe.whitelist()
 def make_daily_job_report(process_name):
-    process = frappe.get_doc("MSRP Process", process_name)
+    process = frappe.get_doc("Machine Shop Repairs and Project Process", process_name)
+
+    project_state = frappe.db.get_value(
+        "Machine Shop Repairs and Project", process.parent, "workflow_state"
+    )
+    if project_state != "Active":
+        frappe.throw(
+            f"Daily Job Report can only be created when the Machine Shop Repairs and Project "
+            f"<b>{process.parent}</b> is <b>Active</b>. Current status: <b>{project_state}</b>."
+        )
 
     target = frappe.new_doc("Daily Job Report")
     target.naming_series = "DJRP-.YYYY.-.####"

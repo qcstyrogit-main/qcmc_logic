@@ -149,8 +149,8 @@
   "disable_sidebar_stats": 0,
   "docstatus": 0,
   "doctype": "List View Settings",
-  "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Description\",\"fieldname\":\"description\"}]",
-  "name": "BD Class",
+  "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"item\",\"label\":\"Item\"},{\"fieldname\":\"custom_rate_per_minute\",\"label\":\"Rate Per Minute\"},{\"fieldname\":\"custom_number_of_cavity\",\"label\":\"Number of Cavity\"},{\"fieldname\":\"is_active\",\"label\":\"Is Active\"},{\"fieldname\":\"is_default\",\"label\":\"Is Default\"},{\"fieldname\":\"total_cost\",\"label\":\"Total Cost\"},{\"fieldname\":\"has_variants\",\"label\":\"Has Variants\"}]",
+  "name": "BOM",
   "show_tags": 0
  },
  {
@@ -163,8 +163,8 @@
   "disable_sidebar_stats": 0,
   "docstatus": 0,
   "doctype": "List View Settings",
-  "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"item\",\"label\":\"Item\"},{\"fieldname\":\"custom_rate_per_minute\",\"label\":\"Rate Per Minute\"},{\"fieldname\":\"custom_number_of_cavity\",\"label\":\"Number of Cavity\"},{\"fieldname\":\"is_active\",\"label\":\"Is Active\"},{\"fieldname\":\"is_default\",\"label\":\"Is Default\"},{\"fieldname\":\"total_cost\",\"label\":\"Total Cost\"},{\"fieldname\":\"has_variants\",\"label\":\"Has Variants\"}]",
-  "name": "BOM",
+  "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Description\",\"fieldname\":\"description\"}]",
+  "name": "Breakdown Class",
   "show_tags": 0
  },
  {
@@ -317,8 +317,8 @@
   "disable_sidebar_stats": 0,
   "docstatus": 0,
   "doctype": "List View Settings",
-  "fields": "[{\"fieldname\":\"description\",\"label\":\"Description\"},{\"fieldname\":\"measure\",\"label\":\"Measure\"},{\"fieldname\":\"estimation\",\"label\":\"Estimation\"}]",
-  "name": "MS Request Code",
+  "fields": "[{\"fieldname\":\"msjr_no\",\"label\":\"MSJR No\"},{\"fieldname\":\"asset\",\"label\":\"Asset\"},{\"fieldname\":\"date_posted\",\"label\":\"Date Posted\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"}]",
+  "name": "Machine Shop Repairs and Project",
   "show_tags": 0
  },
  {
@@ -331,8 +331,8 @@
   "disable_sidebar_stats": 0,
   "docstatus": 0,
   "doctype": "List View Settings",
-  "fields": "[{\"fieldname\":\"msjr_no\",\"label\":\"MSJR No\"},{\"fieldname\":\"asset\",\"label\":\"Asset\"},{\"fieldname\":\"date_posted\",\"label\":\"Date Posted\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"}]",
-  "name": "Machine Shop Repairs and Project",
+  "fields": "[{\"fieldname\":\"description\",\"label\":\"Description\"},{\"fieldname\":\"measure\",\"label\":\"Measure\"},{\"fieldname\":\"estimation\",\"label\":\"Estimation\"}]",
+  "name": "Machine Shop Request Code",
   "show_tags": 0
  },
  {
