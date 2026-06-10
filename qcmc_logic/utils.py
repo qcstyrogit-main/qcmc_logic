@@ -2,6 +2,12 @@ import frappe
 from frappe.utils import flt
 
 
+STOCK_ENTRY_WAREHOUSE_TYPE_EXEMPT_PURPOSES = {
+    "Material Transfer for Manufacture",
+    "Material Consumption for Manufacture",
+}
+
+
 @frappe.whitelist()
 def is_global_warehouse_access_enabled():
     meta = frappe.get_meta("Stock Settings")
@@ -19,6 +25,22 @@ def is_global_warehouse_access_enabled():
 
 
 @frappe.whitelist()
+def is_warehouse_type_restriction_enabled():
+    meta = frappe.get_meta("Stock Settings")
+    if not meta.has_field("custom_restrict_source_target_warehouse_type"):
+        return False
+
+    return bool(
+        frappe.utils.cint(
+            frappe.db.get_single_value(
+                "Stock Settings",
+                "custom_restrict_source_target_warehouse_type",
+            )
+        )
+    )
+
+
+@frappe.whitelist()
 def get_user_allowed_warehouses(user=None, require_transact=False):
     """Fetch effective warehouse access for the given user.
 
@@ -30,19 +52,25 @@ def get_user_allowed_warehouses(user=None, require_transact=False):
         user = frappe.session.user
 
     access_names = _get_effective_warehouse_access_names(user)
-    if not access_names:
-        return []
 
-    filters = {"parent": ["in", access_names]}
-    if frappe.utils.cint(require_transact):
-        filters["allow_transact"] = 1
+    warehouses = []
 
-    warehouses = frappe.get_all(
-        "Allowed Warehouse",
-        filters=filters,
-        pluck="warehouse",
-        order_by="idx",
-    )
+    if access_names:
+        filters = {"parent": ["in", access_names]}
+        if frappe.utils.cint(require_transact):
+            filters["allow_transact"] = 1
+
+        warehouses = frappe.get_all(
+            "Allowed Warehouse",
+            filters=filters,
+            pluck="warehouse",
+            order_by="idx",
+        )
+
+    default_warehouse = _get_user_default_warehouse(user)
+    if default_warehouse:
+        warehouses.append(default_warehouse)
+
     return list(dict.fromkeys(filter(None, warehouses)))
 
 
@@ -132,6 +160,18 @@ def _get_default_warehouse_from_source(user=None, require_transact=False, source
     )
 
     return defaults[0] if defaults else None
+
+
+def _get_user_default_warehouse(user=None):
+    if not user:
+        user = frappe.session.user
+
+    for key in ("Warehouse", "warehouse", "default_warehouse"):
+        warehouse = frappe.defaults.get_user_default(key, user=user)
+        if warehouse and frappe.db.exists("Warehouse", warehouse):
+            return warehouse
+
+    return None
 
 
 @frappe.whitelist()
@@ -316,7 +356,7 @@ def check_warehouse_access(user, warehouse, require_transact=False):
 @frappe.whitelist()
 def get_default_warehouse_for_user(user=None, require_transact=False):
     if not frappe.get_meta("Allowed Warehouse").has_field("is_default"):
-        return None
+        return _get_user_default_warehouse(user)
 
     user_default = _get_default_warehouse_from_source(
         user,
@@ -326,11 +366,15 @@ def get_default_warehouse_for_user(user=None, require_transact=False):
     if user_default:
         return user_default
 
-    return _get_default_warehouse_from_source(
+    role_profile_default = _get_default_warehouse_from_source(
         user,
         require_transact=require_transact,
         source="Role Profile",
     )
+    if role_profile_default:
+        return role_profile_default
+
+    return _get_user_default_warehouse(user)
 
 
 def _get_warehouse_company(warehouse):
@@ -343,6 +387,13 @@ def _get_warehouse_type(warehouse):
     if not warehouse:
         return None
     return frappe.db.get_value("Warehouse", warehouse, "warehouse_type")
+
+
+def _stock_entry_should_restrict_warehouse_type(purpose):
+    return (
+        is_warehouse_type_restriction_enabled()
+        and purpose not in STOCK_ENTRY_WAREHOUSE_TYPE_EXEMPT_PURPOSES
+    )
 
 
 @frappe.whitelist()
@@ -375,6 +426,100 @@ def get_allowed_warehouse_query(doctype, txt, searchfield, start, page_len, filt
             "start": start,
             "page_len": page_len,
         },
+    )
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_stock_entry_source_warehouse_query(doctype, txt, searchfield, start, page_len, filters):
+    if isinstance(filters, str):
+        filters = frappe.parse_json(filters)
+
+    filters = frappe._dict(filters or {})
+    user = filters.get("user") or frappe.session.user
+    target_warehouse = filters.get("target_warehouse")
+    purpose = filters.get("purpose")
+    allowed_warehouses = get_user_allowed_warehouses(user, require_transact=True)
+    if not allowed_warehouses:
+        return []
+
+    conditions = [
+        "w.is_group = 0",
+        "w.name in %(allowed_warehouses)s",
+        f"w.`{searchfield}` like %(txt)s",
+    ]
+    values = {
+        "allowed_warehouses": tuple(allowed_warehouses),
+        "txt": f"%{txt}%",
+        "start": start,
+        "page_len": page_len,
+    }
+
+    if target_warehouse:
+        conditions.append("w.name != %(target_warehouse)s")
+        values["target_warehouse"] = target_warehouse
+
+        target_warehouse_type = _get_warehouse_type(target_warehouse)
+        if _stock_entry_should_restrict_warehouse_type(purpose) and target_warehouse_type:
+            conditions.append("w.warehouse_type = %(target_warehouse_type)s")
+            values["target_warehouse_type"] = target_warehouse_type
+
+    return frappe.db.sql(
+        f"""
+        select w.name, w.warehouse_name
+        from `tabWarehouse` w
+        where {" and ".join(conditions)}
+        order by w.name
+        limit %(start)s, %(page_len)s
+        """,
+        values,
+    )
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_stock_entry_target_warehouse_query(doctype, txt, searchfield, start, page_len, filters):
+    if isinstance(filters, str):
+        filters = frappe.parse_json(filters)
+
+    filters = frappe._dict(filters or {})
+    user = filters.get("user") or frappe.session.user
+    source_warehouse = filters.get("source_warehouse")
+    purpose = filters.get("purpose")
+    allowed_warehouses = get_user_allowed_warehouses(user, require_transact=True)
+    if not allowed_warehouses:
+        return []
+
+    conditions = [
+        "w.is_group = 0",
+        "w.name in %(allowed_warehouses)s",
+        f"w.`{searchfield}` like %(txt)s",
+    ]
+    values = {
+        "allowed_warehouses": tuple(allowed_warehouses),
+        "txt": f"%{txt}%",
+        "start": start,
+        "page_len": page_len,
+    }
+
+    if source_warehouse:
+        conditions.append("w.name != %(source_warehouse)s")
+        values["source_warehouse"] = source_warehouse
+
+        source_warehouse_type = _get_warehouse_type(source_warehouse)
+        if _stock_entry_should_restrict_warehouse_type(purpose) and source_warehouse_type:
+            conditions.append("w.warehouse_type = %(source_warehouse_type)s")
+            values["source_warehouse_type"] = source_warehouse_type
+
+    return frappe.db.sql(
+        f"""
+        select w.name, w.warehouse_name
+        from `tabWarehouse` w
+        where {" and ".join(conditions)}
+        order by w.name
+        limit %(start)s, %(page_len)s
+        """,
+        values,
     )
 
 
@@ -460,7 +605,11 @@ def get_material_request_source_warehouse_query(doctype, txt, searchfield, start
             frappe.db.get_value("Warehouse", target_warehouse, "custom_is_province")
         )
         target_warehouse_type = _get_warehouse_type(target_warehouse)
-        if not target_is_province and target_warehouse_type:
+        if (
+            is_warehouse_type_restriction_enabled()
+            and not target_is_province
+            and target_warehouse_type
+        ):
             conditions.append("w.warehouse_type = %(target_warehouse_type)s")
             values["target_warehouse_type"] = target_warehouse_type
 
@@ -643,7 +792,7 @@ def get_material_request_target_warehouse_query(doctype, txt, searchfield, start
         conditions.append("w.name != %(source_warehouse)s")
         values["source_warehouse"] = source_warehouse
 
-        if source_warehouse_type:
+        if is_warehouse_type_restriction_enabled() and source_warehouse_type:
             conditions.append(
                 "(ifnull(w.custom_is_province, 0) = 1 or w.warehouse_type = %(source_warehouse_type)s)"
             )

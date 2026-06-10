@@ -13,6 +13,7 @@ doc_events = {
     "*": {
         "validate": [
             "qcmc_logic.customs.warehouse_access_permissions.validate_warehouse_access",
+            "qcmc_logic.customs.warehouse_access_permissions.validate_warehouse_type_restriction",
             "qcmc_logic.customs.inventory_group_access_permissions.validate_inventory_group_access",
         ]
     },
@@ -43,6 +44,10 @@ doc_events = {
     },
     "Sales Invoice": {
          "validate": "qcmc_logic.overrides.sales_invoice_override.validate"
+    },
+    "Sales Order": {
+        "on_submit": "qcmc_logic.customs.sales_order.update_customer_item_history_on_submit",
+        "on_cancel": "qcmc_logic.customs.sales_order.update_customer_item_history_on_cancel",
     },
     "BOM": {
         "before_validate": "qcmc_logic.customs.bom_rate.fetch_missing_component_rates"

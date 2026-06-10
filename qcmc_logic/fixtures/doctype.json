@@ -23768,7 +23768,7 @@
   "color": null,
   "custom": 1,
   "default_email_template": null,
-  "default_print_format": "WTS",
+  "default_print_format": "Warehouse Transfer Slip",
   "default_view": null,
   "description": null,
   "docstatus": 0,
