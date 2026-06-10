@@ -589,8 +589,8 @@
   "name": "daily-job-report-set-identifiers",
   "rate_limit_count": 0,
   "rate_limit_seconds": 0,
-  "reference_doctype": null,
-  "script": "if doc.process_no:\n    process = frappe.get_doc(\"MSRP Process\", doc.process_no)\n    doc.project_no = process.parent\n",
+  "reference_doctype": "Daily Job Report",
+  "script": "if doc.process_no:\n    process = frappe.get_doc(\"Machine Shop Repairs and Project Process\", doc.process_no)\n    doc.project_no = process.parent\n",
   "script_type": "DocType Event"
  },
  {
@@ -607,8 +607,8 @@
   "name": "daily-job-report-update-total",
   "rate_limit_count": 0,
   "rate_limit_seconds": 0,
-  "reference_doctype": null,
-  "script": "if doc.process_no:\n    total = frappe.db.sql(\n        \"SELECT IFNULL(SUM(quantity), 0) FROM `tabDaily Job Report` WHERE process_no = %s AND docstatus != 2\",\n        doc.process_no\n    )[0][0]\n    frappe.db.set_value(\"MSRP Process\", doc.process_no, \"done_quantity\", total)\n",
+  "reference_doctype": "Daily Job Report",
+  "script": "if doc.process_no:\n    total_djr = frappe.db.sql(\n        \"SELECT IFNULL(SUM(quantity), 0) FROM `tabDaily Job Report` WHERE process_no = %s AND docstatus != 2\",\n        doc.process_no\n    )[0][0]\n\n    plan_qty = frappe.db.get_value(\"Machine Shop Repairs and Project Process\", doc.process_no, \"plan_quantity\") or 0\n    proc_pct = int((total_djr / plan_qty) * 100) if plan_qty > 0 else 0\n\n    if proc_pct <= 0:\n        proc_status = \"Not Started\"\n    elif proc_pct >= 100:\n        proc_status = \"Completed\"\n    else:\n        proc_status = \"In Progress\"\n\n    current_proc_status = frappe.db.get_value(\"Machine Shop Repairs and Project Process\", doc.process_no, \"status\")\n    proc_updates = {\"done_quantity\": total_djr}\n    if current_proc_status != \"Deferred\":\n        proc_updates[\"status\"] = proc_status\n    frappe.db.set_value(\"Machine Shop Repairs and Project Process\", doc.process_no, proc_updates)\n\n    parent_msrp = frappe.db.get_value(\"Machine Shop Repairs and Project Process\", doc.process_no, \"parent\")\n    if parent_msrp:\n        row = frappe.db.sql(\n            \"SELECT IFNULL(SUM(done_quantity),0), IFNULL(SUM(plan_quantity),0) FROM `tabMachine Shop Repairs and Project Process` WHERE parent = %s\",\n            parent_msrp\n        )[0]\n        total_done = row[0]\n        total_plan = row[1]\n        pct = int((total_done / total_plan) * 100) if total_plan > 0 else 0\n\n        if pct <= 0:\n            new_status = \"Not Started\"\n        elif pct >= 100:\n            new_status = \"Completed\"\n        else:\n            new_status = \"In progress\"\n\n        current_status = frappe.db.get_value(\"Machine Shop Repairs and Project\", parent_msrp, \"status\")\n        updates = {\"percentage_completed\": pct}\n        if current_status != \"Deferred\":\n            updates[\"status\"] = new_status\n        frappe.db.set_value(\"Machine Shop Repairs and Project\", parent_msrp, updates)\n",
   "script_type": "DocType Event"
  },
  {
@@ -625,8 +625,8 @@
   "name": "daily-job-report-update-total-on-delete",
   "rate_limit_count": 0,
   "rate_limit_seconds": 0,
-  "reference_doctype": null,
-  "script": "if doc.process_no:\n    total = frappe.db.sql(\n        \"SELECT IFNULL(SUM(quantity), 0) FROM `tabDaily Job Report` WHERE process_no = %s AND docstatus != 2\",\n        doc.process_no\n    )[0][0]\n    frappe.db.set_value(\"MSRP Process\", doc.process_no, \"done_quantity\", total)\n",
+  "reference_doctype": "Daily Job Report",
+  "script": "if doc.process_no:\n    total_djr = frappe.db.sql(\n        \"SELECT IFNULL(SUM(quantity), 0) FROM `tabDaily Job Report` WHERE process_no = %s AND docstatus != 2\",\n        doc.process_no\n    )[0][0]\n\n    plan_qty = frappe.db.get_value(\"Machine Shop Repairs and Project Process\", doc.process_no, \"plan_quantity\") or 0\n    proc_pct = int((total_djr / plan_qty) * 100) if plan_qty > 0 else 0\n\n    if proc_pct <= 0:\n        proc_status = \"Not Started\"\n    elif proc_pct >= 100:\n        proc_status = \"Completed\"\n    else:\n        proc_status = \"In Progress\"\n\n    current_proc_status = frappe.db.get_value(\"Machine Shop Repairs and Project Process\", doc.process_no, \"status\")\n    proc_updates = {\"done_quantity\": total_djr}\n    if current_proc_status != \"Deferred\":\n        proc_updates[\"status\"] = proc_status\n    frappe.db.set_value(\"Machine Shop Repairs and Project Process\", doc.process_no, proc_updates)\n\n    parent_msrp = frappe.db.get_value(\"Machine Shop Repairs and Project Process\", doc.process_no, \"parent\")\n    if parent_msrp:\n        row = frappe.db.sql(\n            \"SELECT IFNULL(SUM(done_quantity),0), IFNULL(SUM(plan_quantity),0) FROM `tabMachine Shop Repairs and Project Process` WHERE parent = %s\",\n            parent_msrp\n        )[0]\n        total_done = row[0]\n        total_plan = row[1]\n        pct = int((total_done / total_plan) * 100) if total_plan > 0 else 0\n\n        if pct <= 0:\n            new_status = \"Not Started\"\n        elif pct >= 100:\n            new_status = \"Completed\"\n        else:\n            new_status = \"In progress\"\n\n        current_status = frappe.db.get_value(\"Machine Shop Repairs and Project\", parent_msrp, \"status\")\n        updates = {\"percentage_completed\": pct}\n        if current_status != \"Deferred\":\n            updates[\"status\"] = new_status\n        frappe.db.set_value(\"Machine Shop Repairs and Project\", parent_msrp, updates)\n",
   "script_type": "DocType Event"
  },
  {
@@ -643,7 +643,7 @@
   "name": "djr-set-djr-id",
   "rate_limit_count": 0,
   "rate_limit_seconds": 0,
-  "reference_doctype": null,
+  "reference_doctype": "Daily Job Report",
   "script": "doc.db_set(\"djr_id\", doc.name)\n",
   "script_type": "DocType Event"
  },
@@ -661,8 +661,8 @@
   "name": "djr-validate-dates",
   "rate_limit_count": 0,
   "rate_limit_seconds": 0,
-  "reference_doctype": null,
-  "script": "from frappe.utils import now_datetime, get_datetime\n\nnow = now_datetime()\n\nif doc.date_started:\n    if get_datetime(doc.date_started) > now:\n        frappe.throw(\"Date Started cannot be a future date.\")\n\nif doc.date_finished:\n    if get_datetime(doc.date_finished) > now:\n        frappe.throw(\"Date Finished cannot be a future date.\")\n\nif doc.date_started and doc.date_finished:\n    if get_datetime(doc.date_started) > get_datetime(doc.date_finished):\n        frappe.throw(\"Date Started cannot be greater than Date Finished.\")\n",
+  "reference_doctype": "Daily Job Report",
+  "script": "now = frappe.utils.now_datetime()\n\nif doc.date_started:\n    if frappe.utils.get_datetime(doc.date_started) > now:\n        frappe.throw(\"Date Started cannot be a future date.\")\n\nif doc.date_finished:\n    if frappe.utils.get_datetime(doc.date_finished) > now:\n        frappe.throw(\"Date Finished cannot be a future date.\")\n\nif doc.date_started and doc.date_finished:\n    if frappe.utils.get_datetime(doc.date_started) > frappe.utils.get_datetime(doc.date_finished):\n        frappe.throw(\"Date Started cannot be greater than Date Finished.\")\n",
   "script_type": "DocType Event"
  },
  {
@@ -771,6 +771,60 @@
   "rate_limit_seconds": 0,
   "reference_doctype": null,
   "script": "doc.db_set(\"project_no\", doc.name)\n",
+  "script_type": "DocType Event"
+ },
+ {
+  "allow_guest": 0,
+  "api_method": null,
+  "cron_format": null,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "Before Save",
+  "enable_rate_limit": 0,
+  "event_frequency": null,
+  "module": null,
+  "name": "msrp-recompute-status",
+  "rate_limit_count": 0,
+  "rate_limit_seconds": 0,
+  "reference_doctype": "Machine Shop Repairs and Project",
+  "script": "total_done = 0\ntotal_plan = 0\n\nfor process in doc.get(\"process\"):\n    plan_qty = process.plan_quantity or 0\n    done_qty = process.done_quantity or 0\n    proc_pct = int((done_qty / plan_qty) * 100) if plan_qty > 0 else 0\n\n    if proc_pct <= 0:\n        proc_status = \"Not Started\"\n    elif proc_pct >= 100:\n        proc_status = \"Completed\"\n    else:\n        proc_status = \"In Progress\"\n\n    if process.status != \"Deferred\":\n        process.status = proc_status\n\n    total_done += done_qty\n    total_plan += plan_qty\n\npct = int((total_done / total_plan) * 100) if total_plan > 0 else 0\n\nif pct <= 0:\n    new_status = \"Not Started\"\nelif pct >= 100:\n    new_status = \"Completed\"\nelse:\n    new_status = \"In progress\"\n\ndoc.percentage_completed = pct\nif doc.status != \"Deferred\":\n    doc.status = new_status\n",
+  "script_type": "DocType Event"
+ },
+ {
+  "allow_guest": 0,
+  "api_method": null,
+  "cron_format": null,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "After Insert",
+  "enable_rate_limit": 0,
+  "event_frequency": null,
+  "module": null,
+  "name": "msrp-set-project-no",
+  "rate_limit_count": 0,
+  "rate_limit_seconds": 0,
+  "reference_doctype": "Machine Shop Repairs and Project",
+  "script": "doc.db_set(\"project_no\", doc.name)\n",
+  "script_type": "DocType Event"
+ },
+ {
+  "allow_guest": 0,
+  "api_method": null,
+  "cron_format": null,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "Before Save",
+  "enable_rate_limit": 0,
+  "event_frequency": null,
+  "module": null,
+  "name": "msrp-validate-msjr-no-unique",
+  "rate_limit_count": 0,
+  "rate_limit_seconds": 0,
+  "reference_doctype": "Machine Shop Repairs and Project",
+  "script": "if doc.msjr_no:\n    existing = frappe.db.exists(\n        \"Machine Shop Repairs and Project\",\n        {\"msjr_no\": doc.msjr_no, \"name\": [\"!=\", doc.name], \"docstatus\": [\"!=\", 2]}\n    )\n    if existing:\n        frappe.throw(\n            f\"MSJR No <b>{doc.msjr_no}</b> is already referenced in an active \"\n            f\"Machine Shop Repairs and Project: <b>{existing}</b>.\"\n        )\n",
   "script_type": "DocType Event"
  },
  {
