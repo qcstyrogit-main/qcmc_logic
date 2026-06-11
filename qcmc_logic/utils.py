@@ -1042,6 +1042,53 @@ def get_msrp_process_details(process_no):
 
 
 @frappe.whitelist()
+def get_process_schedule_details(process_no):
+    process = frappe.db.get_value(
+        "Machine Shop Repairs and Project Process",
+        process_no,
+        ["process_name", "machine", "duration", "plan_quantity", "done_quantity"],
+        as_dict=True,
+    )
+    if not process:
+        return {}
+
+    duration = flt(process.get("duration") or 0)
+    plan_quantity = flt(process.get("plan_quantity") or 0)
+    done_quantity = flt(process.get("done_quantity") or 0)
+
+    result = frappe.db.sql(
+        """
+        SELECT IFNULL(
+            SUM(TIMESTAMPDIFF(SECOND, date_started, date_finished)), 0
+        ) / 3600 AS consumed_hours
+        FROM `tabDaily Job Report`
+        WHERE process_no = %s
+            AND date_started IS NOT NULL
+            AND date_finished IS NOT NULL
+            AND date_finished > date_started
+        """,
+        process_no,
+        as_dict=True,
+    )
+    consumed_hours = flt(result[0].consumed_hours) if result else 0.0
+
+    bal_hr = duration - consumed_hours
+    bal_hr = min(bal_hr, 12.0)
+    bal_hr = max(bal_hr, 0.0)
+
+    remaining_qty = plan_quantity - done_quantity
+    remaining_qty = max(remaining_qty, 0.0)
+
+    return {
+        "process_name": process.get("process_name"),
+        "machine": process.get("machine"),
+        "duration": duration,
+        "bal_hr": bal_hr,
+        "remaining_qty": remaining_qty,
+    }
+
+
+@frappe.whitelist()
 def make_daily_job_report(process_name):
     process = frappe.get_doc("Machine Shop Repairs and Project Process", process_name)
 
