@@ -53,6 +53,28 @@ qcmc_logic.warehouse_access.get_material_request_target_query = function(frm) {
     };
 };
 
+qcmc_logic.warehouse_access.get_stock_entry_source_query = function(frm, row) {
+    return {
+        query: "qcmc_logic.utils.get_stock_entry_source_warehouse_query",
+        filters: {
+            user: frappe.session.user,
+            purpose: frm && frm.doc ? frm.doc.purpose : "",
+            target_warehouse: (row && row.t_warehouse) || (frm && frm.doc ? frm.doc.to_warehouse : ""),
+        },
+    };
+};
+
+qcmc_logic.warehouse_access.get_stock_entry_target_query = function(frm, row) {
+    return {
+        query: "qcmc_logic.utils.get_stock_entry_target_warehouse_query",
+        filters: {
+            user: frappe.session.user,
+            purpose: frm && frm.doc ? frm.doc.purpose : "",
+            source_warehouse: (row && row.s_warehouse) || (frm && frm.doc ? frm.doc.from_warehouse : ""),
+        },
+    };
+};
+
 qcmc_logic.warehouse_access.is_source_field = function(fieldname) {
     return [
         "from_warehouse",
@@ -188,6 +210,14 @@ qcmc_logic.warehouse_access.apply_top_level_queries = function(frm) {
                 return qcmc_logic.warehouse_access.get_material_request_target_query(frm);
             }
 
+            if (frm.doctype === "Stock Entry" && df.fieldname === "from_warehouse") {
+                return qcmc_logic.warehouse_access.get_stock_entry_source_query(frm);
+            }
+
+            if (frm.doctype === "Stock Entry" && df.fieldname === "to_warehouse") {
+                return qcmc_logic.warehouse_access.get_stock_entry_target_query(frm);
+            }
+
             return qcmc_logic.warehouse_access.get_query(
                 qcmc_logic.warehouse_access.requires_transact(frm, df.fieldname)
             );
@@ -211,13 +241,23 @@ qcmc_logic.warehouse_access.apply_child_table_queries = function(frm) {
                 return;
             }
 
-            frm.set_query(df.fieldname, table_df.fieldname, () => {
+            frm.set_query(df.fieldname, table_df.fieldname, (_doc, cdt, cdn) => {
+                const row = locals[cdt] && locals[cdt][cdn];
+
                 if (qcmc_logic.warehouse_access.is_material_request_source_field(frm, df.fieldname)) {
                     return qcmc_logic.warehouse_access.get_material_request_source_query(frm);
                 }
 
                 if (qcmc_logic.warehouse_access.is_material_request_target_field(frm, df.fieldname)) {
                     return qcmc_logic.warehouse_access.get_material_request_target_query(frm);
+                }
+
+                if (frm.doctype === "Stock Entry" && df.fieldname === "s_warehouse") {
+                    return qcmc_logic.warehouse_access.get_stock_entry_source_query(frm, row);
+                }
+
+                if (frm.doctype === "Stock Entry" && df.fieldname === "t_warehouse") {
+                    return qcmc_logic.warehouse_access.get_stock_entry_target_query(frm, row);
                 }
 
                 return qcmc_logic.warehouse_access.get_query(
@@ -232,6 +272,8 @@ qcmc_logic.warehouse_access.apply_single_warehouse_defaults = function(frm) {
     if ((frm.doc && frm.doc.docstatus !== 0) || !frm.is_new()) {
         return;
     }
+
+    qcmc_logic.warehouse_access.apply_default_company(frm);
 
     frappe.call({
         method: "qcmc_logic.utils.get_default_warehouse_for_user",
@@ -256,6 +298,25 @@ qcmc_logic.warehouse_access.apply_single_warehouse_defaults = function(frm) {
                     frm.set_value(df.fieldname, default_warehouse);
                 }
             });
+        },
+    });
+};
+
+qcmc_logic.warehouse_access.apply_default_company = function(frm) {
+    if (!frm || !frm.doc || frm.doc.company || !frm.fields_dict.company) {
+        return;
+    }
+
+    frappe.call({
+        method: "qcmc_logic.utils.get_default_company_from_default_warehouse",
+        args: {
+            user: frappe.session.user,
+            require_transact: 1,
+        },
+        callback(r) {
+            if (r.message && !frm.doc.company) {
+                frm.set_value("company", r.message);
+            }
         },
     });
 };

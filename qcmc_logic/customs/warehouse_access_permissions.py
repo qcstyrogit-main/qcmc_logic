@@ -1,15 +1,11 @@
 import frappe
 
-from qcmc_logic.utils import (
-    get_user_allowed_warehouses,
-    is_global_warehouse_access_enabled,
-)
-
 
 SKIP_DOCTYPES = {
     "Warehouse Access",
     "Allowed Warehouse",
     "Cost Center Warehouse Mapping",
+    "Error Log",
     "Stock Settings",
     "Warehouse Transfer",
     "Warehouse",
@@ -56,6 +52,11 @@ STOCK_ENTRY_TARGET_PURPOSES = {
     "Disassemble",
 }
 
+STOCK_ENTRY_WAREHOUSE_TYPE_EXEMPT_PURPOSES = {
+    "Material Transfer for Manufacture",
+    "Material Consumption for Manufacture",
+}
+
 MATERIAL_REQUEST_SOURCE_FIELDS = {
     "from_warehouse",
     "set_from_warehouse",
@@ -71,8 +72,15 @@ def validate_warehouse_access(doc, method=None):
     if (
         frappe.session.user == "Administrator"
         or doc.doctype in SKIP_DOCTYPES
-        or not is_global_warehouse_access_enabled()
     ):
+        return
+
+    from qcmc_logic.utils import (
+        get_user_allowed_warehouses,
+        is_global_warehouse_access_enabled,
+    )
+
+    if not is_global_warehouse_access_enabled():
         return
 
     allowed = set(get_user_allowed_warehouses(frappe.session.user))
@@ -89,6 +97,30 @@ def validate_warehouse_access(doc, method=None):
                     frappe.unscrub(fieldname),
                 )
             )
+
+
+def validate_warehouse_type_restriction(doc, method=None):
+    if doc.doctype not in {"Material Request", "Stock Entry"}:
+        return
+
+    from qcmc_logic.utils import is_warehouse_type_restriction_enabled
+
+    if not is_warehouse_type_restriction_enabled():
+        return
+
+    if doc.doctype == "Material Request":
+        if doc.get("material_request_type") != "Material Transfer":
+            return
+
+        for source_warehouse, target_warehouse in _iter_material_request_warehouse_pairs(doc):
+            _validate_same_warehouse_type(source_warehouse, target_warehouse, doc.doctype)
+
+    if doc.doctype == "Stock Entry":
+        if doc.get("purpose") in STOCK_ENTRY_WAREHOUSE_TYPE_EXEMPT_PURPOSES:
+            return
+
+        for source_warehouse, target_warehouse in _iter_stock_entry_warehouse_pairs(doc):
+            _validate_same_warehouse_type(source_warehouse, target_warehouse, doc.doctype)
 
 
 def _iter_warehouse_values(doc):
@@ -174,3 +206,48 @@ def _stock_entry_field_requires_transact(doc, fieldname):
         return purpose in STOCK_ENTRY_TARGET_PURPOSES
 
     return False
+
+
+def _iter_material_request_warehouse_pairs(doc):
+    parent_source = doc.get("set_from_warehouse")
+    parent_target = doc.get("set_warehouse")
+    if parent_source and parent_target:
+        yield parent_source, parent_target
+
+    for row in doc.get("items") or []:
+        source_warehouse = row.get("from_warehouse") or parent_source
+        target_warehouse = row.get("warehouse") or parent_target
+        if source_warehouse and target_warehouse:
+            yield source_warehouse, target_warehouse
+
+
+def _iter_stock_entry_warehouse_pairs(doc):
+    parent_source = doc.get("from_warehouse")
+    parent_target = doc.get("to_warehouse")
+    if parent_source and parent_target:
+        yield parent_source, parent_target
+
+    for row in doc.get("items") or []:
+        source_warehouse = row.get("s_warehouse") or parent_source
+        target_warehouse = row.get("t_warehouse") or parent_target
+        if source_warehouse and target_warehouse:
+            yield source_warehouse, target_warehouse
+
+
+def _validate_same_warehouse_type(source_warehouse, target_warehouse, doctype):
+    if source_warehouse == target_warehouse:
+        return
+
+    source_type = frappe.db.get_value("Warehouse", source_warehouse, "warehouse_type")
+    target_type = frappe.db.get_value("Warehouse", target_warehouse, "warehouse_type")
+
+    if source_type != target_type:
+        frappe.throw(
+            "{0} requires source and target warehouses with the same warehouse type. {1} is {2}; {3} is {4}.".format(
+                doctype,
+                frappe.bold(source_warehouse),
+                frappe.bold(source_type or "No Warehouse Type"),
+                frappe.bold(target_warehouse),
+                frappe.bold(target_type or "No Warehouse Type"),
+            )
+        )
