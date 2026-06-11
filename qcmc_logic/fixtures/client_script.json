@@ -602,11 +602,12 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
-  "dt": "Material Request",
-  "enabled": 0,
+  "dt": "Job Requisition",
+  "enabled": 1,
+  "modified": "2026-03-02 10:40:49.133525",
   "module": null,
-  "name": "MR_PRsection_select",
-  "script": "frappe.ui.form.on('Material Request', {\r\n    material_request_type: function(frm) {\r\n        if (frm.doc.custom_request_type === \"Stockroom\") {\r\n            frm.set_df_property(\"custom_pr_section\", \"options\", [\r\n                \"EPS\",\r\n                \"CPS\",\r\n                \"BLR\"\r\n            ]);\r\n            frm.set_value(\"custom_pr_section\", null); // default\r\n        } \r\n        else if (frm.doc.custom_request_type === \"MIS\") {\r\n            frm.set_df_property(\"custom_pr_section\", \"options\",[\r\n                \"MIS\"\r\n            ]);\r\n            frm.set_value(\"custom_pr_section\", null); // default\r\n        } \r\n        else {\r\n           frm.set_df_property(\"custom_pr_section\", \"options\",[]);\r\n              frm.set_value(\"custom_pr_section\", null); // default\r\n        }\r\n    },\r\n\r\n    onload: function(frm) {\r\n        if (frm.doc.custom_request_type) {\r\n            frm.trigger(\"custom_request_type\");\r\n        }\r\n    }\r\n});",
+  "name": "MRF Staffing Filter",
+  "script": "frappe.ui.form.on('Job Requisition', {\r\n    refresh(frm) {\r\n        frm.trigger('set_staffing_plan_query');\r\n    },\r\n\r\n    location(frm) {\r\n        frm.trigger('set_staffing_plan_query');\r\n    },\r\n\r\n    department(frm) {\r\n        frm.trigger('set_staffing_plan_query');\r\n    },\r\n\r\n    custom_located_at_edsa(frm) {   // ✅ IMPORTANT: trigger when checkbox changes\r\n        frm.trigger('set_staffing_plan_query');\r\n    },\r\n\r\n    set_staffing_plan_query(frm) {\r\n        frm.set_query('custom_staffing_plan', function() {\r\n\r\n            if (frm.doc.custom_located_at_edsa == 1) {\r\n                \r\n                return {\r\n                    query: 'qcmc_logic.customs.MRF_SP_Filtering.staffing_plan_link_query',\r\n                    filters: { custom_located_to_edsa: 1 }\r\n                };\r\n            }\r\n\r\n            if (!frm.doc.department) {\r\n                // (Optional) avoid msg spam: only show on user action if you want\r\n                frappe.msgprint(__('Please select a Department first.'));\r\n                return {\r\n                    filters: { name: ['=', 'NO_MATCH'] }\r\n                };\r\n            }\r\n\r\n            return {\r\n                filters: {\r\n                    company: frm.doc.company,\r\n                    department: frm.doc.department,\r\n                    docstatus: 1\r\n                }\r\n            };\r\n        });\r\n\r\n        // ✅ Read-only logic\r\n        frm.set_df_property(\r\n            'custom_staffing_plan',\r\n            'read_only',\r\n            frm.doc.custom_located_at_edsa ? 0 : !frm.doc.department\r\n        );\r\n\r\n        // ✅ Force UI to reflect the change\r\n        frm.refresh_field('custom_staffing_plan');\r\n    }\r\n});",
   "view": "Form"
  },
  {
