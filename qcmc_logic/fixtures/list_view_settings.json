@@ -149,6 +149,20 @@
   "disable_sidebar_stats": 0,
   "docstatus": 0,
   "doctype": "List View Settings",
+  "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Description\",\"fieldname\":\"description\"}]",
+  "name": "BD Class",
+  "show_tags": 0
+ },
+ {
+  "allow_edit": 0,
+  "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
+  "disable_comment_count": 0,
+  "disable_count": 0,
+  "disable_scrolling": 0,
+  "disable_sidebar_stats": 0,
+  "docstatus": 0,
+  "doctype": "List View Settings",
   "fields": "[{\"fieldname\":\"name\",\"label\":\"ID\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"item\",\"label\":\"Item\"},{\"fieldname\":\"custom_rate_per_minute\",\"label\":\"Rate Per Minute\"},{\"fieldname\":\"custom_number_of_cavity\",\"label\":\"Number of Cavity\"},{\"fieldname\":\"is_active\",\"label\":\"Is Active\"},{\"fieldname\":\"is_default\",\"label\":\"Is Default\"},{\"fieldname\":\"total_cost\",\"label\":\"Total Cost\"},{\"fieldname\":\"has_variants\",\"label\":\"Has Variants\"}]",
   "name": "BOM",
   "show_tags": 0
@@ -305,6 +319,20 @@
   "doctype": "List View Settings",
   "fields": "[{\"label\":\"Member Name\",\"fieldname\":\"member_name\"},{\"label\":\"Course\",\"fieldname\":\"course\"},{\"label\":\"Member\",\"fieldname\":\"member\"},{\"label\":\"Date Enrolled\",\"fieldname\":\"custom_date_enrolled\"}]",
   "name": "LMS Enrollment",
+  "show_tags": 0
+ },
+ {
+  "allow_edit": 0,
+  "disable_auto_refresh": 0,
+  "disable_automatic_recency_filters": 0,
+  "disable_comment_count": 0,
+  "disable_count": 0,
+  "disable_scrolling": 0,
+  "disable_sidebar_stats": 0,
+  "docstatus": 0,
+  "doctype": "List View Settings",
+  "fields": "[{\"fieldname\":\"description\",\"label\":\"Description\"},{\"fieldname\":\"measure\",\"label\":\"Measure\"},{\"fieldname\":\"estimation\",\"label\":\"Estimation\"}]",
+  "name": "MS Request Code",
   "show_tags": 0
  },
  {
