@@ -273,6 +273,8 @@ qcmc_logic.warehouse_access.apply_single_warehouse_defaults = function(frm) {
         return;
     }
 
+    qcmc_logic.warehouse_access.apply_default_company(frm);
+
     frappe.call({
         method: "qcmc_logic.utils.get_default_warehouse_for_user",
         args: {
@@ -296,6 +298,25 @@ qcmc_logic.warehouse_access.apply_single_warehouse_defaults = function(frm) {
                     frm.set_value(df.fieldname, default_warehouse);
                 }
             });
+        },
+    });
+};
+
+qcmc_logic.warehouse_access.apply_default_company = function(frm) {
+    if (!frm || !frm.doc || frm.doc.company || !frm.fields_dict.company) {
+        return;
+    }
+
+    frappe.call({
+        method: "qcmc_logic.utils.get_default_company_from_default_warehouse",
+        args: {
+            user: frappe.session.user,
+            require_transact: 1,
+        },
+        callback(r) {
+            if (r.message && !frm.doc.company) {
+                frm.set_value("company", r.message);
+            }
         },
     });
 };
