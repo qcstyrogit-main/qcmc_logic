@@ -1,5 +1,7 @@
 import math
 import json
+import hashlib
+import secrets
 import frappe
 import requests
 from frappe.auth import LoginManager
@@ -7,6 +9,7 @@ from frappe.utils import now_datetime
 from frappe.utils import cint
 from frappe.utils import today
 
+MOBILE_TOKEN_TTL = 60 * 60 * 24 * 30
 
 
 GEOFENCE_EXEMPT_DESIGNATIONS = {
@@ -105,6 +108,54 @@ def _radius_from_geolocation(geojson_value):
         return max(radius_values)
 
     return None
+
+
+def _mobile_token_cache_key(token):
+    digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    return f"qcmc_scanner_mobile_token:{digest}"
+
+
+def _issue_mobile_token(user_id):
+    token = secrets.token_urlsafe(32)
+    frappe.cache.set_value(_mobile_token_cache_key(token), user_id, expires_in_sec=MOBILE_TOKEN_TTL)
+    return token
+
+
+def _resolve_mobile_token_user(token):
+    if not token:
+        return None
+    user_id = frappe.cache.get_value(_mobile_token_cache_key(token))
+    return user_id or None
+
+
+def _get_mobile_token_arg(mobile_token=None):
+    token = str(mobile_token or '').strip()
+    if token:
+        return token
+
+    form_token = str(frappe.form_dict.get('mobile_token') or '').strip()
+    if form_token:
+        return form_token
+
+    request = getattr(frappe.local, 'request', None)
+    if request:
+        try:
+            payload = request.get_json(silent=True) or {}
+        except Exception:
+            payload = {}
+
+        if isinstance(payload, dict):
+            json_token = str(payload.get('mobile_token') or '').strip()
+            if json_token:
+                return json_token
+
+    data = getattr(frappe.local, 'form_dict', None)
+    if data:
+        dict_token = str(data.get('mobile_token') or '').strip()
+        if dict_token:
+            return dict_token
+
+    return ''
 
 
 @frappe.whitelist(allow_guest=True)
@@ -234,12 +285,14 @@ def login(username, password):
         ) or {}
 
         designation = emp.get("designation")
+        mobile_token = _issue_mobile_token(user_id)
 
         return {
             "success": True,
             "message": "Login successful",
             "sid": frappe.session.sid,
             "csrf_token": frappe.session.data.csrf_token,
+            "mobile_token": mobile_token,
             "user": {
                 "name": user_id,
                 "email": user_doc.get("email") or username,
@@ -262,6 +315,39 @@ def login(username, password):
         frappe.log_error(frappe.get_traceback(), "login_scan.login")
         frappe.local.response["http_status_code"] = 500
         return {"success": False, "message": "Login failed"}
+
+
+@frappe.whitelist(allow_guest=True)
+def resume_session(mobile_token=None):
+    """Return fresh session details for an already authenticated user or a valid mobile token."""
+    try:
+        user = frappe.session.user
+        if user == "Guest":
+            mobile_token = _get_mobile_token_arg(mobile_token)
+            if not mobile_token:
+                frappe.local.response["http_status_code"] = 401
+                return {"success": False, "message": "Session expired. Please log in again."}
+
+            user = _resolve_mobile_token_user(mobile_token)
+            if not user:
+                frappe.local.response["http_status_code"] = 401
+                return {"success": False, "message": "Session expired. Please log in again."}
+
+            login_manager = LoginManager()
+            login_manager.login_as(user)
+            frappe.db.commit()
+            user = frappe.session.user
+
+        return {
+            "success": True,
+            "sid": frappe.session.sid,
+            "csrf_token": frappe.session.data.csrf_token,
+            "user": user,
+        }
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "login_scan.resume_session")
+        frappe.local.response["http_status_code"] = 500
+        return {"success": False, "message": "Unable to resume session"}
 
 
 @frappe.whitelist(allow_guest=True)
