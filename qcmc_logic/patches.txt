@@ -17,3 +17,4 @@ qcmc_logic.patches.add_allowed_warehouse_default_flag
 qcmc_logic.patches.add_warehouse_type_restriction_setting
 qcmc_logic.patches.create_role_profile_warehouse_access
 qcmc_logic.patches.create_inventory_group_access
+qcmc_logic.patches.fix_allowed_warehouse_doctype
