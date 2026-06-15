@@ -68,6 +68,10 @@ doctype_js = {
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
 }
 
+doctype_list_js = {
+    "Employee Attendance Schedule": "public/js/employee_attendance_schedule_list.js",
+}
+
 # override_doctype_class = {
     
 #    # ,"Stock Entry": "qcmc_logic.overrides.stock_entry_override.CustomStockEntry"
