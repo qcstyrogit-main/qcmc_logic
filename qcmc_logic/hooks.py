@@ -51,6 +51,10 @@ doc_events = {
     },
     "BOM": {
         "before_validate": "qcmc_logic.customs.bom_rate.fetch_missing_component_rates"
+    },
+    "Employee Attendance Schedule": {
+        "before_insert": "qcmc_logic.customs.employee_attendance_schedule.apply_defaults",
+        "validate": "qcmc_logic.customs.employee_attendance_schedule.apply_defaults",
     }
 }
 
@@ -66,6 +70,7 @@ after_request = [
 doctype_js = {
     "Material Request": "public/js/material_request.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
+    "Employee Attendance Schedule": "public/js/employee_attendance_schedule.js",
 }
 
 doctype_list_js = {
@@ -190,9 +195,9 @@ fixtures = [
         "filters": [["is_custom", "=", 1]]
     }
 ]
-# after_migrate = [
-#     "qcmc_logic.patches.monkey_patches.execute"
-# ]
+after_migrate = [
+    "qcmc_logic.customs.employee_attendance_schedule.ensure_default_record_after_migrate",
+]
 
 # # Or ensure it loads at boot
 # app_include = [

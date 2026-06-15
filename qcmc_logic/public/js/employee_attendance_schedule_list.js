@@ -124,18 +124,15 @@ function redirect_to_attendance_schedule_viewer() {
 
     window.__eas_viewer_redirecting = true;
 
-    frappe.db.get_list("Employee Attendance Schedule", {
-        fields: ["name"],
-        limit: 1,
-        order_by: "creation asc"
-    }).then((rows) => {
-        if (rows && rows.length) {
-            frappe.set_route("Form", "Employee Attendance Schedule", rows[0].name);
+    frappe.call({
+        method: "qcmc_logic.customs.employee_attendance_schedule.ensure_default_record"
+    }).then((response) => {
+        const name = response && response.message;
+        if (name) {
+            frappe.set_route("Form", "Employee Attendance Schedule", name);
             return;
         }
 
-        window.__eas_viewer_redirecting = false;
-    }).catch(() => {
         window.__eas_viewer_redirecting = false;
     });
 
