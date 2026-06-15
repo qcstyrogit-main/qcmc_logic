@@ -3332,7 +3332,7 @@
     "workflow_builder_id": "1"
    },
    {
-    "allow_edit": "Credit and Collection Section Head",
+    "allow_edit": "Credit and Collection User",
     "avoid_status_override": 0,
     "doc_status": "0",
     "evaluate_as_expression": 0,
@@ -3360,7 +3360,7 @@
     "workflow_builder_id": "3"
    },
    {
-    "allow_edit": "Credit and Collection Section Head",
+    "allow_edit": "Credit and Collection User",
     "avoid_status_override": 0,
     "doc_status": "0",
     "evaluate_as_expression": 0,
@@ -3374,7 +3374,7 @@
     "workflow_builder_id": "4"
    },
    {
-    "allow_edit": "Credit and Collection Section Head",
+    "allow_edit": "Credit and Collection User",
     "avoid_status_override": 0,
     "doc_status": "1",
     "evaluate_as_expression": 0,
@@ -3388,7 +3388,7 @@
     "workflow_builder_id": "5"
    },
    {
-    "allow_edit": "Credit and Collection Section Head",
+    "allow_edit": "Credit and Collection User",
     "avoid_status_override": 0,
     "doc_status": "2",
     "evaluate_as_expression": 0,
@@ -3402,7 +3402,7 @@
     "workflow_builder_id": "6"
    },
    {
-    "allow_edit": "Credit and Collection Section Head",
+    "allow_edit": "Credit and Collection User",
     "avoid_status_override": 0,
     "doc_status": "1",
     "evaluate_as_expression": 0,

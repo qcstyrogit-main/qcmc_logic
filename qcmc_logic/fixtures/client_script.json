@@ -755,6 +755,16 @@
   "dt": "Purchase Order",
   "enabled": 1,
   "module": null,
+  "name": "PO RFP Print Button",
+  "script": "frappe.ui.form.on('Purchase Order', {\r\n    refresh(frm) {\r\n        frappe.msgprint('Client Script Loaded');\r\n\r\n        frm.add_custom_button(__('Print RFP'), function() {\r\n            frappe.msgprint('Button Clicked');\r\n        });\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Order",
+  "enabled": 1,
+  "module": null,
   "name": "PO Restrict Naming Series",
   "script": "frappe.ui.form.on(\"Purchase Order\", {\r\n    onload: function(frm) {\r\n        frm.trigger(\"set_naming_series\");\r\n    },\r\n\r\n    company: function(frm) {\r\n        frm.trigger(\"set_naming_series\");\r\n    },\r\n\r\n    set_naming_series: function(frm) {\r\n        if (!frm.doc.company) return;\r\n\r\n        frappe.db.get_value(\"Company\", frm.doc.company, \"custom_doc_extension\", function(r) {\r\n            if (r && r.custom_doc_extension) {\r\n                let ext = r.custom_doc_extension;\r\n\r\n                // Define allowed series depending on extension\r\n                let allowed_series = [];\r\n                if (ext === \"MCY\" || ext === \"QM\") {\r\n                    // Only basic series, no X\r\n                    allowed_series = [`.${ext}.#`];\r\n                } else if (ext === \"Q\" || ext === \"M\") {\r\n                    // Allow both\r\n                    allowed_series = [`.${ext}.#`, `.${ext}.X.#`];\r\n                }\r\n\r\n                // Set options dynamically\r\n                frm.set_df_property(\"naming_series\", \"options\", allowed_series.join(\"\\n\"));\r\n\r\n                // Reset value only if current is not in allowed\r\n                if (!allowed_series.includes(frm.doc.naming_series)) {\r\n                    frm.set_value(\"naming_series\", allowed_series[0]);\r\n                }\r\n            }\r\n        });\r\n    }\r\n});\r\n",
   "view": "Form"
@@ -773,7 +783,7 @@
   "docstatus": 0,
   "doctype": "Client Script",
   "dt": "Purchase Receipt",
-  "enabled": 1,
+  "enabled": 0,
   "module": null,
   "name": "Purchase Receipt button",
   "script": "frappe.ui.form.on('Purchase Receipt', {\r\n    refresh(frm) {\r\n        frm.add_custom_button('Generate Jasper PDF', function() {\r\n            frappe.call({\r\n                method: \"qcmc_logic.api.jasper.generate_purchase_receipt_report\",\r\n                args: { doc_name: frm.doc.name },\r\n                callback: function(r) {\r\n                    frappe.show_alert({message: \"Jasper PDF Generated!\", indicator: \"green\"});\r\n                }\r\n            });\r\n        });\r\n    }\r\n});\r\n",
