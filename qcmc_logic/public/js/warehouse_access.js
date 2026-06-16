@@ -37,7 +37,6 @@ qcmc_logic.warehouse_access.get_material_request_source_query = function(frm, ro
     return {
         query: "qcmc_logic.utils.get_material_request_source_warehouse_query",
         filters: {
-            user: frappe.session.user,
             target_warehouse: (row && row.warehouse) || (frm && frm.doc ? frm.doc.set_warehouse : ""),
         },
     };

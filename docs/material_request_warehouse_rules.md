@@ -38,7 +38,10 @@ Conditions:
 - Must be a non-group Warehouse.
 - Must not be the same as the target warehouse when a target is selected.
 - Must not be a province warehouse.
-- If `custom_can_serve_material_requests` exists on Warehouse, it must be enabled.
+- If at least one Warehouse has `custom_can_serve_material_requests` enabled,
+  only enabled warehouses can be selected as source warehouses.
+- If no Warehouse has `custom_can_serve_material_requests` enabled yet, all
+  non-province warehouses can serve Material Transfer requests.
 - If warehouse type restriction is enabled, and the selected target warehouse is not
   a province warehouse, the source warehouse type must match the target warehouse
   type.
