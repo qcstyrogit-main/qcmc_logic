@@ -47,7 +47,7 @@ function install_employee_attendance_colored_renderer(frm) {
     ensure_employee_attendance_viewer_style();
     setup_employee_attendance_color_observer(frm);
 
-    if (window.__eas_colored_renderer_installed) return;
+    if (window.render_attendance_viewer && window.render_attendance_viewer.__eas_with_leave_summary) return;
 
     window.__eas_colored_renderer_installed = true;
     window.render_attendance_viewer = function(form, rows) {
@@ -104,10 +104,26 @@ function install_employee_attendance_colored_renderer(frm) {
             return '<tr class="' + status.className + '">' + cells + "</tr>";
         }).join("");
 
+        const totalLate = rows.reduce((total, row) => total + flt(row.late_hours), 0);
+        const totalOt = rows.reduce((total, row) => total + flt(row.valid_ot), 0);
+        const totalAbsent = rows.reduce((total, row) => {
+            return total + (get_employee_attendance_row_status(row).className === "eas-row-absent" ? 1 : 0);
+        }, 0);
+        const totalLeave = rows.reduce((total, row) => {
+            return total + (get_employee_attendance_row_status(row).className === "eas-row-leave" ? 1 : 0);
+        }, 0);
+
         field.$wrapper.html(
+            '<div class="eas-attendance-summary">' +
+                '<span class="eas-attendance-total">Total Late <strong>' + format_employee_attendance_total(totalLate) + '</strong></span>' +
+                '<span class="eas-attendance-total">Total OT <strong>' + format_employee_attendance_total(totalOt) + '</strong></span>' +
+                '<span class="eas-attendance-total">Absent <strong>' + totalAbsent + '</strong> day' + (totalAbsent === 1 ? '' : 's') + '</span>' +
+                '<span class="eas-attendance-total">Leave <strong>' + totalLeave + '</strong> day' + (totalLeave === 1 ? '' : 's') + '</span>' +
+            '</div>' +
             '<div class="eas-attendance-legend">' +
                 '<span><i class="eas-legend-dot eas-legend-late"></i>Late</span>' +
                 '<span><i class="eas-legend-dot eas-legend-absent"></i>Absent</span>' +
+                '<span><i class="eas-legend-dot eas-legend-leave"></i>Leave</span>' +
                 '<span><i class="eas-legend-dot eas-legend-holiday"></i>Holiday / Rest Day</span>' +
             '</div>' +
             '<div class="eas-attendance-viewer">' +
@@ -120,6 +136,7 @@ function install_employee_attendance_colored_renderer(frm) {
             '</div>'
         );
     };
+    window.render_attendance_viewer.__eas_with_leave_summary = true;
 }
 
 function setup_employee_attendance_color_observer(frm) {
@@ -161,7 +178,7 @@ function apply_employee_attendance_table_colors(frm) {
         };
         const status = get_employee_attendance_row_status(rowData);
 
-        row.removeClass("eas-row-late eas-row-absent eas-row-holiday");
+        row.removeClass("eas-row-late eas-row-absent eas-row-leave eas-row-holiday");
         if (status.className) {
             row.addClass(status.className);
         }
@@ -169,12 +186,21 @@ function apply_employee_attendance_table_colors(frm) {
 }
 
 function ensure_employee_attendance_legend(wrapper) {
-    if (wrapper.find(".eas-attendance-legend").length) return;
+    const existingLegend = wrapper.find(".eas-attendance-legend");
+    if (existingLegend.length) {
+        if (!existingLegend.find(".eas-legend-leave").length) {
+            existingLegend.find(".eas-legend-absent").closest("span").after(
+                '<span><i class="eas-legend-dot eas-legend-leave"></i>Leave</span>'
+            );
+        }
+        return;
+    }
 
     wrapper.find(".eas-attendance-viewer").before(
         '<div class="eas-attendance-legend">' +
             '<span><i class="eas-legend-dot eas-legend-late"></i>Late</span>' +
             '<span><i class="eas-legend-dot eas-legend-absent"></i>Absent</span>' +
+            '<span><i class="eas-legend-dot eas-legend-leave"></i>Leave</span>' +
             '<span><i class="eas-legend-dot eas-legend-holiday"></i>Holiday / Rest Day</span>' +
         '</div>'
     );
@@ -198,6 +224,9 @@ function get_employee_attendance_row_status(row) {
     if (isHoliday) {
         return { className: "eas-row-holiday" };
     }
+    if (hasLeave) {
+        return { className: "eas-row-leave" };
+    }
     if (isAbsent) {
         return { className: "eas-row-absent" };
     }
@@ -213,11 +242,15 @@ function ensure_employee_attendance_viewer_style() {
     if (document.getElementById("eas-attendance-color-style")) return;
 
     $('<style id="eas-attendance-color-style">' +
+        '.eas-attendance-summary{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 10px;}' +
+        '.eas-attendance-total{display:inline-flex;align-items:baseline;gap:6px;padding:7px 10px;border:1px solid #e5e7eb;border-radius:6px;background:#f8fafc;color:#334155;font-size:12px;line-height:1.2;}' +
+        '.eas-attendance-total strong{font-size:15px;color:#0f172a;font-weight:700;}' +
         '.eas-attendance-legend{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:0 0 10px;color:#475569;font-size:12px;line-height:1.4;}' +
         '.eas-attendance-legend span{display:inline-flex;align-items:center;gap:6px;}' +
         '.eas-legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;border:1px solid rgba(15,23,42,0.16);}' +
         '.eas-legend-late{background:#fff4cc;}' +
         '.eas-legend-absent{background:#ffd6d6;}' +
+        '.eas-legend-leave{background:#e6e0ff;}' +
         '.eas-legend-holiday{background:#dff3e6;}' +
         '.eas-attendance-viewer{border:1px solid #e5e7eb;border-radius:8px;background:#fff;overflow:hidden;}' +
         '.eas-attendance-scroll{overflow:auto;max-width:100%;}' +
@@ -230,12 +263,23 @@ function ensure_employee_attendance_viewer_style() {
         '.eas-attendance-table th:nth-child(5),.eas-attendance-table td:nth-child(5),.eas-attendance-table th:nth-child(6),.eas-attendance-table td:nth-child(6),.eas-attendance-table th:nth-child(7),.eas-attendance-table td:nth-child(7),.eas-attendance-table th:nth-child(8),.eas-attendance-table td:nth-child(8){min-width:92px;}' +
         '.eas-attendance-table tbody tr.eas-row-late td{background:#fff8db;}' +
         '.eas-attendance-table tbody tr.eas-row-absent td{background:#ffe4e4;}' +
+        '.eas-attendance-table tbody tr.eas-row-leave td{background:#f2edff;}' +
         '.eas-attendance-table tbody tr.eas-row-holiday td{background:#e9f8ee;}' +
         '.eas-attendance-table tbody tr:hover td{filter:brightness(0.985);}' +
         '.eas-attendance-link{color:#2563eb;text-decoration:none;font-weight:500;}' +
         '.eas-attendance-link:hover{text-decoration:underline;}' +
         '.eas-attendance-empty{padding:18px;color:#64748b;}' +
     '</style>').appendTo("head");
+}
+
+function format_employee_attendance_total(value) {
+    const totalMinutes = Math.round(flt(value) * 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (hours && minutes) return hours + "h " + minutes + "m";
+    if (hours) return hours + "h";
+    return minutes + "m";
 }
 
 function format_employee_attendance_cell(row, fieldname) {
