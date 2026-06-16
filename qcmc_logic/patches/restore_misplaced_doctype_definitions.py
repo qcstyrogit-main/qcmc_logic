@@ -4,15 +4,17 @@ import frappe
 
 
 TARGET_DOCTYPES = {
+    "Allowed Inventory Group",
     "Allowed Warehouse",
     "Appraisal Group Section",
     "Batch Leave Approval",
     "Delivery Monitoring",
     "Expense Details",
+    "Inventory Group Access",
     "ISO Doc Series",
     "Job Report",
+    "Role Profile Inventory Group Access",
     "SSS Table",
-    "Stock Entry Reference Detail",
     "Vehicle Service Category",
     "Warehouse Transfer Details",
     "Website Event",

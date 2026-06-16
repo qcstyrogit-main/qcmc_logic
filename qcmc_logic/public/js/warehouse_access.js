@@ -33,12 +33,12 @@ qcmc_logic.warehouse_access.get_query = function(require_transact) {
     };
 };
 
-qcmc_logic.warehouse_access.get_material_request_source_query = function(frm) {
+qcmc_logic.warehouse_access.get_material_request_source_query = function(frm, row) {
     return {
         query: "qcmc_logic.utils.get_material_request_source_warehouse_query",
         filters: {
             user: frappe.session.user,
-            target_warehouse: frm && frm.doc ? frm.doc.set_warehouse : "",
+            target_warehouse: (row && row.warehouse) || (frm && frm.doc ? frm.doc.set_warehouse : ""),
         },
     };
 };
@@ -48,7 +48,6 @@ qcmc_logic.warehouse_access.get_material_request_target_query = function(frm) {
         query: "qcmc_logic.utils.get_material_request_target_warehouse_query",
         filters: {
             user: frappe.session.user,
-            source_warehouse: frm && frm.doc ? frm.doc.set_from_warehouse : "",
         },
     };
 };
@@ -245,7 +244,7 @@ qcmc_logic.warehouse_access.apply_child_table_queries = function(frm) {
                 const row = locals[cdt] && locals[cdt][cdn];
 
                 if (qcmc_logic.warehouse_access.is_material_request_source_field(frm, df.fieldname)) {
-                    return qcmc_logic.warehouse_access.get_material_request_source_query(frm);
+                    return qcmc_logic.warehouse_access.get_material_request_source_query(frm, row);
                 }
 
                 if (qcmc_logic.warehouse_access.is_material_request_target_field(frm, df.fieldname)) {
