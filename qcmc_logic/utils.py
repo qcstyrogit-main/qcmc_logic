@@ -346,6 +346,21 @@ def _get_warehouse_type(warehouse):
     return frappe.db.get_value("Warehouse", warehouse, "warehouse_type")
 
 
+def _has_material_request_serving_warehouses():
+    if not frappe.get_meta("Warehouse").has_field("custom_can_serve_material_requests"):
+        return False
+
+    return bool(
+        frappe.db.exists(
+            "Warehouse",
+            {
+                "is_group": 0,
+                "custom_can_serve_material_requests": 1,
+            },
+        )
+    )
+
+
 def _stock_entry_should_restrict_warehouse_type(purpose):
     return (
         is_warehouse_type_restriction_enabled()
@@ -551,7 +566,7 @@ def get_material_request_source_warehouse_query(doctype, txt, searchfield, start
         "page_len": page_len,
     }
 
-    if frappe.get_meta("Warehouse").has_field("custom_can_serve_material_requests"):
+    if _has_material_request_serving_warehouses():
         conditions.append("ifnull(w.custom_can_serve_material_requests, 0) = 1")
 
     if target_warehouse:
@@ -890,7 +905,7 @@ def _can_serve_material_requests(warehouse):
     if frappe.utils.cint(frappe.db.get_value("Warehouse", warehouse, "custom_is_province")):
         return False
 
-    if frappe.get_meta("Warehouse").has_field("custom_can_serve_material_requests"):
+    if _has_material_request_serving_warehouses():
         return bool(
             frappe.utils.cint(
                 frappe.db.get_value(

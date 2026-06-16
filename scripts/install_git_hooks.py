@@ -17,6 +17,7 @@ set -eu
 cd {APP_ROOT}
 python3 scripts/validate_fixtures.py
 python3 scripts/audit_doctype_fixtures.py
+python3 scripts/audit_property_setters.py
 """
 
 

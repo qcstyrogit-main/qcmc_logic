@@ -45,6 +45,7 @@ Checks that `doctype.json` is valid JSON after resolving conflict markers.
 ```bash
 python3 scripts/validate_fixtures.py
 python3 scripts/audit_doctype_fixtures.py
+python3 scripts/audit_property_setters.py
 ```
 
 `validate_fixtures.py` catches import-breaking fixture mistakes.
@@ -52,6 +53,9 @@ python3 scripts/audit_doctype_fixtures.py
 `audit_doctype_fixtures.py` catches DocType ownership mix-ups and duplicate
 DocField names, such as an LMS or ZKTeco DocType accidentally exported by
 `qcmc_logic`.
+
+`audit_property_setters.py` catches Property Setter records whose encoded
+`name` target disagrees with `doc_type`, `field_name`, or `property`.
 
 ## 6. Check Whitespace And Mark Resolved
 
@@ -69,11 +73,11 @@ as `UU`.
 ## 7. Full Fixture Safety Check
 
 ```bash
-python3 scripts/export_fixtures_clean.py --skip-export
+python3 scripts/clean_fixtures.py
 ```
 
-Runs normalize, safe fixes, fixture validation, and DocType audit without
-running `bench export-fixtures` again.
+Runs normalize, safe fixes, fixture validation, DocType audit, and Property
+Setter audit without running `bench export-fixtures` again.
 
 ## 8. Before Commit
 
