@@ -18,6 +18,7 @@ BENCH_ROOT = APP_ROOT.parents[1]
 NORMALIZE_SCRIPT = APP_ROOT / "scripts" / "normalize_fixtures.py"
 FIX_SCRIPT = APP_ROOT / "scripts" / "fix_fixture_validation_errors.py"
 VALIDATE_SCRIPT = APP_ROOT / "scripts" / "validate_fixtures.py"
+DOCTYPE_AUDIT_SCRIPT = APP_ROOT / "scripts" / "audit_doctype_fixtures.py"
 
 
 def run_step(command: list[str], *, cwd: Path) -> int:
@@ -61,6 +62,7 @@ def main() -> int:
 			([sys.executable, str(NORMALIZE_SCRIPT)], APP_ROOT),
 			([sys.executable, str(FIX_SCRIPT)], APP_ROOT),
 			([sys.executable, str(VALIDATE_SCRIPT)], APP_ROOT),
+			([sys.executable, str(DOCTYPE_AUDIT_SCRIPT)], APP_ROOT),
 		]
 	)
 

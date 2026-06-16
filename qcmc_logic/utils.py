@@ -42,31 +42,34 @@ def is_warehouse_type_restriction_enabled():
 
 @frappe.whitelist()
 def get_user_allowed_warehouses(user=None, require_transact=False):
-    """Fetch effective warehouse access for the given user.
+    """Fetch warehouses from Warehouse Access for the given user.
 
-    User-level Warehouse Access and Role Profile Warehouse Access are additive.
-    Rows grant view/select access by default. When require_transact is true,
-    only rows with allow_transact checked are returned.
+    Rows in Allowed Warehouse grant selection access by default. When
+    require_transact is true, only rows with allow_transact checked are returned.
     """
     if not user:
         user = frappe.session.user
 
-    access_names = _get_effective_warehouse_access_names(user)
-    if not access_names:
+    access_docs = frappe.get_all(
+        "Warehouse Access",
+        filters={"user": user},
+        fields=["name"],
+    )
+    if not access_docs:
         return []
 
-    filters = {"parent": ["in", access_names]}
+    filters = {"parent": ["in", [d.name for d in access_docs]]}
     if frappe.utils.cint(require_transact):
         filters["allow_transact"] = 1
 
-    warehouses = frappe.get_all(
+    allowed = frappe.get_all(
         "Allowed Warehouse",
         filters=filters,
         pluck="warehouse",
         order_by="idx",
     )
 
-    return list(dict.fromkeys(filter(None, warehouses)))
+    return list(dict.fromkeys(filter(None, allowed)))
 
 
 def _get_user_role_profiles(user):
@@ -88,46 +91,19 @@ def _get_user_role_profiles(user):
     return list(dict.fromkeys(filter(None, role_profiles)))
 
 
-def _get_effective_warehouse_access_names(user=None, source=None):
+def _get_allowed_warehouse_filters(user=None, require_transact=False, is_default=False):
     if not user:
         user = frappe.session.user
 
-    access_names = []
-
-    if source in (None, "User"):
-        access_names.extend(
-            frappe.get_all(
-                "Warehouse Access",
-                filters={"user": user},
-                pluck="name",
-            )
-        )
-
-    if source in (None, "Role Profile") and frappe.db.table_exists(
-        "Role Profile Warehouse Access"
-    ):
-        role_profiles = _get_user_role_profiles(user)
-        if role_profiles:
-            access_names.extend(
-                frappe.get_all(
-                    "Role Profile Warehouse Access",
-                    filters={"role_profile": ["in", role_profiles]},
-                    pluck="name",
-                )
-            )
-
-    return list(dict.fromkeys(access_names))
-
-
-def _get_allowed_warehouse_filters(user=None, require_transact=False, is_default=False, source=None):
-    if not user:
-        user = frappe.session.user
-
-    access_names = _get_effective_warehouse_access_names(user, source=source)
-    if not access_names:
+    access_docs = frappe.get_all(
+        "Warehouse Access",
+        filters={"user": user},
+        fields=["name"],
+    )
+    if not access_docs:
         return None
 
-    filters = {"parent": ["in", access_names]}
+    filters = {"parent": ["in", [d.name for d in access_docs]]}
     if frappe.utils.cint(require_transact):
         filters["allow_transact"] = 1
     if frappe.utils.cint(is_default):
@@ -136,12 +112,11 @@ def _get_allowed_warehouse_filters(user=None, require_transact=False, is_default
     return filters
 
 
-def _get_default_warehouse_from_source(user=None, require_transact=False, source=None):
+def _get_default_warehouse_from_source(user=None, require_transact=False):
     filters = _get_allowed_warehouse_filters(
         user,
         require_transact=require_transact,
         is_default=True,
-        source=source,
     )
     if not filters:
         return None
@@ -341,23 +316,10 @@ def get_default_warehouse_for_user(user=None, require_transact=False):
     if not frappe.get_meta("Allowed Warehouse").has_field("is_default"):
         return None
 
-    user_default = _get_default_warehouse_from_source(
+    return _get_default_warehouse_from_source(
         user,
         require_transact=require_transact,
-        source="User",
     )
-    if user_default:
-        return user_default
-
-    role_profile_default = _get_default_warehouse_from_source(
-        user,
-        require_transact=require_transact,
-        source="Role Profile",
-    )
-    if role_profile_default:
-        return role_profile_default
-
-    return None
 
 
 @frappe.whitelist()
