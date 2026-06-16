@@ -727,7 +727,6 @@ def get_material_request_target_warehouse_query(doctype, txt, searchfield, start
 
     filters = frappe._dict(filters or {})
     user = filters.get("user") or frappe.session.user
-    source_warehouse = filters.get("source_warehouse")
     allowed_warehouses = get_user_allowed_warehouses(user, require_transact=True)
     if not allowed_warehouses:
         return []
@@ -743,17 +742,6 @@ def get_material_request_target_warehouse_query(doctype, txt, searchfield, start
         "start": start,
         "page_len": page_len,
     }
-
-    if source_warehouse:
-        source_warehouse_type = _get_warehouse_type(source_warehouse)
-        conditions.append("w.name != %(source_warehouse)s")
-        values["source_warehouse"] = source_warehouse
-
-        if is_warehouse_type_restriction_enabled() and source_warehouse_type:
-            conditions.append(
-                "(ifnull(w.custom_is_province, 0) = 1 or w.warehouse_type = %(source_warehouse_type)s)"
-            )
-            values["source_warehouse_type"] = source_warehouse_type
 
     return frappe.db.sql(
         f"""
