@@ -2462,7 +2462,7 @@
   "letter_head": null,
   "module": "HR",
   "name": "Employee Leave Balance",
-  "prepared_report": 0,
+  "prepared_report": 1,
   "query": null,
   "ref_doctype": "Employee",
   "reference_report": null,
