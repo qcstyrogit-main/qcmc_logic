@@ -27,12 +27,6 @@ doc_events = {
     "Warehouse Access": {
         "validate": "qcmc_logic.doctype.warehouse_access.warehouse_access.validate_default_warehouse",
     },
-    "Role Profile Warehouse Access": {
-        "validate": "qcmc_logic.doctype.warehouse_access.warehouse_access.validate_role_profile_default_warehouse",
-        "after_insert": "qcmc_logic.doctype.warehouse_access.warehouse_access.sync_role_profile_warehouse_user_permissions",
-        "on_update": "qcmc_logic.doctype.warehouse_access.warehouse_access.sync_role_profile_warehouse_user_permissions",
-        "after_delete": "qcmc_logic.doctype.warehouse_access.warehouse_access.sync_role_profile_warehouse_user_permissions",
-    },
     "Inventory Group Access": {
         "validate": "qcmc_logic.doctype.inventory_group_access.inventory_group_access.validate_default_inventory_group",
     },
@@ -184,7 +178,23 @@ fixtures = [
     {"doctype": "Property Setter"},
     {
         "doctype": "DocType",
-        "filters": [["custom", "=", 1]]
+        "filters": [
+            ["custom", "=", 1],
+            [
+                "module",
+                "in",
+                [
+                    "Accounts",
+                    "Assets",
+                    "Buying",
+                    "Custom",
+                    "HR",
+                    "Payroll",
+                    "QCMC Logics",
+                    "Stock",
+                ],
+            ],
+        ],
     },    
     {
         "doctype": "Print Format"

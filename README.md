@@ -34,6 +34,7 @@ bench export-fixtures
 python3 apps/qcmc_logic/scripts/normalize_fixtures.py
 python3 apps/qcmc_logic/scripts/fix_fixture_validation_errors.py
 python3 apps/qcmc_logic/scripts/validate_fixtures.py
+python3 apps/qcmc_logic/scripts/audit_doctype_fixtures.py
 git diff
 ```
 
@@ -49,6 +50,23 @@ prints a warning when meaningful fixture changes remain.
 `validate_fixtures.py` catches import-breaking `Custom Field` mistakes, including
 records whose `name` does not match `{dt}-{fieldname}`.
 
+`audit_doctype_fixtures.py` catches custom DocTypes from unexpected app modules
+and duplicate DocField names inside exported DocType fixtures. This prevents
+cross-app fixture ownership problems, such as LMS or ZKTeco DocTypes being
+exported by qcmc_logic, and catches child-table field mix-ups before migration.
+
+When reviewing `qcmc_logic/fixtures/doctype.json`, stop if an unrelated module
+appears. One app should own each custom DocType fixture.
+
+Install the local pre-commit hook once per clone:
+
+```bash
+python3 apps/qcmc_logic/scripts/install_git_hooks.py
+```
+
+The hook runs `validate_fixtures.py` and `audit_doctype_fixtures.py` before each
+commit.
+
 ### Fixture Merge Conflicts
 
 When `git pull --rebase` or merge reports conflicts in `qcmc_logic/fixtures/*.json`,
@@ -63,6 +81,9 @@ git diff
 The resolver auto-merges only safe JSON fixture cases, such as both branches
 changing different fixture records. If both branches changed the same fixture
 record differently, it stops and prints the exact record that needs human review.
+
+See `docs/fixture_conflict_commands.md` for the full command runbook and what
+each command is for.
 
 #### License
 

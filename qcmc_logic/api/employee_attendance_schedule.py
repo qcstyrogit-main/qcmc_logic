@@ -1,8 +1,12 @@
 import frappe
+from frappe import _
+from frappe.utils import cint
 from frappe.utils import add_days, getdate, now_datetime, today
+from hrms.hr.doctype.shift_assignment_tool.shift_assignment_tool import create_shift_assignment
 
 
 DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+DEFAULT_LATE_GRACE_PERIOD_MINUTES = 15
 
 
 def _fmt_time(value):
@@ -20,6 +24,22 @@ def _fmt_time(value):
 	suffix = "AM" if hour < 12 else "PM"
 	hour_12 = hour % 12 if hour % 12 != 0 else 12
 	return f"{hour_12}:{minute:02d} {suffix}"
+
+
+def _get_late_grace_period_seconds(shift):
+	grace_period = shift.late_entry_grace_period
+	if grace_period in (None, ""):
+		grace_period = DEFAULT_LATE_GRACE_PERIOD_MINUTES
+
+	return cint(grace_period) * 60
+
+
+def _get_late_hours(time_in, shift_start, grace_period_seconds):
+	diff = time_in.hour * 3600 + time_in.minute * 60 - shift_start.seconds
+	if diff <= grace_period_seconds:
+		return 0.0
+
+	return round((diff - grace_period_seconds) / 3600, 2)
 
 
 def _normalize_date(value):
@@ -230,6 +250,110 @@ def _resolve_period(from_date=None, to_date=None, cutoff_period=None, payroll_pe
 	}
 
 
+def _get_employee_company(employee):
+	company = frappe.db.get_value("Employee", employee, "company")
+	if not company:
+		frappe.throw(_("Employee {0} was not found.").format(frappe.bold(employee)))
+
+	return company
+
+
+@frappe.whitelist()
+def create_current_period_shift_assignment(employee, shift_type, from_date=None, to_date=None, payroll_period=None):
+	if not employee:
+		frappe.throw(_("Please select an employee."))
+	if not shift_type:
+		frappe.throw(_("Please select a Shift Type."))
+
+	period = _resolve_period(from_date, to_date, payroll_period=payroll_period)
+	assignment = create_shift_assignment(
+		employee=employee,
+		company=_get_employee_company(employee),
+		shift_type=shift_type,
+		start_date=period["from_date"],
+		end_date=period["to_date"],
+		status="Active",
+	)
+
+	return {
+		"name": assignment.name,
+		"from_date": period["from_date"],
+		"to_date": period["to_date"],
+	}
+
+
+@frappe.whitelist()
+def copy_previous_period_shift_schedule(employee, from_date=None, to_date=None, payroll_period=None):
+	if not employee:
+		frappe.throw(_("Please select an employee."))
+
+	period = _resolve_period(from_date, to_date, payroll_period=payroll_period)
+	current_from = period["from_date"]
+	current_to = period["to_date"]
+	period_days = frappe.utils.date_diff(current_to, current_from) + 1
+	previous_to = str(add_days(current_from, -1))
+	previous_from = str(add_days(previous_to, -(period_days - 1)))
+
+	previous_assignments = frappe.get_all(
+		"Shift Assignment",
+		filters=[
+			["employee", "=", employee],
+			["docstatus", "=", 1],
+			["status", "=", "Active"],
+			["start_date", "<=", previous_to],
+		],
+		or_filters=[
+			["end_date", ">=", previous_from],
+			["end_date", "is", "not set"],
+		],
+		fields=["shift_type", "shift_location", "start_date", "end_date"],
+		order_by="start_date asc",
+	)
+
+	if not previous_assignments:
+		frappe.throw(
+			_("No Shift Assignment was found for {0} in the previous payroll period {1} to {2}.").format(
+				frappe.bold(employee),
+				frappe.bold(previous_from),
+				frappe.bold(previous_to),
+			)
+		)
+
+	company = _get_employee_company(employee)
+	created = []
+	for previous in previous_assignments:
+		source_start = max(str(previous.start_date), previous_from)
+		source_end = min(str(previous.end_date or previous_to), previous_to)
+		offset = frappe.utils.date_diff(source_start, previous_from)
+		duration = frappe.utils.date_diff(source_end, source_start)
+		target_start = str(add_days(current_from, offset))
+		target_end = str(add_days(target_start, duration))
+		if target_start > current_to:
+			continue
+		if target_end > current_to:
+			target_end = current_to
+
+		assignment = create_shift_assignment(
+			employee=employee,
+			company=company,
+			shift_type=previous.shift_type,
+			start_date=target_start,
+			end_date=target_end,
+			status="Active",
+			shift_location=previous.shift_location,
+		)
+		created.append(assignment.name)
+
+	return {
+		"created": created,
+		"count": len(created),
+		"previous_from_date": previous_from,
+		"previous_to_date": previous_to,
+		"from_date": current_from,
+		"to_date": current_to,
+	}
+
+
 def _get_schedule_context(from_date=None, to_date=None, cutoff_period=None, company=None, payroll_period=None):
 	period = _resolve_period(from_date, to_date, cutoff_period, payroll_period)
 	from_date = period["from_date"]
@@ -249,17 +373,21 @@ def _get_schedule_context(from_date=None, to_date=None, cutoff_period=None, comp
 	all_employee_names = [employee.name for employee in employees]
 	shift_assignment_map = {}
 	employees_with_shift_assignment = {}
+	employees_with_shift_schedule_assignment = {}
 	employees_with_overtime_slip = {}
 	if all_employee_names and frappe.db.exists("DocType", "Shift Assignment"):
 		for assignment in frappe.get_all(
 			"Shift Assignment",
-			filters={
-				"employee": ["in", all_employee_names],
-				"docstatus": 1,
-				"status": "Active",
-				"start_date": ["<=", to_date],
-				"end_date": [">=", from_date],
-			},
+			filters=[
+				["employee", "in", all_employee_names],
+				["docstatus", "=", 1],
+				["status", "=", "Active"],
+				["start_date", "<=", to_date],
+			],
+			or_filters=[
+				["end_date", ">=", from_date],
+				["end_date", "is", "not set"],
+			],
 			fields=["employee", "shift_type", "start_date", "end_date"],
 			order_by="start_date asc",
 		):
@@ -270,6 +398,18 @@ def _get_schedule_context(from_date=None, to_date=None, cutoff_period=None, comp
 			for index in range(days + 1):
 				sched_date = str(add_days(start_date, index))
 				shift_assignment_map[(assignment.employee, sched_date)] = assignment.shift_type
+
+	if all_employee_names and frappe.db.exists("DocType", "Shift Schedule Assignment"):
+		for assignment in frappe.get_all(
+			"Shift Schedule Assignment",
+			filters={
+				"employee": ["in", all_employee_names],
+				"enabled": 1,
+				"shift_status": "Active",
+			},
+			fields=["employee"],
+		):
+			employees_with_shift_schedule_assignment[assignment.employee] = 1
 
 	if all_employee_names and frappe.db.exists("DocType", "Overtime Slip") and frappe.db.exists(
 		"DocType", "Overtime Details"
@@ -304,6 +444,7 @@ def _get_schedule_context(from_date=None, to_date=None, cutoff_period=None, comp
 		has_shift_setup = bool(
 			employee.default_shift
 			or employees_with_shift_assignment.get(employee.name)
+			or employees_with_shift_schedule_assignment.get(employee.name)
 			or employees_with_overtime_slip.get(employee.name)
 		)
 		status = "Ready" if has_shift_setup else "No Shift Setup"
@@ -330,6 +471,7 @@ def _get_schedule_context(from_date=None, to_date=None, cutoff_period=None, comp
 		if (
 			employee.default_shift
 			or employees_with_shift_assignment.get(employee.name)
+			or employees_with_shift_schedule_assignment.get(employee.name)
 			or employees_with_overtime_slip.get(employee.name)
 		):
 			scheduled_employees.append(employee_dict)
@@ -367,7 +509,10 @@ def _get_schedule_context(from_date=None, to_date=None, cutoff_period=None, comp
 			attendance_names.append(attendance.name)
 
 	shift_map = {}
-	for shift in frappe.get_all("Shift Type", fields=["name", "start_time", "end_time"]):
+	for shift in frappe.get_all(
+		"Shift Type",
+		fields=["name", "start_time", "end_time", "late_entry_grace_period"],
+	):
 		shift_map[shift.name] = shift
 
 	company_holiday_lists = {}
@@ -440,11 +585,11 @@ def _build_employee_rows(employee, context):
 
 		late = 0.0
 		if attendance and attendance.in_time and shift and shift.start_time and not is_weekend and not holiday:
-			diff = (
-				attendance.in_time.hour * 3600 + attendance.in_time.minute * 60 - shift.start_time.seconds
+			late = _get_late_hours(
+				attendance.in_time,
+				shift.start_time,
+				_get_late_grace_period_seconds(shift),
 			)
-			if diff > 0:
-				late = round(diff / 3600, 2)
 
 		valid_ot = 0.0
 		if attendance:
@@ -473,6 +618,7 @@ def _build_employee_rows(employee, context):
 				"sched_time_end": sched_end,
 				"time_in": _fmt_time(attendance.in_time) if attendance and attendance.in_time else "",
 				"time_out": _fmt_time(attendance.out_time) if attendance and attendance.out_time else "",
+				"attendance_status": attendance.status if attendance else "",
 				"late_hours": late,
 				"valid_ot": valid_ot,
 				"authorization_no": authorization_no,
@@ -485,6 +631,60 @@ def _build_employee_rows(employee, context):
 		)
 
 	return rows
+
+
+def _is_absent_row(row):
+	is_holiday = bool(row.get("holiday_type") or row.get("rest_day"))
+	return row.get("attendance_status") == "Absent" or (
+		row.get("sched_time_start")
+		and not row.get("time_in")
+		and not row.get("leave_type")
+		and not is_holiday
+	)
+
+
+def _summarize_exception_employees(context):
+	exception_keys = ["late", "absent", "no_shift_setup", "missing_time_out", "with_ot"]
+	employees_by_exception = {key: {} for key in exception_keys}
+
+	for employee in context["skipped_employees"]:
+		employees_by_exception["no_shift_setup"][employee["employee"]] = {
+			"employee": employee["employee"],
+			"employee_name": employee["employee_name"],
+		}
+
+	for employee in context["scheduled_employees"]:
+		rows = _build_employee_rows(employee, context)
+		employee_summary = {
+			"employee": employee["name"],
+			"employee_name": employee["employee_name"],
+		}
+		if any(float(row.get("late_hours") or 0) > 0 for row in rows):
+			employees_by_exception["late"][employee["name"]] = employee_summary
+		if any(_is_absent_row(row) for row in rows):
+			employees_by_exception["absent"][employee["name"]] = employee_summary
+		if any(row.get("time_in") and not row.get("time_out") for row in rows):
+			employees_by_exception["missing_time_out"][employee["name"]] = employee_summary
+		if any(float(row.get("valid_ot") or 0) > 0 for row in rows):
+			employees_by_exception["with_ot"][employee["name"]] = employee_summary
+
+	return {
+		key: list(employees.values()) for key, employees in employees_by_exception.items()
+	}
+
+
+@frappe.whitelist()
+def get_exception_dashboard(from_date=None, to_date=None, cutoff_period=None, company=None, payroll_period=None):
+	context = _get_schedule_context(from_date, to_date, cutoff_period, company, payroll_period)
+	employees_by_exception = _summarize_exception_employees(context)
+	return {
+		"from_date": context["from_date"],
+		"to_date": context["to_date"],
+		"counts": {
+			key: len(employees) for key, employees in employees_by_exception.items()
+		},
+		"employees": employees_by_exception,
+	}
 
 
 @frappe.whitelist()
