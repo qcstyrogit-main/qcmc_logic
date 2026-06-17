@@ -428,7 +428,7 @@
   "send_email_alert": 0,
   "states": [
    {
-    "allow_edit": "Sales User",
+    "allow_edit": "Head Office Sales User",
     "avoid_status_override": 0,
     "doc_status": "0",
     "evaluate_as_expression": 0,
@@ -456,7 +456,7 @@
     "workflow_builder_id": null
    },
    {
-    "allow_edit": "Sales User",
+    "allow_edit": "Head Office Sales User",
     "avoid_status_override": 0,
     "doc_status": "0",
     "evaluate_as_expression": 0,
@@ -558,7 +558,7 @@
    {
     "action": "Submit for Stock Confirmation",
     "allow_self_approval": 1,
-    "allowed": "Sales User",
+    "allowed": "Head Office Sales User",
     "condition": null,
     "next_state": "For Stock Confirmation",
     "send_email_to_creator": 0,
@@ -580,7 +580,7 @@
    {
     "action": "Submit for Delivery",
     "allow_self_approval": 1,
-    "allowed": "Sales User",
+    "allowed": "Head Office Sales User",
     "condition": null,
     "next_state": "To Deliver and Bill",
     "send_email_to_creator": 0,
