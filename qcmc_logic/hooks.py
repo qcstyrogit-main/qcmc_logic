@@ -44,7 +44,13 @@ doc_events = {
         "on_cancel": "qcmc_logic.customs.sales_order.update_customer_item_history_on_cancel",
     },
     "BOM": {
-        "before_validate": "qcmc_logic.customs.bom_rate.fetch_missing_component_rates"
+        "before_validate": [
+            "qcmc_logic.customs.bom_rate.fetch_missing_component_rates",
+            "qcmc_logic.customs.bom_formulation.apply_roll_formulation_rules",
+        ]
+    },
+    "Work Order": {
+        "validate": "qcmc_logic.customs.work_order_formulation.apply_roll_formulation_required_qty",
     },
     "Employee Attendance Schedule": {
         "before_insert": "qcmc_logic.customs.employee_attendance_schedule.apply_defaults",
@@ -62,6 +68,7 @@ after_request = [
 ]
 
 doctype_js = {
+    "BOM": "public/js/bom.js",
     "Material Request": "public/js/material_request.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
     "Employee Attendance Schedule": "public/js/employee_attendance_schedule.js",
