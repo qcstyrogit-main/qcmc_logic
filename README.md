@@ -119,6 +119,7 @@ mit
 ```bash
 alias export-fixtures='python3 apps/qcmc_logic/scripts/export_fixtures_clean.py'
 alias clean-fixtures='python3 apps/qcmc_logic/scripts/clean_fixtures.py'
+alias clean-fixtures='python3 scripts/clean_fixtures.py'
 ```
 usage: export_fixtures_clean.py [-h] [--skip-export] [--site SITE] [--app APP]
 
