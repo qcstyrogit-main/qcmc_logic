@@ -69,6 +69,7 @@ after_request = [
 
 doctype_js = {
     "BOM": "public/js/bom.js",
+    "Work Order": "public/js/work_order.js",
     "Material Request": "public/js/material_request.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
     "Employee Attendance Schedule": "public/js/employee_attendance_schedule.js",
