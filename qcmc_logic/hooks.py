@@ -40,6 +40,7 @@ doc_events = {
          "validate": "qcmc_logic.overrides.sales_invoice_override.validate"
     },
     "Sales Order": {
+        "before_validate": "qcmc_logic.customs.sales_order.set_customer_account_manager",
         "on_submit": "qcmc_logic.customs.sales_order.update_customer_item_history_on_submit",
         "on_cancel": "qcmc_logic.customs.sales_order.update_customer_item_history_on_cancel",
     },
@@ -73,6 +74,7 @@ after_request = [
 
 doctype_js = {
     "BOM": "public/js/bom.js",
+    "Sales Order": "public/js/sales_order.js",
     "Work Order": "public/js/work_order.js",
     "Material Request": "public/js/material_request.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
@@ -218,7 +220,20 @@ fixtures = [
     {
         "doctype": "Role",
         "filters": [["is_custom", "=", 1]]
-    }
+    },
+    {
+        "doctype": "Role Profile",
+        "filters": [
+            [
+                "name",
+                "not in",
+                ["Accounts", "HR", "Inventory", "Manufacturing", "Purchase", "Sales"],
+            ]
+        ],
+    },
+]
+before_migrate = [
+    "qcmc_logic.migrate.run_role_profile_updates_inline",
 ]
 after_migrate = [
     "qcmc_logic.customs.employee_attendance_schedule.ensure_default_record_after_migrate",

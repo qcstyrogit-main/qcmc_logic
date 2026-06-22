@@ -2,26 +2,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Accounts",
-  "role_profile": "Accounts",
-  "roles": [
-   {
-    "parent": "Accounts",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Accounts User"
-   },
-   {
-    "parent": "Accounts",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Accounts Manager"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
   "name": "CandC",
   "role_profile": "CandC",
   "roles": [
@@ -688,32 +668,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "HR",
-  "role_profile": "HR",
-  "roles": [
-   {
-    "parent": "HR",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "HR User"
-   },
-   {
-    "parent": "HR",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Leave Approver"
-   },
-   {
-    "parent": "HR",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Expense Approver"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
   "name": "HR Learning",
   "role_profile": "HR Learning",
   "roles": [
@@ -840,32 +794,6 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Inventory",
-  "role_profile": "Inventory",
-  "roles": [
-   {
-    "parent": "Inventory",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Stock User"
-   },
-   {
-    "parent": "Inventory",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Stock Manager"
-   },
-   {
-    "parent": "Inventory",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Item Manager"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
   "name": "MC Toolroom",
   "role_profile": "MC Toolroom",
   "roles": [
@@ -892,32 +820,6 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Purchase User"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Manufacturing",
-  "role_profile": "Manufacturing",
-  "roles": [
-   {
-    "parent": "Manufacturing",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Stock User"
-   },
-   {
-    "parent": "Manufacturing",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Manufacturing User"
-   },
-   {
-    "parent": "Manufacturing",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Manufacturing Manager"
    }
   ]
  },
@@ -1038,76 +940,6 @@
     "parentfield": "roles",
     "parenttype": "Role Profile",
     "role": "Purchase User"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Purchase",
-  "role_profile": "Purchase",
-  "roles": [
-   {
-    "parent": "Purchase",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Item Manager"
-   },
-   {
-    "parent": "Purchase",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Stock User"
-   },
-   {
-    "parent": "Purchase",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Purchase User"
-   },
-   {
-    "parent": "Purchase",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Purchase Manager"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Sales",
-  "role_profile": "Sales",
-  "roles": [
-   {
-    "parent": "Sales",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Sales User"
-   },
-   {
-    "parent": "Sales",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Stock User"
-   },
-   {
-    "parent": "Sales",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Sales Manager"
-   },
-   {
-    "parent": "Sales",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Sales Coordinator"
-   },
-   {
-    "parent": "Sales",
-    "parentfield": "roles",
-    "parenttype": "Role Profile",
-    "role": "Sales Master Manager"
    }
   ]
  }

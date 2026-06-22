@@ -5,6 +5,35 @@ from frappe.utils import cint, flt, getdate
 
 
 @frappe.whitelist()
+def get_customer_account_manager(customer):
+    if not customer:
+        return None
+
+    return _get_customer_account_manager(customer)
+
+
+def set_customer_account_manager(doc, method=None):
+    if not doc.get("customer"):
+        doc.custom_account_manager = None
+        return
+
+    doc.custom_account_manager = _get_customer_account_manager(doc.customer)
+
+
+def _get_customer_account_manager(customer):
+    return frappe.db.get_value(
+        "Sales Team",
+        {
+            "parenttype": "Customer",
+            "parentfield": "sales_team",
+            "parent": customer,
+        },
+        "sales_person",
+        order_by="idx asc",
+    )
+
+
+@frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_customer_history_item_query(doctype, txt, searchfield, start, page_len, filters):
     if isinstance(filters, str):
@@ -55,18 +84,19 @@ def get_previous_item_rates(customer, item_code, company):
     return frappe.db.sql(
         """
         select
-            rate,
-            uom,
-            currency,
-            min(first_transaction_date) as first_transaction_date,
-            max(last_transaction_date) as last_transaction_date,
-            sum(ifnull(times_used, 0)) as times_used
-        from `tabCustomer Item Rate History`
-        where customer = %(customer)s
-            and item = %(item_code)s
-            and company = %(company)s
-        group by rate, uom, currency
-        order by last_transaction_date desc, times_used desc, rate desc
+            rh.rate,
+            coalesce(nullif(rh.uom, ''), i.stock_uom) as uom,
+            rh.currency,
+            min(rh.first_transaction_date) as first_transaction_date,
+            max(rh.last_transaction_date) as last_transaction_date,
+            sum(ifnull(rh.times_used, 0)) as times_used
+        from `tabCustomer Item Rate History` rh
+        inner join `tabItem` i on i.name = rh.item
+        where rh.customer = %(customer)s
+            and rh.item = %(item_code)s
+            and rh.company = %(company)s
+        group by rh.rate, coalesce(nullif(rh.uom, ''), i.stock_uom), rh.currency
+        order by last_transaction_date desc, times_used desc, rh.rate desc
         """,
         {
             "company": company,
@@ -91,7 +121,7 @@ def get_customer_history_items(customer, company, limit=500):
             h.item,
             h.item_name,
             h.last_rate,
-            h.last_uom,
+            coalesce(nullif(h.last_uom, ''), i.stock_uom) as last_uom,
             h.currency,
             h.first_transaction_date,
             h.last_transaction_date,
