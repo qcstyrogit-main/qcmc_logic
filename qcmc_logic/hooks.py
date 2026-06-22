@@ -55,7 +55,11 @@ doc_events = {
     "Employee Attendance Schedule": {
         "before_insert": "qcmc_logic.customs.employee_attendance_schedule.apply_defaults",
         "validate": "qcmc_logic.customs.employee_attendance_schedule.apply_defaults",
-    }
+    },
+    "Machine Shop Job Request": {
+        "autoname": "qcmc_logic.customs.machine_shop_job_request.autoname",
+        "validate": "qcmc_logic.customs.machine_shop_job_request.validate",
+    },
 }
 
 before_request = [
@@ -119,6 +123,7 @@ permission_query_conditions = {
      "Appraisal": "qcmc_logic.customs.permissions.appraisal_permission_query",
      "Job Requisition": "qcmc_logic.customs.staffingplan_permission.mrf_permission_query_condition",
      "Delivery Note": "qcmc_logic.customs.permissions.delivery_note_permission_query",
+     "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_permission_query",
      "Material Request": "qcmc_logic.customs.permissions.material_request_permission_query",
      "Pick List": "qcmc_logic.customs.permissions.pick_list_permission_query",
      "Purchase Invoice": "qcmc_logic.customs.permissions.purchase_invoice_permission_query",
@@ -133,6 +138,7 @@ permission_query_conditions = {
 
 has_permission = {
     "Delivery Note": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_has_permission",
     "Material Request": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Pick List": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Purchase Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
