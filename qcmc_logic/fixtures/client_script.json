@@ -973,7 +973,7 @@
   "docstatus": 0,
   "doctype": "Client Script",
   "dt": "Sales Order",
-  "enabled": 1,
+  "enabled": 0,
   "module": null,
   "name": "Sales Order Item Code Only",
   "script": "frappe.ui.form.on('Sales Order', {\r\n    refresh(frm) {\r\n        // Show only Item Code for Item links in this form\r\n        frappe.form.link_formatters[\"Item\"] = function(value) {\r\n            return value;\r\n        };\r\n\r\n        frm.refresh_fields();\r\n    }\r\n});",
