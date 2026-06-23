@@ -20,8 +20,19 @@ def apply_roll_formulation_required_qty(doc, method=None):
 		return
 
 	apply_roll_item_metadata(doc, roll_items_by_item)
+	validate_roll_item_rows_present(doc, roll_items_by_item)
 	validate_roll_item_substitutions(doc)
 	set_formulation_required_quantities(doc, bom)
+
+
+@frappe.whitelist()
+def preview_roll_formulation_required_items(doc):
+	"""Return Work Order required items after applying Roll BOM formulation rules."""
+	doc = frappe.get_doc(frappe.parse_json(doc))
+	apply_roll_formulation_required_qty(doc)
+	return {
+		"required_items": [row.as_dict() for row in doc.get("required_items", [])],
+	}
 
 
 def is_roll_bom(bom):
@@ -97,6 +108,34 @@ def apply_roll_item_metadata(doc, roll_items_by_item):
 		row.custom_bom_material_tag = roll_item["bom_material_tag"]
 
 
+def validate_roll_item_rows_present(doc, roll_items_by_item):
+	missing_items = []
+
+	for item_code in roll_items_by_item:
+		if has_required_item_for_bom_item(doc, item_code):
+			continue
+
+		missing_items.append(item_code)
+
+	if missing_items:
+		frappe.throw(
+			_(
+				"Roll BOM formulation requires these materials in Required Items: {0}."
+			).format(", ".join(frappe.bold(item_code) for item_code in missing_items))
+		)
+
+
+def has_required_item_for_bom_item(doc, bom_item_code):
+	for row in doc.get("required_items", []):
+		if row.get("custom_bom_item_code") == bom_item_code:
+			return True
+
+		if not row.get("custom_bom_item_code") and row.get("item_code") == bom_item_code:
+			return True
+
+	return False
+
+
 def validate_roll_item_substitutions(doc):
 	for row in doc.get("required_items", []):
 		if not row.get("custom_bom_item_code"):
@@ -140,6 +179,7 @@ def set_formulation_required_quantities(doc, bom):
 
 		row.required_qty = round(flt(required_qty), row.precision("required_qty"))
 		row.amount = flt(row.rate) * flt(row.required_qty)
+
 
 def get_item_classification(item_code):
 	return frappe.db.get_value(

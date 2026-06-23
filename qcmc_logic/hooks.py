@@ -40,6 +40,7 @@ doc_events = {
          "validate": "qcmc_logic.overrides.sales_invoice_override.validate"
     },
     "Sales Order": {
+        "before_validate": "qcmc_logic.customs.sales_order.set_customer_account_manager",
         "on_submit": "qcmc_logic.customs.sales_order.update_customer_item_history_on_submit",
         "on_cancel": "qcmc_logic.customs.sales_order.update_customer_item_history_on_cancel",
     },
@@ -55,7 +56,11 @@ doc_events = {
     "Employee Attendance Schedule": {
         "before_insert": "qcmc_logic.customs.employee_attendance_schedule.apply_defaults",
         "validate": "qcmc_logic.customs.employee_attendance_schedule.apply_defaults",
-    }
+    },
+    "Machine Shop Job Request": {
+        "autoname": "qcmc_logic.customs.machine_shop_job_request.autoname",
+        "validate": "qcmc_logic.customs.machine_shop_job_request.validate",
+    },
 }
 
 before_request = [
@@ -69,6 +74,8 @@ after_request = [
 
 doctype_js = {
     "BOM": "public/js/bom.js",
+    "Sales Order": "public/js/sales_order.js",
+    "Work Order": "public/js/work_order.js",
     "Material Request": "public/js/material_request.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
     "Employee Attendance Schedule": "public/js/employee_attendance_schedule.js",
@@ -118,6 +125,7 @@ permission_query_conditions = {
      "Appraisal": "qcmc_logic.customs.permissions.appraisal_permission_query",
      "Job Requisition": "qcmc_logic.customs.staffingplan_permission.mrf_permission_query_condition",
      "Delivery Note": "qcmc_logic.customs.permissions.delivery_note_permission_query",
+     "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_permission_query",
      "Material Request": "qcmc_logic.customs.permissions.material_request_permission_query",
      "Pick List": "qcmc_logic.customs.permissions.pick_list_permission_query",
      "Purchase Invoice": "qcmc_logic.customs.permissions.purchase_invoice_permission_query",
@@ -132,6 +140,7 @@ permission_query_conditions = {
 
 has_permission = {
     "Delivery Note": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_has_permission",
     "Material Request": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Pick List": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Purchase Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
@@ -211,7 +220,20 @@ fixtures = [
     {
         "doctype": "Role",
         "filters": [["is_custom", "=", 1]]
-    }
+    },
+    {
+        "doctype": "Role Profile",
+        "filters": [
+            [
+                "name",
+                "not in",
+                ["Accounts", "HR", "Inventory", "Manufacturing", "Purchase", "Sales"],
+            ]
+        ],
+    },
+]
+before_migrate = [
+    "qcmc_logic.migrate.run_role_profile_updates_inline",
 ]
 after_migrate = [
     "qcmc_logic.customs.employee_attendance_schedule.ensure_default_record_after_migrate",
