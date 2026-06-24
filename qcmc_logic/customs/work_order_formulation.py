@@ -29,8 +29,16 @@ def apply_roll_formulation_required_qty(doc, method=None):
 def preview_roll_formulation_required_items(doc):
 	"""Return Work Order required items after applying Roll BOM formulation rules."""
 	doc = frappe.get_doc(frappe.parse_json(doc))
+	bom = frappe.get_doc("BOM", doc.bom_no) if doc.get("bom_no") else None
+	if not bom or not is_roll_bom(bom):
+		return {
+			"document_modified": doc.get("modified"),
+			"required_items": None,
+		}
+
 	apply_roll_formulation_required_qty(doc)
 	return {
+		"document_modified": doc.get("modified"),
 		"required_items": [row.as_dict() for row in doc.get("required_items", [])],
 	}
 

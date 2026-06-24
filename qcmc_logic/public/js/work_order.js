@@ -57,7 +57,12 @@ async function apply_roll_formulation_preview(frm) {
 			freeze: false,
 		});
 
-		apply_required_item_updates(frm, response.message && response.message.required_items);
+		const result = response.message;
+		if (!result || result.document_modified !== frm.doc.modified) {
+			return;
+		}
+
+		apply_required_item_updates(frm, result.required_items);
 	} finally {
 		frm._applying_roll_formulation = false;
 	}
