@@ -401,7 +401,7 @@
   "disable_sidebar_stats": 0,
   "docstatus": 0,
   "doctype": "List View Settings",
-  "fields": "[{\"label\":\"Supplier Name\",\"fieldname\":\"supplier_name\"},{\"type\":\"Status\",\"label\":\"Status\",\"fieldname\":\"status_field\"},{\"label\":\"% Billed\",\"fieldname\":\"per_billed\"},{\"label\":\"% Received\",\"fieldname\":\"per_received\"},{\"label\":\"Date\",\"fieldname\":\"transaction_date\"},{\"label\":\"Group same items\",\"fieldname\":\"group_same_items\"}]",
+  "fields": "[{\"fieldname\":\"supplier_name\",\"label\":\"Supplier Name\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"transaction_date\",\"label\":\"Date\"}]",
   "name": "Purchase Order",
   "show_tags": 0
  },
