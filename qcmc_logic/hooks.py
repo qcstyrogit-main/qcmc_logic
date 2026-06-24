@@ -238,6 +238,7 @@ before_migrate = [
 ]
 after_migrate = [
     "qcmc_logic.customs.employee_attendance_schedule.ensure_default_record_after_migrate",
+    "qcmc_logic.customs.machine_shop_job_request.ensure_msjr_permissions",
 ]
 
 # # Or ensure it loads at boot
