@@ -1118,8 +1118,8 @@ def make_warehouse_transfer_from_material_request(source_name, target_doc=None):
 @frappe.whitelist()
 def make_machine_shop_repairs_and_project(source_name, target_doc=None):
     msjr = frappe.get_doc("Machine Shop Job Request", source_name)
-    if msjr.workflow_state != "Pending Machine Shop":
-        frappe.throw("Project Plan can only be generated from a request in Pending Machine Shop.")
+    if msjr.workflow_state != "Acknowledge":
+        frappe.throw("Project Plan can only be generated from a request in Acknowledge.")
 
     existing = frappe.db.exists(
         "Machine Shop Repairs and Project",
