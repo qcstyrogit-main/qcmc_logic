@@ -3,6 +3,14 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "name": "Acknowledge",
+  "style": "",
+  "workflow_state_name": "Acknowledge"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "name": "Acknowledged",
   "style": "",
   "workflow_state_name": "Acknowledged"
@@ -606,13 +614,5 @@
   "name": "Transferred",
   "style": "",
   "workflow_state_name": "Transferred"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "name": "Acknowledge",
-  "style": "",
-  "workflow_state_name": "Acknowledge"
  }
 ]

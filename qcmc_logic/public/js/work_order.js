@@ -1,9 +1,11 @@
 frappe.ui.form.on("Work Order", {
 	refresh(frm) {
+		configure_roll_formulation_grid(frm);
 		schedule_roll_formulation_preview(frm);
 	},
 
 	bom_no(frm) {
+		configure_roll_formulation_grid(frm);
 		schedule_roll_formulation_preview(frm);
 	},
 
@@ -20,8 +22,54 @@ frappe.ui.form.on("Work Order", {
 	},
 });
 
+async function configure_roll_formulation_grid(frm) {
+	if (!frm.doc.bom_no || frm.doc.docstatus !== 0) {
+		return;
+	}
+
+	const requested_bom = frm.doc.bom_no;
+	const response = await frappe.db.get_value(
+		"BOM",
+		requested_bom,
+		["custom_is_roll_bom", "item"]
+	);
+	const bom = response && response.message;
+	if (!bom) {
+		return;
+	}
+
+	let is_roll_bom = cint(bom.custom_is_roll_bom);
+	if (!is_roll_bom && bom.item) {
+		const item_response = await frappe.db.get_value("Item", bom.item, "item_group");
+		is_roll_bom = item_response?.message?.item_group === "Rolls";
+	}
+	if (!is_roll_bom || frm.doc.bom_no !== requested_bom) {
+		return;
+	}
+
+	const field = frm.get_field("required_items");
+	if (!field) {
+		return;
+	}
+
+	frm.set_df_property("required_items", "cannot_add_rows", false);
+	frm.set_df_property("required_items", "cannot_delete_rows", false);
+
+	const grid = field.grid;
+	grid.cannot_add_rows = false;
+	grid.cannot_delete_rows = false;
+	grid.update_docfield_property("item_code", "read_only", false);
+	grid.update_docfield_property("custom_material_ratio_percent", "read_only", false);
+	grid.update_docfield_property("required_qty", "read_only", true);
+	grid.refresh();
+}
+
 frappe.ui.form.on("Work Order Item", {
 	item_code(frm) {
+		schedule_roll_formulation_preview(frm);
+	},
+
+	custom_material_ratio_percent(frm) {
 		schedule_roll_formulation_preview(frm);
 	},
 });
