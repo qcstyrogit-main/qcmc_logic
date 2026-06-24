@@ -3,22 +3,29 @@ frappe.provide("qcmc_logic.stock_entry");
 qcmc_logic.stock_entry.supported_purposes = new Set([
     "Material Transfer for Manufacture",
     "Material Consumption for Manufacture",
+    "Manufacture",
 ]);
 
 frappe.ui.form.on("Stock Entry", {
+    setup(frm) {
+        qcmc_logic.stock_entry.setup_manufacture_row_lock(frm);
+    },
+
     refresh(frm) {
         qcmc_logic.stock_entry.add_job_card_button(frm);
+        qcmc_logic.stock_entry.refresh_manufacture_row_locks(frm);
     },
 
     purpose(frm) {
         qcmc_logic.stock_entry.add_job_card_button(frm);
+        qcmc_logic.stock_entry.refresh_manufacture_row_locks(frm);
     },
 });
 
 qcmc_logic.stock_entry.add_job_card_button = function(frm) {
     if (!qcmc_logic.stock_entry.can_fetch_from_job_card(frm)) return;
 
-    frm.add_custom_button(__("Get Items from Job Card"), () => {
+    frm.add_custom_button(__("Job Card"), () => {
         qcmc_logic.stock_entry.open_job_card_dialog(frm);
     }, __("Get Items From"));
 };
@@ -29,7 +36,7 @@ qcmc_logic.stock_entry.can_fetch_from_job_card = function(frm) {
 
 qcmc_logic.stock_entry.open_job_card_dialog = function(frm) {
     const dialog = new frappe.ui.Dialog({
-        title: __("Get Items from Job Card"),
+        title: __("Select Job Card"),
         size: "extra-large",
         fields: [
             {
@@ -81,6 +88,9 @@ qcmc_logic.stock_entry.load_job_cards = function(frm, dialog) {
         freeze: true,
         callback(r) {
             const rows = r.message || [];
+            dialog._qcmc_job_cards_by_name = Object.fromEntries(
+                rows.map((row) => [row.name, row])
+            );
             dialog.fields_dict.job_cards_html.$wrapper.html(
                 qcmc_logic.stock_entry.render_job_card_rows(rows)
             );
@@ -133,6 +143,13 @@ qcmc_logic.stock_entry.render_job_card_rows = function(rows) {
 };
 
 qcmc_logic.stock_entry.apply_job_card = function(frm, dialog, job_card) {
+    if (frm.doc.purpose === "Manufacture") {
+        const selected_row = dialog._qcmc_job_cards_by_name
+            && dialog._qcmc_job_cards_by_name[job_card];
+        qcmc_logic.stock_entry.prompt_manufacture_quantity(dialog, job_card, selected_row);
+        return;
+    }
+
     const replace = () => qcmc_logic.stock_entry.fetch_job_card_items(frm, dialog, job_card);
     const has_items = (frm.doc.items || []).some((row) => row.item_code || row.qty);
     const changing_job_card = frm.doc.job_card && frm.doc.job_card !== job_card;
@@ -146,6 +163,58 @@ qcmc_logic.stock_entry.apply_job_card = function(frm, dialog, job_card) {
     }
 
     replace();
+};
+
+qcmc_logic.stock_entry.prompt_manufacture_quantity = function(dialog, job_card, selected_row) {
+    const available_qty = flt(selected_row && selected_row.remaining_qty);
+    if (available_qty <= 0) {
+        frappe.msgprint(__("This Job Card has no unposted completed output."));
+        return;
+    }
+
+    frappe.prompt(
+        {
+            fieldtype: "Float",
+            fieldname: "qty",
+            label: __("Finished Goods Quantity"),
+            default: available_qty,
+            reqd: 1,
+            description: __("Available completed output: {0}", [format_number(available_qty)]),
+        },
+        (values) => {
+            const qty = flt(values.qty);
+            if (qty <= 0 || qty > available_qty) {
+                frappe.throw(
+                    __("Finished Goods Quantity must be greater than zero and not exceed {0}.", [
+                        format_number(available_qty),
+                    ])
+                );
+            }
+
+            qcmc_logic.stock_entry.create_manufacture_entry(dialog, job_card, qty);
+        },
+        __("Manufacture Output"),
+        __("Create")
+    );
+};
+
+qcmc_logic.stock_entry.create_manufacture_entry = function(dialog, job_card, qty) {
+    frappe.call({
+        method: "qcmc_logic.api.stock_entry.make_manufacture_stock_entry_from_job_card",
+        args: { job_card, qty },
+        freeze: true,
+        freeze_message: __("Creating Manufacture Stock Entry..."),
+        callback(r) {
+            if (!r.message) return;
+
+            dialog.hide();
+            const documents = frappe.model.sync(r.message);
+            const stock_entry = documents.find((doc) => doc.doctype === "Stock Entry");
+            if (stock_entry) {
+                frappe.set_route("Form", "Stock Entry", stock_entry.name);
+            }
+        },
+    });
 };
 
 qcmc_logic.stock_entry.fetch_job_card_items = function(frm, dialog, job_card) {
@@ -209,4 +278,47 @@ qcmc_logic.stock_entry.get_items = function(frm) {
             }
         },
     });
+};
+
+qcmc_logic.stock_entry.setup_manufacture_row_lock = function(frm) {
+    $(frm.wrapper).off("grid-row-render.qcmc_manufacture");
+    $(frm.wrapper).on("grid-row-render.qcmc_manufacture", (event, grid_row) => {
+        if (grid_row.grid.df.fieldname !== "items") return;
+        qcmc_logic.stock_entry.apply_manufacture_row_lock(frm, grid_row);
+    });
+};
+
+qcmc_logic.stock_entry.refresh_manufacture_row_locks = function(frm) {
+    const grid = frm.fields_dict.items && frm.fields_dict.items.grid;
+    if (!grid) return;
+
+    const lock_structure = frm.doc.purpose === "Manufacture" && frm.doc.work_order;
+    grid.cannot_add_rows = Boolean(lock_structure);
+    grid.wrapper
+        .find(".grid-add-row, .grid-add-multiple-rows, .grid-remove-rows")
+        .toggle(!lock_structure);
+
+    grid.grid_rows.forEach((grid_row) => {
+        qcmc_logic.stock_entry.apply_manufacture_row_lock(frm, grid_row);
+    });
+};
+
+qcmc_logic.stock_entry.apply_manufacture_row_lock = function(frm, grid_row) {
+    const should_lock = (
+        frm.doc.purpose === "Manufacture"
+        && frm.doc.work_order
+        && !grid_row.doc.is_finished_item
+    );
+
+    if (!should_lock) return;
+
+    grid_row.docfields.forEach((df) => {
+        if (df.fieldname && !["idx"].includes(df.fieldname)) {
+            grid_row.toggle_editable(df.fieldname, false);
+        }
+    });
+
+    grid_row.wrapper
+        .find(".grid-delete-row, .grid-move-row, .grid-duplicate-row")
+        .hide();
 };
