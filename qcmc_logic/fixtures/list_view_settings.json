@@ -401,7 +401,7 @@
   "disable_sidebar_stats": 0,
   "docstatus": 0,
   "doctype": "List View Settings",
-  "fields": "[{\"fieldname\":\"supplier_name\",\"label\":\"Supplier Name\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"transaction_date\",\"label\":\"Date\"}]",
+  "fields": "[{\"fieldname\":\"supplier_name\",\"label\":\"Supplier Name\"},{\"fieldname\":\"company\",\"label\":\"Company\"},{\"fieldname\":\"status_field\",\"label\":\"Status\"},{\"fieldname\":\"transaction_date\",\"label\":\"Date\"}]",
   "name": "Purchase Order",
   "show_tags": 0
  },

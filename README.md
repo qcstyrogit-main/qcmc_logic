@@ -127,3 +127,5 @@ usage: export_fixtures_clean.py [-h] [--skip-export] [--site SITE] [--app APP]
 export-fixtures --site erp.qcstyro.local 
 clean-fixtures
 ```
+
+### config test Git PUSH
