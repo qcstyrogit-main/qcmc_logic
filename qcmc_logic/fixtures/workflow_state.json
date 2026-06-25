@@ -427,6 +427,14 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "name": "Pending Machine Shop",
+  "style": "",
+  "workflow_state_name": "Pending Machine Shop"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "name": "Pending Machine Shop Supervisor Approval",
   "style": "",
   "workflow_state_name": "Pending Machine Shop Supervisor Approval"

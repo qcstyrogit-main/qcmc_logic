@@ -20382,6 +20382,7 @@
     "show_dashboard": 0,
     "show_description_on_click": 0,
     "show_on_timeline": 0,
+    "sort_options": 0,
     "sticky": 0,
     "translatable": 0,
     "unique": 0,
@@ -21271,11 +21272,11 @@
     "print": 1,
     "read": 1,
     "report": 1,
+    "role": "System Manager",
     "select": 0,
     "share": 1,
     "submit": 1,
-    "write": 1,
-    "role": "System Manager"
+    "write": 1
    },
    {
     "amend": 0,
@@ -21292,11 +21293,11 @@
     "print": 1,
     "read": 1,
     "report": 1,
+    "role": "Machine Shop User",
     "select": 0,
     "share": 1,
     "submit": 0,
-    "write": 1,
-    "role": "Machine Shop User"
+    "write": 1
    },
    {
     "amend": 0,
@@ -21313,11 +21314,11 @@
     "print": 1,
     "read": 1,
     "report": 1,
+    "role": "Maintenance - MC",
     "select": 0,
     "share": 1,
     "submit": 0,
-    "write": 1,
-    "role": "Maintenance - MC"
+    "write": 1
    },
    {
     "amend": 0,
@@ -21334,11 +21335,11 @@
     "print": 1,
     "read": 1,
     "report": 1,
+    "role": "Maintenance - SMB",
     "select": 0,
     "share": 1,
     "submit": 0,
-    "write": 1,
-    "role": "Maintenance - SMB"
+    "write": 1
    },
    {
     "amend": 0,
@@ -21355,11 +21356,11 @@
     "print": 1,
     "read": 1,
     "report": 1,
+    "role": "Fleet Manager",
     "select": 0,
     "share": 1,
     "submit": 0,
-    "write": 1,
-    "role": "Fleet Manager"
+    "write": 1
    },
    {
     "amend": 0,
@@ -21376,11 +21377,11 @@
     "print": 1,
     "read": 1,
     "report": 1,
+    "role": "Asset Maintenance User",
     "select": 0,
     "share": 1,
     "submit": 0,
-    "write": 1,
-    "role": "Asset Maintenance User"
+    "write": 1
    },
    {
     "amend": 0,
@@ -21397,11 +21398,11 @@
     "print": 1,
     "read": 1,
     "report": 1,
+    "role": "Logistics Manager",
     "select": 0,
     "share": 1,
     "submit": 0,
-    "write": 1,
-    "role": "Logistics Manager"
+    "write": 1
    },
    {
     "amend": 0,
@@ -21418,11 +21419,11 @@
     "print": 1,
     "read": 1,
     "report": 1,
+    "role": "Plant Manager QC",
     "select": 0,
     "share": 1,
     "submit": 0,
-    "write": 1,
-    "role": "Plant Manager QC"
+    "write": 1
    },
    {
     "amend": 0,
@@ -21439,11 +21440,11 @@
     "print": 1,
     "read": 1,
     "report": 1,
+    "role": "Plant Manager MC",
     "select": 0,
     "share": 1,
     "submit": 0,
-    "write": 1,
-    "role": "Plant Manager MC"
+    "write": 1
    },
    {
     "amend": 0,
@@ -21460,11 +21461,11 @@
     "print": 1,
     "read": 1,
     "report": 1,
+    "role": "Machine Shop Supervisor",
     "select": 0,
     "share": 1,
     "submit": 0,
-    "write": 1,
-    "role": "Machine Shop Supervisor"
+    "write": 1
    },
    {
     "amend": 0,
@@ -21481,11 +21482,11 @@
     "print": 1,
     "read": 1,
     "report": 1,
+    "role": "Machine Shop Foreman",
     "select": 0,
     "share": 1,
     "submit": 0,
-    "write": 1,
-    "role": "Machine Shop Foreman"
+    "write": 1
    }
   ],
   "protect_attached_files": 0,
