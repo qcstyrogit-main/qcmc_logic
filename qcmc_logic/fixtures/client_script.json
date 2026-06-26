@@ -1195,6 +1195,16 @@
   "dt": "Work Order",
   "enabled": 1,
   "module": null,
+  "name": "JobOrderItemsOnly",
+  "script": "frappe.ui.form.on(\"Work Order\", {\r\n    refresh: function(frm) {\r\n        set_required_item_filter(frm);\r\n    }\r\n});\r\n\r\nfunction set_required_item_filter(frm) {\r\n    frm.fields_dict[\"required_items\"].grid.get_field(\"item_code\").get_query = function(doc, cdt, cdn) {\r\n        return {\r\n            filters: { \"item_group\": \"Toolroom\" }\r\n        };\r\n    };\r\n}",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Work Order",
+  "enabled": 1,
+  "module": null,
   "name": "Not Mandatory of Bom",
   "script": "frappe.ui.form.on('Work Order', {\n\trefresh(frm) {\n\t\tif (frappe.user_roles.includes(\"Manufacturing User\")) {\n            frm.set_df_property(\"bom_no\", \"reqd\", 0);\n\t\t}\n\t\tif (frappe.user_roles.includes(\"Manufacturing Manager\")) {\n            frm.set_df_property(\"bom_no\", \"reqd\", 0);\n\t\t}\n\t}\n})",
   "view": "Form"
