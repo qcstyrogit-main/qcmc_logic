@@ -61,6 +61,9 @@ doc_events = {
         "autoname": "qcmc_logic.customs.machine_shop_job_request.autoname",
         "validate": "qcmc_logic.customs.machine_shop_job_request.validate",
     },
+    "Job Card Downtime": {
+        "validate": "qcmc_logic.customs.job_card_downtime.validate",
+    },
 }
 
 before_request = [
@@ -232,6 +235,8 @@ fixtures = [
             ]
         ],
     },
+    {"doctype": "Downtime Reason"},
+    {"doctype": "Job Card Downtime"},
 ]
 before_migrate = [
     "qcmc_logic.migrate.run_role_profile_updates_inline",
