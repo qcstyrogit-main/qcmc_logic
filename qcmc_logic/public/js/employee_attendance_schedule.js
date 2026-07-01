@@ -17,6 +17,7 @@ frappe.ui.form.on("Employee Attendance Schedule", {
 
 async function setup_employee_attendance_defaults(frm) {
     setup_employee_attendance_payroll_options(frm);
+    ensure_employee_attendance_payroll_type(frm);
     [100, 500, 1000].forEach((delay) => {
         setTimeout(() => setup_employee_attendance_defaults_once(frm), delay);
     });
@@ -25,14 +26,247 @@ async function setup_employee_attendance_defaults(frm) {
 }
 
 function setup_employee_attendance_colored_viewer(frm) {
+    if (frm && frm.wrapper) {
+        $(frm.wrapper).addClass("eas-viewer-compact");
+    }
+    render_employee_attendance_period_toggle(frm);
     hide_employee_attendance_exception_dashboard();
     [0, 100, 500].forEach((delay) => {
         setTimeout(() => {
+            render_employee_attendance_period_toggle(frm);
             hide_employee_attendance_exception_dashboard();
+            install_employee_attendance_table_picker(frm);
             install_employee_attendance_colored_renderer(frm);
             apply_employee_attendance_table_colors(frm);
         }, delay);
     });
+}
+
+function render_employee_attendance_period_toggle(frm) {
+    if (!frm || !frm.wrapper || !frm.fields_dict || !frm.fields_dict.company) return;
+
+    ensure_employee_attendance_period_toggle_style();
+
+    const $layout = $(frm.wrapper).find(".form-layout").first();
+    if (!$layout.length) return;
+
+    let $toggle = $(frm.wrapper).find(".eas-period-toggle").first();
+    if (!$toggle.length) {
+        $toggle = $(
+            '<div class="eas-period-toggle">' +
+                '<div class="eas-period-toggle-main">' +
+                    '<strong>Period Details</strong>' +
+                    '<span class="eas-period-toggle-summary"></span>' +
+                '</div>' +
+                '<button class="btn btn-xs btn-default eas-period-toggle-button" type="button"></button>' +
+            '</div>'
+        );
+        $layout.prepend($toggle);
+        $toggle.on("click", ".eas-period-toggle-button", function() {
+            frm.__period_details_collapsed = !frm.__period_details_collapsed;
+            render_employee_attendance_period_toggle(frm);
+        });
+    }
+
+    if (frm.__period_details_collapsed === undefined) {
+        frm.__period_details_collapsed = !!frm.doc.payroll_period;
+    }
+
+    const collapsed = !!frm.__period_details_collapsed && !!frm.doc.payroll_period;
+    const $periodSection = $(frm.fields_dict.company.wrapper).closest(".form-section");
+    $periodSection.toggle(!collapsed);
+
+    const parts = [
+        frm.doc.payroll_period ? "Pay: " + frm.doc.payroll_period : "",
+        frm.doc.from_date && frm.doc.to_date ? frm.doc.from_date + " to " + frm.doc.to_date : "",
+        frm.doc.generated_on ? "Generated: " + frm.doc.generated_on : ""
+    ].filter(Boolean);
+
+    $toggle.toggle(!!frm.doc.payroll_period);
+    $toggle.toggleClass("is-collapsed", collapsed);
+    $toggle.find(".eas-period-toggle-summary").text(parts.join(" - "));
+    $toggle.find(".eas-period-toggle-button").text(collapsed ? "Show" : "Hide");
+}
+
+function ensure_employee_attendance_period_toggle_style() {
+    if (document.getElementById("eas-period-toggle-style")) return;
+
+    $('<style id="eas-period-toggle-style">' +
+        '.eas-period-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px auto 10px;max-width:870px;padding:8px 10px;border:1px solid #e5e7eb;border-radius:8px;background:#f8fafc;color:#334155;}' +
+        '.eas-period-toggle-main{display:flex;align-items:center;gap:10px;min-width:0;}' +
+        '.eas-period-toggle-main strong{font-size:12px;color:#0f172a;white-space:nowrap;}' +
+        '.eas-period-toggle-summary{font-size:12px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+        '.eas-period-toggle-button{flex:0 0 auto;}' +
+    '</style>').appendTo("head");
+}
+
+function install_employee_attendance_table_picker(frm) {
+    if (window.render_employee_picker && window.render_employee_picker.__eas_table_picker) {
+        window.render_employee_picker(frm);
+        return;
+    }
+    if (typeof parse_employee_list !== "function" || typeof ensure_employee_directory !== "function") return;
+
+    window.render_employee_picker = function(frm) {
+        if (!frm.fields_dict.employee_list_html) return;
+
+        if (typeof apply_payroll_period_visibility === "function") {
+            apply_payroll_period_visibility(frm);
+        }
+
+        const field = frm.fields_dict.employee_list_html;
+        if (!frm.doc.payroll_period) {
+            field.$wrapper.empty();
+            return;
+        }
+
+        let employees = has_current_employee_attendance_directory(frm) ? parse_employee_list(frm) : [];
+        const wrapper = field.$wrapper;
+        wrapper.off("click.eas_employee_table");
+
+        ensure_employee_attendance_table_picker_style();
+
+        if (frm.doc.selected_employee && !frm.__show_employee_picker) {
+            render_employee_attendance_selected_card(frm, wrapper);
+        } else {
+            render_employee_attendance_table(frm, wrapper, employees, "");
+        }
+
+        if (!employees.length && (!frm.doc.selected_employee || frm.__show_employee_picker)) {
+            ensure_employee_directory(frm, (loadedEmployees) => {
+                employees = loadedEmployees || parse_employee_list(frm);
+                render_employee_attendance_table(frm, wrapper, employees, "");
+            });
+        }
+
+        wrapper.on("click.eas_employee_table", ".eas-employee-change", function() {
+            frm.__show_employee_picker = true;
+            render_employee_attendance_table(
+                frm,
+                wrapper,
+                employees.length ? employees : (has_current_employee_attendance_directory(frm) ? parse_employee_list(frm) : []),
+                ""
+            );
+            ensure_employee_directory(frm, (loadedEmployees) => {
+                employees = loadedEmployees || [];
+                render_employee_attendance_table(frm, wrapper, employees, "");
+            });
+        });
+
+        wrapper.on("click.eas_employee_table", ".eas-employee-table-row", function() {
+            const employee = $(this).attr("data-employee") || "";
+            const employeeName = $(this).attr("data-employee-name") || "";
+            frm.__employee_table_scroll_top = wrapper.find(".eas-employee-table-wrap").scrollTop() || 0;
+            frm.__show_employee_picker = false;
+            if (!employee) return;
+
+            wrapper.find(".eas-employee-table-row").removeClass("is-selected");
+            $(this).addClass("is-selected");
+
+            if (typeof load_employee_schedule === "function") {
+                load_employee_schedule(frm, employee, employeeName);
+            }
+        });
+    };
+
+    window.render_employee_picker.__eas_table_picker = true;
+    window.render_employee_picker(frm);
+}
+
+function has_current_employee_attendance_directory(frm) {
+    if (typeof has_current_employee_directory === "function") {
+        return has_current_employee_directory(frm);
+    }
+    return true;
+}
+
+function ensure_employee_attendance_table_picker_style() {
+    if (document.getElementById("eas-employee-table-picker-style")) return;
+
+    $('<style id="eas-employee-table-picker-style">' +
+        '.eas-viewer-compact .form-section{padding-top:8px!important;padding-bottom:8px!important;}' +
+        '.eas-viewer-compact .section-body{padding-top:6px!important;padding-bottom:6px!important;}' +
+        '.eas-viewer-compact .frappe-control{margin-bottom:8px!important;}' +
+        '.eas-viewer-compact .control-label{margin-bottom:4px!important;}' +
+        '.eas-viewer-compact .form-column{padding-top:0!important;padding-bottom:0!important;}' +
+        '.eas-viewer-compact [data-fieldname="employees_section"] .section-head{margin-bottom:8px!important;}' +
+        '.eas-viewer-compact [data-fieldname="attendance_section"] .section-head{display:none!important;}' +
+        '.eas-employee-table-picker{max-width:520px;}' +
+        '.eas-employee-selected-card{display:flex;align-items:center;gap:10px;max-width:520px;}' +
+        '.eas-employee-selected-text{flex:1;min-width:0;padding:7px 10px;border:1px solid #e5e7eb;border-radius:8px;background:#f8fafc;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+        '.eas-employee-change{flex:0 0 auto;}' +
+        '.eas-employee-table-wrap{border:1px solid #e5e7eb;border-radius:8px;background:#fff;overflow:auto;max-height:210px;}' +
+        '.eas-employee-table{width:100%;border-collapse:collapse;}' +
+        '.eas-employee-table th,.eas-employee-table td{padding:9px 12px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:middle;line-height:1.35;word-break:break-word;}' +
+        '.eas-employee-table th{position:sticky;top:0;background:#f8f9fb;font-weight:600;z-index:1;}' +
+        '.eas-employee-table-row{cursor:pointer;}' +
+        '.eas-employee-table-row:hover td{background:#f8fafc;}' +
+        '.eas-employee-table-row.is-selected td{background:#eef6ff;}' +
+        '.eas-employee-id{white-space:nowrap;font-weight:600;color:#334155;}' +
+        '.eas-employee-status{display:inline-flex;padding:3px 8px;border-radius:999px;background:#f1f5f9;color:#334155;font-size:11px;white-space:nowrap;}' +
+        '.eas-employee-status.no-shift{background:#fff7ed;color:#9a3412;}' +
+        '.eas-employee-table-empty{padding:16px;color:#64748b;}' +
+    '</style>').appendTo("head");
+}
+
+function render_employee_attendance_selected_card(frm, wrapper) {
+    const label = frm.doc.selected_employee_name || frm.doc.selected_employee || "";
+    wrapper.html(
+        '<div class="eas-employee-selected-card">' +
+            '<div class="eas-employee-selected-text">' + frappe.utils.escape_html(label) + '</div>' +
+            '<button class="btn btn-xs btn-default eas-employee-change" type="button">Change</button>' +
+        '</div>'
+    );
+}
+
+function render_employee_attendance_table(frm, wrapper, employees, keyword) {
+    const text = (keyword || "").toLowerCase().trim();
+    const selectedEmployee = frm.doc.selected_employee || "";
+    const rows = (employees || []).filter((employee) => {
+        if (!text) return true;
+        const haystack = [
+            employee.employee,
+            employee.employee_name,
+            employee.department,
+            employee.default_shift,
+            employee.status
+        ].filter(Boolean).join(" ").toLowerCase();
+        return haystack.indexOf(text) !== -1;
+    });
+
+    const body = rows.map((employee) => {
+        const status = employee.status || "";
+        const statusClass = status === "No Shift Setup" ? " no-shift" : "";
+        const selectedClass = employee.employee === selectedEmployee ? " is-selected" : "";
+
+        return '<tr class="eas-employee-table-row' + selectedClass + '" data-employee="' + frappe.utils.escape_html(employee.employee || "") + '" data-employee-name="' + frappe.utils.escape_html(employee.employee_name || "") + '">' +
+            '<td class="eas-employee-id">' + frappe.utils.escape_html(employee.employee || "") + '</td>' +
+            '<td>' + frappe.utils.escape_html(employee.employee_name || "") + '</td>' +
+        '</tr>';
+    }).join("");
+
+    const emptyHtml = '<div class="eas-employee-table-empty">' +
+        (text ? "No employee found." : "Loading employees...") +
+    '</div>';
+
+    wrapper.html(
+        '<div class="eas-employee-table-picker">' +
+            '<div class="eas-employee-table-wrap">' +
+                (rows.length ? '<table class="eas-employee-table">' +
+                    '<thead><tr>' +
+                        '<th style="width:140px;">Employee ID</th>' +
+                        '<th>Employee Name</th>' +
+                    '</tr></thead>' +
+                    '<tbody>' + body + '</tbody>' +
+                '</table>' : emptyHtml) +
+            '</div>' +
+        '</div>'
+    );
+
+    const scrollTop = frm.__employee_table_scroll_top || 0;
+    if (scrollTop) {
+        wrapper.find(".eas-employee-table-wrap").scrollTop(scrollTop);
+    }
 }
 
 function hide_employee_attendance_exception_dashboard() {
@@ -82,8 +316,10 @@ function install_employee_attendance_colored_renderer(frm) {
             ["time_in", "Time In"],
             ["time_out", "Time Out"],
             ["late_hours", "Late (Hour)"],
-            ["valid_ot", "Valid OT"],
-            ["authorization_no", "AuthorizationNo"],
+            ["valid_ot", "OT Hours"],
+            ["overtime_type", "OT Type"],
+            ["night_diff_hours", "ND Hours"],
+            ["authorization_no", "OT Slip"],
             ["rest_day", "RestDay"],
             ["holiday_type", "HolidayType"],
             ["leave_type", "LeaveType"],
@@ -106,6 +342,11 @@ function install_employee_attendance_colored_renderer(frm) {
 
         const totalLate = rows.reduce((total, row) => total + flt(row.late_hours), 0);
         const totalOt = rows.reduce((total, row) => total + flt(row.valid_ot), 0);
+        const overtimeTypeSummary = get_employee_attendance_overtime_type_summary(rows);
+        const totalNightDiff = rows.reduce((total, row) => total + flt(row.night_diff_hours), 0);
+        const nightDiffSummary = totalNightDiff
+            ? '<span class="eas-attendance-total">Night Diff <strong>' + format_employee_attendance_total(totalNightDiff) + '</strong></span>'
+            : "";
         const totalAbsent = rows.reduce((total, row) => {
             return total + (get_employee_attendance_row_status(row).className === "eas-row-absent" ? 1 : 0);
         }, 0);
@@ -117,6 +358,8 @@ function install_employee_attendance_colored_renderer(frm) {
             '<div class="eas-attendance-summary">' +
                 '<span class="eas-attendance-total">Total Late <strong>' + format_employee_attendance_total(totalLate) + '</strong></span>' +
                 '<span class="eas-attendance-total">Total OT <strong>' + format_employee_attendance_total(totalOt) + '</strong></span>' +
+                overtimeTypeSummary +
+                nightDiffSummary +
                 '<span class="eas-attendance-total">Absent <strong>' + totalAbsent + '</strong> day' + (totalAbsent === 1 ? '' : 's') + '</span>' +
                 '<span class="eas-attendance-total">Leave <strong>' + totalLeave + '</strong> day' + (totalLeave === 1 ? '' : 's') + '</span>' +
             '</div>' +
@@ -137,6 +380,27 @@ function install_employee_attendance_colored_renderer(frm) {
         );
     };
     window.render_attendance_viewer.__eas_with_leave_summary = true;
+}
+
+function get_employee_attendance_overtime_type_summary(rows) {
+    const totals = {};
+    (rows || []).forEach((row) => {
+        const hours = flt(row.valid_ot);
+        if (!hours) return;
+
+        const type = (row.overtime_type || "No OT Type").trim();
+        totals[type] = (totals[type] || 0) + hours;
+    });
+
+    const chips = Object.keys(totals).sort().map((type) => {
+        return '<span class="eas-attendance-total eas-attendance-ot-type">' +
+            frappe.utils.escape_html(type) +
+            ' <strong>' + format_employee_attendance_total(totals[type]) + '</strong>' +
+        '</span>';
+    }).join("");
+
+    if (!chips) return "";
+    return '<span class="eas-attendance-breakdown-label">OT Breakdown</span>' + chips;
 }
 
 function setup_employee_attendance_color_observer(frm) {
@@ -245,6 +509,7 @@ function ensure_employee_attendance_viewer_style() {
         '.eas-attendance-summary{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 10px;}' +
         '.eas-attendance-total{display:inline-flex;align-items:baseline;gap:6px;padding:7px 10px;border:1px solid #e5e7eb;border-radius:6px;background:#f8fafc;color:#334155;font-size:12px;line-height:1.2;}' +
         '.eas-attendance-total strong{font-size:15px;color:#0f172a;font-weight:700;}' +
+        '.eas-attendance-breakdown-label{display:inline-flex;align-items:center;color:#64748b;font-size:12px;font-weight:600;line-height:1.2;}' +
         '.eas-attendance-legend{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:0 0 10px;color:#475569;font-size:12px;line-height:1.4;}' +
         '.eas-attendance-legend span{display:inline-flex;align-items:center;gap:6px;}' +
         '.eas-legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;border:1px solid rgba(15,23,42,0.16);}' +
@@ -257,7 +522,8 @@ function ensure_employee_attendance_viewer_style() {
         '.eas-attendance-table{width:100%;min-width:1500px;border-collapse:collapse;}' +
         '.eas-attendance-table th,.eas-attendance-table td{padding:9px 12px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top;white-space:nowrap;line-height:1.35;}' +
         '.eas-attendance-table th{position:sticky;top:0;background:#f8f9fb;font-weight:600;z-index:1;}' +
-        '.eas-attendance-table th:nth-child(1),.eas-attendance-table td:nth-child(1){white-space:normal;min-width:190px;}' +
+        '.eas-attendance-table th:nth-child(1),.eas-attendance-table td:nth-child(1){position:sticky;left:0;white-space:normal;min-width:190px;z-index:2;background:#fff;box-shadow:1px 0 0 #e5e7eb;}' +
+        '.eas-attendance-table th:nth-child(1){z-index:4;background:#f8f9fb;}' +
         '.eas-attendance-table th:nth-child(2),.eas-attendance-table td:nth-child(2){white-space:normal;min-width:180px;}' +
         '.eas-attendance-table th:nth-child(3),.eas-attendance-table td:nth-child(3),.eas-attendance-table th:nth-child(4),.eas-attendance-table td:nth-child(4){min-width:110px;}' +
         '.eas-attendance-table th:nth-child(5),.eas-attendance-table td:nth-child(5),.eas-attendance-table th:nth-child(6),.eas-attendance-table td:nth-child(6),.eas-attendance-table th:nth-child(7),.eas-attendance-table td:nth-child(7),.eas-attendance-table th:nth-child(8),.eas-attendance-table td:nth-child(8){min-width:92px;}' +
@@ -265,6 +531,10 @@ function ensure_employee_attendance_viewer_style() {
         '.eas-attendance-table tbody tr.eas-row-absent td{background:#ffe4e4;}' +
         '.eas-attendance-table tbody tr.eas-row-leave td{background:#f2edff;}' +
         '.eas-attendance-table tbody tr.eas-row-holiday td{background:#e9f8ee;}' +
+        '.eas-attendance-table tbody tr.eas-row-late td:nth-child(1){background:#fff8db;}' +
+        '.eas-attendance-table tbody tr.eas-row-absent td:nth-child(1){background:#ffe4e4;}' +
+        '.eas-attendance-table tbody tr.eas-row-leave td:nth-child(1){background:#f2edff;}' +
+        '.eas-attendance-table tbody tr.eas-row-holiday td:nth-child(1){background:#e9f8ee;}' +
         '.eas-attendance-table tbody tr:hover td{filter:brightness(0.985);}' +
         '.eas-attendance-link{color:#2563eb;text-decoration:none;font-weight:500;}' +
         '.eas-attendance-link:hover{text-decoration:underline;}' +
@@ -287,9 +557,14 @@ function format_employee_attendance_cell(row, fieldname) {
     const label = frappe.utils.escape_html(value);
     if (!value) return "";
 
+    if (fieldname === "leave_type") {
+        if (!row.leave_application) return label;
+        const href = "/app/" + frappe.router.slug("Leave Application") + "/" + encodeURIComponent(row.leave_application);
+        return '<a class="eas-attendance-link" href="' + href + '">' + label + "</a>";
+    }
+
     const linkDoctypes = {
-        authorization_no: "Overtime Slip",
-        leave_type: "Leave Type"
+        authorization_no: "Overtime Slip"
     };
     const doctype = linkDoctypes[fieldname];
     if (!doctype) return label;
@@ -300,6 +575,10 @@ function format_employee_attendance_cell(row, fieldname) {
 
 async function setup_employee_attendance_defaults_once(frm) {
     setup_employee_attendance_payroll_options(frm);
+
+    if (!frm.__employee_attendance_payroll_type_loaded) {
+        return;
+    }
 
     if (!frm.doc.payroll_period) {
         await frm.set_value("payroll_period", get_current_employee_attendance_payroll_period());
@@ -315,6 +594,11 @@ function get_current_employee_attendance_payroll_period() {
     const year = today.getFullYear();
     const month = today.getMonth();
     const day = today.getDate();
+    if (typeof cur_frm !== "undefined" && cur_frm && cur_frm.__employee_attendance_payroll_type === "Weekly") {
+        const sunday = new Date(today);
+        sunday.setDate(today.getDate() + ((7 - today.getDay()) % 7));
+        return format_employee_attendance_payroll_date(sunday);
+    }
     const payDay = day <= 15 ? 15 : Math.min(30, new Date(year, month + 1, 0).getDate());
 
     return `${month + 1}/${payDay}/${year}`;
@@ -325,15 +609,21 @@ function setup_employee_attendance_payroll_options(frm) {
 
     const today = frappe.datetime.str_to_obj(frappe.datetime.get_today());
     const options = [];
+    const payrollType = frm.__employee_attendance_payroll_type || "";
 
     for (let offset = -6; offset <= 6; offset++) {
         const base = new Date(today.getFullYear(), today.getMonth() + offset, 1);
-        options.push(format_employee_attendance_payroll_date(new Date(base.getFullYear(), base.getMonth(), 15)));
-        options.push(format_employee_attendance_payroll_date(new Date(
-            base.getFullYear(),
-            base.getMonth(),
-            Math.min(30, new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate())
-        )));
+        if (payrollType !== "Weekly") {
+            options.push(format_employee_attendance_payroll_date(new Date(base.getFullYear(), base.getMonth(), 15)));
+            options.push(format_employee_attendance_payroll_date(new Date(
+                base.getFullYear(),
+                base.getMonth(),
+                Math.min(30, new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate())
+            )));
+        }
+        if (payrollType !== "Monthly") {
+            add_employee_attendance_weekly_payroll_options(options, base);
+        }
     }
 
     const current = frm.doc.payroll_period || get_current_employee_attendance_payroll_period();
@@ -341,11 +631,41 @@ function setup_employee_attendance_payroll_options(frm) {
         options.push(current);
     }
 
-    frm.set_df_property("payroll_period", "options", options.join("\n"));
+    frm.set_df_property("payroll_period", "options", Array.from(new Set(options)).join("\n"));
+}
+
+function ensure_employee_attendance_payroll_type(frm) {
+    if (frm.__employee_attendance_payroll_type_loaded || frm.__loading_employee_attendance_payroll_type) return;
+
+    frm.__loading_employee_attendance_payroll_type = true;
+    frappe.call({
+        method: "qcmc_logic.api.employee_attendance_schedule.get_current_user_payroll_type",
+        callback(r) {
+            frm.__employee_attendance_payroll_type = ((r && r.message) || "").trim();
+            frm.__employee_attendance_payroll_type_loaded = true;
+            frm.__loading_employee_attendance_payroll_type = false;
+            setup_employee_attendance_payroll_options(frm);
+        },
+        error() {
+            frm.__loading_employee_attendance_payroll_type = false;
+        }
+    });
 }
 
 function format_employee_attendance_payroll_date(dateObj) {
     return `${dateObj.getMonth() + 1}/${dateObj.getDate()}/${dateObj.getFullYear()}`;
+}
+
+function add_employee_attendance_weekly_payroll_options(options, base) {
+    const first = new Date(base.getFullYear(), base.getMonth(), 1);
+    const last = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+    const sunday = new Date(first);
+    sunday.setDate(first.getDate() + ((7 - first.getDay()) % 7));
+
+    while (sunday <= last) {
+        options.push(format_employee_attendance_payroll_date(new Date(sunday)));
+        sunday.setDate(sunday.getDate() + 7);
+    }
 }
 
 async function set_employee_attendance_period_dates(frm, payrollPeriod) {
@@ -355,7 +675,10 @@ async function set_employee_attendance_period_dates(frm, payrollPeriod) {
     let fromDate;
     let toDate;
 
-    if (payDay.getDate() === 15) {
+    if (payDay.getDay() === 0 && payDay.getDate() !== 15 && payDay.getDate() !== 30) {
+        fromDate = new Date(payDay.getFullYear(), payDay.getMonth(), payDay.getDate() - 6);
+        toDate = payDay;
+    } else if (payDay.getDate() === 15) {
         fromDate = new Date(payDay.getFullYear(), payDay.getMonth() - 1, 23);
         toDate = new Date(payDay.getFullYear(), payDay.getMonth(), 7);
     } else {

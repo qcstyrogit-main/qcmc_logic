@@ -57,6 +57,24 @@ doc_events = {
         "before_insert": "qcmc_logic.customs.employee_attendance_schedule.apply_defaults",
         "validate": "qcmc_logic.customs.employee_attendance_schedule.apply_defaults",
     },
+    "Salary Slip": {
+        "validate": [
+            "qcmc_logic.customs.salary_slip_attendance.apply_attendance_late",
+            "qcmc_logic.customs.salary_slip_employer_contributions.apply_employer_contribution_rows",
+        ],
+        "before_save": "qcmc_logic.customs.salary_slip_income_tax.apply_declared_income_tax",
+    },
+    "Overtime Slip": {
+        "before_validate": "qcmc_logic.customs.overtime_slip.normalize_overtime_before_validate",
+        "validate": "qcmc_logic.customs.overtime_slip.normalize_overtime_before_validate",
+    },
+    "Batch Other Adjustment Entry": {
+        "on_cancel": "qcmc_logic.api.batch_other_adjustment.cancel_batch_additional_salaries",
+    },
+    "Additional Salary": {
+        "before_cancel": "qcmc_logic.api.batch_other_adjustment.allow_batch_additional_salary_cancel",
+        "on_cancel": "qcmc_logic.api.batch_other_adjustment.update_batch_row_on_additional_salary_cancel",
+    },
     "Machine Shop Job Request": {
         "autoname": "qcmc_logic.customs.machine_shop_job_request.autoname",
         "validate": "qcmc_logic.customs.machine_shop_job_request.validate",
@@ -83,6 +101,10 @@ doctype_js = {
     "Material Request": "public/js/material_request.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
     "Employee Attendance Schedule": "public/js/employee_attendance_schedule.js",
+    "Overtime Slip": "public/js/overtime_slip.js",
+    "Batch Overtime Entry": "public/js/batch_overtime_entry.js",
+    "Batch Other Adjustment Entry": "public/js/batch_other_adjustment_entry.js",
+    "Payroll Entry": "public/js/payroll_entry.js",
 }
 
 doctype_list_js = {

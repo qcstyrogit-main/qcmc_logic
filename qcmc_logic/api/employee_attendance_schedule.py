@@ -1,12 +1,36 @@
+from datetime import datetime, time, timedelta
+
 import frappe
 from frappe import _
 from frappe.utils import cint
 from frappe.utils import add_days, getdate, now_datetime, today
 from hrms.hr.doctype.shift_assignment_tool.shift_assignment_tool import create_shift_assignment
 
+from qcmc_logic.customs.overtime_policy import normalize_overtime_duration
+from qcmc_logic.customs.rest_day import is_rest_day_from_work_days
+
 
 DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+REST_DAY_TOKENS = {
+	"MON": "Monday",
+	"MONDAY": "Monday",
+	"TUE": "Tuesday",
+	"TUESDAY": "Tuesday",
+	"WED": "Wednesday",
+	"WEDNESDAY": "Wednesday",
+	"THU": "Thursday",
+	"THUR": "Thursday",
+	"THURSDAY": "Thursday",
+	"FRI": "Friday",
+	"FRIDAY": "Friday",
+	"SAT": "Saturday",
+	"SATURDAY": "Saturday",
+	"SUN": "Sunday",
+	"SUNDAY": "Sunday",
+}
 DEFAULT_LATE_GRACE_PERIOD_MINUTES = 15
+NIGHT_DIFFERENTIAL_START_HOUR = 22
+NIGHT_DIFFERENTIAL_END_HOUR = 6
 
 
 def _fmt_time(value):
@@ -40,6 +64,69 @@ def _get_late_hours(time_in, shift_start, grace_period_seconds):
 		return 0.0
 
 	return round((diff - grace_period_seconds) / 3600, 2)
+
+
+def _get_night_differential_hours(time_in, time_out):
+	if not time_in or not time_out:
+		return 0.0
+
+	start = frappe.utils.get_datetime(time_in)
+	end = frappe.utils.get_datetime(time_out)
+	if end <= start:
+		end = end + timedelta(days=1)
+
+	total_seconds = 0
+	current_date = start.date() - timedelta(days=1)
+	end_date = end.date()
+
+	while current_date <= end_date:
+		night_start = datetime.combine(
+			current_date, time(NIGHT_DIFFERENTIAL_START_HOUR, 0)
+		)
+		night_end = datetime.combine(
+			current_date + timedelta(days=1), time(NIGHT_DIFFERENTIAL_END_HOUR, 0)
+		)
+		overlap_start = max(start, night_start)
+		overlap_end = min(end, night_end)
+		if overlap_end > overlap_start:
+			total_seconds += (overlap_end - overlap_start).total_seconds()
+		current_date = current_date + timedelta(days=1)
+
+	return round(total_seconds / 3600, 2)
+
+
+def _get_rest_days_for_shift(shift_name):
+	if not shift_name:
+		return {"Saturday", "Sunday"}
+
+	normalized = (
+		shift_name.upper()
+		.replace("(", " ")
+		.replace(")", " ")
+		.replace("-", " ")
+		.replace("/", " ")
+	)
+	parts = normalized.split()
+	rest_days = set()
+	for index, part in enumerate(parts):
+		if part != "RD":
+			continue
+		for neighbor in (index - 1, index + 1):
+			if neighbor < 0 or neighbor >= len(parts):
+				continue
+			day = REST_DAY_TOKENS.get(parts[neighbor])
+			if day:
+				rest_days.add(day)
+
+	if rest_days:
+		rest_days.add("Sunday")
+		return rest_days
+
+	return {"Saturday", "Sunday"}
+
+
+def _is_rest_day(day_name, shift_name):
+	return day_name in _get_rest_days_for_shift(shift_name)
 
 
 def _normalize_date(value):
@@ -92,11 +179,31 @@ def get_cutoff_dates(cutoff_period=None, base_date=None):
 	}
 
 
-@frappe.whitelist()
-def get_payroll_period_dates(payroll_period):
-	pay_day = getdate(payroll_period)
+def _get_current_user_payroll_type():
+	if frappe.session.user == "Administrator":
+		return ""
 
-	if pay_day.day == 15:
+	return frappe.db.get_value(
+		"Employee",
+		{"user_id": frappe.session.user},
+		"custom_payroll_type",
+	) or ""
+
+
+@frappe.whitelist()
+def get_current_user_payroll_type():
+	return _get_current_user_payroll_type()
+
+
+@frappe.whitelist()
+def get_payroll_period_dates(payroll_period, payroll_type=None):
+	pay_day = getdate(payroll_period)
+	payroll_type = payroll_type or _get_current_user_payroll_type()
+
+	if payroll_type == "Weekly" or (not payroll_type and pay_day.weekday() == 6 and pay_day.day not in (15, 30)):
+		from_date = add_days(pay_day, -6)
+		to_date = pay_day
+	elif pay_day.day == 15:
 		from_date = add_days(pay_day.replace(day=1), -9)
 		to_date = pay_day.replace(day=7)
 	else:
@@ -138,14 +245,58 @@ def _get_leave_map(employee_names, from_date, to_date):
 			"from_date": ["<=", to_date],
 			"to_date": [">=", from_date],
 		},
-		fields=["employee", "from_date", "to_date", "leave_type"],
+		fields=["name", "employee", "from_date", "to_date", "leave_type"],
 	):
 		days = frappe.utils.date_diff(str(leave.to_date), str(leave.from_date))
 		for index in range(days + 1):
 			leave_date = str(add_days(str(leave.from_date), index))
 			if from_date <= leave_date <= to_date:
-				leave_map[(leave.employee, leave_date)] = leave.leave_type
+				leave_map[(leave.employee, leave_date)] = {
+					"leave_type": leave.leave_type,
+					"leave_application": leave.name,
+				}
 	return leave_map
+
+
+def _get_checkin_map(employee_names, from_date, to_date):
+	checkin_map = {}
+	if not employee_names:
+		return checkin_map
+
+	for checkin in frappe.get_all(
+		"Employee Checkin",
+		filters={
+			"employee": ["in", employee_names],
+			"time": ["between", [f"{from_date} 00:00:00", f"{to_date} 23:59:59"]],
+			"skip_auto_attendance": 0,
+		},
+		fields=["employee", "time", "log_type", "shift"],
+		order_by="time asc",
+		limit_page_length=50000,
+	):
+		checkin_date = str(getdate(checkin.time))
+		key = (checkin.employee, checkin_date)
+		row = checkin_map.setdefault(
+			key,
+			{
+				"in_time": None,
+				"out_time": None,
+				"shift": None,
+			},
+		)
+		if checkin.shift and not row["shift"]:
+			row["shift"] = checkin.shift
+		if checkin.log_type == "IN":
+			if not row["in_time"] or checkin.time < row["in_time"]:
+				row["in_time"] = checkin.time
+		elif checkin.log_type == "OUT":
+			if not row["out_time"] or checkin.time > row["out_time"]:
+				row["out_time"] = checkin.time
+		else:
+			if not row["in_time"] or checkin.time < row["in_time"]:
+				row["in_time"] = checkin.time
+
+	return checkin_map
 
 
 def _get_authorization_maps(attendance_names, employee_names, from_date, to_date):
@@ -153,18 +304,27 @@ def _get_authorization_maps(attendance_names, employee_names, from_date, to_date
 	slip_names_by_employee_date = {}
 	overtime_by_attendance = {}
 	overtime_by_employee_date = {}
+	overtime_type_by_attendance = {}
+	overtime_type_by_employee_date = {}
 
 	if not (
 		frappe.db.exists("DocType", "Overtime Slip")
 		and frappe.db.exists("DocType", "Overtime Details")
 	):
-		return authorization_map, slip_names_by_employee_date, overtime_by_attendance, overtime_by_employee_date
+		return (
+			authorization_map,
+			slip_names_by_employee_date,
+			overtime_by_attendance,
+			overtime_by_employee_date,
+			overtime_type_by_attendance,
+			overtime_type_by_employee_date,
+		)
 
 	if attendance_names:
 		details = frappe.get_all(
 			"Overtime Details",
 			filters={"reference_document": ["in", attendance_names]},
-			fields=["parent", "reference_document", "overtime_duration"],
+			fields=["parent", "reference_document", "overtime_type", "overtime_duration"],
 			order_by="idx asc",
 		)
 		parents = []
@@ -185,14 +345,16 @@ def _get_authorization_maps(attendance_names, employee_names, from_date, to_date
 			if detail.parent in submitted_slips and detail.reference_document not in authorization_map:
 				authorization_map[detail.reference_document] = detail.parent
 			if detail.parent in submitted_slips:
-				overtime_by_attendance[detail.reference_document] = round(
-					float(detail.overtime_duration or 0), 2
+				overtime_by_attendance[detail.reference_document] = normalize_overtime_duration(
+					detail.overtime_duration,
+					detail.overtime_type,
 				)
+				overtime_type_by_attendance[detail.reference_document] = detail.overtime_type or ""
 
 	date_details = frappe.get_all(
 		"Overtime Details",
 		filters={"date": ["between", [from_date, to_date]]},
-		fields=["parent", "date", "overtime_duration"],
+		fields=["parent", "date", "overtime_type", "overtime_duration"],
 		order_by="idx asc",
 	)
 	parents = []
@@ -211,22 +373,20 @@ def _get_authorization_maps(attendance_names, employee_names, from_date, to_date
 					key = (slip.employee, str(detail.date))
 					if key not in slip_names_by_employee_date:
 						slip_names_by_employee_date[key] = slip.name
-					overtime_by_employee_date[key] = round(float(detail.overtime_duration or 0), 2)
+					overtime_by_employee_date[key] = normalize_overtime_duration(
+						detail.overtime_duration,
+						detail.overtime_type,
+					)
+					overtime_type_by_employee_date[key] = detail.overtime_type or ""
 
-	return authorization_map, slip_names_by_employee_date, overtime_by_attendance, overtime_by_employee_date
-
-
-@frappe.whitelist()
-def debug_overtime_maps(attendance_names=None, employee_names=None, from_date=None, to_date=None):
-	attendance_names = frappe.parse_json(attendance_names) if isinstance(attendance_names, str) else attendance_names
-	employee_names = frappe.parse_json(employee_names) if isinstance(employee_names, str) else employee_names
-	maps = _get_authorization_maps(attendance_names or [], employee_names or [], from_date, to_date)
-	return {
-		"authorization_map": maps[0],
-		"slip_names_by_employee_date": {f"{key[0]}|{key[1]}": value for key, value in maps[1].items()},
-		"overtime_by_attendance": maps[2],
-		"overtime_by_employee_date": {f"{key[0]}|{key[1]}": value for key, value in maps[3].items()},
-	}
+	return (
+		authorization_map,
+		slip_names_by_employee_date,
+		overtime_by_attendance,
+		overtime_by_employee_date,
+		overtime_type_by_attendance,
+		overtime_type_by_employee_date,
+	)
 
 
 def _resolve_period(from_date=None, to_date=None, cutoff_period=None, payroll_period=None):
@@ -256,6 +416,54 @@ def _get_employee_company(employee):
 		frappe.throw(_("Employee {0} was not found.").format(frappe.bold(employee)))
 
 	return company
+
+
+def _get_logged_in_employee_filters(company=None):
+	if frappe.session.user == "Administrator":
+		return {"company": company} if company else {}
+
+	fields = [
+		"name",
+		"company",
+		"branch",
+		"department",
+		"employment_type",
+		"custom_payroll_type",
+	]
+	user_employee = frappe.db.get_value(
+		"Employee",
+		{"user_id": frappe.session.user},
+		fields,
+		as_dict=True,
+	)
+
+	if not user_employee:
+		return {"name": ["=", "__no_employee_access__"]}
+
+	filters = {}
+	if company and user_employee.company and company != user_employee.company:
+		return {"name": ["=", "__no_employee_access__"]}
+
+	if user_employee.company:
+		filters["company"] = user_employee.company
+	elif company:
+		filters["company"] = company
+
+	for fieldname in ("branch", "department"):
+		if user_employee.get(fieldname):
+			filters[fieldname] = user_employee.get(fieldname)
+
+	if user_employee.employment_type in ("Regular", "Probationary"):
+		filters["employment_type"] = user_employee.employment_type
+	else:
+		return {"name": ["=", "__no_employee_access__"]}
+
+	if user_employee.custom_payroll_type in ("Monthly", "Weekly"):
+		filters["custom_payroll_type"] = user_employee.custom_payroll_type
+	else:
+		return {"name": ["=", "__no_employee_access__"]}
+
+	return filters
 
 
 @frappe.whitelist()
@@ -360,18 +568,29 @@ def _get_schedule_context(from_date=None, to_date=None, cutoff_period=None, comp
 	to_date = period["to_date"]
 
 	employee_filters = {"status": "Active"}
-	if company:
-		employee_filters["company"] = company
+	employee_filters.update(_get_logged_in_employee_filters(company))
 
 	employees = frappe.get_all(
 		"Employee",
 		filters=employee_filters,
-		fields=["name", "employee_name", "department", "company", "default_shift", "holiday_list"],
+		fields=[
+			"name",
+			"employee_name",
+			"department",
+			"company",
+			"branch",
+			"employment_type",
+			"custom_payroll_type",
+			"default_shift",
+			"holiday_list",
+		],
 		order_by="employee_name asc",
 	)
 
 	all_employee_names = [employee.name for employee in employees]
 	shift_assignment_map = {}
+	employee_shift_pattern_map = {}
+	employee_roster_work_days_map = {}
 	employees_with_shift_assignment = {}
 	employees_with_shift_schedule_assignment = {}
 	employees_with_overtime_slip = {}
@@ -381,23 +600,80 @@ def _get_schedule_context(from_date=None, to_date=None, cutoff_period=None, comp
 			filters=[
 				["employee", "in", all_employee_names],
 				["docstatus", "=", 1],
-				["status", "=", "Active"],
 				["start_date", "<=", to_date],
 			],
 			or_filters=[
 				["end_date", ">=", from_date],
 				["end_date", "is", "not set"],
 			],
-			fields=["employee", "shift_type", "start_date", "end_date"],
+			fields=["employee", "shift_type", "start_date", "end_date", "shift_schedule_assignment"],
 			order_by="start_date asc",
 		):
 			employees_with_shift_assignment[assignment.employee] = 1
+			employee_shift_pattern_map.setdefault(assignment.employee, assignment.shift_type)
+			if assignment.shift_schedule_assignment:
+				employee_roster_work_days_map.setdefault(assignment.employee, set())
 			start_date = max(str(assignment.start_date), from_date)
 			end_date = min(str(assignment.end_date or to_date), to_date)
 			days = frappe.utils.date_diff(end_date, start_date)
 			for index in range(days + 1):
 				sched_date = str(add_days(start_date, index))
 				shift_assignment_map[(assignment.employee, sched_date)] = assignment.shift_type
+
+	if employee_roster_work_days_map:
+		schedule_assignments = {
+			assignment.shift_schedule_assignment
+			for assignment in frappe.get_all(
+				"Shift Assignment",
+				filters=[
+					["employee", "in", list(employee_roster_work_days_map)],
+					["docstatus", "=", 1],
+					["start_date", "<=", to_date],
+					["shift_schedule_assignment", "is", "set"],
+				],
+				or_filters=[
+					["end_date", ">=", from_date],
+					["end_date", "is", "not set"],
+				],
+				fields=["shift_schedule_assignment"],
+			)
+		}
+		shift_schedule_by_assignment = {
+			row.name: row.shift_schedule
+			for row in frappe.get_all(
+				"Shift Schedule Assignment",
+				filters={"name": ["in", list(schedule_assignments)]},
+				fields=["name", "shift_schedule"],
+			)
+		}
+		work_days_by_schedule = {}
+		if shift_schedule_by_assignment:
+			for row in frappe.get_all(
+				"Assignment Rule Day",
+				filters={"parent": ["in", list(set(shift_schedule_by_assignment.values()))]},
+				fields=["parent", "day"],
+			):
+				work_days_by_schedule.setdefault(row.parent, set()).add(row.day)
+
+			for assignment in frappe.get_all(
+				"Shift Assignment",
+				filters=[
+					["employee", "in", list(employee_roster_work_days_map)],
+					["docstatus", "=", 1],
+					["start_date", "<=", to_date],
+					["shift_schedule_assignment", "is", "set"],
+				],
+				or_filters=[
+					["end_date", ">=", from_date],
+					["end_date", "is", "not set"],
+				],
+				fields=["employee", "shift_schedule_assignment"],
+			):
+				schedule = shift_schedule_by_assignment.get(assignment.shift_schedule_assignment)
+				if schedule:
+					employee_roster_work_days_map.setdefault(assignment.employee, set()).update(
+						work_days_by_schedule.get(schedule, set())
+					)
 
 	if all_employee_names and frappe.db.exists("DocType", "Shift Schedule Assignment"):
 		for assignment in frappe.get_all(
@@ -453,6 +729,9 @@ def _get_schedule_context(from_date=None, to_date=None, cutoff_period=None, comp
 			"employee_name": employee.employee_name,
 			"department": employee.department,
 			"company": employee.company,
+			"branch": employee.branch,
+			"employment_type": employee.employment_type,
+			"custom_payroll_type": employee.custom_payroll_type,
 			"default_shift": employee.default_shift,
 			"holiday_list": employee.holiday_list,
 			"has_shift_setup": has_shift_setup,
@@ -464,6 +743,9 @@ def _get_schedule_context(from_date=None, to_date=None, cutoff_period=None, comp
 				"employee": employee.name,
 				"employee_name": employee.employee_name,
 				"department": employee.department,
+				"branch": employee.branch,
+				"employment_type": employee.employment_type,
+				"custom_payroll_type": employee.custom_payroll_type,
 				"default_shift": employee.default_shift or "",
 				"status": status,
 			}
@@ -527,11 +809,14 @@ def _get_schedule_context(from_date=None, to_date=None, cutoff_period=None, comp
 			holiday_maps[holiday_list] = _get_holiday_map(holiday_list, from_date, to_date)
 
 	leave_map = _get_leave_map(employee_names, from_date, to_date)
+	checkin_map = _get_checkin_map(employee_names, from_date, to_date)
 	(
 		authorization_map,
 		slip_names_by_employee_date,
 		overtime_by_attendance,
 		overtime_by_employee_date,
+		overtime_type_by_attendance,
+		overtime_type_by_employee_date,
 	) = _get_authorization_maps(
 		attendance_names, employee_names, from_date, to_date
 	)
@@ -547,15 +832,20 @@ def _get_schedule_context(from_date=None, to_date=None, cutoff_period=None, comp
 		"scheduled_employees": scheduled_employees,
 		"skipped_employees": skipped_employees,
 		"shift_assignment_map": shift_assignment_map,
+		"employee_shift_pattern_map": employee_shift_pattern_map,
+		"employee_roster_work_days_map": employee_roster_work_days_map,
 		"attendance_map": attendance_map,
 		"shift_map": shift_map,
 		"company_holiday_lists": company_holiday_lists,
 		"holiday_maps": holiday_maps,
 		"leave_map": leave_map,
+		"checkin_map": checkin_map,
 		"authorization_map": authorization_map,
 		"slip_names_by_employee_date": slip_names_by_employee_date,
 		"overtime_by_attendance": overtime_by_attendance,
 		"overtime_by_employee_date": overtime_by_employee_date,
+		"overtime_type_by_attendance": overtime_type_by_attendance,
+		"overtime_type_by_employee_date": overtime_type_by_employee_date,
 	}
 
 
@@ -571,35 +861,53 @@ def _build_employee_rows(employee, context):
 		sched_date = str(add_days(from_date, day_index))
 		current = getdate(sched_date)
 		day_name = DAYS[current.weekday()]
-		is_weekend = current.weekday() >= 5
 		holiday = holiday_map.get(sched_date)
 		attendance = context["attendance_map"].get((employee["name"], sched_date))
-		shift_name = context["shift_assignment_map"].get((employee["name"], sched_date)) or employee["default_shift"]
+		checkin = context["checkin_map"].get((employee["name"], sched_date)) or {}
+		time_in = attendance.in_time if attendance and attendance.in_time else checkin.get("in_time")
+		time_out = attendance.out_time if attendance and attendance.out_time else checkin.get("out_time")
+		shift_name = (
+			context["shift_assignment_map"].get((employee["name"], sched_date))
+			or (attendance.shift if attendance else None)
+			or checkin.get("shift")
+			or employee["default_shift"]
+		)
 		shift = context["shift_map"].get(shift_name)
+		rest_day_shift_name = shift_name or context["employee_shift_pattern_map"].get(employee["name"])
+		is_rest_day = is_rest_day_from_work_days(
+			sched_date,
+			context["employee_roster_work_days_map"].get(employee["name"]),
+			rest_day_shift_name,
+		)
 
 		sched_start = ""
 		sched_end = ""
-		if shift and not is_weekend and not holiday:
+		if shift and not is_rest_day and not holiday:
 			sched_start = _fmt_time(shift.start_time)
 			sched_end = _fmt_time(shift.end_time)
 
 		late = 0.0
-		if attendance and attendance.in_time and shift and shift.start_time and not is_weekend and not holiday:
+		if time_in and shift and shift.start_time and not is_rest_day and not holiday:
 			late = _get_late_hours(
-				attendance.in_time,
+				time_in,
 				shift.start_time,
 				_get_late_grace_period_seconds(shift),
 			)
+		night_diff_hours = _get_night_differential_hours(time_in, time_out)
 
 		valid_ot = 0.0
+		overtime_type = ""
 		if attendance:
 			valid_ot = context["overtime_by_attendance"].get(attendance.name) or context[
 				"overtime_by_employee_date"
 			].get((employee["name"], sched_date), 0.0)
+			overtime_type = context["overtime_type_by_attendance"].get(attendance.name) or context[
+				"overtime_type_by_employee_date"
+			].get((employee["name"], sched_date), "")
 
-		leave_type = context["leave_map"].get((employee["name"], sched_date)) or (
-			attendance.leave_type if attendance else ""
-		)
+		leave = context["leave_map"].get((employee["name"], sched_date)) or {}
+		leave_type = leave.get("leave_type") or (attendance.leave_type if attendance else "")
+		leave_application = leave.get("leave_application") or ""
 		authorization_no = ""
 		if attendance:
 			authorization_no = context["authorization_map"].get(attendance.name) or context[
@@ -616,17 +924,20 @@ def _build_employee_rows(employee, context):
 				"day_of_week": day_name,
 				"sched_time_start": sched_start,
 				"sched_time_end": sched_end,
-				"time_in": _fmt_time(attendance.in_time) if attendance and attendance.in_time else "",
-				"time_out": _fmt_time(attendance.out_time) if attendance and attendance.out_time else "",
+				"time_in": _fmt_time(time_in),
+				"time_out": _fmt_time(time_out),
 				"attendance_status": attendance.status if attendance else "",
 				"late_hours": late,
 				"valid_ot": valid_ot,
+				"overtime_type": overtime_type,
+				"night_diff_hours": night_diff_hours,
 				"authorization_no": authorization_no,
-				"rest_day": sched_date if is_weekend or holiday else "",
+				"rest_day": sched_date if is_rest_day or holiday else "",
 				"holiday_type": (holiday.description if holiday else "Weekly Off")
-				if is_weekend or holiday
+				if is_rest_day or holiday
 				else "",
 				"leave_type": leave_type or "",
+				"leave_application": leave_application,
 			}
 		)
 

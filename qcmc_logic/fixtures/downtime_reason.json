@@ -1,881 +1,11 @@
 [
  {
   "category": "PROD-DT",
-  "description": "Alignment",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "15",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.122378",
-  "name": "15",
-  "subcategory": "MOLD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Minor Repair",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "16",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.131014",
-  "name": "16",
-  "subcategory": "MOLD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Cooling System",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "17",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.132874",
-  "name": "17",
-  "subcategory": "MOLD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Polishing",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "18",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.134503",
-  "name": "18",
-  "subcategory": "MOLD"
- },
- {
-  "category": "PROD-DT",
-  "description": "New / Trainee / Transfer to Other Operation",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "20",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.136093",
-  "name": "20",
-  "subcategory": "MANPOWER"
- },
- {
-  "category": "PROD-DT",
-  "description": "Skills",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "21",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.137735",
-  "name": "21",
-  "subcategory": "MANPOWER"
- },
- {
-  "category": "PROD-DT",
-  "description": "Lack of Manpower / Absenteeism",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "22",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.139251",
-  "name": "22",
-  "subcategory": "MANPOWER"
- },
- {
-  "category": "PROD-DT",
-  "description": "Delay",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "23",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.140794",
-  "name": "23",
-  "subcategory": "MATERIAL"
- },
- {
-  "category": "PROD-DT",
-  "description": "Reject",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "24",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.142384",
-  "name": "24",
-  "subcategory": "MATERIAL"
- },
- {
-  "category": "PROD-DT",
-  "description": "Under / Over Age Material",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "25",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.143928",
-  "name": "25",
-  "subcategory": "MATERIAL"
- },
- {
-  "category": "PROD-DT",
-  "description": "SOP's",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "26",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.145486",
-  "name": "26",
-  "subcategory": "METHOD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Deviated",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "27",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.146987",
-  "name": "27",
-  "subcategory": "METHOD"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Product Change Over",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "28",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.148576",
-  "name": "28",
-  "subcategory": "PRODUCTION"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Stabilization After Change Over",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "29",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.150148",
-  "name": "29",
-  "subcategory": "PRODUCTION"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "HR Activities / Monthly Meeting",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "30",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.151652",
-  "name": "30",
-  "subcategory": "PRODUCTION"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Planned Audit",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "31",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.153231",
-  "name": "31",
-  "subcategory": "PRODUCTION"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Start-up After Declared NPO",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "32",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.154748",
-  "name": "32",
-  "subcategory": "PRODUCTION"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "No Materials",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "33",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.156360",
-  "name": "33",
-  "subcategory": "PURCHASING"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "No Parts Availability",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "34",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.158386",
-  "name": "34",
-  "subcategory": "PURCHASING"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Wrong Parts",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "35",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.160838",
-  "name": "35",
-  "subcategory": "PURCHASING"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Mold Repair",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "36",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.162477",
-  "name": "36",
-  "subcategory": "ENGINEERING"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Back Jobs - Machining / Fabrication Works",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "37",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.164100",
-  "name": "37",
-  "subcategory": "ENGINEERING"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Roll Quality and Specs",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "38",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.165624",
-  "name": "38",
-  "subcategory": "MC PLANT"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Late Delivery",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "39",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.167132",
-  "name": "39",
-  "subcategory": "MC PLANT"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Un Planned Schedule",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "40",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.168672",
-  "name": "40",
-  "subcategory": "PPIC"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Pending Requested Manpower",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "41",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.170211",
-  "name": "41",
-  "subcategory": "HR"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Absenteeism",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "42",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.171726",
-  "name": "42",
-  "subcategory": "HR"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Loader Under Repair",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "44",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.173305",
-  "name": "44",
-  "subcategory": "POWER PLANT"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Maintenance",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "47",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.174825",
-  "name": "47",
-  "subcategory": "POWER PLANT"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "No Electricity",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "48",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.176404",
-  "name": "48",
-  "subcategory": "EXTERNAL FACTORS"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Transformer Problem - Line Side",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "49",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.178042",
-  "name": "49",
-  "subcategory": "EXTERNAL FACTORS"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Typhoon / Floods",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "50",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.179671",
-  "name": "50",
-  "subcategory": "EXTERNAL FACTORS"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Earthquake / Fire",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "51",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.181258",
-  "name": "51",
-  "subcategory": "EXTERNAL FACTORS"
- },
- {
-  "category": "PROD-DT",
-  "description": "Auxiliaries Problem",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "52",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.182778",
-  "name": "52",
-  "subcategory": "AUXILIARIES"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Stabilization After Repair",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "53",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.184319",
-  "name": "53",
-  "subcategory": "PRODUCTION"
- },
- {
-  "category": "PROD-UNPLANNED",
-  "description": "Production Downtime - MC",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "54",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.186051",
-  "name": "54",
-  "subcategory": "PRODUCTION"
- },
- {
-  "category": "PROD-DT",
-  "description": "Low Steam Supply",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "55",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.187650",
-  "name": "55",
-  "subcategory": "BOILER"
- },
- {
-  "category": "PROD-DT",
-  "description": "Low Air",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "56",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.189207",
-  "name": "56",
-  "subcategory": "AUXILIARIES"
- },
- {
-  "category": "PROD-DT",
-  "description": "Low Cooling Pressure",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "57",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.190803",
-  "name": "57",
-  "subcategory": "AUXILIARIES"
- },
- {
-  "category": "PROD-DT",
-  "description": "Low Cooling Temperature",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "58",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.192349",
-  "name": "58",
-  "subcategory": "AUXILIARIES"
- },
- {
-  "category": "PROD-DT",
-  "description": "Downtime Electrical Problem Machine (1)",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "59",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.193918",
-  "name": "59",
-  "subcategory": "AUXILIARIES"
- },
- {
-  "category": "PROD-DT",
-  "description": "Downtime Electrical Problem Machine (2)",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "60",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.195432",
-  "name": "60",
-  "subcategory": "AUXILIARIES"
- },
- {
-  "category": "PROD-DT",
-  "description": "No Loader Available / No Driver",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "61",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.197044",
-  "name": "61",
-  "subcategory": "AUXILIARIES"
- },
- {
-  "category": "PROD-DT",
-  "description": "Low Water Level",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "62",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.198653",
-  "name": "62",
-  "subcategory": "AUXILIARIES"
- },
- {
-  "category": "PROD-DT",
-  "description": "Central Vacuum System",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "63",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.200165",
-  "name": "63",
-  "subcategory": "AUXILIARIES"
- },
- {
-  "category": "PROD-DT",
-  "description": "Low Gas Pressure - Plant 33",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "64",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.201775",
-  "name": "64",
-  "subcategory": "AUXILIARIES"
- },
- {
-  "category": "PROD-DT",
-  "description": "Chiller - High Cooling Temperature",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "65",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.203333",
-  "name": "65",
-  "subcategory": "AUXILIARIES"
- },
- {
-  "category": "PROD-DT",
-  "description": "Water Treatment Facilities - Steam",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "66",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.204903",
-  "name": "66",
-  "subcategory": "AUXILIARIES"
- },
- {
-  "category": "PROD-DT",
-  "description": "Mold Alignment",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "67",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.206520",
-  "name": "67",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Steam Inlet Replacement / or Repair",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "69",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.208061",
-  "name": "69",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Mold Polishing / Cleaning and Maintenance",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "70",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.209606",
-  "name": "70",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Mold - O-Ring Replacement",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "71",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.211134",
-  "name": "71",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Feeding Gun Replacement or Repair",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "72",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.212668",
-  "name": "72",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Push Rod Repair or Replace",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "73",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.214242",
-  "name": "73",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Inject Plate Repair",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "74",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.215739",
-  "name": "74",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Mold Cutter Repair",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "75",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.217315",
-  "name": "75",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Mold Cutter Re-Sharpening",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "76",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.218872",
-  "name": "76",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Plug Assists Polishing",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "77",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.220408",
-  "name": "77",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Mold Insert Repair",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "78",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.222055",
-  "name": "78",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Push Plate Repair",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "79",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.223613",
-  "name": "79",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Material Hose and Fittings",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "80",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.225129",
-  "name": "80",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Air Hose Fitting",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "81",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.226624",
-  "name": "81",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Steam Hose and Clamp",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "82",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.228190",
-  "name": "82",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Mold Cooling System",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "83",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.229736",
-  "name": "83",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Mold Puncher Repair - PSP",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "84",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.231235",
-  "name": "84",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Mold Bender Repair - PSP",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "85",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.232787",
-  "name": "85",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Mold Blade Replacement",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "86",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.234303",
-  "name": "86",
-  "subcategory": "MOULD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Machine Slowdown - New / Trainee",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "87",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.235818",
-  "name": "87",
-  "subcategory": "MANPOWER"
- },
- {
-  "category": "PROD-DT",
-  "description": "Delay - Material Preparation",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "89",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.238900",
-  "name": "89",
-  "subcategory": "MATERIAL"
- },
- {
-  "category": "PROD-DT",
-  "description": "Delay - Issuance and Delivery (Raw Material)",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "90",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.240398",
-  "name": "90",
-  "subcategory": "MATERIAL"
- },
- {
-  "category": "PROD-DT",
-  "description": "Delay - Issuance and Delivery (Finished Goods)",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "91",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.241972",
-  "name": "91",
-  "subcategory": "MATERIAL"
- },
- {
-  "category": "PROD-DT",
-  "description": "Deviated Raw Material",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "92",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.243915",
-  "name": "92",
-  "subcategory": "MATERIAL"
- },
- {
-  "category": "PROD-DT",
-  "description": "Material Under / Over Age",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "93",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.245483",
-  "name": "93",
-  "subcategory": "MATERIAL"
- },
- {
-  "category": "PROD-DT",
-  "description": "Parameter Adjustment - Due to Material Issue",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "94",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.246984",
-  "name": "94",
-  "subcategory": "METHOD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Parameter Adjustment - Due to Machine",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "95",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.248488",
-  "name": "95",
-  "subcategory": "METHOD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Parameter Adjustment - Due to Mould",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "96",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.250054",
-  "name": "96",
-  "subcategory": "METHOD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Parameter Adjustment - Due to Operator",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "97",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.251576",
-  "name": "97",
-  "subcategory": "METHOD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Parameter Adjustment - Due to Quality",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "98",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.253186",
-  "name": "98",
-  "subcategory": "METHOD"
- },
- {
-  "category": "PROD-DT",
-  "description": "Parameter Adjustment - Weight",
-  "docstatus": 0,
-  "doctype": "Downtime Reason",
-  "dt_code": "99",
-  "is_active": 1,
-  "modified": "2026-06-26 09:12:55.254678",
-  "name": "99",
-  "subcategory": "METHOD"
- },
- {
-  "category": "PROD-DT",
   "description": "Deviated Quality Compliance",
   "docstatus": 0,
   "doctype": "Downtime Reason",
   "dt_code": "100",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.256195",
   "name": "100",
   "subcategory": "METHOD"
  },
@@ -886,7 +16,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "110",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.257830",
   "name": "110",
   "subcategory": "METHOD"
  },
@@ -897,7 +26,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "111",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.259347",
   "name": "111",
   "subcategory": "METHOD"
  },
@@ -908,7 +36,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "112",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.260996",
   "name": "112",
   "subcategory": "METHOD"
  },
@@ -919,7 +46,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "113",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.262495",
   "name": "113",
   "subcategory": "METHOD"
  },
@@ -930,7 +56,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "114",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.264016",
   "name": "114",
   "subcategory": "METHOD"
  },
@@ -941,7 +66,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "117",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.265536",
   "name": "117",
   "subcategory": "METHOD"
  },
@@ -952,7 +76,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "118",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.267060",
   "name": "118",
   "subcategory": "METHOD"
  },
@@ -963,7 +86,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "122",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.268641",
   "name": "122",
   "subcategory": "METHOD"
  },
@@ -974,7 +96,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "125",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.270228",
   "name": "125",
   "subcategory": "METHOD"
  },
@@ -985,7 +106,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "126",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.271811",
   "name": "126",
   "subcategory": "METHOD"
  },
@@ -996,7 +116,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "127",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.273387",
   "name": "127",
   "subcategory": "METHOD"
  },
@@ -1007,7 +126,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "128",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.274892",
   "name": "128",
   "subcategory": "METHOD"
  },
@@ -1018,7 +136,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "129",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.276414",
   "name": "129",
   "subcategory": "METHOD"
  },
@@ -1029,7 +146,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "131",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.277939",
   "name": "131",
   "subcategory": "MANPOWER"
  },
@@ -1040,7 +156,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "132",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.279518",
   "name": "132",
   "subcategory": "MACHINE"
  },
@@ -1051,7 +166,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "133",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.281293",
   "name": "133",
   "subcategory": "MACHINE"
  },
@@ -1062,7 +176,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "134",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.283237",
   "name": "134",
   "subcategory": "MACHINE"
  },
@@ -1073,7 +186,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "135",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.285460",
   "name": "135",
   "subcategory": "MACHINE"
  },
@@ -1084,7 +196,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "136",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.287151",
   "name": "136",
   "subcategory": "MACHINE"
  },
@@ -1095,7 +206,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "137",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.288674",
   "name": "137",
   "subcategory": "MACHINE"
  },
@@ -1106,7 +216,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "139",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.290300",
   "name": "139",
   "subcategory": "MACHINE"
  },
@@ -1117,7 +226,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "140",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.291916",
   "name": "140",
   "subcategory": "MACHINE"
  },
@@ -1128,7 +236,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "141",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.293621",
   "name": "141",
   "subcategory": "MACHINE"
  },
@@ -1139,7 +246,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "142",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.295159",
   "name": "142",
   "subcategory": "MACHINE"
  },
@@ -1150,7 +256,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "143",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.296723",
   "name": "143",
   "subcategory": "MACHINE"
  },
@@ -1161,7 +266,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "144",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.298253",
   "name": "144",
   "subcategory": "MACHINE"
  },
@@ -1172,7 +276,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "145",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.299853",
   "name": "145",
   "subcategory": "MACHINE"
  },
@@ -1183,9 +286,68 @@
   "doctype": "Downtime Reason",
   "dt_code": "146",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.301556",
   "name": "146",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Alignment",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "15",
+  "is_active": 1,
+  "name": "15",
+  "subcategory": "MOLD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Minor Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "16",
+  "is_active": 1,
+  "name": "16",
+  "subcategory": "MOLD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Cooling System",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "17",
+  "is_active": 1,
+  "name": "17",
+  "subcategory": "MOLD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Polishing",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "18",
+  "is_active": 1,
+  "name": "18",
+  "subcategory": "MOLD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "New / Trainee / Transfer to Other Operation",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "20",
+  "is_active": 1,
+  "name": "20",
+  "subcategory": "MANPOWER"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Skills",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "21",
+  "is_active": 1,
+  "name": "21",
+  "subcategory": "MANPOWER"
  },
  {
   "category": "BD",
@@ -1194,7 +356,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "216",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.303192",
   "name": "216",
   "subcategory": "MACHINE"
  },
@@ -1205,7 +366,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "217",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.304775",
   "name": "217",
   "subcategory": "MACHINE"
  },
@@ -1216,7 +376,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "218",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.306325",
   "name": "218",
   "subcategory": "MACHINE"
  },
@@ -1227,9 +386,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "219",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.307864",
   "name": "219",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Lack of Manpower / Absenteeism",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "22",
+  "is_active": 1,
+  "name": "22",
+  "subcategory": "MANPOWER"
  },
  {
   "category": "BD",
@@ -1238,7 +406,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "220",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.309441",
   "name": "220",
   "subcategory": "MACHINE"
  },
@@ -1249,7 +416,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "221",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.311033",
   "name": "221",
   "subcategory": "MACHINE"
  },
@@ -1260,7 +426,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "222",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.312795",
   "name": "222",
   "subcategory": "MACHINE"
  },
@@ -1271,7 +436,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "223",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.314355",
   "name": "223",
   "subcategory": "MACHINE"
  },
@@ -1282,7 +446,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "224",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.315983",
   "name": "224",
   "subcategory": "MACHINE"
  },
@@ -1293,7 +456,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "225",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.317633",
   "name": "225",
   "subcategory": "MACHINE"
  },
@@ -1304,7 +466,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "226",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.319168",
   "name": "226",
   "subcategory": "MACHINE"
  },
@@ -1315,7 +476,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "227",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.320739",
   "name": "227",
   "subcategory": "MACHINE"
  },
@@ -1326,7 +486,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "228",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.322285",
   "name": "228",
   "subcategory": "MACHINE"
  },
@@ -1337,9 +496,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "229",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.323833",
   "name": "229",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Delay",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "23",
+  "is_active": 1,
+  "name": "23",
+  "subcategory": "MATERIAL"
  },
  {
   "category": "BD",
@@ -1348,7 +516,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "230",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.325380",
   "name": "230",
   "subcategory": "MACHINE"
  },
@@ -1359,7 +526,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "231",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.326904",
   "name": "231",
   "subcategory": "MACHINE"
  },
@@ -1370,7 +536,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "232",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.328461",
   "name": "232",
   "subcategory": "MACHINE"
  },
@@ -1381,7 +546,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "233",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.330049",
   "name": "233",
   "subcategory": "MACHINE"
  },
@@ -1392,7 +556,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "234",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.331674",
   "name": "234",
   "subcategory": "MACHINE"
  },
@@ -1403,7 +566,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "235",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.337227",
   "name": "235",
   "subcategory": "MACHINE"
  },
@@ -1414,7 +576,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "236",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.338813",
   "name": "236",
   "subcategory": "MACHINE"
  },
@@ -1425,7 +586,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "237",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.340340",
   "name": "237",
   "subcategory": "MACHINE"
  },
@@ -1436,7 +596,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "238",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.342001",
   "name": "238",
   "subcategory": "MACHINE"
  },
@@ -1447,9 +606,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "239",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.343654",
   "name": "239",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Reject",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "24",
+  "is_active": 1,
+  "name": "24",
+  "subcategory": "MATERIAL"
  },
  {
   "category": "BD",
@@ -1458,7 +626,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "240",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.345222",
   "name": "240",
   "subcategory": "MACHINE"
  },
@@ -1469,7 +636,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "241",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.346820",
   "name": "241",
   "subcategory": "MACHINE"
  },
@@ -1480,7 +646,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "242",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.348430",
   "name": "242",
   "subcategory": "MACHINE"
  },
@@ -1491,7 +656,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "243",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.350036",
   "name": "243",
   "subcategory": "MACHINE"
  },
@@ -1502,7 +666,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "244",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.351627",
   "name": "244",
   "subcategory": "MACHINE"
  },
@@ -1513,7 +676,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "245",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.353204",
   "name": "245",
   "subcategory": "MACHINE"
  },
@@ -1524,7 +686,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "246",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.354737",
   "name": "246",
   "subcategory": "MACHINE"
  },
@@ -1535,7 +696,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "247",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.356282",
   "name": "247",
   "subcategory": "MACHINE"
  },
@@ -1546,7 +706,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "248",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.357849",
   "name": "248",
   "subcategory": "MACHINE"
  },
@@ -1557,9 +716,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "249",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.359398",
   "name": "249",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Under / Over Age Material",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "25",
+  "is_active": 1,
+  "name": "25",
+  "subcategory": "MATERIAL"
  },
  {
   "category": "BD",
@@ -1568,7 +736,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "250",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.361080",
   "name": "250",
   "subcategory": "MACHINE"
  },
@@ -1579,7 +746,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "251",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.362766",
   "name": "251",
   "subcategory": "MACHINE"
  },
@@ -1590,7 +756,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "252",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.364502",
   "name": "252",
   "subcategory": "MACHINE"
  },
@@ -1601,7 +766,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "254",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.366181",
   "name": "254",
   "subcategory": "MACHINE"
  },
@@ -1612,7 +776,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "256",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.367749",
   "name": "256",
   "subcategory": "MACHINE"
  },
@@ -1623,7 +786,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "257",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.369305",
   "name": "257",
   "subcategory": "MACHINE"
  },
@@ -1634,7 +796,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "258",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.370835",
   "name": "258",
   "subcategory": "MACHINE"
  },
@@ -1645,9 +806,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "259",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.372394",
   "name": "259",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "SOP's",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "26",
+  "is_active": 1,
+  "name": "26",
+  "subcategory": "METHOD"
  },
  {
   "category": "BD",
@@ -1656,7 +826,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "260",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.374040",
   "name": "260",
   "subcategory": "MACHINE"
  },
@@ -1667,7 +836,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "261",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.375608",
   "name": "261",
   "subcategory": "MACHINE"
  },
@@ -1678,7 +846,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "263",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.377176",
   "name": "263",
   "subcategory": "MACHINE"
  },
@@ -1689,7 +856,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "265",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.378741",
   "name": "265",
   "subcategory": "MACHINE"
  },
@@ -1700,7 +866,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "266",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.380279",
   "name": "266",
   "subcategory": "MACHINE"
  },
@@ -1711,7 +876,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "267",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.381834",
   "name": "267",
   "subcategory": "MACHINE"
  },
@@ -1722,7 +886,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "268",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.383387",
   "name": "268",
   "subcategory": "MACHINE"
  },
@@ -1733,9 +896,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "269",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.384970",
   "name": "269",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Deviated",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "27",
+  "is_active": 1,
+  "name": "27",
+  "subcategory": "METHOD"
  },
  {
   "category": "BD",
@@ -1744,7 +916,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "270",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.386486",
   "name": "270",
   "subcategory": "MACHINE"
  },
@@ -1755,7 +926,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "271",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.388009",
   "name": "271",
   "subcategory": "MACHINE"
  },
@@ -1766,7 +936,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "272",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.389578",
   "name": "272",
   "subcategory": "MACHINE"
  },
@@ -1777,7 +946,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "273",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.391091",
   "name": "273",
   "subcategory": "MACHINE"
  },
@@ -1788,7 +956,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "274",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.392648",
   "name": "274",
   "subcategory": "MACHINE"
  },
@@ -1799,7 +966,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "275",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.394281",
   "name": "275",
   "subcategory": "MACHINE"
  },
@@ -1810,7 +976,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "276",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.395856",
   "name": "276",
   "subcategory": "MACHINE"
  },
@@ -1821,7 +986,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "277",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.397389",
   "name": "277",
   "subcategory": "MACHINE"
  },
@@ -1832,9 +996,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "278",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.398898",
   "name": "278",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Product Change Over",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "28",
+  "is_active": 1,
+  "name": "28",
+  "subcategory": "PRODUCTION"
  },
  {
   "category": "BD",
@@ -1843,7 +1016,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "280",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.400422",
   "name": "280",
   "subcategory": "MACHINE"
  },
@@ -1854,7 +1026,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "281",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.401970",
   "name": "281",
   "subcategory": "MACHINE"
  },
@@ -1865,7 +1036,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "282",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.403499",
   "name": "282",
   "subcategory": "MACHINE"
  },
@@ -1876,7 +1046,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "283",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.405080",
   "name": "283",
   "subcategory": "MACHINE"
  },
@@ -1887,7 +1056,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "284",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.406692",
   "name": "284",
   "subcategory": "MACHINE"
  },
@@ -1898,7 +1066,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "285",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.408554",
   "name": "285",
   "subcategory": "COMPRESSOR"
  },
@@ -1909,7 +1076,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "286",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.410797",
   "name": "286",
   "subcategory": "METHOD"
  },
@@ -1920,9 +1086,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "289",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.412525",
   "name": "289",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Stabilization After Change Over",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "29",
+  "is_active": 1,
+  "name": "29",
+  "subcategory": "PRODUCTION"
  },
  {
   "category": "BD",
@@ -1931,7 +1106,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "290",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.414100",
   "name": "290",
   "subcategory": "MACHINE"
  },
@@ -1942,7 +1116,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "291",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.415650",
   "name": "291",
   "subcategory": "MACHINE"
  },
@@ -1953,7 +1126,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "292",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.417199",
   "name": "292",
   "subcategory": "MACHINE"
  },
@@ -1964,7 +1136,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "293",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.418732",
   "name": "293",
   "subcategory": "MACHINE"
  },
@@ -1975,7 +1146,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "294",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.420274",
   "name": "294",
   "subcategory": "MACHINE"
  },
@@ -1986,7 +1156,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "295",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.421796",
   "name": "295",
   "subcategory": "MACHINE"
  },
@@ -1997,7 +1166,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "296",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.423316",
   "name": "296",
   "subcategory": "MACHINE"
  },
@@ -2008,7 +1176,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "297",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.424878",
   "name": "297",
   "subcategory": "MACHINE"
  },
@@ -2019,7 +1186,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "298",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.426411",
   "name": "298",
   "subcategory": "MACHINE"
  },
@@ -2030,9 +1196,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "299",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.427946",
   "name": "299",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "HR Activities / Monthly Meeting",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "30",
+  "is_active": 1,
+  "name": "30",
+  "subcategory": "PRODUCTION"
  },
  {
   "category": "BD",
@@ -2041,7 +1216,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "300",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.429477",
   "name": "300",
   "subcategory": "MACHINE"
  },
@@ -2052,7 +1226,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "301",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.430992",
   "name": "301",
   "subcategory": "MACHINE"
  },
@@ -2063,7 +1236,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "302",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.432574",
   "name": "302",
   "subcategory": "MACHINE"
  },
@@ -2074,7 +1246,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "303",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.434152",
   "name": "303",
   "subcategory": "MACHINE"
  },
@@ -2085,7 +1256,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "304",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.435695",
   "name": "304",
   "subcategory": "MACHINE"
  },
@@ -2096,7 +1266,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "305",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.437246",
   "name": "305",
   "subcategory": "MOULD"
  },
@@ -2107,7 +1276,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "306",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.438781",
   "name": "306",
   "subcategory": "MOULD"
  },
@@ -2118,7 +1286,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "307",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.440374",
   "name": "307",
   "subcategory": "MACHINE"
  },
@@ -2129,7 +1296,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "308",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.441995",
   "name": "308",
   "subcategory": "MACHINE"
  },
@@ -2140,9 +1306,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "309",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.443584",
   "name": "309",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Planned Audit",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "31",
+  "is_active": 1,
+  "name": "31",
+  "subcategory": "PRODUCTION"
  },
  {
   "category": "BD",
@@ -2151,7 +1326,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "310",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.445127",
   "name": "310",
   "subcategory": "MACHINE"
  },
@@ -2162,7 +1336,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "311",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.446636",
   "name": "311",
   "subcategory": "MACHINE"
  },
@@ -2173,7 +1346,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "312",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.448161",
   "name": "312",
   "subcategory": "MACHINE"
  },
@@ -2184,7 +1356,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "314",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.449724",
   "name": "314",
   "subcategory": "MACHINE"
  },
@@ -2195,7 +1366,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "316",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.451259",
   "name": "316",
   "subcategory": "MACHINE"
  },
@@ -2206,9 +1376,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "317",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.453020",
   "name": "317",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Start-up After Declared NPO",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "32",
+  "is_active": 1,
+  "name": "32",
+  "subcategory": "PRODUCTION"
  },
  {
   "category": "BD",
@@ -2217,7 +1396,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "322",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.458318",
   "name": "322",
   "subcategory": "MACHINE"
  },
@@ -2228,9 +1406,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "323",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.459907",
   "name": "323",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "No Materials",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "33",
+  "is_active": 1,
+  "name": "33",
+  "subcategory": "PURCHASING"
  },
  {
   "category": "BD",
@@ -2239,7 +1426,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "330",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.461573",
   "name": "330",
   "subcategory": "MACHINE"
  },
@@ -2250,7 +1436,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "333",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.463088",
   "name": "333",
   "subcategory": "MACHINE"
  },
@@ -2261,7 +1446,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "334",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.464622",
   "name": "334",
   "subcategory": "MACHINE"
  },
@@ -2272,7 +1456,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "335",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.466198",
   "name": "335",
   "subcategory": "MACHINE"
  },
@@ -2283,7 +1466,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "338",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.467779",
   "name": "338",
   "subcategory": "MACHINE"
  },
@@ -2294,9 +1476,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "339",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.469340",
   "name": "339",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "No Parts Availability",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "34",
+  "is_active": 1,
+  "name": "34",
+  "subcategory": "PURCHASING"
  },
  {
   "category": "BD",
@@ -2305,7 +1496,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "340",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.470860",
   "name": "340",
   "subcategory": "MACHINE"
  },
@@ -2316,7 +1506,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "341",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.472614",
   "name": "341",
   "subcategory": "MACHINE"
  },
@@ -2327,7 +1516,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "342",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.474237",
   "name": "342",
   "subcategory": "MACHINE"
  },
@@ -2338,7 +1526,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "343",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.475775",
   "name": "343",
   "subcategory": "MOULD"
  },
@@ -2349,7 +1536,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "345",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.477398",
   "name": "345",
   "subcategory": "METHOD"
  },
@@ -2360,7 +1546,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "346",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.478912",
   "name": "346",
   "subcategory": "MACHINE"
  },
@@ -2371,7 +1556,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "347",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.480426",
   "name": "347",
   "subcategory": "MATERIAL"
  },
@@ -2382,7 +1566,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "348",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.482031",
   "name": "348",
   "subcategory": "METHOD"
  },
@@ -2393,9 +1576,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "349",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.483594",
   "name": "349",
   "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Wrong Parts",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "35",
+  "is_active": 1,
+  "name": "35",
+  "subcategory": "PURCHASING"
  },
  {
   "category": "PROD-DT",
@@ -2404,7 +1596,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "350",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.485139",
   "name": "350",
   "subcategory": "MATERIAL"
  },
@@ -2415,7 +1606,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "351",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.486685",
   "name": "351",
   "subcategory": "MACHINE"
  },
@@ -2426,7 +1616,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "352",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.488252",
   "name": "352",
   "subcategory": "MACHINE"
  },
@@ -2437,7 +1626,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "353",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.489831",
   "name": "353",
   "subcategory": "MATERIAL"
  },
@@ -2448,7 +1636,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "354",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.491359",
   "name": "354",
   "subcategory": "MACHINE"
  },
@@ -2459,7 +1646,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "355",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.492984",
   "name": "355",
   "subcategory": "MACHINE"
  },
@@ -2470,7 +1656,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "356",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.494540",
   "name": "356",
   "subcategory": "MACHINE"
  },
@@ -2481,7 +1666,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "357",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.496090",
   "name": "357",
   "subcategory": "MACHINE"
  },
@@ -2492,7 +1676,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "358",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.497671",
   "name": "358",
   "subcategory": "MACHINE"
  },
@@ -2503,9 +1686,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "359",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.499185",
   "name": "359",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Mold Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "36",
+  "is_active": 1,
+  "name": "36",
+  "subcategory": "ENGINEERING"
  },
  {
   "category": "BD",
@@ -2514,7 +1706,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "360",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.500747",
   "name": "360",
   "subcategory": "MACHINE"
  },
@@ -2525,7 +1716,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "361",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.502290",
   "name": "361",
   "subcategory": "MACHINE"
  },
@@ -2536,7 +1726,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "362",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.503991",
   "name": "362",
   "subcategory": "MACHINE"
  },
@@ -2547,7 +1736,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "363",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.505917",
   "name": "363",
   "subcategory": "MACHINE"
  },
@@ -2558,7 +1746,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "364",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.507848",
   "name": "364",
   "subcategory": "MATERIAL"
  },
@@ -2569,7 +1756,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "365",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.509841",
   "name": "365",
   "subcategory": "MATERIAL"
  },
@@ -2580,7 +1766,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "366",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.511450",
   "name": "366",
   "subcategory": "MACHINE"
  },
@@ -2591,7 +1776,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "367",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.513018",
   "name": "367",
   "subcategory": "MATERIAL"
  },
@@ -2602,9 +1786,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "368",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.514560",
   "name": "368",
   "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Back Jobs - Machining / Fabrication Works",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "37",
+  "is_active": 1,
+  "name": "37",
+  "subcategory": "ENGINEERING"
  },
  {
   "category": "BD",
@@ -2613,7 +1806,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "370",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.516151",
   "name": "370",
   "subcategory": "MACHINE"
  },
@@ -2624,7 +1816,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "371",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.517717",
   "name": "371",
   "subcategory": "MACHINE"
  },
@@ -2635,7 +1826,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "372",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.519285",
   "name": "372",
   "subcategory": "MACHINE"
  },
@@ -2646,7 +1836,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "373",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.521026",
   "name": "373",
   "subcategory": "MACHINE"
  },
@@ -2657,7 +1846,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "374",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.522841",
   "name": "374",
   "subcategory": "MACHINE"
  },
@@ -2668,7 +1856,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "375",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.524455",
   "name": "375",
   "subcategory": "MACHINE"
  },
@@ -2679,7 +1866,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "376",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.526025",
   "name": "376",
   "subcategory": "MACHINE"
  },
@@ -2690,7 +1876,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "378",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.527613",
   "name": "378",
   "subcategory": "METHOD"
  },
@@ -2701,9 +1886,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "379",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.529174",
   "name": "379",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Roll Quality and Specs",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "38",
+  "is_active": 1,
+  "name": "38",
+  "subcategory": "MC PLANT"
  },
  {
   "category": "BD",
@@ -2712,7 +1906,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "380",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.530760",
   "name": "380",
   "subcategory": "MACHINE"
  },
@@ -2723,7 +1916,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "381",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.532320",
   "name": "381",
   "subcategory": "MACHINE"
  },
@@ -2734,7 +1926,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "382",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.533905",
   "name": "382",
   "subcategory": "MACHINE"
  },
@@ -2745,7 +1936,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "383",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.535562",
   "name": "383",
   "subcategory": "MACHINE"
  },
@@ -2756,7 +1946,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "384",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.537181",
   "name": "384",
   "subcategory": "MACHINE"
  },
@@ -2767,7 +1956,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "385",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.538755",
   "name": "385",
   "subcategory": "MATERIAL"
  },
@@ -2778,7 +1966,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "387",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.540327",
   "name": "387",
   "subcategory": "MACHINE"
  },
@@ -2789,7 +1976,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "388",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.541920",
   "name": "388",
   "subcategory": "MACHINE"
  },
@@ -2800,9 +1986,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "389",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.543478",
   "name": "389",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Late Delivery",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "39",
+  "is_active": 1,
+  "name": "39",
+  "subcategory": "MC PLANT"
  },
  {
   "category": "BD",
@@ -2811,7 +2006,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "390",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.545077",
   "name": "390",
   "subcategory": "MACHINE"
  },
@@ -2822,7 +2016,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "391",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.546653",
   "name": "391",
   "subcategory": "MACHINE"
  },
@@ -2833,7 +2026,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "392",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.548218",
   "name": "392",
   "subcategory": "METHOD"
  },
@@ -2844,7 +2036,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "395",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.549802",
   "name": "395",
   "subcategory": "MACHINE"
  },
@@ -2855,7 +2046,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "396",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.551460",
   "name": "396",
   "subcategory": "MACHINE"
  },
@@ -2866,7 +2056,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "397",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.553515",
   "name": "397",
   "subcategory": "MACHINE"
  },
@@ -2877,7 +2066,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "398",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.555258",
   "name": "398",
   "subcategory": "MACHINE"
  },
@@ -2888,9 +2076,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "399",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.556917",
   "name": "399",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Un Planned Schedule",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "40",
+  "is_active": 1,
+  "name": "40",
+  "subcategory": "PPIC"
  },
  {
   "category": "BD",
@@ -2899,7 +2096,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "400",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.558508",
   "name": "400",
   "subcategory": "MACHINE"
  },
@@ -2910,7 +2106,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "401",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.560328",
   "name": "401",
   "subcategory": "MACHINE"
  },
@@ -2921,7 +2116,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "402",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.562545",
   "name": "402",
   "subcategory": "MACHINE"
  },
@@ -2932,7 +2126,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "403",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.564473",
   "name": "403",
   "subcategory": "MACHINE"
  },
@@ -2943,7 +2136,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "404",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.566456",
   "name": "404",
   "subcategory": "METHOD"
  },
@@ -2954,7 +2146,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "405",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.568129",
   "name": "405",
   "subcategory": "MACHINE"
  },
@@ -2965,7 +2156,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "406",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.569802",
   "name": "406",
   "subcategory": "MACHINE"
  },
@@ -2976,7 +2166,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "407",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.571445",
   "name": "407",
   "subcategory": "MACHINE"
  },
@@ -2987,7 +2176,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "408",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.573099",
   "name": "408",
   "subcategory": "MACHINE"
  },
@@ -2998,9 +2186,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "409",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.574719",
   "name": "409",
   "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Pending Requested Manpower",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "41",
+  "is_active": 1,
+  "name": "41",
+  "subcategory": "HR"
  },
  {
   "category": "BD",
@@ -3009,7 +2206,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "410",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.576285",
   "name": "410",
   "subcategory": "MACHINE"
  },
@@ -3020,7 +2216,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "411",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.577859",
   "name": "411",
   "subcategory": "MACHINE"
  },
@@ -3031,7 +2226,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "412",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.579430",
   "name": "412",
   "subcategory": "MACHINE"
  },
@@ -3042,7 +2236,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "413",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.580997",
   "name": "413",
   "subcategory": "METHOD"
  },
@@ -3053,7 +2246,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "415",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.582912",
   "name": "415",
   "subcategory": "MACHINE"
  },
@@ -3064,7 +2256,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "416",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.584869",
   "name": "416",
   "subcategory": "MACHINE"
  },
@@ -3075,7 +2266,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "417",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.586813",
   "name": "417",
   "subcategory": "METHOD"
  },
@@ -3086,7 +2276,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "418",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.588423",
   "name": "418",
   "subcategory": "METHOD"
  },
@@ -3097,9 +2286,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "419",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.590151",
   "name": "419",
   "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Absenteeism",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "42",
+  "is_active": 1,
+  "name": "42",
+  "subcategory": "HR"
  },
  {
   "category": "PROD-DT",
@@ -3108,7 +2306,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "420",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.591853",
   "name": "420",
   "subcategory": "METHOD"
  },
@@ -3119,7 +2316,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "421",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.593571",
   "name": "421",
   "subcategory": "METHOD"
  },
@@ -3130,7 +2326,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "422",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.595148",
   "name": "422",
   "subcategory": "METHOD"
  },
@@ -3141,7 +2336,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "423",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.596748",
   "name": "423",
   "subcategory": "METHOD"
  },
@@ -3152,7 +2346,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "424",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.598454",
   "name": "424",
   "subcategory": "METHOD"
  },
@@ -3163,7 +2356,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "425",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.600127",
   "name": "425",
   "subcategory": "METHOD"
  },
@@ -3174,7 +2366,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "426",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.601705",
   "name": "426",
   "subcategory": "METHOD"
  },
@@ -3185,7 +2376,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "427",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.603267",
   "name": "427",
   "subcategory": "METHOD"
  },
@@ -3196,7 +2386,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "428",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.604844",
   "name": "428",
   "subcategory": "METHOD"
  },
@@ -3207,7 +2396,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "429",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.606454",
   "name": "429",
   "subcategory": "MACHINE"
  },
@@ -3218,7 +2406,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "430",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.608218",
   "name": "430",
   "subcategory": "MACHINE"
  },
@@ -3229,7 +2416,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "435",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.610011",
   "name": "435",
   "subcategory": "MOULD"
  },
@@ -3240,7 +2426,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "436",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.611624",
   "name": "436",
   "subcategory": "MACHINE"
  },
@@ -3251,7 +2436,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "437",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.613288",
   "name": "437",
   "subcategory": "METHOD"
  },
@@ -3262,7 +2446,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "438",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.615026",
   "name": "438",
   "subcategory": "METHOD"
  },
@@ -3273,9 +2456,18 @@
   "doctype": "Downtime Reason",
   "dt_code": "439",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.616677",
   "name": "439",
   "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Loader Under Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "44",
+  "is_active": 1,
+  "name": "44",
+  "subcategory": "POWER PLANT"
  },
  {
   "category": "BD",
@@ -3284,7 +2476,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "440",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.618250",
   "name": "440",
   "subcategory": "METHOD"
  },
@@ -3295,7 +2486,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "441",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.619814",
   "name": "441",
   "subcategory": "METHOD"
  },
@@ -3306,7 +2496,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "442",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.621380",
   "name": "442",
   "subcategory": "METHOD"
  },
@@ -3317,7 +2506,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "443",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.622947",
   "name": "443",
   "subcategory": "MACHINE"
  },
@@ -3328,7 +2516,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "444",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.624511",
   "name": "444",
   "subcategory": "MACHINE"
  },
@@ -3339,7 +2526,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "445",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.626124",
   "name": "445",
   "subcategory": "MOULD"
  },
@@ -3350,7 +2536,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "446",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.627684",
   "name": "446",
   "subcategory": "MACHINE"
  },
@@ -3361,7 +2546,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "447",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.629345",
   "name": "447",
   "subcategory": "MACHINE"
  },
@@ -3372,7 +2556,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "448",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.631047",
   "name": "448",
   "subcategory": "MOULD"
  },
@@ -3383,7 +2566,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "449",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.632681",
   "name": "449",
   "subcategory": "METHOD"
  },
@@ -3394,7 +2576,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "450",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.634519",
   "name": "450",
   "subcategory": "METHOD"
  },
@@ -3405,7 +2586,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "451",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.636190",
   "name": "451",
   "subcategory": "METHOD"
  },
@@ -3416,7 +2596,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "452",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.637907",
   "name": "452",
   "subcategory": "METHOD"
  },
@@ -3427,8 +2606,517 @@
   "doctype": "Downtime Reason",
   "dt_code": "453",
   "is_active": 1,
-  "modified": "2026-06-26 09:12:55.639508",
   "name": "453",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Maintenance",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "47",
+  "is_active": 1,
+  "name": "47",
+  "subcategory": "POWER PLANT"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "No Electricity",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "48",
+  "is_active": 1,
+  "name": "48",
+  "subcategory": "EXTERNAL FACTORS"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Transformer Problem - Line Side",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "49",
+  "is_active": 1,
+  "name": "49",
+  "subcategory": "EXTERNAL FACTORS"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Typhoon / Floods",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "50",
+  "is_active": 1,
+  "name": "50",
+  "subcategory": "EXTERNAL FACTORS"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Earthquake / Fire",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "51",
+  "is_active": 1,
+  "name": "51",
+  "subcategory": "EXTERNAL FACTORS"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Auxiliaries Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "52",
+  "is_active": 1,
+  "name": "52",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Stabilization After Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "53",
+  "is_active": 1,
+  "name": "53",
+  "subcategory": "PRODUCTION"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Production Downtime - MC",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "54",
+  "is_active": 1,
+  "name": "54",
+  "subcategory": "PRODUCTION"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Low Steam Supply",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "55",
+  "is_active": 1,
+  "name": "55",
+  "subcategory": "BOILER"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Low Air",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "56",
+  "is_active": 1,
+  "name": "56",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Low Cooling Pressure",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "57",
+  "is_active": 1,
+  "name": "57",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Low Cooling Temperature",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "58",
+  "is_active": 1,
+  "name": "58",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Downtime Electrical Problem Machine (1)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "59",
+  "is_active": 1,
+  "name": "59",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Downtime Electrical Problem Machine (2)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "60",
+  "is_active": 1,
+  "name": "60",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "No Loader Available / No Driver",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "61",
+  "is_active": 1,
+  "name": "61",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Low Water Level",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "62",
+  "is_active": 1,
+  "name": "62",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Central Vacuum System",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "63",
+  "is_active": 1,
+  "name": "63",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Low Gas Pressure - Plant 33",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "64",
+  "is_active": 1,
+  "name": "64",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Chiller - High Cooling Temperature",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "65",
+  "is_active": 1,
+  "name": "65",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Water Treatment Facilities - Steam",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "66",
+  "is_active": 1,
+  "name": "66",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Alignment",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "67",
+  "is_active": 1,
+  "name": "67",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Steam Inlet Replacement / or Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "69",
+  "is_active": 1,
+  "name": "69",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Polishing / Cleaning and Maintenance",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "70",
+  "is_active": 1,
+  "name": "70",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold - O-Ring Replacement",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "71",
+  "is_active": 1,
+  "name": "71",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Feeding Gun Replacement or Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "72",
+  "is_active": 1,
+  "name": "72",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Push Rod Repair or Replace",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "73",
+  "is_active": 1,
+  "name": "73",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Inject Plate Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "74",
+  "is_active": 1,
+  "name": "74",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Cutter Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "75",
+  "is_active": 1,
+  "name": "75",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Cutter Re-Sharpening",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "76",
+  "is_active": 1,
+  "name": "76",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Plug Assists Polishing",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "77",
+  "is_active": 1,
+  "name": "77",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Insert Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "78",
+  "is_active": 1,
+  "name": "78",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Push Plate Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "79",
+  "is_active": 1,
+  "name": "79",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Material Hose and Fittings",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "80",
+  "is_active": 1,
+  "name": "80",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Air Hose Fitting",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "81",
+  "is_active": 1,
+  "name": "81",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Steam Hose and Clamp",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "82",
+  "is_active": 1,
+  "name": "82",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Cooling System",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "83",
+  "is_active": 1,
+  "name": "83",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Puncher Repair - PSP",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "84",
+  "is_active": 1,
+  "name": "84",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Bender Repair - PSP",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "85",
+  "is_active": 1,
+  "name": "85",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Blade Replacement",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "86",
+  "is_active": 1,
+  "name": "86",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Machine Slowdown - New / Trainee",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "87",
+  "is_active": 1,
+  "name": "87",
+  "subcategory": "MANPOWER"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Delay - Material Preparation",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "89",
+  "is_active": 1,
+  "name": "89",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Delay - Issuance and Delivery (Raw Material)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "90",
+  "is_active": 1,
+  "name": "90",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Delay - Issuance and Delivery (Finished Goods)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "91",
+  "is_active": 1,
+  "name": "91",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Deviated Raw Material",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "92",
+  "is_active": 1,
+  "name": "92",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Material Under / Over Age",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "93",
+  "is_active": 1,
+  "name": "93",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Due to Material Issue",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "94",
+  "is_active": 1,
+  "name": "94",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Due to Machine",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "95",
+  "is_active": 1,
+  "name": "95",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Due to Mould",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "96",
+  "is_active": 1,
+  "name": "96",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Due to Operator",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "97",
+  "is_active": 1,
+  "name": "97",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Due to Quality",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "98",
+  "is_active": 1,
+  "name": "98",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Weight",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "99",
+  "is_active": 1,
+  "name": "99",
   "subcategory": "METHOD"
  }
 ]

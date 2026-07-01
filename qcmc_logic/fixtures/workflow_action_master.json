@@ -2,393 +2,337 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.257488",
   "name": "Acknowledge",
   "workflow_action_name": "Acknowledge"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.264008",
   "name": "Active",
   "workflow_action_name": "Active"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.270458",
   "name": "Approve",
   "workflow_action_name": "Approve"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.275911",
   "name": "Approve Overtime",
   "workflow_action_name": "Approve Overtime"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.286455",
+  "name": "Cancel",
+  "workflow_action_name": "Cancel"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "name": "Cancel OT Slip",
   "workflow_action_name": "Cancel OT Slip"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.291903",
   "name": "Check",
   "workflow_action_name": "Check"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.297101",
   "name": "Checked",
   "workflow_action_name": "Checked"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.302663",
   "name": "Complete",
   "workflow_action_name": "Complete"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.308037",
   "name": "Complete KYC",
   "workflow_action_name": "Complete KYC"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.313502",
   "name": "Converted to Application",
   "workflow_action_name": "Converted to Application"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.318616",
   "name": "Disapprove",
   "workflow_action_name": "Disapprove"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.323515",
   "name": "Dispose",
   "workflow_action_name": "Dispose"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.328829",
   "name": "For BCC Approval",
   "workflow_action_name": "For BCC Approval"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.334071",
   "name": "For KTC Approval",
   "workflow_action_name": "For KTC Approval"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.345396",
   "name": "For RTC Approval",
   "workflow_action_name": "For RTC Approval"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.350454",
   "name": "For Recon",
   "workflow_action_name": "For Recon"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.355231",
   "name": "For Service Request to EDSA",
   "workflow_action_name": "For Service Request to EDSA"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.360386",
   "name": "For VP Procurement",
   "workflow_action_name": "For VP Procurement"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.365442",
   "name": "For VP Procurement Approval",
   "workflow_action_name": "For VP Procurement Approval"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.370541",
   "name": "For VP Sales Approval",
   "workflow_action_name": "For VP Sales Approval"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.375339",
   "name": "Initiate",
   "workflow_action_name": "Initiate"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.380205",
   "name": "Mark as Completed",
   "workflow_action_name": "Mark as Completed"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.385141",
   "name": "Place on Hold",
   "workflow_action_name": "Place on Hold"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.395268",
-  "name": "Receive",
-  "workflow_action_name": "Receive"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.400343",
-  "name": "Reject",
-  "workflow_action_name": "Reject"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.405333",
-  "name": "Reject Overtime",
-  "workflow_action_name": "Reject Overtime"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.410216",
-  "name": "Resubmit for Approval",
-  "workflow_action_name": "Resubmit for Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.415378",
-  "name": "Review",
-  "workflow_action_name": "Review"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.420207",
-  "name": "Run Basic Rules",
-  "workflow_action_name": "Run Basic Rules"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.425509",
-  "name": "Run Knockout Rules",
-  "workflow_action_name": "Run Knockout Rules"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.430783",
-  "name": "Run Pre-Qualification Rules",
-  "workflow_action_name": "Run Pre-Qualification Rules"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.435638",
-  "name": "Scrap",
-  "workflow_action_name": "Scrap"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.440498",
-  "name": "Send back for Modification",
-  "workflow_action_name": "Send back for Modification"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.445513",
-  "name": "Send to MC Maintenance",
-  "workflow_action_name": "Send to MC Maintenance"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.450323",
-  "name": "Send to SMB Maintenance",
-  "workflow_action_name": "Send to SMB Maintenance"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.455591",
-  "name": "Sold",
-  "workflow_action_name": "Sold"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.466289",
-  "name": "Submit For DR Printing",
-  "workflow_action_name": "Submit For DR Printing"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.471407",
-  "name": "Submit Overtime",
-  "workflow_action_name": "Submit Overtime"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.476473",
-  "name": "Submit for Approval",
-  "workflow_action_name": "Submit for Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.482393",
-  "name": "Submit for Delivery",
-  "workflow_action_name": "Submit for Delivery"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.488741",
-  "name": "Submit for Initial Approval",
-  "workflow_action_name": "Submit for Initial Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.495661",
-  "name": "Submit for MIS Supervisor",
-  "workflow_action_name": "Submit for MIS Supervisor"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.501334",
-  "name": "Submit for Machine Shop",
-  "workflow_action_name": "Submit for Machine Shop"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.506892",
-  "name": "Submit for Machine Shop Supervisor Approval",
-  "workflow_action_name": "Submit for Machine Shop Supervisor Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.512839",
-  "name": "Submit for Machine Supervisor Approval",
-  "workflow_action_name": "Submit for Machine Supervisor Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.519019",
-  "name": "Submit for SMB Maintenance",
-  "workflow_action_name": "Submit for SMB Maintenance"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.524809",
-  "name": "Submit for Stock Confirmation",
-  "workflow_action_name": "Submit for Stock Confirmation"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.530121",
-  "name": "Submit for checking",
-  "workflow_action_name": "Submit for checking"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.535340",
-  "name": "Submit to Corp IE",
-  "workflow_action_name": "Submit to Corp IE"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.540490",
-  "name": "Submit to Maintenance",
-  "workflow_action_name": "Submit to Maintenance"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.545937",
-  "name": "Tag To Active",
-  "workflow_action_name": "Tag To Active"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.552759",
-  "name": "To Receive",
-  "workflow_action_name": "To Receive"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2026-06-26 07:54:29.559076",
-  "name": "Transfer",
-  "workflow_action_name": "Transfer"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2024-04-15 21:25:15.987329",
   "name": "Process",
   "workflow_action_name": "Process"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-05-14 13:23:14.108790",
+  "name": "Receive",
+  "workflow_action_name": "Receive"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Reject",
+  "workflow_action_name": "Reject"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Reject Overtime",
+  "workflow_action_name": "Reject Overtime"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Resubmit for Approval",
+  "workflow_action_name": "Resubmit for Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Review",
+  "workflow_action_name": "Review"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Run Basic Rules",
+  "workflow_action_name": "Run Basic Rules"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Run Knockout Rules",
+  "workflow_action_name": "Run Knockout Rules"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Run Pre-Qualification Rules",
+  "workflow_action_name": "Run Pre-Qualification Rules"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Scrap",
+  "workflow_action_name": "Scrap"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Send back for Modification",
+  "workflow_action_name": "Send back for Modification"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Send to MC Maintenance",
+  "workflow_action_name": "Send to MC Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Send to SMB Maintenance",
+  "workflow_action_name": "Send to SMB Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Sold",
+  "workflow_action_name": "Sold"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "name": "Submit",
   "workflow_action_name": "Submit"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-05-14 13:36:08.460123",
-  "name": "Cancel",
-  "workflow_action_name": "Cancel"
+  "name": "Submit For DR Printing",
+  "workflow_action_name": "Submit For DR Printing"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit Overtime",
+  "workflow_action_name": "Submit Overtime"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit for Approval",
+  "workflow_action_name": "Submit for Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit for Delivery",
+  "workflow_action_name": "Submit for Delivery"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit for Initial Approval",
+  "workflow_action_name": "Submit for Initial Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit for MIS Supervisor",
+  "workflow_action_name": "Submit for MIS Supervisor"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit for Machine Shop",
+  "workflow_action_name": "Submit for Machine Shop"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit for Machine Shop Supervisor Approval",
+  "workflow_action_name": "Submit for Machine Shop Supervisor Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit for Machine Supervisor Approval",
+  "workflow_action_name": "Submit for Machine Supervisor Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit for SMB Maintenance",
+  "workflow_action_name": "Submit for SMB Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit for Stock Confirmation",
+  "workflow_action_name": "Submit for Stock Confirmation"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit for checking",
+  "workflow_action_name": "Submit for checking"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit to Corp IE",
+  "workflow_action_name": "Submit to Corp IE"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit to Maintenance",
+  "workflow_action_name": "Submit to Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Tag To Active",
+  "workflow_action_name": "Tag To Active"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "To Receive",
+  "workflow_action_name": "To Receive"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Transfer",
+  "workflow_action_name": "Transfer"
  }
 ]
