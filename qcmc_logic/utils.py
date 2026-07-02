@@ -1116,10 +1116,86 @@ def make_warehouse_transfer_from_material_request(source_name, target_doc=None):
 
 
 @frappe.whitelist()
+@frappe.whitelist()
+def get_msjr_material_references(msjr_no):
+    rows = []
+
+    # Material Requests linked via msjr_reference
+    mr_rows = frappe.db.sql("""
+        SELECT
+            'Material Request'          AS doctype,
+            mr.name                     AS doc_no,
+            mr.transaction_date         AS date,
+            COALESCE(mr.workflow_state, mr.status, '') AS status,
+            mr.owner                    AS created_by,
+            COALESCE(mr.custom_remarks, '') AS purpose,
+            mri.item_code,
+            mri.item_name,
+            mri.qty                     AS requested_qty,
+            NULL                        AS issued_qty,
+            mri.uom
+        FROM `tabMaterial Request` mr
+        JOIN `tabMaterial Request Item` mri ON mri.parent = mr.name
+        WHERE mr.msjr_reference = %s
+        ORDER BY mr.transaction_date, mr.name, mri.idx
+    """, msjr_no, as_dict=True)
+    rows.extend(mr_rows)
+
+    # Stock Entries (Material Issue) linked via msjr_no
+    se_rows = frappe.db.sql("""
+        SELECT
+            'Stock Entry'                        AS doctype,
+            se.name                              AS doc_no,
+            se.posting_date                      AS date,
+            CASE se.docstatus
+                WHEN 0 THEN 'Draft'
+                WHEN 1 THEN 'Submitted'
+                WHEN 2 THEN 'Cancelled'
+                ELSE '' END                      AS status,
+            COALESCE(se.custom_requestor, se.owner, '') AS created_by,
+            COALESCE(se.remarks, '')             AS purpose,
+            sed.item_code,
+            sed.item_name,
+            NULL                                 AS requested_qty,
+            sed.qty                              AS issued_qty,
+            sed.uom
+        FROM `tabStock Entry` se
+        JOIN `tabStock Entry Detail` sed ON sed.parent = se.name
+        WHERE se.msjr_no = %s AND se.stock_entry_type = 'Material Issue'
+        ORDER BY se.posting_date, se.name, sed.idx
+    """, msjr_no, as_dict=True)
+    rows.extend(se_rows)
+
+    return rows
+
+
+@frappe.whitelist()
+def make_material_issuance(source_name, target_doc=None):
+    from frappe.model.mapper import get_mapped_doc
+
+    target = get_mapped_doc(
+        "Machine Shop Job Request",
+        source_name,
+        {
+            "Machine Shop Job Request": {
+                "doctype": "Stock Entry",
+                "field_map": {
+                    "name": "msjr_no",
+                    "company": "company",
+                },
+            }
+        },
+        target_doc,
+    )
+    target.stock_entry_type = "Material Issue"
+    return target
+
+
+@frappe.whitelist()
 def make_machine_shop_repairs_and_project(source_name, target_doc=None):
     msjr = frappe.get_doc("Machine Shop Job Request", source_name)
-    if msjr.workflow_state != "Acknowledge":
-        frappe.throw("Project Plan can only be generated from a request in Acknowledge.")
+    if msjr.workflow_state not in ("Acknowledge", "Received"):
+        frappe.throw("Project Plan can only be generated from a request in Acknowledge or Received state.")
 
     existing = frappe.db.exists(
         "Machine Shop Repairs and Project",
@@ -1140,6 +1216,40 @@ def make_machine_shop_repairs_and_project(source_name, target_doc=None):
     target.date_posted = frappe.utils.today()
 
     return target
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def search_msrp_process(doctype, txt, searchfield, start, page_len, filters):
+    import json as _json
+    if isinstance(filters, str):
+        filters = _json.loads(filters)
+
+    parent = (filters or {}).get("parent", "") if filters else ""
+    txt_like = f"%{txt or ''}%"
+
+    return frappe.db.sql("""
+        SELECT
+            p.name,
+            p.process_name,
+            COALESCE(m.machine, '') AS machine_name
+        FROM `tabMachine Shop Repairs and Project Process` p
+        LEFT JOIN `tabMachine Shop Machine` m ON m.name = p.machine
+        WHERE p.parent = %(parent)s
+          AND p.parenttype = 'Machine Shop Repairs and Project'
+          AND (
+              p.process_name LIKE %(txt)s
+              OR COALESCE(m.machine, '') LIKE %(txt)s
+              OR p.name LIKE %(txt)s
+          )
+        ORDER BY p.process_name, p.name
+        LIMIT %(start)s, %(page_len)s
+    """, {
+        "parent": parent,
+        "txt": txt_like,
+        "start": int(start or 0),
+        "page_len": int(page_len or 10),
+    })
 
 
 @frappe.whitelist()

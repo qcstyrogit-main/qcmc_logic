@@ -82,6 +82,9 @@ doc_events = {
     "Job Card Downtime": {
         "validate": "qcmc_logic.customs.job_card_downtime.validate",
     },
+    "Job Card Downtime": {
+        "validate": "qcmc_logic.customs.job_card_downtime.validate",
+    },
 }
 
 before_request = [
