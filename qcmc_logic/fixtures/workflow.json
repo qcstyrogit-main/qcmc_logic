@@ -534,9 +534,9 @@
     "message": null,
     "next_action_email_template": null,
     "send_email": 1,
-    "state": "Active",
+    "state": "For DR Printing",
     "update_field": "status",
-    "update_value": "Active",
+    "update_value": "For DR Printing",
     "workflow_builder_id": null
    },
    {
@@ -629,20 +629,20 @@
     "allow_self_approval": 1,
     "allowed": "Provincial Stock User",
     "condition": null,
-    "next_state": "Active",
+    "next_state": "Completed",
     "send_email_to_creator": 0,
     "state": "Draft",
     "transition_tasks": null,
     "workflow_builder_id": null
    },
    {
-    "action": "Complete",
+    "action": "Submit For DR Printing",
     "allow_self_approval": 1,
     "allowed": "Provincial Stock User",
     "condition": null,
     "next_state": "Completed",
     "send_email_to_creator": 0,
-    "state": "Active",
+    "state": "For DR Printing",
     "transition_tasks": null,
     "workflow_builder_id": null
    },
