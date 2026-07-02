@@ -2137,6 +2137,37 @@
   "filters": [],
   "is_standard": "Yes",
   "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "module": "Loan Management",
+  "name": "Disbursement Analysis Report",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Loan Disbursement",
+  "reference_report": null,
+  "report_name": "Disbursement Analysis Report",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "System Manager"
+   },
+   {
+    "role": "Loan Manager"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
   "json": "{\"add_total_row\": 0, \"sort_by\": \"DocShare.creation\", \"sort_order\": \"desc\", \"sort_by_next\": null, \"filters\": [], \"sort_order_next\": \"desc\", \"columns\": [[\"name\", \"DocShare\"], [\"user\", \"DocShare\"], [\"share_doctype\", \"DocShare\"], [\"share_name\", \"DocShare\"], [\"read\", \"DocShare\"], [\"write\", \"DocShare\"], [\"share\", \"DocShare\"]]}",
   "letter_head": null,
   "module": "Core",
@@ -2462,7 +2493,7 @@
   "letter_head": null,
   "module": "HR",
   "name": "Employee Leave Balance",
-  "prepared_report": 0,
+  "prepared_report": 1,
   "query": null,
   "ref_doctype": "Employee",
   "reference_report": null,
@@ -7025,7 +7056,7 @@
   "letter_head": null,
   "module": "Stock",
   "name": "Stock Ageing",
-  "prepared_report": 1,
+  "prepared_report": 0,
   "query": null,
   "ref_doctype": "Item",
   "reference_report": null,
