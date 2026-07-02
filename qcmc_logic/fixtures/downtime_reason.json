@@ -1,0 +1,3122 @@
+[
+ {
+  "category": "PROD-DT",
+  "description": "Deviated Quality Compliance",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "100",
+  "is_active": 1,
+  "name": "100",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "VOS-UNPLANNED",
+  "description": "Product Change Over - Unplanned",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "110",
+  "is_active": 1,
+  "name": "110",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "VOS-UNPLANNED",
+  "description": "Stabilization After Change Over",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "111",
+  "is_active": 1,
+  "name": "111",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "VOS-UNPLANNED",
+  "description": "Scheduled General Assembly Meeting",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "112",
+  "is_active": 1,
+  "name": "112",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "VOS-UNPLANNED",
+  "description": "Start-up Operation - Prolonged Startup",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "113",
+  "is_active": 1,
+  "name": "113",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "VOS-UNPLANNED",
+  "description": "JOC Advance vs Scheduled Production",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "114",
+  "is_active": 1,
+  "name": "114",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Stabilization After Machine Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "117",
+  "is_active": 1,
+  "name": "117",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "VOS-UNPLANNED",
+  "description": "Selected Run Due to Boiler Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "118",
+  "is_active": 1,
+  "name": "118",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Material Testing",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "122",
+  "is_active": 1,
+  "name": "122",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Red Tag",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "125",
+  "is_active": 1,
+  "name": "125",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Changeover",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "126",
+  "is_active": 1,
+  "name": "126",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Material Stuck Up @ Conveyor",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "127",
+  "is_active": 1,
+  "name": "127",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Heater",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "128",
+  "is_active": 1,
+  "name": "128",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Offset Cutting",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "129",
+  "is_active": 1,
+  "name": "129",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Screen Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "131",
+  "is_active": 1,
+  "name": "131",
+  "subcategory": "MANPOWER"
+ },
+ {
+  "category": "BD",
+  "description": "BGE/Extruder and Roller Assembly",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "132",
+  "is_active": 1,
+  "name": "132",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Chamber Assembly",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "133",
+  "is_active": 1,
+  "name": "133",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Cutter Assembly",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "134",
+  "is_active": 1,
+  "name": "134",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Cylinder Assemblies",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "135",
+  "is_active": 1,
+  "name": "135",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Drive Trains Assemblies",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "136",
+  "is_active": 1,
+  "name": "136",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Electrical/Electronics",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "137",
+  "is_active": 1,
+  "name": "137",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Hydraulic Assemblies",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "139",
+  "is_active": 1,
+  "name": "139",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Machine Steam Distributor",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "140",
+  "is_active": 1,
+  "name": "140",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Machine Steam Driver Distributor",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "141",
+  "is_active": 1,
+  "name": "141",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Material Handling Assembly",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "142",
+  "is_active": 1,
+  "name": "142",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Other Mechanical Works",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "143",
+  "is_active": 1,
+  "name": "143",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Pneumatic Assemblies",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "144",
+  "is_active": 1,
+  "name": "144",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Product Handling Assembly",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "145",
+  "is_active": 1,
+  "name": "145",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Swivel Arm Assembly",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "146",
+  "is_active": 1,
+  "name": "146",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Alignment",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "15",
+  "is_active": 1,
+  "name": "15",
+  "subcategory": "MOLD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Minor Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "16",
+  "is_active": 1,
+  "name": "16",
+  "subcategory": "MOLD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Cooling System",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "17",
+  "is_active": 1,
+  "name": "17",
+  "subcategory": "MOLD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Polishing",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "18",
+  "is_active": 1,
+  "name": "18",
+  "subcategory": "MOLD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "New / Trainee / Transfer to Other Operation",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "20",
+  "is_active": 1,
+  "name": "20",
+  "subcategory": "MANPOWER"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Skills",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "21",
+  "is_active": 1,
+  "name": "21",
+  "subcategory": "MANPOWER"
+ },
+ {
+  "category": "BD",
+  "description": "Air End",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "216",
+  "is_active": 1,
+  "name": "216",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Air Filter",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "217",
+  "is_active": 1,
+  "name": "217",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Air Inlet System",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "218",
+  "is_active": 1,
+  "name": "218",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Air/Water Leak",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "219",
+  "is_active": 1,
+  "name": "219",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Lack of Manpower / Absenteeism",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "22",
+  "is_active": 1,
+  "name": "22",
+  "subcategory": "MANPOWER"
+ },
+ {
+  "category": "BD",
+  "description": "Arm Bushings",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "220",
+  "is_active": 1,
+  "name": "220",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Autoloader",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "221",
+  "is_active": 1,
+  "name": "221",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Barrel Heater",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "222",
+  "is_active": 1,
+  "name": "222",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Bearing",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "223",
+  "is_active": 1,
+  "name": "223",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Blade",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "224",
+  "is_active": 1,
+  "name": "224",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Blower",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "225",
+  "is_active": 1,
+  "name": "225",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Brake",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "226",
+  "is_active": 1,
+  "name": "226",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Chiller",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "227",
+  "is_active": 1,
+  "name": "227",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Color Head",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "228",
+  "is_active": 1,
+  "name": "228",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Compactor",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "229",
+  "is_active": 1,
+  "name": "229",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Delay",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "23",
+  "is_active": 1,
+  "name": "23",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "BD",
+  "description": "Compressor",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "230",
+  "is_active": 1,
+  "name": "230",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Condenser Pump",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "231",
+  "is_active": 1,
+  "name": "231",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Control",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "232",
+  "is_active": 1,
+  "name": "232",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Conveyor",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "233",
+  "is_active": 1,
+  "name": "233",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Cooling",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "234",
+  "is_active": 1,
+  "name": "234",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Corona",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "235",
+  "is_active": 1,
+  "name": "235",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Cross Joint",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "236",
+  "is_active": 1,
+  "name": "236",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Cutter",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "237",
+  "is_active": 1,
+  "name": "237",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "DC Control",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "238",
+  "is_active": 1,
+  "name": "238",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Downholder",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "239",
+  "is_active": 1,
+  "name": "239",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Reject",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "24",
+  "is_active": 1,
+  "name": "24",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "BD",
+  "description": "Ejector",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "240",
+  "is_active": 1,
+  "name": "240",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Electrical Wirings",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "241",
+  "is_active": 1,
+  "name": "241",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Electronic",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "242",
+  "is_active": 1,
+  "name": "242",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Evaporator Pump",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "243",
+  "is_active": 1,
+  "name": "243",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Feeder",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "244",
+  "is_active": 1,
+  "name": "244",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Feedlength",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "245",
+  "is_active": 1,
+  "name": "245",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Forming",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "246",
+  "is_active": 1,
+  "name": "246",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Gearbox",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "247",
+  "is_active": 1,
+  "name": "247",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Heater",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "248",
+  "is_active": 1,
+  "name": "248",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Hydraulic Cylinder",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "249",
+  "is_active": 1,
+  "name": "249",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Under / Over Age Material",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "25",
+  "is_active": 1,
+  "name": "25",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "BD",
+  "description": "Hydraulic Pump",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "250",
+  "is_active": 1,
+  "name": "250",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Hydraulic Valve",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "251",
+  "is_active": 1,
+  "name": "251",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Inverter",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "252",
+  "is_active": 1,
+  "name": "252",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Mandrel",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "254",
+  "is_active": 1,
+  "name": "254",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Motor Winding",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "256",
+  "is_active": 1,
+  "name": "256",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Oil Filter",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "257",
+  "is_active": 1,
+  "name": "257",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "PLC",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "258",
+  "is_active": 1,
+  "name": "258",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Plug Assist",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "259",
+  "is_active": 1,
+  "name": "259",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "SOP's",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "26",
+  "is_active": 1,
+  "name": "26",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "BD",
+  "description": "Pneumatic Cylinder",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "260",
+  "is_active": 1,
+  "name": "260",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Pneumatic Valve",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "261",
+  "is_active": 1,
+  "name": "261",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Robot",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "263",
+  "is_active": 1,
+  "name": "263",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Rotary Union",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "265",
+  "is_active": 1,
+  "name": "265",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Scrap Winder",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "266",
+  "is_active": 1,
+  "name": "266",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Screw Feeder",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "267",
+  "is_active": 1,
+  "name": "267",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Sensor",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "268",
+  "is_active": 1,
+  "name": "268",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Separator Element",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "269",
+  "is_active": 1,
+  "name": "269",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Deviated",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "27",
+  "is_active": 1,
+  "name": "27",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "BD",
+  "description": "Servo Control",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "270",
+  "is_active": 1,
+  "name": "270",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Servo Drive",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "271",
+  "is_active": 1,
+  "name": "271",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Shutter",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "272",
+  "is_active": 1,
+  "name": "272",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Smoothing Roll",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "273",
+  "is_active": 1,
+  "name": "273",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Spreading Device",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "274",
+  "is_active": 1,
+  "name": "274",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Stacker",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "275",
+  "is_active": 1,
+  "name": "275",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Take-Off",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "276",
+  "is_active": 1,
+  "name": "276",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Thermo Controller",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "277",
+  "is_active": 1,
+  "name": "277",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Transport",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "278",
+  "is_active": 1,
+  "name": "278",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Product Change Over",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "28",
+  "is_active": 1,
+  "name": "28",
+  "subcategory": "PRODUCTION"
+ },
+ {
+  "category": "BD",
+  "description": "Unreeling",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "280",
+  "is_active": 1,
+  "name": "280",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "UV Lamp",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "281",
+  "is_active": 1,
+  "name": "281",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "V-Belt",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "282",
+  "is_active": 1,
+  "name": "282",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Vacuum",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "283",
+  "is_active": 1,
+  "name": "283",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Winder",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "284",
+  "is_active": 1,
+  "name": "284",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Low Air (Compressor)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "285",
+  "is_active": 1,
+  "name": "285",
+  "subcategory": "COMPRESSOR"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Purging",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "286",
+  "is_active": 1,
+  "name": "286",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "BD",
+  "description": "Spring Loaded Valve",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "289",
+  "is_active": 1,
+  "name": "289",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Stabilization After Change Over",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "29",
+  "is_active": 1,
+  "name": "29",
+  "subcategory": "PRODUCTION"
+ },
+ {
+  "category": "BD",
+  "description": "Steam Diaphragm Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "290",
+  "is_active": 1,
+  "name": "290",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Heater Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "291",
+  "is_active": 1,
+  "name": "291",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Steam Fix Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "292",
+  "is_active": 1,
+  "name": "292",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Vacuum Motor Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "293",
+  "is_active": 1,
+  "name": "293",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Steam Mobile Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "294",
+  "is_active": 1,
+  "name": "294",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Fill Crack Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "295",
+  "is_active": 1,
+  "name": "295",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Control Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "296",
+  "is_active": 1,
+  "name": "296",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Sensor Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "297",
+  "is_active": 1,
+  "name": "297",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Drain Valve Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "298",
+  "is_active": 1,
+  "name": "298",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Pilot Valve Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "299",
+  "is_active": 1,
+  "name": "299",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "HR Activities / Monthly Meeting",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "30",
+  "is_active": 1,
+  "name": "30",
+  "subcategory": "PRODUCTION"
+ },
+ {
+  "category": "BD",
+  "description": "Solenoid Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "300",
+  "is_active": 1,
+  "name": "300",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Cooling Shower Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "301",
+  "is_active": 1,
+  "name": "301",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Die Head Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "302",
+  "is_active": 1,
+  "name": "302",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Length Sensor Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "303",
+  "is_active": 1,
+  "name": "303",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Steam Hose Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "304",
+  "is_active": 1,
+  "name": "304",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Steam Leak Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "305",
+  "is_active": 1,
+  "name": "305",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mould Cavity Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "306",
+  "is_active": 1,
+  "name": "306",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "BD",
+  "description": "Other Mechanical Works (MC)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "307",
+  "is_active": 1,
+  "name": "307",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Cooling Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "308",
+  "is_active": 1,
+  "name": "308",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Shafting",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "309",
+  "is_active": 1,
+  "name": "309",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Planned Audit",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "31",
+  "is_active": 1,
+  "name": "31",
+  "subcategory": "PRODUCTION"
+ },
+ {
+  "category": "BD",
+  "description": "Pinshaft",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "310",
+  "is_active": 1,
+  "name": "310",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Relay",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "311",
+  "is_active": 1,
+  "name": "311",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Roller Feeder Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "312",
+  "is_active": 1,
+  "name": "312",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Air Blow Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "314",
+  "is_active": 1,
+  "name": "314",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Encoder Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "316",
+  "is_active": 1,
+  "name": "316",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Die Head",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "317",
+  "is_active": 1,
+  "name": "317",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Start-up After Declared NPO",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "32",
+  "is_active": 1,
+  "name": "32",
+  "subcategory": "PRODUCTION"
+ },
+ {
+  "category": "BD",
+  "description": "Cutting Alignment",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "322",
+  "is_active": 1,
+  "name": "322",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Broken Spring",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "323",
+  "is_active": 1,
+  "name": "323",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "No Materials",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "33",
+  "is_active": 1,
+  "name": "33",
+  "subcategory": "PURCHASING"
+ },
+ {
+  "category": "BD",
+  "description": "Cylinder",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "330",
+  "is_active": 1,
+  "name": "330",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Pelletizing Head",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "333",
+  "is_active": 1,
+  "name": "333",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Camfollower",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "334",
+  "is_active": 1,
+  "name": "334",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Rubber Pad",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "335",
+  "is_active": 1,
+  "name": "335",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Maindrive Chain",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "338",
+  "is_active": 1,
+  "name": "338",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Water Pump Hose Water Leak",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "339",
+  "is_active": 1,
+  "name": "339",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "No Parts Availability",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "34",
+  "is_active": 1,
+  "name": "34",
+  "subcategory": "PURCHASING"
+ },
+ {
+  "category": "BD",
+  "description": "Middle Roller Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "340",
+  "is_active": 1,
+  "name": "340",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Granulator Motor Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "341",
+  "is_active": 1,
+  "name": "341",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Conveyor Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "342",
+  "is_active": 1,
+  "name": "342",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Delay Change Mould",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "343",
+  "is_active": 1,
+  "name": "343",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Drying Time",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "345",
+  "is_active": 1,
+  "name": "345",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "BD",
+  "description": "Granulator Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "346",
+  "is_active": 1,
+  "name": "346",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Change Material",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "347",
+  "is_active": 1,
+  "name": "347",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Cart Limitation / Cart Delay",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "348",
+  "is_active": 1,
+  "name": "348",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Black Spot",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "349",
+  "is_active": 1,
+  "name": "349",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Wrong Parts",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "35",
+  "is_active": 1,
+  "name": "35",
+  "subcategory": "PURCHASING"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Fish Eye",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "350",
+  "is_active": 1,
+  "name": "350",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "BD",
+  "description": "Gear Pump",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "351",
+  "is_active": 1,
+  "name": "351",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Hopper",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "352",
+  "is_active": 1,
+  "name": "352",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Low Pressure",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "353",
+  "is_active": 1,
+  "name": "353",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "BD",
+  "description": "Maindrive Motor",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "354",
+  "is_active": 1,
+  "name": "354",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Pump Motor",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "355",
+  "is_active": 1,
+  "name": "355",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Upper Roller",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "356",
+  "is_active": 1,
+  "name": "356",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Lower Roller",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "357",
+  "is_active": 1,
+  "name": "357",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Screen Changer",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "358",
+  "is_active": 1,
+  "name": "358",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Strainer",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "359",
+  "is_active": 1,
+  "name": "359",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Mold Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "36",
+  "is_active": 1,
+  "name": "36",
+  "subcategory": "ENGINEERING"
+ },
+ {
+  "category": "BD",
+  "description": "Take Off Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "360",
+  "is_active": 1,
+  "name": "360",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Throttle",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "361",
+  "is_active": 1,
+  "name": "361",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Vacuum Motor",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "362",
+  "is_active": 1,
+  "name": "362",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Water Pipe",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "363",
+  "is_active": 1,
+  "name": "363",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Wet Pellets",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "364",
+  "is_active": 1,
+  "name": "364",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "White Marks",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "365",
+  "is_active": 1,
+  "name": "365",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "BD",
+  "description": "Blanking Press",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "366",
+  "is_active": 1,
+  "name": "366",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Buldging Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "367",
+  "is_active": 1,
+  "name": "367",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Bulutong Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "368",
+  "is_active": 1,
+  "name": "368",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Back Jobs - Machining / Fabrication Works",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "37",
+  "is_active": 1,
+  "name": "37",
+  "subcategory": "ENGINEERING"
+ },
+ {
+  "category": "BD",
+  "description": "Auto Start Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "370",
+  "is_active": 1,
+  "name": "370",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Auto Stop Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "371",
+  "is_active": 1,
+  "name": "371",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Manual Mode Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "372",
+  "is_active": 1,
+  "name": "372",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Crumpled Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "373",
+  "is_active": 1,
+  "name": "373",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Cutting Cylinder",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "374",
+  "is_active": 1,
+  "name": "374",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Cutting Adjuster",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "375",
+  "is_active": 1,
+  "name": "375",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Ejector Cylinder",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "376",
+  "is_active": 1,
+  "name": "376",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Flashing",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "378",
+  "is_active": 1,
+  "name": "378",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "BD",
+  "description": "Horse Shoe",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "379",
+  "is_active": 1,
+  "name": "379",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Roll Quality and Specs",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "38",
+  "is_active": 1,
+  "name": "38",
+  "subcategory": "MC PLANT"
+ },
+ {
+  "category": "BD",
+  "description": "Hydraulic Motor",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "380",
+  "is_active": 1,
+  "name": "380",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Hydraulic Leak",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "381",
+  "is_active": 1,
+  "name": "381",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Inline Grinder Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "382",
+  "is_active": 1,
+  "name": "382",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Insert Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "383",
+  "is_active": 1,
+  "name": "383",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Lower Table",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "384",
+  "is_active": 1,
+  "name": "384",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Material Sag (Material)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "385",
+  "is_active": 1,
+  "name": "385",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "BD",
+  "description": "Guide Post",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "387",
+  "is_active": 1,
+  "name": "387",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Junction Holder",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "388",
+  "is_active": 1,
+  "name": "388",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Bolt Problem (Loose)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "389",
+  "is_active": 1,
+  "name": "389",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Late Delivery",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "39",
+  "is_active": 1,
+  "name": "39",
+  "subcategory": "MC PLANT"
+ },
+ {
+  "category": "BD",
+  "description": "Mechanical Arm",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "390",
+  "is_active": 1,
+  "name": "390",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Mould Center Post",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "391",
+  "is_active": 1,
+  "name": "391",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Offset Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "392",
+  "is_active": 1,
+  "name": "392",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "BD",
+  "description": "Tilt Arm",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "395",
+  "is_active": 1,
+  "name": "395",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Sprocket Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "396",
+  "is_active": 1,
+  "name": "396",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Swivel Arm Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "397",
+  "is_active": 1,
+  "name": "397",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Table Guide",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "398",
+  "is_active": 1,
+  "name": "398",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Pelt Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "399",
+  "is_active": 1,
+  "name": "399",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Un Planned Schedule",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "40",
+  "is_active": 1,
+  "name": "40",
+  "subcategory": "PPIC"
+ },
+ {
+  "category": "BD",
+  "description": "Plug Assist Cylinder",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "400",
+  "is_active": 1,
+  "name": "400",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Puncher Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "401",
+  "is_active": 1,
+  "name": "401",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Push Problem (Mis-Align)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "402",
+  "is_active": 1,
+  "name": "402",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Ejector Push Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "403",
+  "is_active": 1,
+  "name": "403",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Material Sag (Method)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "404",
+  "is_active": 1,
+  "name": "404",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "BD",
+  "description": "SL1/SL2 Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "405",
+  "is_active": 1,
+  "name": "405",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Tension Spring",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "406",
+  "is_active": 1,
+  "name": "406",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Air Poppet",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "407",
+  "is_active": 1,
+  "name": "407",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Barrel Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "408",
+  "is_active": 1,
+  "name": "408",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Clamping Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "409",
+  "is_active": 1,
+  "name": "409",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Pending Requested Manpower",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "41",
+  "is_active": 1,
+  "name": "41",
+  "subcategory": "HR"
+ },
+ {
+  "category": "BD",
+  "description": "Material Clog",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "410",
+  "is_active": 1,
+  "name": "410",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Coil Heater",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "411",
+  "is_active": 1,
+  "name": "411",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Fittings Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "412",
+  "is_active": 1,
+  "name": "412",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Short Shot Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "413",
+  "is_active": 1,
+  "name": "413",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "BD",
+  "description": "Pressure Pad",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "415",
+  "is_active": 1,
+  "name": "415",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Air Regulator",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "416",
+  "is_active": 1,
+  "name": "416",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Product Change Over - Change Setting",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "417",
+  "is_active": 1,
+  "name": "417",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Product Change Over - Set Up Change",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "418",
+  "is_active": 1,
+  "name": "418",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Product Change Over - Change Material",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "419",
+  "is_active": 1,
+  "name": "419",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Absenteeism",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "42",
+  "is_active": 1,
+  "name": "42",
+  "subcategory": "HR"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Product Change Over - Change/Repair Mold (1)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "420",
+  "is_active": 1,
+  "name": "420",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Product Change Over - Change/Repair Mold (2)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "421",
+  "is_active": 1,
+  "name": "421",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Product Change Over - Eggtray",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "422",
+  "is_active": 1,
+  "name": "422",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Product Change Over - Change Size",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "423",
+  "is_active": 1,
+  "name": "423",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Product Change Over - Making Sample",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "424",
+  "is_active": 1,
+  "name": "424",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "SOP's - Start Up",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "425",
+  "is_active": 1,
+  "name": "425",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "SOP's - End of the Week",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "426",
+  "is_active": 1,
+  "name": "426",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mixing Ink",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "427",
+  "is_active": 1,
+  "name": "427",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Installation of Air Pistol",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "428",
+  "is_active": 1,
+  "name": "428",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "BD",
+  "description": "Decals Adjustment",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "429",
+  "is_active": 1,
+  "name": "429",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Robot Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "430",
+  "is_active": 1,
+  "name": "430",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Epoxy Application / Sanding",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "435",
+  "is_active": 1,
+  "name": "435",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "BD",
+  "description": "Demoulding Problem - Machine",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "436",
+  "is_active": 1,
+  "name": "436",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Demoulding Problem - Method",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "437",
+  "is_active": 1,
+  "name": "437",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Deviated Cycle Time",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "438",
+  "is_active": 1,
+  "name": "438",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "BD",
+  "description": "WIP Depletion",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "439",
+  "is_active": 1,
+  "name": "439",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Loader Under Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "44",
+  "is_active": 1,
+  "name": "44",
+  "subcategory": "POWER PLANT"
+ },
+ {
+  "category": "BD",
+  "description": "Parameter Adjustment - Production",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "440",
+  "is_active": 1,
+  "name": "440",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "BD",
+  "description": "Unattainable SOPH - For IE Validation",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "441",
+  "is_active": 1,
+  "name": "441",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Roll Quality Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "442",
+  "is_active": 1,
+  "name": "442",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Balance Valve Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "443",
+  "is_active": 1,
+  "name": "443",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Material Hopper Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "444",
+  "is_active": 1,
+  "name": "444",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Mould Clamp Retightening / Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "445",
+  "is_active": 1,
+  "name": "445",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "BD",
+  "description": "Drain M1/M2 Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "446",
+  "is_active": 1,
+  "name": "446",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Steam M1/M2 Malfunction",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "447",
+  "is_active": 1,
+  "name": "447",
+  "subcategory": "MACHINE"
+ },
+ {
+  "category": "BD",
+  "description": "Product Guide / Guide Post Alignment",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "448",
+  "is_active": 1,
+  "name": "448",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "No Available Product to Cut",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "449",
+  "is_active": 1,
+  "name": "449",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Cutter Setting",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "450",
+  "is_active": 1,
+  "name": "450",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "No Available Roll",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "451",
+  "is_active": 1,
+  "name": "451",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Consume Roll",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "452",
+  "is_active": 1,
+  "name": "452",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Machine Setting",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "453",
+  "is_active": 1,
+  "name": "453",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Maintenance",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "47",
+  "is_active": 1,
+  "name": "47",
+  "subcategory": "POWER PLANT"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "No Electricity",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "48",
+  "is_active": 1,
+  "name": "48",
+  "subcategory": "EXTERNAL FACTORS"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Transformer Problem - Line Side",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "49",
+  "is_active": 1,
+  "name": "49",
+  "subcategory": "EXTERNAL FACTORS"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Typhoon / Floods",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "50",
+  "is_active": 1,
+  "name": "50",
+  "subcategory": "EXTERNAL FACTORS"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Earthquake / Fire",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "51",
+  "is_active": 1,
+  "name": "51",
+  "subcategory": "EXTERNAL FACTORS"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Auxiliaries Problem",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "52",
+  "is_active": 1,
+  "name": "52",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Stabilization After Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "53",
+  "is_active": 1,
+  "name": "53",
+  "subcategory": "PRODUCTION"
+ },
+ {
+  "category": "PROD-UNPLANNED",
+  "description": "Production Downtime - MC",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "54",
+  "is_active": 1,
+  "name": "54",
+  "subcategory": "PRODUCTION"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Low Steam Supply",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "55",
+  "is_active": 1,
+  "name": "55",
+  "subcategory": "BOILER"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Low Air",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "56",
+  "is_active": 1,
+  "name": "56",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Low Cooling Pressure",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "57",
+  "is_active": 1,
+  "name": "57",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Low Cooling Temperature",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "58",
+  "is_active": 1,
+  "name": "58",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Downtime Electrical Problem Machine (1)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "59",
+  "is_active": 1,
+  "name": "59",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Downtime Electrical Problem Machine (2)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "60",
+  "is_active": 1,
+  "name": "60",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "No Loader Available / No Driver",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "61",
+  "is_active": 1,
+  "name": "61",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Low Water Level",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "62",
+  "is_active": 1,
+  "name": "62",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Central Vacuum System",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "63",
+  "is_active": 1,
+  "name": "63",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Low Gas Pressure - Plant 33",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "64",
+  "is_active": 1,
+  "name": "64",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Chiller - High Cooling Temperature",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "65",
+  "is_active": 1,
+  "name": "65",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Water Treatment Facilities - Steam",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "66",
+  "is_active": 1,
+  "name": "66",
+  "subcategory": "AUXILIARIES"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Alignment",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "67",
+  "is_active": 1,
+  "name": "67",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Steam Inlet Replacement / or Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "69",
+  "is_active": 1,
+  "name": "69",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Polishing / Cleaning and Maintenance",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "70",
+  "is_active": 1,
+  "name": "70",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold - O-Ring Replacement",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "71",
+  "is_active": 1,
+  "name": "71",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Feeding Gun Replacement or Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "72",
+  "is_active": 1,
+  "name": "72",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Push Rod Repair or Replace",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "73",
+  "is_active": 1,
+  "name": "73",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Inject Plate Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "74",
+  "is_active": 1,
+  "name": "74",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Cutter Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "75",
+  "is_active": 1,
+  "name": "75",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Cutter Re-Sharpening",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "76",
+  "is_active": 1,
+  "name": "76",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Plug Assists Polishing",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "77",
+  "is_active": 1,
+  "name": "77",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Insert Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "78",
+  "is_active": 1,
+  "name": "78",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Push Plate Repair",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "79",
+  "is_active": 1,
+  "name": "79",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Material Hose and Fittings",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "80",
+  "is_active": 1,
+  "name": "80",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Air Hose Fitting",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "81",
+  "is_active": 1,
+  "name": "81",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Steam Hose and Clamp",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "82",
+  "is_active": 1,
+  "name": "82",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Cooling System",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "83",
+  "is_active": 1,
+  "name": "83",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Puncher Repair - PSP",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "84",
+  "is_active": 1,
+  "name": "84",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Bender Repair - PSP",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "85",
+  "is_active": 1,
+  "name": "85",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Mold Blade Replacement",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "86",
+  "is_active": 1,
+  "name": "86",
+  "subcategory": "MOULD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Machine Slowdown - New / Trainee",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "87",
+  "is_active": 1,
+  "name": "87",
+  "subcategory": "MANPOWER"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Delay - Material Preparation",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "89",
+  "is_active": 1,
+  "name": "89",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Delay - Issuance and Delivery (Raw Material)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "90",
+  "is_active": 1,
+  "name": "90",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Delay - Issuance and Delivery (Finished Goods)",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "91",
+  "is_active": 1,
+  "name": "91",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Deviated Raw Material",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "92",
+  "is_active": 1,
+  "name": "92",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Material Under / Over Age",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "93",
+  "is_active": 1,
+  "name": "93",
+  "subcategory": "MATERIAL"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Due to Material Issue",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "94",
+  "is_active": 1,
+  "name": "94",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Due to Machine",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "95",
+  "is_active": 1,
+  "name": "95",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Due to Mould",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "96",
+  "is_active": 1,
+  "name": "96",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Due to Operator",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "97",
+  "is_active": 1,
+  "name": "97",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Due to Quality",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "98",
+  "is_active": 1,
+  "name": "98",
+  "subcategory": "METHOD"
+ },
+ {
+  "category": "PROD-DT",
+  "description": "Parameter Adjustment - Weight",
+  "docstatus": 0,
+  "doctype": "Downtime Reason",
+  "dt_code": "99",
+  "is_active": 1,
+  "name": "99",
+  "subcategory": "METHOD"
+ }
+]

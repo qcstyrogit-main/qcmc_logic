@@ -220,11 +220,11 @@ def validate_category_calculation_method(category, bom_item):
 
 
 def is_roll_managed_bom_item(bom_item):
-	return bom_item.get("custom_include_in_formulation") or bom_item.get("custom_apply_roll_trimming")
+	return bom_item.get("custom_include_in_formulation")
 
 
 def is_percentage_based_roll_item(bom_item):
-	return bom_item.get("custom_include_in_formulation") or bom_item.get("custom_apply_roll_trimming")
+	return bom_item.get("custom_include_in_formulation")
 
 
 def apply_roll_item_metadata(doc, formulation_categories):
@@ -254,6 +254,9 @@ def apply_roll_item_metadata(doc, formulation_categories):
 					row.get("custom_bom_material_tag"),
 				)
 			)
+			if not category:
+				clear_roll_item_metadata(row)
+				continue
 		else:
 			item_details = get_item_classification(row.get("item_code"))
 			if not item_details:
@@ -296,6 +299,15 @@ def apply_roll_item_metadata(doc, formulation_categories):
 			row.custom_material_ratio_percent = category["source_item_ratios"][row.item_code]
 
 		assigned_source_items.add(row.custom_bom_item_code)
+
+
+def clear_roll_item_metadata(row):
+	row.custom_include_in_formulation = 0
+	row.custom_apply_roll_trimming = 0
+	row.custom_material_ratio_percent = 0
+	row.custom_bom_item_code = None
+	row.custom_bom_item_group = None
+	row.custom_bom_material_tag = None
 
 
 def validate_roll_item_substitutions(doc, formulation_categories):

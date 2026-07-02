@@ -2,8 +2,9 @@
 """Safely auto-resolve common qcmc_logic fixture merge conflicts.
 
 This script resolves JSON fixture conflicts when both branches changed different
-fixture records. If both branches changed the same record differently, it stops
-and reports the record that needs human review.
+fixture records. It can also merge non-overlapping field-level changes inside
+the same fixture record. If both branches changed the same field differently,
+it stops and reports the record/field that needs human review.
 """
 
 from __future__ import annotations
@@ -28,6 +29,9 @@ class FixtureVersion:
 	by_key: dict[tuple[Any, ...], dict[str, Any]]
 	order: list[tuple[Any, ...]]
 	duplicate_warnings: list[str]
+
+
+ABSENT = object()
 
 
 def run_git(args: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -111,41 +115,130 @@ def format_key(key: tuple[Any, ...]) -> str:
 	return " / ".join(str(part) for part in key)
 
 
+def merge_value(
+	base_value: Any,
+	ours_value: Any,
+	theirs_value: Any,
+	location: str,
+) -> tuple[Any, list[str]]:
+	if ours_value == theirs_value:
+		return ours_value, []
+
+	if ours_value == base_value:
+		return theirs_value, []
+	if theirs_value == base_value:
+		return ours_value, []
+
+	if ours_value is ABSENT and theirs_value is ABSENT:
+		return ABSENT, []
+	if ours_value is ABSENT:
+		return ABSENT, [f"ours deleted but theirs changed {location}"]
+	if theirs_value is ABSENT:
+		return ABSENT, [f"theirs deleted but ours changed {location}"]
+
+	if (
+		isinstance(base_value, dict)
+		and isinstance(ours_value, dict)
+		and isinstance(theirs_value, dict)
+	):
+		return merge_dict(base_value, ours_value, theirs_value, location)
+
+	if (
+		isinstance(base_value, list)
+		and isinstance(ours_value, list)
+		and isinstance(theirs_value, list)
+	):
+		return merge_child_list(base_value, ours_value, theirs_value, location)
+
+	return None, [f"both branches changed {location} differently"]
+
+
+def merge_dict(
+	base_doc: dict[str, Any],
+	ours_doc: dict[str, Any],
+	theirs_doc: dict[str, Any],
+	location: str,
+) -> tuple[dict[str, Any], list[str]]:
+	merged = {}
+	conflicts = []
+
+	for fieldname in sorted(set(base_doc) | set(ours_doc) | set(theirs_doc)):
+		value, field_conflicts = merge_value(
+			base_doc.get(fieldname, ABSENT),
+			ours_doc.get(fieldname, ABSENT),
+			theirs_doc.get(fieldname, ABSENT),
+			f"{location}.{fieldname}",
+		)
+		conflicts.extend(field_conflicts)
+		if value is not ABSENT:
+			merged[fieldname] = value
+
+	return merged, conflicts
+
+
+def merge_child_list(
+	base_items: list[Any],
+	ours_items: list[Any],
+	theirs_items: list[Any],
+	location: str,
+) -> tuple[list[Any] | None, list[str]]:
+	try:
+		base = build_version(base_items, f"{location} base")
+		ours = build_version(ours_items, f"{location} ours")
+		theirs = build_version(theirs_items, f"{location} theirs")
+	except ValueError:
+		return None, [f"both branches changed unkeyed list {location} differently"]
+
+	return merge_version_maps(base, ours, theirs, location=location)
+
+
 def merge_doc(
 	key: tuple[Any, ...],
 	base_doc: dict[str, Any] | None,
 	ours_doc: dict[str, Any] | None,
 	theirs_doc: dict[str, Any] | None,
-) -> tuple[dict[str, Any] | None, str | None]:
+) -> tuple[dict[str, Any] | None, list[str]]:
+	key_label = format_key(key)
+
 	if ours_doc == theirs_doc:
-		return ours_doc, None
+		return ours_doc, []
 
 	if base_doc is None:
 		if ours_doc is None:
-			return theirs_doc, None
+			return theirs_doc, []
 		if theirs_doc is None:
-			return ours_doc, None
-		return None, f"both branches added different versions of {format_key(key)}"
+			return ours_doc, []
+		return None, [f"both branches added different versions of {key_label}"]
 
 	if ours_doc == base_doc:
-		return theirs_doc, None
+		return theirs_doc, []
 	if theirs_doc == base_doc:
-		return ours_doc, None
+		return ours_doc, []
 
 	if ours_doc is None and theirs_doc is None:
-		return None, None
+		return None, []
 	if ours_doc is None:
-		return None, f"ours deleted but theirs changed {format_key(key)}"
+		return None, [f"ours deleted but theirs changed {key_label}"]
 	if theirs_doc is None:
-		return None, f"theirs deleted but ours changed {format_key(key)}"
+		return None, [f"theirs deleted but ours changed {key_label}"]
 
-	return None, f"both branches changed {format_key(key)} differently"
+	return merge_dict(base_doc, ours_doc, theirs_doc, key_label)
 
 
 def merge_versions(
 	base: FixtureVersion,
 	ours: FixtureVersion,
 	theirs: FixtureVersion,
+) -> tuple[list[dict[str, Any]], list[str]]:
+	return merge_version_maps(base, ours, theirs, location="")
+
+
+def merge_version_maps(
+	base: FixtureVersion,
+	ours: FixtureVersion,
+	theirs: FixtureVersion,
+	*,
+	location: str,
 ) -> tuple[list[dict[str, Any]], list[str]]:
 	merged = []
 	conflicts = []
@@ -164,7 +257,7 @@ def merge_versions(
 			theirs.by_key.get(key),
 		)
 		if conflict:
-			conflicts.append(conflict)
+			conflicts.extend(conflict)
 			continue
 
 		if merged_doc is not None:
@@ -173,7 +266,7 @@ def merge_versions(
 	return merged, conflicts
 
 
-def resolve_file(path: Path, *, dry_run: bool) -> list[str]:
+def resolve_file(path: Path, *, dry_run: bool, stage: bool) -> list[str]:
 	relative_path = path.relative_to(APP_ROOT).as_posix()
 	try:
 		base = build_version(read_stage(relative_path, 1), f"{relative_path} base")
@@ -192,7 +285,8 @@ def resolve_file(path: Path, *, dry_run: bool) -> list[str]:
 	if not dry_run:
 		path.write_text(json.dumps(merged, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 		normalize_file(path, dry_run=False)
-		run_git(["add", relative_path])
+		if stage:
+			run_git(["add", relative_path])
 
 	print(f"{'Would resolve' if dry_run else 'Resolved'} {relative_path}")
 	return []
@@ -205,6 +299,11 @@ def main() -> int:
 		action="store_true",
 		help="Report what can be resolved without writing files or staging them.",
 	)
+	parser.add_argument(
+		"--no-stage",
+		action="store_true",
+		help="Write resolved files but do not run git add.",
+	)
 	args = parser.parse_args()
 
 	files = conflicted_fixture_files()
@@ -214,7 +313,7 @@ def main() -> int:
 
 	conflicts = []
 	for path in files:
-		conflicts.extend(resolve_file(path, dry_run=args.dry_run))
+		conflicts.extend(resolve_file(path, dry_run=args.dry_run, stage=not args.no_stage))
 
 	if conflicts:
 		for conflict in conflicts:

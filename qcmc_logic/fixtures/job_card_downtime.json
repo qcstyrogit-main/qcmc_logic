@@ -1,0 +1,38 @@
+[
+ {
+  "category": "BD",
+  "company": "QC Styropackaging Corporation",
+  "docstatus": 0,
+  "doctype": "Job Card Downtime",
+  "downtime_reason": "298",
+  "duration_minutes": 20.0,
+  "from_time": "2026-06-26 09:29:07",
+  "job_card": "PO-JOB00002",
+  "name": "JCD-26-0001",
+  "operation": "REPACKING",
+  "posting_date": "2026-06-26",
+  "remarks": "test",
+  "subcategory": "MACHINE",
+  "to_time": "2026-06-26 09:49:07",
+  "work_order": "MFG-WO-2026-00001-1",
+  "workstation": "REPACK"
+ },
+ {
+  "category": "BD",
+  "company": "QC Styropackaging Corporation",
+  "docstatus": 0,
+  "doctype": "Job Card Downtime",
+  "downtime_reason": "444",
+  "duration_minutes": 15.0,
+  "from_time": "2026-06-26 12:44:50",
+  "job_card": "PO-JOB00002",
+  "name": "JCD-26-0002",
+  "operation": "REPACKING",
+  "posting_date": "2026-06-26",
+  "remarks": null,
+  "subcategory": "MACHINE",
+  "to_time": "2026-06-26 12:59:50",
+  "work_order": "MFG-WO-2026-00001-1",
+  "workstation": "REPACK"
+ }
+]
