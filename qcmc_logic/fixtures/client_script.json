@@ -452,6 +452,16 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
+  "dt": "Job Card",
+  "enabled": 1,
+  "module": null,
+  "name": "Job Card - Log Downtime Button",
+  "script": "\nfrappe.ui.form.on(\"Job Card\", {\n    refresh(frm) {\n        if (frm.is_new() || frm.doc.docstatus === 2) return;\n\n        frm.add_custom_button(__(\"Log Downtime\"), function () {\n            frappe.new_doc(\"Job Card Downtime\", {\n                job_card:     frm.doc.name,\n                work_order:   frm.doc.work_order,\n                operation:    frm.doc.operation,\n                workstation:  frm.doc.workstation,\n                company:      frm.doc.company,\n                posting_date: frappe.datetime.get_today(),\n                from_time:    frappe.datetime.now_datetime(),\n            });\n        }, __(\"Downtime\"));\n\n        frm.add_custom_button(__(\"View Downtime Log\"), function () {\n            frappe.set_route(\"List\", \"Job Card Downtime\", { job_card: frm.doc.name });\n        }, __(\"Downtime\"));\n    },\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
   "dt": "Job Offer",
   "enabled": 1,
   "module": "QCMC Logics",
