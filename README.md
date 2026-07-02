@@ -97,7 +97,13 @@ The hook runs `validate_fixtures.py`, `audit_doctype_fixtures.py`, and
 ### Fixture Merge Conflicts
 
 When `git pull --rebase` or merge reports conflicts in `qcmc_logic/fixtures/*.json`,
-try the safe fixture resolver:
+preview what the safe fixture resolver can fix:
+
+```bash
+python3 apps/qcmc_logic/scripts/resolve_fixture_conflicts.py --dry-run
+```
+
+Then resolve and stage the fixture JSON conflicts:
 
 ```bash
 python3 apps/qcmc_logic/scripts/resolve_fixture_conflicts.py
@@ -105,9 +111,18 @@ python3 apps/qcmc_logic/scripts/validate_fixtures.py
 git diff
 ```
 
-The resolver auto-merges only safe JSON fixture cases, such as both branches
-changing different fixture records. If both branches changed the same fixture
-record differently, it stops and prints the exact record that needs human review.
+If you are already inside `apps/qcmc_logic`, use the shorter paths:
+
+```bash
+python3 scripts/resolve_fixture_conflicts.py --dry-run
+python3 scripts/resolve_fixture_conflicts.py
+```
+
+The resolver auto-merges safe JSON fixture cases, such as both branches changing
+different fixture records or different fields on the same record. If both
+branches changed the same field differently, it stops and prints the exact record
+and field that needs human review. Non-fixture conflicts still need manual
+resolution.
 
 See `docs/fixture_conflict_commands.md` for the full command runbook and what
 each command is for.
