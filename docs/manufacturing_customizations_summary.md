@@ -212,6 +212,44 @@ Job Card submission is not required before each Manufacture entry.
 6. The system creates a saved draft Manufacture Stock Entry.
 7. Review the FG information, then save and submit.
 
+### Final Operation Only
+
+For a Work Order with operations, only the Job Card for the final operation
+may create a Manufacture Stock Entry:
+
+- the final operation is the row with the highest Sequence ID;
+- when multiple rows have the same Sequence ID, the last Work Order operation
+  row is treated as final; and
+- a Work Order with only one operation continues to use that operation.
+
+Earlier-operation Job Cards record time and completed quantity without
+creating finished-goods stock. The final operation can post incremental
+finished-goods quantities only after ERPNext's standard validation confirms
+that every preceding operation has completed at least the cumulative quantity
+being manufactured.
+
+For non-final operations, saving Actual Time rows immediately synchronizes
+their cumulative Completed Qty to the Work Order operation, even while the
+shift Job Card remains draft. This allows the next operation to proceed during
+the same shift. The quantity is aggregated across all non-cancelled Job Cards
+for that Work Order operation.
+
+Only Actual Time Completed Qty contributes to downstream availability.
+Job Card process loss is deliberately excluded, including after submission,
+so Packing cannot exceed the physical output recorded by Injection and Drying.
+Cancelling or deleting a Job Card recalculates the operation quantity.
+
+The Job Card selector hides non-final operations for Manufacture. The same rule
+is validated on the server so a direct API call cannot bypass it. Material
+Transfer for Manufacture and Material Consumption for Manufacture selectors
+are unaffected.
+
+The generated Manufacture Stock Entry stores the selected final Job Card and
+its latest Actual Time row. On Stock Entry submission, the FG quantity is added
+to that row's Completed Qty and the Job Card total is recalculated. Cancelling
+the Stock Entry reverses the same quantity from the same row. A final Job Card
+must therefore have an Actual Time row before the Manufacture draft is created.
+
 ### Available Quantity
 
 For a normal final-production Job Card:
