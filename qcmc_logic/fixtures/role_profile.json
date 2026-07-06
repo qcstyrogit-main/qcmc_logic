@@ -2,877 +2,154 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Account Manager",
-  "role_profile": "Account Manager",
+  "modified": "2026-05-25 10:56:53.404263",
+  "name": "Stockroom Encoder",
+  "role_profile": "Stockroom Encoder",
   "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Regional User"
-   },
-   {
-    "role": "Customer"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Asset Management - End User",
-  "role_profile": "Asset Management - End User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "Asset Management User"
-   },
    {
     "role": "Purchase User"
    },
    {
-    "role": "Purchase Master Manager"
-   },
-   {
-    "role": "Stock User"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Asset Management - Super User",
-  "role_profile": "Asset Management - Super User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Appraisal Manager"
-   },
-   {
-    "role": "ASSET MANAGEMENT MANAGER"
-   },
-   {
-    "role": "Purchase User"
-   },
-   {
-    "role": "Purchase Master Manager"
-   },
-   {
     "role": "Stock User"
    },
    {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "MRF Finance User"
-   },
-   {
-    "role": "Asset Management Head"
-   },
-   {
-    "role": "Asset Management User"
+    "role": "Stockroom_PR_QC_lv1"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Audit - End User",
-  "role_profile": "Audit - End User",
+  "modified": "2026-05-25 10:56:53.412857",
+  "name": "HRD Recruitment - End User",
+  "role_profile": "HRD Recruitment - End User",
   "roles": [
    {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Audit - Super User",
-  "role_profile": "Audit - Super User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "MRF Finance User"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "CandC",
-  "role_profile": "CandC",
-  "roles": [
-   {
-    "role": "Accounts Manager"
-   },
-   {
-    "role": "Accounts User"
-   },
-   {
-    "role": "Credit and Collection Section Head"
-   },
-   {
-    "role": "Projects User"
-   },
-   {
-    "role": "Sales Master Manager"
-   },
-   {
-    "role": "Sales User"
-   },
-   {
-    "role": "Sales Manager"
-   },
-   {
-    "role": "Item Manager"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Cost Acct. - End User",
-  "role_profile": "Cost Acct. - End User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Cost Acct. - Super User",
-  "role_profile": "Cost Acct. - Super User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "MRF Finance User"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Credit and Collection - End User",
-  "role_profile": "Credit and Collection - End User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Credit and Collection User"
-   },
-   {
-    "role": "Sales User"
-   },
-   {
-    "role": "Accounts User"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Credit and Collection - Super User",
-  "role_profile": "Credit and Collection - Super User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Credit and Collection User"
-   },
-   {
-    "role": "Sales User"
-   },
-   {
-    "role": "Credit and Collection Section Head"
-   },
-   {
-    "role": "Accounts Manager"
-   },
-   {
-    "role": "Sales Master Manager"
-   },
-   {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "MRF Finance User"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Delivery Driver",
-  "role_profile": "Delivery Driver",
-  "roles": [
-   {
-    "role": "Delivery User"
+    "role": "MRF Procurement User"
    },
    {
     "role": "LMS Student"
    },
    {
-    "role": "Customer"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Edsa - Machine Shop",
-  "role_profile": "Edsa - Machine Shop",
-  "roles": []
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Edsa - Motorpool",
-  "role_profile": "Edsa - Motorpool",
-  "roles": []
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Edsa Warehouse",
-  "role_profile": "Edsa Warehouse",
-  "roles": [
-   {
-    "role": "Fleet Manager"
-   },
-   {
-    "role": "WH_PR_EDSA_Lv1"
-   },
-   {
-    "role": "Stockroom_PR_EDSA_lv1"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Employee",
-  "role_profile": "Employee",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Engineering - End User",
-  "role_profile": "Engineering - End User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Asset Maintenance User"
-   },
-   {
-    "role": "Machine Shop User"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Engineering - SME",
-  "role_profile": "Engineering - SME",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Machine Shop User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Machine Shop Supervisor"
-   },
-   {
-    "role": "MRF ENGINEERING USER"
-   },
-   {
-    "role": "Asset Maintenance User"
-   },
-   {
-    "role": "Projects Manager"
-   },
-   {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Engineering - Super User",
-  "role_profile": "Engineering - Super User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Machine Shop User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Stockroom_PR_EDSA_lv1"
-   },
-   {
-    "role": "Projects User"
-   },
-   {
-    "role": "Asset Maintenance User"
-   },
-   {
-    "role": "MRF User"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Machine Shop Foreman"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Engineering Custodian  - End User",
-  "role_profile": "Engineering Custodian  - End User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Machine Shop User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Stockroom_PR_EDSA_lv1"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "ExemptWorkflow",
-  "role_profile": "ITEM_Exempt Workflow",
-  "roles": [
-   {
-    "role": "Academics User"
-   },
-   {
-    "role": "Accounts Manager"
-   },
-   {
-    "role": "Accounts User"
-   },
-   {
-    "role": "Agriculture Manager"
-   },
-   {
-    "role": "Agriculture User"
-   },
-   {
-    "role": "Analytics"
-   },
-   {
-    "role": "Asset Management Head"
-   },
-   {
-    "role": "Asset Management User"
-   },
-   {
-    "role": "Auditor"
-   },
-   {
-    "role": "Batch Evaluator"
-   },
-   {
-    "role": "Blogger"
-   },
-   {
-    "role": "Course Creator"
-   },
-   {
-    "role": "Credit and Collection Section Head"
-   },
-   {
-    "role": "Customer"
-   },
-   {
-    "role": "Dashboard Manager"
-   },
-   {
-    "role": "Delivery Manager"
-   },
-   {
-    "role": "Delivery User"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Employee Self Service"
+    "role": "Leave Approver"
    },
    {
     "role": "Expense Approver"
-   },
-   {
-    "role": "Fleet Manager"
-   },
-   {
-    "role": "Fulfillment User"
-   },
-   {
-    "role": "HR Manager"
-   },
-   {
-    "role": "HR User"
-   },
-   {
-    "role": "Inbox User"
    },
    {
     "role": "Interviewer"
    },
    {
-    "role": "Item Manager"
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.423260",
+  "name": "HRD Payroll - End User",
+  "role_profile": "HRD Payroll - End User",
+  "roles": [
+   {
+    "role": "HR User"
    },
    {
-    "role": "Knowledge Base Contributor"
-   },
-   {
-    "role": "Knowledge Base Editor"
+    "role": "LMS Student"
    },
    {
     "role": "Leave Approver"
    },
    {
-    "role": "LMS Student"
+    "role": "Expense Approver"
    },
    {
-    "role": "Loan Manager"
-   },
-   {
-    "role": "Logistics Manager"
-   },
-   {
-    "role": "Machine Shop Foreman"
-   },
-   {
-    "role": "Machine Shop Supervisor"
-   },
-   {
-    "role": "Machine Shop User"
-   },
-   {
-    "role": "Maintenance Manager"
-   },
-   {
-    "role": "Maintenance User"
-   },
-   {
-    "role": "Manufacturing Manager"
-   },
-   {
-    "role": "Manufacturing User"
-   },
-   {
-    "role": "MIS Supervisor"
-   },
-   {
-    "role": "Moderator"
-   },
-   {
-    "role": "Motorpool_PR_Manager"
-   },
-   {
-    "role": "Motorpool_PR_MC_lv1"
-   },
-   {
-    "role": "Motorpool_PR_QC_lv1"
-   },
-   {
-    "role": "Network Admin"
-   },
-   {
-    "role": "Newsletter Manager"
-   },
-   {
-    "role": "Payroll Master"
-   },
-   {
-    "role": "Plant Manager"
-   },
-   {
-    "role": "Plant Manager MC"
-   },
-   {
-    "role": "Plant Manager QC"
-   },
-   {
-    "role": "Prepared Report User"
-   },
-   {
-    "role": "Projects Manager"
-   },
-   {
-    "role": "Provincial Stock User"
-   },
-   {
-    "role": "Purchase Manager"
-   },
-   {
-    "role": "Purchase Master Manager"
-   },
-   {
-    "role": "Quality Manager"
-   },
-   {
-    "role": "Report Manager"
-   },
-   {
-    "role": "RMFS_PR_QC_lv1"
-   },
-   {
-    "role": "RMFS_PR_QC_lv2"
-   },
-   {
-    "role": "Sales Coordinator"
-   },
-   {
-    "role": "Sales Manager"
-   },
-   {
-    "role": "Sales Master Manager"
-   },
-   {
-    "role": "Sales User"
-   },
-   {
-    "role": "Script Manager"
-   },
-   {
-    "role": "Stock Manager"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Stockroom_PR_EDSA_lv1"
-   },
-   {
-    "role": "Stockroom_PR_MC_lv1"
-   },
-   {
-    "role": "Stockroom_PR_QC_lv1"
-   },
-   {
-    "role": "Stockroom_PR_QC_lv2"
-   },
-   {
-    "role": "Supplier"
-   },
-   {
-    "role": "Support Team"
-   },
-   {
-    "role": "System Manager"
-   },
-   {
-    "role": "Translator"
-   },
-   {
-    "role": "Website Manager"
-   },
-   {
-    "role": "WH_PR_EDSA_Lv1"
-   },
-   {
-    "role": "Workspace Manager"
-   },
-   {
-    "role": "Projects User"
+    "role": "Employee"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Finance - SME",
-  "role_profile": "Finance - SME",
+  "modified": "2026-05-25 10:56:53.433110",
+  "name": "HRD Compben - End User",
+  "role_profile": "HRD Compben - End User",
   "roles": [
+   {
+    "role": "HR User"
+   },
    {
     "role": "LMS Student"
    },
    {
     "role": "Employee"
-   },
-   {
-    "role": "Appraisal Manager"
-   },
-   {
-    "role": "ASSET MANAGEMENT MANAGER"
-   },
-   {
-    "role": "Purchase User"
-   },
-   {
-    "role": "Purchase Master Manager"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Appraisal Manager"
-   },
-   {
-    "role": "MRF Finance Manager"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "General Accounting Staff",
-  "role_profile": "General Accounting Staff",
+  "modified": "2026-05-25 10:56:53.441755",
+  "name": "HRD Admin  - End User",
+  "role_profile": "HRD Admin  - End User",
   "roles": [
    {
-    "role": "Accounts Manager"
+    "role": "HR User"
    },
    {
-    "role": "Accounts User"
+    "role": "LMS Student"
+   },
+   {
+    "role": "LMS Moderator"
+   },
+   {
+    "role": "HR User"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.451266",
+  "name": "HRD - Super User",
+  "role_profile": "HRD - Super User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Leave Approver"
    },
    {
     "role": "Expense Approver"
    },
    {
-    "role": "Payroll Master"
+    "role": "HR User"
    },
    {
-    "role": "Purchase User"
+    "role": "HR Supervisor"
    },
    {
-    "role": "Chat Support"
+    "role": "Interviewer"
    },
    {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "General Acct - End User",
-  "role_profile": "General Acct - End User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Accounts User"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "General Acct - Super User",
-  "role_profile": "General Acct - Super User",
-  "roles": [
-   {
-    "role": "Payroll Master"
-   },
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Accounts User"
-   },
-   {
-    "role": "Expense Approver"
+    "role": "MRF User"
    },
    {
     "role": "Appraisal User"
    },
    {
-    "role": "MRF Finance User"
+    "role": "Employee"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Guyong - Maintenance",
-  "role_profile": "Guyong - Maintenance",
-  "roles": []
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Guyong - Motorpool",
-  "role_profile": "Guyong - Motorpool",
-  "roles": []
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Guyong - Production",
-  "role_profile": "Guyong - Production",
-  "roles": []
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "HR Learning",
-  "role_profile": "HR Learning",
-  "roles": [
-   {
-    "role": "HR User"
-   },
-   {
-    "role": "Moderator"
-   },
-   {
-    "role": "Batch Evaluator"
-   },
-   {
-    "role": "Academics User"
-   },
-   {
-    "role": "Knowledge Base Contributor"
-   },
-   {
-    "role": "Knowledge Base Editor"
-   },
-   {
-    "role": "Course Creator"
-   },
-   {
-    "role": "LMS Student"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "HR Manager",
-  "role_profile": "HR Manager",
-  "roles": [
-   {
-    "role": "HR Manager"
-   },
-   {
-    "role": "HR User"
-   },
-   {
-    "role": "Expense Approver"
-   },
-   {
-    "role": "Leave Approver"
-   },
-   {
-    "role": "HR Supervisor"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "HR Supervisor",
-  "role_profile": "HR Supervisor",
-  "roles": [
-   {
-    "role": "Expense Approver"
-   },
-   {
-    "role": "HR Supervisor"
-   },
-   {
-    "role": "HR User"
-   },
-   {
-    "role": "Leave Approver"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.464031",
   "name": "HRD - SME",
   "role_profile": "HRD - SME",
   "roles": [
@@ -911,144 +188,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "HRD - Super User",
-  "role_profile": "HRD - Super User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Leave Approver"
-   },
-   {
-    "role": "Expense Approver"
-   },
-   {
-    "role": "HR User"
-   },
-   {
-    "role": "HR Supervisor"
-   },
-   {
-    "role": "Interviewer"
-   },
-   {
-    "role": "MRF User"
-   },
-   {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "HRD Admin  - End User",
-  "role_profile": "HRD Admin  - End User",
-  "roles": [
-   {
-    "role": "HR User"
-   },
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "LMS Moderator"
-   },
-   {
-    "role": "HR User"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "HRD Compben - End User",
-  "role_profile": "HRD Compben - End User",
-  "roles": [
-   {
-    "role": "HR User"
-   },
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "HRD Payroll - End User",
-  "role_profile": "HRD Payroll - End User",
-  "roles": [
-   {
-    "role": "HR User"
-   },
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Leave Approver"
-   },
-   {
-    "role": "Expense Approver"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "HRD Recruitment - End User",
-  "role_profile": "HRD Recruitment - End User",
-  "roles": [
-   {
-    "role": "MRF Procurement User"
-   },
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Leave Approver"
-   },
-   {
-    "role": "Expense Approver"
-   },
-   {
-    "role": "Interviewer"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "LMS",
-  "role_profile": "LMS",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.476719",
   "name": "Logistic  - Motorpool - End User",
   "role_profile": "Logistic  - Motorpool - End User",
   "roles": [
@@ -1069,6 +209,28 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.485979",
+  "name": "Logistic FG - End User",
+  "role_profile": "Logistic FG - End User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Stock User w/ Delivery Note"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.495663",
   "name": "Logistic - Super User",
   "role_profile": "Logistic - Super User",
   "roles": [
@@ -1107,26 +269,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Logistic FG - End User",
-  "role_profile": "Logistic FG - End User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Stock User w/ Delivery Note"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
+  "modified": "2026-06-23 15:32:19.174861",
   "name": "Logistics - SME",
   "role_profile": "Logistics - SME",
   "roles": [
@@ -1168,29 +311,9 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "MC - Maintenance",
-  "role_profile": "MC - Maintenance",
-  "roles": []
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "MC - Motorpool",
-  "role_profile": "MC - Motorpool",
-  "roles": []
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "MC - Production",
-  "role_profile": "MC - Production",
-  "roles": []
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "MC ADMIN - SME",
-  "role_profile": "MC ADMIN - SME",
+  "modified": "2026-05-25 10:56:53.522198",
+  "name": "Procurement - End User",
+  "role_profile": "Procurement - End User",
   "roles": [
    {
     "role": "LMS Student"
@@ -1199,27 +322,250 @@
     "role": "Stock User"
    },
    {
-    "role": "Stock Manager"
-   },
-   {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "Appraisal Manager"
-   },
-   {
     "role": "Employee"
    },
    {
-    "role": "Asset Maintenance User"
+    "role": "Purchase User"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "MC IE  - End User",
-  "role_profile": "MC IE  - End User",
+  "modified": "2026-05-25 10:56:53.530989",
+  "name": "Procurement - Super User",
+  "role_profile": "Procurement - Super User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Purchase Manager"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Purchase User"
+   },
+   {
+    "role": "MRF User"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.541636",
+  "name": "Procurement - SME",
+  "role_profile": "Procurement - SME",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Purchase Manager"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Purchase User"
+   },
+   {
+    "role": "MRF User"
+   },
+   {
+    "role": "Appraisal Manager"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.552018",
+  "name": "Sales - Invoicing Clerk - End User",
+  "role_profile": "Sales - Invoicing Clerk - End User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Sales Coordinator"
+   },
+   {
+    "role": "Sales User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.561618",
+  "name": "Sales - Coordinator - End User",
+  "role_profile": "Sales - Coordinator - End User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Sales Coordinator"
+   },
+   {
+    "role": "Sales User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.571101",
+  "name": "Sales - Super User",
+  "role_profile": "Sales - Super User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Sales Coordinator"
+   },
+   {
+    "role": "Sales User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "MRF User"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.581449",
+  "name": "Sales - SME",
+  "role_profile": "Sales - SME",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Sales Coordinator"
+   },
+   {
+    "role": "Sales User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "MRF Sales Manager"
+   },
+   {
+    "role": "Appraisal Manager"
+   },
+   {
+    "role": "Regional Manager"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.592558",
+  "name": "Engineering Custodian  - End User",
+  "role_profile": "Engineering Custodian  - End User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Machine Shop User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Stockroom_PR_EDSA_lv1"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 11:10:14.191416",
+  "name": "Engineering - Super User",
+  "role_profile": "Engineering - Super User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Machine Shop User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Stockroom_PR_EDSA_lv1"
+   },
+   {
+    "role": "Projects User"
+   },
+   {
+    "role": "Asset Maintenance User"
+   },
+   {
+    "role": "MRF User"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Machine Shop Foreman"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.624343",
+  "name": "MC PPIC  - Super User",
+  "role_profile": "MC PPIC  - Super User",
   "roles": [
    {
     "role": "LMS Student"
@@ -1231,6 +577,15 @@
     "role": "Stock User"
    },
    {
+    "role": "Dashboard Manager"
+   },
+   {
+    "role": "Stock Manager"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
     "role": "Employee"
    }
   ]
@@ -1238,8 +593,48 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "MC IE  - Super User",
-  "role_profile": "MC IE  - Super User",
+  "modified": "2026-05-25 10:56:53.635072",
+  "name": "MC RM  - End User",
+  "role_profile": "MC RM  - End User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.646437",
+  "name": "MC RM  - Super User",
+  "role_profile": "MC RM  - Super User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Manufacturing User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "RMFS_PR_MC"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.655278",
+  "name": "MC Production - Super User",
+  "role_profile": "MC Production - Super User",
   "roles": [
    {
     "role": "LMS Student"
@@ -1260,6 +655,9 @@
     "role": "Dashboard Manager"
    },
    {
+    "role": "Production - MC"
+   },
+   {
     "role": "Employee"
    }
   ]
@@ -1267,8 +665,30 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "MC IE - SME",
-  "role_profile": "MC IE - SME",
+  "modified": "2026-05-25 10:56:53.669441",
+  "name": "MC QA - End User",
+  "role_profile": "MC QA - End User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Manufacturing User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.677996",
+  "name": "MC QA - Super User",
+  "role_profile": "MC QA - Super User",
   "roles": [
    {
     "role": "LMS Student"
@@ -1286,19 +706,47 @@
     "role": "Appraisal User"
    },
    {
-    "role": "Appraisal Manager"
-   },
-   {
     "role": "Employee"
-   },
-   {
-    "role": "Projects Manager"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.688144",
+  "name": "MC QA - SME",
+  "role_profile": "MC QA - SME",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Manufacturing User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Stock Manager"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "Quality Manager"
+   },
+   {
+    "role": "Appraisal Manager"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.698925",
   "name": "MC Maintenance  - End User",
   "role_profile": "MC Maintenance  - End User",
   "roles": [
@@ -1325,6 +773,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-06-19 13:38:24.789520",
   "name": "MC Maintenance  - Super User",
   "role_profile": "MC Maintenance  - Super User",
   "roles": [
@@ -1360,8 +809,60 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "MC Maintenance - SME",
-  "role_profile": "MC Maintenance - SME",
+  "modified": "2026-05-25 10:56:53.731873",
+  "name": "MC IE  - End User",
+  "role_profile": "MC IE  - End User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Manufacturing User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.739952",
+  "name": "MC IE  - Super User",
+  "role_profile": "MC IE  - Super User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Manufacturing Manager"
+   },
+   {
+    "role": "Asset Maintenance User"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "Dashboard Manager"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.750015",
+  "name": "MC IE - SME",
+  "role_profile": "MC IE - SME",
   "roles": [
    {
     "role": "LMS Student"
@@ -1386,17 +887,45 @@
    },
    {
     "role": "Projects Manager"
-   },
-   {
-    "role": "Maintenance - SMB"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "MC PPIC  - Super User",
-  "role_profile": "MC PPIC  - Super User",
+  "modified": "2026-05-25 10:56:53.760901",
+  "name": "MC ADMIN - SME",
+  "role_profile": "MC ADMIN - SME",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Stock Manager"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "Appraisal Manager"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Asset Maintenance User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.773795",
+  "name": "QC PPIC  - Super User",
+  "role_profile": "QC PPIC  - Super User",
   "roles": [
    {
     "role": "LMS Student"
@@ -1424,20 +953,18 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "MC Plant Manager",
-  "role_profile": "MC Plant Manager",
+  "modified": "2026-05-25 10:56:53.784077",
+  "name": "QC RM  - End User",
+  "role_profile": "QC RM  - End User",
   "roles": [
    {
-    "role": "Plant Manager QC"
+    "role": "LMS Student"
    },
    {
-    "role": "Asset Maintenance User"
+    "role": "Manufacturing User"
    },
    {
     "role": "Stock User"
-   },
-   {
-    "role": "LMS Student"
    },
    {
     "role": "Employee"
@@ -1447,8 +974,60 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "MC Production - Super User",
-  "role_profile": "MC Production - Super User",
+  "modified": "2026-05-25 10:56:53.792181",
+  "name": "QC RM  - Super User",
+  "role_profile": "QC RM  - Super User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Manufacturing User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "RMFS_PR_MC"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.800500",
+  "name": "QC Production - End User",
+  "role_profile": "QC Production - End User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Manufacturing User"
+   },
+   {
+    "role": "Asset Maintenance User"
+   },
+   {
+    "role": "Dashboard Manager"
+   },
+   {
+    "role": "Production - SMB"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.810672",
+  "name": "QC Production - Super User",
+  "role_profile": "QC Production - Super User",
   "roles": [
    {
     "role": "LMS Student"
@@ -1469,7 +1048,7 @@
     "role": "Dashboard Manager"
    },
    {
-    "role": "Production - MC"
+    "role": "Production - SMB"
    },
    {
     "role": "Employee"
@@ -1479,8 +1058,9 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "MC QA - End User",
-  "role_profile": "MC QA - End User",
+  "modified": "2026-05-25 10:56:53.821049",
+  "name": "QC QA - End User",
+  "role_profile": "QC QA - End User",
   "roles": [
    {
     "role": "LMS Student"
@@ -1499,8 +1079,9 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "MC QA - SME",
-  "role_profile": "MC QA - SME",
+  "modified": "2026-05-25 10:56:53.829535",
+  "name": "QC QA - Super User",
+  "role_profile": "QC QA - Super User",
   "roles": [
    {
     "role": "LMS Student"
@@ -1509,7 +1090,28 @@
     "role": "Manufacturing User"
    },
    {
-    "role": "Stock User"
+    "role": "Stock Manager"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.838594",
+  "name": "QC QA - SME",
+  "role_profile": "QC QA - SME",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Manufacturing User"
    },
    {
     "role": "Stock Manager"
@@ -1531,8 +1133,123 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "MC QA - Super User",
-  "role_profile": "MC QA - Super User",
+  "modified": "2026-05-25 10:56:53.848483",
+  "name": "QC Maintenance  - End User",
+  "role_profile": "QC Maintenance  - End User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Asset Maintenance User"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Stockroom_PR_MC_lv1"
+   },
+   {
+    "role": "Maintenance - SMB"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.857701",
+  "name": "QC Maintenance  - Super User",
+  "role_profile": "QC Maintenance  - Super User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Manufacturing User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Asset Maintenance User"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "Stockroom_PR_MC_lv1"
+   },
+   {
+    "role": "Projects User"
+   },
+   {
+    "role": "Maintenance - SMB"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.879075",
+  "name": "QC IE  - End User",
+  "role_profile": "QC IE  - End User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Manufacturing User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.887277",
+  "name": "QC IE  - Super User",
+  "role_profile": "QC IE  - Super User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Manufacturing Manager"
+   },
+   {
+    "role": "Asset Maintenance User"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "Dashboard Manager"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.897488",
+  "name": "QC IE - SME",
+  "role_profile": "QC IE - SME",
   "roles": [
    {
     "role": "LMS Student"
@@ -1550,53 +1267,26 @@
     "role": "Appraisal User"
    },
    {
+    "role": "Appraisal Manager"
+   },
+   {
     "role": "Employee"
+   },
+   {
+    "role": "Projects Manager"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "MC RM  - End User",
-  "role_profile": "MC RM  - End User",
+  "modified": "2026-05-25 10:56:53.908163",
+  "name": "QC ADMIN - SME",
+  "role_profile": "QC ADMIN - SME",
   "roles": [
    {
     "role": "LMS Student"
    },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "MC RM  - Super User",
-  "role_profile": "MC RM  - Super User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Manufacturing User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "RMFS_PR_MC"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "MC Toolroom",
-  "role_profile": "MC Toolroom",
-  "roles": [
    {
     "role": "Stock User"
    },
@@ -1604,18 +1294,25 @@
     "role": "Stock Manager"
    },
    {
-    "role": "Stockroom_PR_MC_lv1"
+    "role": "Appraisal User"
    },
    {
-    "role": "Purchase User"
+    "role": "Appraisal Manager"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Asset Maintenance User"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "MIS - SME",
-  "role_profile": "MIS - SME",
+  "modified": "2026-05-25 10:56:53.917901",
+  "name": "Credit and Collection - End User",
+  "role_profile": "Credit and Collection - End User",
   "roles": [
    {
     "role": "LMS Student"
@@ -1624,7 +1321,223 @@
     "role": "Employee"
    },
    {
-    "role": "System Manager"
+    "role": "Credit and Collection User"
+   },
+   {
+    "role": "Sales User"
+   },
+   {
+    "role": "Accounts User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.926795",
+  "name": "Credit and Collection - Super User",
+  "role_profile": "Credit and Collection - Super User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Credit and Collection User"
+   },
+   {
+    "role": "Sales User"
+   },
+   {
+    "role": "Credit and Collection Section Head"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Sales Master Manager"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "MRF Finance User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.938116",
+  "name": "General Acct - End User",
+  "role_profile": "General Acct - End User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Accounts User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.945999",
+  "name": "General Acct - Super User",
+  "role_profile": "General Acct - Super User",
+  "roles": [
+   {
+    "role": "Payroll Master"
+   },
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Expense Approver"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "MRF Finance User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.955730",
+  "name": "Cost Acct. - End User",
+  "role_profile": "Cost Acct. - End User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.962981",
+  "name": "Cost Acct. - Super User",
+  "role_profile": "Cost Acct. - Super User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "MRF Finance User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.970905",
+  "name": "Audit - End User",
+  "role_profile": "Audit - End User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.977922",
+  "name": "Audit - Super User",
+  "role_profile": "Audit - Super User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "MRF Finance User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.985785",
+  "name": "Asset Management - End User",
+  "role_profile": "Asset Management - End User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "Asset Management User"
+   },
+   {
+    "role": "Purchase User"
+   },
+   {
+    "role": "Purchase Master Manager"
+   },
+   {
+    "role": "Stock User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.995547",
+  "name": "Asset Management - Super User",
+  "role_profile": "Asset Management - Super User",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Appraisal Manager"
+   },
+   {
+    "role": "ASSET MANAGEMENT MANAGER"
+   },
+   {
+    "role": "Purchase User"
+   },
+   {
+    "role": "Purchase Master Manager"
+   },
+   {
+    "role": "Stock User"
    },
    {
     "role": "Appraisal User"
@@ -1633,16 +1546,17 @@
     "role": "MRF Finance User"
    },
    {
-    "role": "HR User"
+    "role": "Asset Management Head"
    },
    {
-    "role": "HR Supervisor"
+    "role": "Asset Management User"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:54.008051",
   "name": "MIS - Super User",
   "role_profile": "MIS - Super User",
   "roles": [
@@ -1708,225 +1622,150 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Motorpool",
-  "role_profile": "Motorpool",
-  "roles": [
-   {
-    "role": "Fleet Manager"
-   },
-   {
-    "role": "Motorpool_PR_QC_lv1"
-   },
-   {
-    "role": "Stock User"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "PPIC",
-  "role_profile": "PPIC",
-  "roles": [
-   {
-    "role": "Dashboard Manager"
-   },
-   {
-    "role": "Item Manager"
-   },
-   {
-    "role": "Manufacturing User"
-   },
-   {
-    "role": "Manufacturing Manager"
-   },
-   {
-    "role": "Plant Manager"
-   },
-   {
-    "role": "Projects Manager"
-   },
-   {
-    "role": "Projects User"
-   },
-   {
-    "role": "Purchase User"
-   },
-   {
-    "role": "Stock Manager"
-   },
-   {
-    "role": "Stock User"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Procurement",
-  "role_profile": "Procurement",
-  "roles": [
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Stock Manager"
-   },
-   {
-    "role": "Purchase User"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Procurement - End User",
-  "role_profile": "Procurement - End User",
+  "modified": "2026-05-25 10:56:54.027654",
+  "name": "MIS - SME",
+  "role_profile": "MIS - SME",
   "roles": [
    {
     "role": "LMS Student"
-   },
-   {
-    "role": "Stock User"
    },
    {
     "role": "Employee"
    },
    {
-    "role": "Purchase User"
+    "role": "System Manager"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "MRF Finance User"
+   },
+   {
+    "role": "HR User"
+   },
+   {
+    "role": "HR Supervisor"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Procurement - SME",
-  "role_profile": "Procurement - SME",
+  "modified": "2026-05-25 10:56:54.037518",
+  "name": "Finance - SME",
+  "role_profile": "Finance - SME",
   "roles": [
    {
     "role": "LMS Student"
    },
    {
-    "role": "Purchase Manager"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Purchase User"
-   },
-   {
-    "role": "MRF User"
+    "role": "Employee"
    },
    {
     "role": "Appraisal Manager"
    },
    {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Procurement - Super User",
-  "role_profile": "Procurement - Super User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Purchase Manager"
-   },
-   {
-    "role": "Stock User"
+    "role": "ASSET MANAGEMENT MANAGER"
    },
    {
     "role": "Purchase User"
    },
    {
-    "role": "MRF User"
-   },
-   {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "QC ADMIN - SME",
-  "role_profile": "QC ADMIN - SME",
-  "roles": [
-   {
-    "role": "LMS Student"
+    "role": "Purchase Master Manager"
    },
    {
     "role": "Stock User"
-   },
-   {
-    "role": "Stock Manager"
-   },
-   {
-    "role": "Appraisal User"
    },
    {
     "role": "Appraisal Manager"
    },
    {
-    "role": "Employee"
-   },
-   {
-    "role": "Asset Maintenance User"
+    "role": "MRF Finance Manager"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "QC IE  - End User",
-  "role_profile": "QC IE  - End User",
+  "modified": "2026-05-25 10:56:54.048273",
+  "name": "Engineering - End User",
+  "role_profile": "Engineering - End User",
   "roles": [
    {
     "role": "LMS Student"
    },
    {
-    "role": "Manufacturing User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
     "role": "Employee"
+   },
+   {
+    "role": "Asset Maintenance User"
+   },
+   {
+    "role": "Machine Shop User"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "QC IE  - Super User",
-  "role_profile": "QC IE  - Super User",
+  "modified": "2026-05-25 10:56:54.056580",
+  "name": "Sales - Accounts Manager",
+  "role_profile": "Sales - Accounts Manager",
   "roles": [
    {
     "role": "LMS Student"
    },
    {
-    "role": "Stock User"
+    "role": "Employee"
    },
    {
-    "role": "Manufacturing Manager"
+    "role": "Customer"
    },
    {
-    "role": "Asset Maintenance User"
+    "role": "Regional User"
+   },
+   {
+    "role": "Sales Manager"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:54.065180",
+  "name": "Sales - Regional Manager",
+  "role_profile": "Sales - Regional Manager",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Customer"
+   },
+   {
+    "role": "Regional Manager"
+   },
+   {
+    "role": "Regional User"
    },
    {
     "role": "Appraisal User"
-   },
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:54.074537",
+  "name": "LMS",
+  "role_profile": "LMS",
+  "roles": [
    {
-    "role": "Dashboard Manager"
+    "role": "LMS Student"
    },
    {
     "role": "Employee"
@@ -1936,365 +1775,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "QC IE - SME",
-  "role_profile": "QC IE - SME",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Manufacturing User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Stock Manager"
-   },
-   {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "Appraisal Manager"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Projects Manager"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "QC Maintenance  - End User",
-  "role_profile": "QC Maintenance  - End User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Asset Maintenance User"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Stockroom_PR_MC_lv1"
-   },
-   {
-    "role": "Maintenance - SMB"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "QC Maintenance  - Super User",
-  "role_profile": "QC Maintenance  - Super User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Manufacturing User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Asset Maintenance User"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "Stockroom_PR_MC_lv1"
-   },
-   {
-    "role": "Projects User"
-   },
-   {
-    "role": "Maintenance - SMB"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "QC Maintenance - SME",
-  "role_profile": "QC Maintenance - SME",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Manufacturing User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Stock Manager"
-   },
-   {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "Appraisal Manager"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Projects Manager"
-   },
-   {
-    "role": "Asset Maintenance User"
-   },
-   {
-    "role": "Maintenance - SMB"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "QC PPIC  - Super User",
-  "role_profile": "QC PPIC  - Super User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Manufacturing User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Dashboard Manager"
-   },
-   {
-    "role": "Stock Manager"
-   },
-   {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "QC Plant Manager",
-  "role_profile": "QC Plant Manager",
-  "roles": [
-   {
-    "role": "Plant Manager QC"
-   },
-   {
-    "role": "Asset Maintenance User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Manufacturing Manager"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "QC Production - End User",
-  "role_profile": "QC Production - End User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Manufacturing User"
-   },
-   {
-    "role": "Asset Maintenance User"
-   },
-   {
-    "role": "Dashboard Manager"
-   },
-   {
-    "role": "Production - SMB"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "QC Production - Super User",
-  "role_profile": "QC Production - Super User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Manufacturing Manager"
-   },
-   {
-    "role": "Asset Maintenance User"
-   },
-   {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "Dashboard Manager"
-   },
-   {
-    "role": "Production - SMB"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "QC QA - End User",
-  "role_profile": "QC QA - End User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Manufacturing User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "QC QA - SME",
-  "role_profile": "QC QA - SME",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Manufacturing User"
-   },
-   {
-    "role": "Stock Manager"
-   },
-   {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "Quality Manager"
-   },
-   {
-    "role": "Appraisal Manager"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "QC QA - Super User",
-  "role_profile": "QC QA - Super User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Manufacturing User"
-   },
-   {
-    "role": "Stock Manager"
-   },
-   {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "QC RM  - End User",
-  "role_profile": "QC RM  - End User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Manufacturing User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "QC RM  - Super User",
-  "role_profile": "QC RM  - Super User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Manufacturing User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "RMFS_PR_MC"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:54.082149",
   "name": "SCM",
   "role_profile": "SCM",
   "roles": [
@@ -2669,52 +2150,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Sales - Accounts Manager",
-  "role_profile": "Sales - Accounts Manager",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Customer"
-   },
-   {
-    "role": "Regional User"
-   },
-   {
-    "role": "Sales Manager"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Sales - Coordinator - End User",
-  "role_profile": "Sales - Coordinator - End User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Sales Coordinator"
-   },
-   {
-    "role": "Sales User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:54.152000",
   "name": "Sales - Coordinator - Super User",
   "role_profile": "Sales - Coordinator - Super User",
   "roles": [
@@ -2738,130 +2174,55 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Sales - Invoicing Clerk - End User",
-  "role_profile": "Sales - Invoicing Clerk - End User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Sales Coordinator"
-   },
-   {
-    "role": "Sales User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Sales - Regional Manager",
-  "role_profile": "Sales - Regional Manager",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "Customer"
-   },
-   {
-    "role": "Regional Manager"
-   },
-   {
-    "role": "Regional User"
-   },
-   {
-    "role": "Appraisal User"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Sales - SME",
-  "role_profile": "Sales - SME",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Sales Coordinator"
-   },
-   {
-    "role": "Sales User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "MRF Sales Manager"
-   },
-   {
-    "role": "Appraisal Manager"
-   },
-   {
-    "role": "Regional Manager"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Sales - Super User",
-  "role_profile": "Sales - Super User",
-  "roles": [
-   {
-    "role": "LMS Student"
-   },
-   {
-    "role": "Sales Coordinator"
-   },
-   {
-    "role": "Sales User"
-   },
-   {
-    "role": "Stock User"
-   },
-   {
-    "role": "MRF User"
-   },
-   {
-    "role": "Appraisal User"
-   },
-   {
-    "role": "Employee"
-   }
-  ]
- },
- {
-  "docstatus": 0,
-  "doctype": "Role Profile",
-  "name": "Sta Clara - Maintenance",
-  "role_profile": "Sta Clara - Maintenance",
+  "modified": "2026-06-22 13:55:33.086615",
+  "name": "Edsa - Motorpool",
+  "role_profile": "Edsa - Motorpool",
   "roles": []
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Sta Clara - Motorpool",
-  "role_profile": "Sta Clara - Motorpool",
+  "modified": "2026-06-22 13:59:30.809886",
+  "name": "Edsa - Machine Shop",
+  "role_profile": "Edsa - Machine Shop",
   "roles": []
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-06-22 13:59:43.542868",
+  "name": "MC - Motorpool",
+  "role_profile": "MC - Motorpool",
+  "roles": []
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-22 14:00:13.394434",
+  "name": "MC - Production",
+  "role_profile": "MC - Production",
+  "roles": []
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-22 14:00:26.301686",
+  "name": "Guyong - Production",
+  "role_profile": "Guyong - Production",
+  "roles": []
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-22 14:00:50.040852",
+  "name": "Guyong - Motorpool",
+  "role_profile": "Guyong - Motorpool",
+  "roles": []
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-22 14:01:11.977037",
   "name": "Sta Clara - Production",
   "role_profile": "Sta Clara - Production",
   "roles": []
@@ -2869,17 +2230,752 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "name": "Stockroom Encoder",
-  "role_profile": "Stockroom Encoder",
+  "modified": "2026-06-22 14:01:26.464383",
+  "name": "Sta Clara - Maintenance",
+  "role_profile": "Sta Clara - Maintenance",
+  "roles": []
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-22 14:02:25.320734",
+  "name": "Sta Clara - Motorpool",
+  "role_profile": "Sta Clara - Motorpool",
+  "roles": []
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-26 07:54:21.384099",
+  "name": "Account Manager",
+  "role_profile": "Account Manager",
   "roles": [
    {
-    "role": "Purchase User"
+    "role": "LMS Student"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Regional User"
+   },
+   {
+    "role": "Customer"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-26 07:54:22.374050",
+  "name": "CandC",
+  "role_profile": "CandC",
+  "roles": [
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Credit and Collection Section Head"
+   },
+   {
+    "role": "Projects User"
+   },
+   {
+    "role": "Sales Master Manager"
+   },
+   {
+    "role": "Sales User"
+   },
+   {
+    "role": "Sales Manager"
+   },
+   {
+    "role": "Item Manager"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-26 07:54:22.740231",
+  "name": "Delivery Driver",
+  "role_profile": "Delivery Driver",
+  "roles": [
+   {
+    "role": "Delivery User"
+   },
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Customer"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-26 07:54:22.782778",
+  "name": "Edsa Warehouse",
+  "role_profile": "Edsa Warehouse",
+  "roles": [
+   {
+    "role": "Fleet Manager"
+   },
+   {
+    "role": "WH_PR_EDSA_Lv1"
+   },
+   {
+    "role": "Stockroom_PR_EDSA_lv1"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-26 07:54:22.925080",
+  "name": "Employee",
+  "role_profile": "Employee",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-26 07:54:26.732307",
+  "name": "ExemptWorkflow",
+  "role_profile": "ITEM_Exempt Workflow",
+  "roles": [
+   {
+    "role": "Academics User"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Agriculture Manager"
+   },
+   {
+    "role": "Agriculture User"
+   },
+   {
+    "role": "Analytics"
+   },
+   {
+    "role": "Asset Management Head"
+   },
+   {
+    "role": "Asset Management User"
+   },
+   {
+    "role": "Auditor"
+   },
+   {
+    "role": "Batch Evaluator"
+   },
+   {
+    "role": "Blogger"
+   },
+   {
+    "role": "Course Creator"
+   },
+   {
+    "role": "Credit and Collection Section Head"
+   },
+   {
+    "role": "Customer"
+   },
+   {
+    "role": "Dashboard Manager"
+   },
+   {
+    "role": "Delivery Manager"
+   },
+   {
+    "role": "Delivery User"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Employee Self Service"
+   },
+   {
+    "role": "Expense Approver"
+   },
+   {
+    "role": "Fleet Manager"
+   },
+   {
+    "role": "Fulfillment User"
+   },
+   {
+    "role": "HR Manager"
+   },
+   {
+    "role": "HR User"
+   },
+   {
+    "role": "Inbox User"
+   },
+   {
+    "role": "Interviewer"
+   },
+   {
+    "role": "Item Manager"
+   },
+   {
+    "role": "Knowledge Base Contributor"
+   },
+   {
+    "role": "Knowledge Base Editor"
+   },
+   {
+    "role": "Leave Approver"
+   },
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Loan Manager"
+   },
+   {
+    "role": "Logistics Manager"
+   },
+   {
+    "role": "Machine Shop Foreman"
+   },
+   {
+    "role": "Machine Shop Supervisor"
+   },
+   {
+    "role": "Machine Shop User"
+   },
+   {
+    "role": "Maintenance Manager"
+   },
+   {
+    "role": "Maintenance User"
+   },
+   {
+    "role": "Manufacturing Manager"
+   },
+   {
+    "role": "Manufacturing User"
+   },
+   {
+    "role": "MIS Supervisor"
+   },
+   {
+    "role": "Moderator"
+   },
+   {
+    "role": "Motorpool_PR_Manager"
+   },
+   {
+    "role": "Motorpool_PR_MC_lv1"
+   },
+   {
+    "role": "Motorpool_PR_QC_lv1"
+   },
+   {
+    "role": "Network Admin"
+   },
+   {
+    "role": "Newsletter Manager"
+   },
+   {
+    "role": "Payroll Master"
+   },
+   {
+    "role": "Plant Manager"
+   },
+   {
+    "role": "Plant Manager MC"
+   },
+   {
+    "role": "Plant Manager QC"
+   },
+   {
+    "role": "Prepared Report User"
+   },
+   {
+    "role": "Projects Manager"
+   },
+   {
+    "role": "Provincial Stock User"
+   },
+   {
+    "role": "Purchase Manager"
+   },
+   {
+    "role": "Purchase Master Manager"
+   },
+   {
+    "role": "Quality Manager"
+   },
+   {
+    "role": "Report Manager"
+   },
+   {
+    "role": "RMFS_PR_QC_lv1"
+   },
+   {
+    "role": "RMFS_PR_QC_lv2"
+   },
+   {
+    "role": "Sales Coordinator"
+   },
+   {
+    "role": "Sales Manager"
+   },
+   {
+    "role": "Sales Master Manager"
+   },
+   {
+    "role": "Sales User"
+   },
+   {
+    "role": "Script Manager"
+   },
+   {
+    "role": "Stock Manager"
    },
    {
     "role": "Stock User"
    },
    {
+    "role": "Stockroom_PR_EDSA_lv1"
+   },
+   {
+    "role": "Stockroom_PR_MC_lv1"
+   },
+   {
     "role": "Stockroom_PR_QC_lv1"
+   },
+   {
+    "role": "Stockroom_PR_QC_lv2"
+   },
+   {
+    "role": "Supplier"
+   },
+   {
+    "role": "Support Team"
+   },
+   {
+    "role": "System Manager"
+   },
+   {
+    "role": "Translator"
+   },
+   {
+    "role": "Website Manager"
+   },
+   {
+    "role": "WH_PR_EDSA_Lv1"
+   },
+   {
+    "role": "Workspace Manager"
+   },
+   {
+    "role": "Projects User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-26 07:54:26.754177",
+  "name": "General Accounting Staff",
+  "role_profile": "General Accounting Staff",
+  "roles": [
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Expense Approver"
+   },
+   {
+    "role": "Payroll Master"
+   },
+   {
+    "role": "Purchase User"
+   },
+   {
+    "role": "Chat Support"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-26 07:54:26.928006",
+  "name": "HR Learning",
+  "role_profile": "HR Learning",
+  "roles": [
+   {
+    "role": "HR User"
+   },
+   {
+    "role": "Moderator"
+   },
+   {
+    "role": "Batch Evaluator"
+   },
+   {
+    "role": "Academics User"
+   },
+   {
+    "role": "Knowledge Base Contributor"
+   },
+   {
+    "role": "Knowledge Base Editor"
+   },
+   {
+    "role": "Course Creator"
+   },
+   {
+    "role": "LMS Student"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-26 07:54:27.348541",
+  "name": "HR Manager",
+  "role_profile": "HR Manager",
+  "roles": [
+   {
+    "role": "HR Manager"
+   },
+   {
+    "role": "HR User"
+   },
+   {
+    "role": "Expense Approver"
+   },
+   {
+    "role": "Leave Approver"
+   },
+   {
+    "role": "HR Supervisor"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-26 07:54:27.356679",
+  "name": "HR Supervisor",
+  "role_profile": "HR Supervisor",
+  "roles": [
+   {
+    "role": "Expense Approver"
+   },
+   {
+    "role": "HR Supervisor"
+   },
+   {
+    "role": "HR User"
+   },
+   {
+    "role": "Leave Approver"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-26 07:54:27.416888",
+  "name": "MC Toolroom",
+  "role_profile": "MC Toolroom",
+  "roles": [
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Stock Manager"
+   },
+   {
+    "role": "Stockroom_PR_MC_lv1"
+   },
+   {
+    "role": "Purchase User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-26 07:54:27.424328",
+  "name": "Motorpool",
+  "role_profile": "Motorpool",
+  "roles": [
+   {
+    "role": "Fleet Manager"
+   },
+   {
+    "role": "Motorpool_PR_QC_lv1"
+   },
+   {
+    "role": "Stock User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-26 07:54:27.432102",
+  "name": "PPIC",
+  "role_profile": "PPIC",
+  "roles": [
+   {
+    "role": "Dashboard Manager"
+   },
+   {
+    "role": "Item Manager"
+   },
+   {
+    "role": "Manufacturing User"
+   },
+   {
+    "role": "Manufacturing Manager"
+   },
+   {
+    "role": "Plant Manager"
+   },
+   {
+    "role": "Projects Manager"
+   },
+   {
+    "role": "Projects User"
+   },
+   {
+    "role": "Purchase User"
+   },
+   {
+    "role": "Stock Manager"
+   },
+   {
+    "role": "Stock User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-26 07:54:27.441246",
+  "name": "Procurement",
+  "role_profile": "Procurement",
+  "roles": [
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Stock Manager"
+   },
+   {
+    "role": "Purchase User"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.613086",
+  "name": "Engineering - SME",
+  "role_profile": "Engineering - SME",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Machine Shop User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Machine Shop Supervisor"
+   },
+   {
+    "role": "MRF ENGINEERING USER"
+   },
+   {
+    "role": "Asset Maintenance User"
+   },
+   {
+    "role": "Projects Manager"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 10:56:53.720732",
+  "name": "MC Maintenance - SME",
+  "role_profile": "MC Maintenance - SME",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Manufacturing User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Stock Manager"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "Appraisal Manager"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Projects Manager"
+   },
+   {
+    "role": "Maintenance - SMB"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-19 14:08:08.300750",
+  "name": "QC Maintenance - SME",
+  "role_profile": "QC Maintenance - SME",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Manufacturing User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Stock Manager"
+   },
+   {
+    "role": "Appraisal User"
+   },
+   {
+    "role": "Appraisal Manager"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Projects Manager"
+   },
+   {
+    "role": "Asset Maintenance User"
+   },
+   {
+    "role": "Maintenance - SMB"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-05-25 11:11:45.007946",
+  "name": "MC Plant Manager",
+  "role_profile": "MC Plant Manager",
+  "roles": [
+   {
+    "role": "Plant Manager QC"
+   },
+   {
+    "role": "Asset Maintenance User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-18 14:06:18.747457",
+  "name": "MC - Maintenance",
+  "role_profile": "MC - Maintenance",
+  "roles": []
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-22 14:00:40.015898",
+  "name": "Guyong - Maintenance",
+  "role_profile": "Guyong - Maintenance",
+  "roles": []
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-06-22 13:01:02.310186",
+  "name": "QC Plant Manager",
+  "role_profile": "QC Plant Manager",
+  "roles": [
+   {
+    "role": "Plant Manager QC"
+   },
+   {
+    "role": "Asset Maintenance User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Manufacturing Manager"
    }
   ]
  }
