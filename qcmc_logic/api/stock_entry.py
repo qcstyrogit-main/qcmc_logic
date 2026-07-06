@@ -28,6 +28,57 @@ def _get_work_order(work_order):
     return wo
 
 
+def _get_final_operation(work_order):
+    """Return the last Work Order operation by sequence and row order."""
+    operations = list(work_order.get("operations") or [])
+    if not operations:
+        return None
+
+    return max(
+        operations,
+        key=lambda row: (cint(row.get("sequence_id")), cint(row.get("idx"))),
+    )
+
+
+def _is_final_operation_job_card(job_card, work_order):
+    """Return whether a Job Card belongs to the Work Order's final operation."""
+    final_operation = _get_final_operation(work_order)
+    if not final_operation:
+        return True
+
+    return job_card.operation_id == final_operation.name
+
+
+def _validate_final_operation_job_card(job_card, work_order):
+    final_operation = _get_final_operation(work_order)
+    if not final_operation or job_card.operation_id == final_operation.name:
+        return
+
+    frappe.throw(
+        _(
+            "Manufacture Stock Entries are allowed only from the final operation "
+            "{0} (Sequence {1}) for Work Order {2}."
+        ).format(
+            frappe.bold(final_operation.operation),
+            frappe.bold(cint(final_operation.sequence_id)),
+            frappe.bold(work_order.name),
+        )
+    )
+
+
+def _get_latest_actual_time_log(job_card):
+    time_logs = list(job_card.get("time_logs") or [])
+    if not time_logs:
+        frappe.throw(
+            _(
+                "Final Job Card {0} must have an Actual Time row before creating "
+                "a Manufacture Stock Entry."
+            ).format(frappe.bold(job_card.name))
+        )
+
+    return max(time_logs, key=lambda row: cint(row.get("idx")))
+
+
 def _pending_qty(job_card, purpose):
     if purpose == "Manufacture":
         if not job_card.finished_good:
@@ -131,6 +182,7 @@ def get_job_cards_for_stock_entry(purpose, work_order=None, txt=None, start=0, p
     )
 
     rows = []
+    work_order_docs = {}
     for item in job_cards:
         if not item.work_order:
             continue
@@ -145,6 +197,14 @@ def get_job_cards_for_stock_entry(purpose, work_order=None, txt=None, start=0, p
             continue
 
         job_card = frappe.get_doc("Job Card", item.name)
+        if item.work_order not in work_order_docs:
+            work_order_docs[item.work_order] = frappe.get_doc("Work Order", item.work_order)
+
+        if purpose == "Manufacture" and not _is_final_operation_job_card(
+            job_card, work_order_docs[item.work_order]
+        ):
+            continue
+
         if purpose == "Manufacture" and job_card.finished_good and job_card.docstatus != 1:
             continue
 
@@ -220,6 +280,7 @@ def make_manufacture_stock_entry_from_job_card(job_card, qty=None):
 
     jc = frappe.get_doc("Job Card", job_card)
     wo = _get_work_order(jc.work_order)
+    _validate_final_operation_job_card(jc, wo)
 
     pending_qty = _pending_qty(jc, "Manufacture")
     if pending_qty <= 0:
@@ -264,6 +325,7 @@ def make_manufacture_stock_entry_from_job_card(job_card, qty=None):
 
     from erpnext.manufacturing.doctype.work_order.work_order import make_stock_entry
 
+    time_log = _get_latest_actual_time_log(jc)
     _sync_operation_for_incremental_output(jc, wo, qty)
     stock_entry = frappe.get_doc(
         make_stock_entry(
@@ -272,6 +334,8 @@ def make_manufacture_stock_entry_from_job_card(job_card, qty=None):
             qty=qty,
         )
     )
+    stock_entry.custom_final_job_card = jc.name
+    stock_entry.custom_job_card_time_log = time_log.name
     stock_entry.insert()
     return stock_entry.as_dict()
 

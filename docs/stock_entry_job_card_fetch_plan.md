@@ -42,6 +42,12 @@ Allowing multiple Job Cards in one Stock Entry would break this design and make
 the roll-up ambiguous. The dialog must therefore allow selecting exactly one
 Job Card.
 
+For Manufacture, the selected Job Card must belong to the Work Order's final
+operation. The final operation is determined by the highest Sequence ID, with
+the last Work Order operation row used as the tie-breaker. This preserves
+single-operation behavior while preventing an intermediate Job Card from
+receiving the Work Order's finished goods.
+
 ## User Flow
 
 1. User opens a new or draft Stock Entry.

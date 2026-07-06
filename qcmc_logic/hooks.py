@@ -53,6 +53,18 @@ doc_events = {
     "Work Order": {
         "validate": "qcmc_logic.customs.work_order_formulation.apply_roll_formulation_required_qty",
     },
+    "Stock Entry": {
+        "before_submit": "qcmc_logic.customs.stock_entry.validate_final_job_card_time_log",
+        "on_submit": "qcmc_logic.customs.stock_entry.update_final_job_card_time_log_on_submit",
+        "on_cancel": "qcmc_logic.customs.stock_entry.update_final_job_card_time_log_on_cancel",
+    },
+    "Job Card": {
+        "on_update": "qcmc_logic.customs.job_card.sync_non_final_operation_progress",
+        "on_submit": "qcmc_logic.customs.job_card.sync_non_final_operation_progress",
+        "on_cancel": "qcmc_logic.customs.job_card.sync_non_final_operation_progress",
+        "on_update_after_submit": "qcmc_logic.customs.job_card.sync_non_final_operation_progress",
+        "after_delete": "qcmc_logic.customs.job_card.sync_non_final_operation_progress",
+    },
     "Employee Attendance Schedule": {
         "before_insert": "qcmc_logic.customs.employee_attendance_schedule.apply_defaults",
         "validate": "qcmc_logic.customs.employee_attendance_schedule.apply_defaults",
@@ -78,6 +90,9 @@ doc_events = {
     "Machine Shop Job Request": {
         "autoname": "qcmc_logic.customs.machine_shop_job_request.autoname",
         "validate": "qcmc_logic.customs.machine_shop_job_request.validate",
+    },
+    "Job Card Downtime": {
+        "validate": "qcmc_logic.customs.job_card_downtime.validate",
     },
     "Job Card Downtime": {
         "validate": "qcmc_logic.customs.job_card_downtime.validate",

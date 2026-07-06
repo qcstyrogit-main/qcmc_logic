@@ -5,7 +5,10 @@ from hrms.payroll.doctype.salary_structure_assignment.salary_structure_assignmen
 	get_assigned_salary_structure,
 )
 
-from qcmc_logic.api.employee_attendance_schedule import _get_logged_in_employee_filters
+from qcmc_logic.api.employee_attendance_schedule import (
+	_apply_requested_employee_filter,
+	_get_logged_in_employee_filters,
+)
 
 
 PARENT_DOCTYPE = "Batch Other Adjustment Entry"
@@ -161,13 +164,13 @@ def _employee_filters(company, department=None, branch=None, employment_type=Non
 	filters = {"status": "Active"}
 	filters.update(_get_logged_in_employee_filters(company))
 	if department:
-		filters["department"] = department
+		_apply_requested_employee_filter(filters, "department", department)
 	if branch:
-		filters["branch"] = branch
+		_apply_requested_employee_filter(filters, "branch", branch)
 	if employment_type:
-		filters["employment_type"] = employment_type
+		_apply_requested_employee_filter(filters, "employment_type", employment_type)
 	if custom_payroll_type:
-		filters["custom_payroll_type"] = custom_payroll_type
+		_apply_requested_employee_filter(filters, "custom_payroll_type", custom_payroll_type)
 	return filters
 
 

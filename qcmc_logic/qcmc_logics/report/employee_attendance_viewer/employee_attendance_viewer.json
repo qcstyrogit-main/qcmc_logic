@@ -1,0 +1,23 @@
+{
+  "doctype": "Report",
+  "name": "Employee Attendance Viewer",
+  "report_name": "Employee Attendance Viewer",
+  "ref_doctype": "Employee Attendance Schedule",
+  "report_type": "Script Report",
+  "is_standard": "Yes",
+  "module": "QCMC Logics",
+  "roles": [
+    {
+      "role": "System Manager"
+    },
+    {
+      "role": "HR Manager"
+    },
+    {
+      "role": "HR User"
+    },
+    {
+      "role": "Employee"
+    }
+  ]
+}
