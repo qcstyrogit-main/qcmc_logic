@@ -12,10 +12,15 @@ frappe.ui.form.on("Employee Attendance Schedule", {
     async refresh(frm) {
         setup_employee_attendance_defaults(frm);
         setup_employee_attendance_colored_viewer(frm);
+    },
+
+    async payroll_frequency(frm) {
+        await handle_employee_attendance_payroll_frequency_change(frm);
     }
 });
 
 async function setup_employee_attendance_defaults(frm) {
+    ensure_employee_attendance_payroll_frequency(frm);
     setup_employee_attendance_payroll_options(frm);
     ensure_employee_attendance_payroll_type(frm);
     [100, 500, 1000].forEach((delay) => {
@@ -29,16 +34,35 @@ function setup_employee_attendance_colored_viewer(frm) {
     if (frm && frm.wrapper) {
         $(frm.wrapper).addClass("eas-viewer-compact");
     }
+    install_employee_attendance_period_reload_watch(frm);
+    install_employee_attendance_frequency_change_watch(frm);
     render_employee_attendance_period_toggle(frm);
     hide_employee_attendance_exception_dashboard();
     [0, 100, 500].forEach((delay) => {
         setTimeout(() => {
+            install_employee_attendance_period_reload_watch(frm);
+            install_employee_attendance_frequency_change_watch(frm);
             render_employee_attendance_period_toggle(frm);
             hide_employee_attendance_exception_dashboard();
             install_employee_attendance_table_picker(frm);
             install_employee_attendance_colored_renderer(frm);
             apply_employee_attendance_table_colors(frm);
         }, delay);
+    });
+}
+
+function install_employee_attendance_frequency_change_watch(frm) {
+    const field = frm && frm.fields_dict && frm.fields_dict.payroll_frequency;
+    if (!field || !field.$input || field.$input.data("eas-frequency-watch")) return;
+
+    field.$input.data("eas-frequency-watch", true);
+    field.$input.on("change.eas_frequency_watch", function() {
+        const value = $(this).val() || "Bimonthly";
+        if (frm.doc.payroll_frequency !== value) {
+            frm.doc.payroll_frequency = value;
+            frm.refresh_field("payroll_frequency");
+        }
+        handle_employee_attendance_payroll_frequency_change(frm);
     });
 }
 
@@ -79,7 +103,7 @@ function render_employee_attendance_period_toggle(frm) {
     const parts = [
         frm.doc.payroll_period ? "Pay: " + frm.doc.payroll_period : "",
         frm.doc.from_date && frm.doc.to_date ? frm.doc.from_date + " to " + frm.doc.to_date : "",
-        frm.doc.generated_on ? "Generated: " + frm.doc.generated_on : ""
+        frm.doc.selected_employee_name ? "Employee: " + frm.doc.selected_employee_name : ""
     ].filter(Boolean);
 
     $toggle.toggle(!!frm.doc.payroll_period);
@@ -162,6 +186,10 @@ function install_employee_attendance_table_picker(frm) {
 
             wrapper.find(".eas-employee-table-row").removeClass("is-selected");
             $(this).addClass("is-selected");
+            frm.__eas_last_selected_employee = employee;
+            frm.__eas_last_selected_employee_name = employeeName;
+            frm.__period_details_collapsed = true;
+            render_employee_attendance_period_toggle(frm);
 
             if (typeof load_employee_schedule === "function") {
                 load_employee_schedule(frm, employee, employeeName);
@@ -171,6 +199,48 @@ function install_employee_attendance_table_picker(frm) {
 
     window.render_employee_picker.__eas_table_picker = true;
     window.render_employee_picker(frm);
+}
+
+function install_employee_attendance_period_reload_watch(frm) {
+    const field = frm && frm.fields_dict && frm.fields_dict.payroll_period;
+    if (!field || !field.$input || field.$input.data("eas-selected-reload")) return;
+
+    field.$input.data("eas-selected-reload", true);
+    field.$input.on("change.eas_selected_reload", function() {
+        const employee = get_employee_attendance_selected_employee(frm);
+        const employeeName = frm.doc.selected_employee_name || frm.__eas_last_selected_employee_name || employee;
+        if (!employee) return;
+
+        frm.__eas_last_selected_employee = employee;
+        frm.__eas_last_selected_employee_name = employeeName;
+
+        const reloadKey = [employee, $(this).val() || frm.doc.payroll_period || ""].join("|");
+        frm.__eas_selected_period_reload_key = reloadKey;
+
+        [700, 1400].forEach((delay) => {
+            setTimeout(() => {
+                if (frm.__eas_selected_period_reload_key !== reloadKey) return;
+                if (!frm.doc.payroll_period || typeof load_employee_schedule !== "function") return;
+
+                frm.__eas_selected_period_reload_key = "";
+                frm.__show_employee_picker = false;
+                frm.__period_details_collapsed = true;
+                frm.set_value("selected_employee", employee);
+                frm.set_value("selected_employee_name", employeeName || employee);
+                render_employee_attendance_period_toggle(frm);
+                load_employee_schedule(frm, employee, employeeName || employee);
+            }, delay);
+        });
+    });
+}
+
+function get_employee_attendance_selected_employee(frm) {
+    const value = frm.doc.selected_employee || frm.__eas_last_selected_employee || "";
+    if (value) return String(value).split(" - ")[0].trim();
+
+    const label = frm.doc.selected_employee_name || "";
+    const match = String(label).match(/HR-EMP-\d+/);
+    return match ? match[0] : "";
 }
 
 function has_current_employee_attendance_directory(frm) {
@@ -192,6 +262,8 @@ function ensure_employee_attendance_table_picker_style() {
         '.eas-viewer-compact [data-fieldname="employees_section"] .section-head{margin-bottom:8px!important;}' +
         '.eas-viewer-compact [data-fieldname="attendance_section"] .section-head{display:none!important;}' +
         '.eas-employee-table-picker{max-width:520px;}' +
+        '.eas-employee-count{font-size:12px;color:#64748b;margin:0 0 6px;}' +
+        '.eas-employee-count strong{color:#0f172a;}' +
         '.eas-employee-selected-card{display:flex;align-items:center;gap:10px;max-width:520px;}' +
         '.eas-employee-selected-text{flex:1;min-width:0;padding:7px 10px;border:1px solid #e5e7eb;border-radius:8px;background:#f8fafc;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
         '.eas-employee-change{flex:0 0 auto;}' +
@@ -248,9 +320,14 @@ function render_employee_attendance_table(frm, wrapper, employees, keyword) {
     const emptyHtml = '<div class="eas-employee-table-empty">' +
         (text ? "No employee found." : "Loading employees...") +
     '</div>';
+    const totalCount = (employees || []).length;
+    const countText = text && rows.length !== totalCount
+        ? "Showing <strong>" + rows.length + "</strong> of <strong>" + totalCount + "</strong> employees"
+        : "Employees: <strong>" + totalCount + "</strong>";
 
     wrapper.html(
         '<div class="eas-employee-table-picker">' +
+            '<div class="eas-employee-count">' + countText + '</div>' +
             '<div class="eas-employee-table-wrap">' +
                 (rows.length ? '<table class="eas-employee-table">' +
                     '<thead><tr>' +
@@ -518,7 +595,7 @@ function ensure_employee_attendance_viewer_style() {
         '.eas-legend-leave{background:#e6e0ff;}' +
         '.eas-legend-holiday{background:#dff3e6;}' +
         '.eas-attendance-viewer{border:1px solid #e5e7eb;border-radius:8px;background:#fff;overflow:hidden;}' +
-        '.eas-attendance-scroll{overflow:auto;max-width:100%;}' +
+        '.eas-attendance-scroll{overflow:auto;max-width:100%;max-height:calc(100vh - 245px);}' +
         '.eas-attendance-table{width:100%;min-width:1500px;border-collapse:collapse;}' +
         '.eas-attendance-table th,.eas-attendance-table td{padding:9px 12px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top;white-space:nowrap;line-height:1.35;}' +
         '.eas-attendance-table th{position:sticky;top:0;background:#f8f9fb;font-weight:600;z-index:1;}' +
@@ -574,19 +651,40 @@ function format_employee_attendance_cell(row, fieldname) {
 }
 
 async function setup_employee_attendance_defaults_once(frm) {
+    await ensure_employee_attendance_payroll_frequency(frm);
     setup_employee_attendance_payroll_options(frm);
-
-    if (!frm.__employee_attendance_payroll_type_loaded) {
-        return;
-    }
-
-    if (!frm.doc.payroll_period) {
-        await frm.set_value("payroll_period", get_current_employee_attendance_payroll_period());
-    }
 
     if (!frm.doc.from_date || !frm.doc.to_date || !frm.doc.pay_day) {
         await set_employee_attendance_period_dates(frm, frm.doc.payroll_period);
     }
+}
+
+async function ensure_employee_attendance_payroll_frequency(frm) {
+    if (!frm.doc.payroll_frequency) {
+        await frm.set_value("payroll_frequency", "Bimonthly");
+    }
+}
+
+function get_employee_attendance_payroll_frequency(frm) {
+    return (frm.doc.payroll_frequency || "Bimonthly").trim();
+}
+
+function get_employee_attendance_payroll_type(frm) {
+    return get_employee_attendance_payroll_frequency(frm) === "Weekly" ? "Weekly" : "Monthly";
+}
+
+async function handle_employee_attendance_payroll_frequency_change(frm) {
+    setup_employee_attendance_payroll_options(frm);
+    if (frm.doc.payroll_period) {
+        await frm.set_value("payroll_period", "");
+    }
+    if (frm.doc.from_date) await frm.set_value("from_date", "");
+    if (frm.doc.to_date) await frm.set_value("to_date", "");
+    if (frm.doc.pay_day) await frm.set_value("pay_day", "");
+    if (typeof clear_generated_data === "function") {
+        clear_generated_data(frm);
+    }
+    render_employee_attendance_period_toggle(frm);
 }
 
 function get_current_employee_attendance_payroll_period() {
@@ -594,7 +692,7 @@ function get_current_employee_attendance_payroll_period() {
     const year = today.getFullYear();
     const month = today.getMonth();
     const day = today.getDate();
-    if (typeof cur_frm !== "undefined" && cur_frm && cur_frm.__employee_attendance_payroll_type === "Weekly") {
+    if (typeof cur_frm !== "undefined" && cur_frm && get_employee_attendance_payroll_frequency(cur_frm) === "Weekly") {
         const sunday = new Date(today);
         sunday.setDate(today.getDate() + ((7 - today.getDay()) % 7));
         return format_employee_attendance_payroll_date(sunday);
@@ -609,11 +707,11 @@ function setup_employee_attendance_payroll_options(frm) {
 
     const today = frappe.datetime.str_to_obj(frappe.datetime.get_today());
     const options = [];
-    const payrollType = frm.__employee_attendance_payroll_type || "";
+    const payrollType = get_employee_attendance_payroll_type(frm);
 
     for (let offset = -6; offset <= 6; offset++) {
         const base = new Date(today.getFullYear(), today.getMonth() + offset, 1);
-        if (payrollType !== "Weekly") {
+        if (payrollType === "Monthly") {
             options.push(format_employee_attendance_payroll_date(new Date(base.getFullYear(), base.getMonth(), 15)));
             options.push(format_employee_attendance_payroll_date(new Date(
                 base.getFullYear(),
@@ -621,17 +719,17 @@ function setup_employee_attendance_payroll_options(frm) {
                 Math.min(30, new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate())
             )));
         }
-        if (payrollType !== "Monthly") {
+        if (payrollType === "Weekly") {
             add_employee_attendance_weekly_payroll_options(options, base);
         }
     }
 
-    const current = frm.doc.payroll_period || get_current_employee_attendance_payroll_period();
-    if (!options.includes(current)) {
-        options.push(current);
+    const uniqueOptions = Array.from(new Set(options));
+    frm.set_df_property("payroll_period", "options", uniqueOptions.join("\n"));
+    if (frm.fields_dict.payroll_period) {
+        frm.fields_dict.payroll_period.df.options = uniqueOptions.join("\n");
+        frm.fields_dict.payroll_period.refresh();
     }
-
-    frm.set_df_property("payroll_period", "options", Array.from(new Set(options)).join("\n"));
 }
 
 function ensure_employee_attendance_payroll_type(frm) {
@@ -675,7 +773,7 @@ async function set_employee_attendance_period_dates(frm, payrollPeriod) {
     let fromDate;
     let toDate;
 
-    if (payDay.getDay() === 0 && payDay.getDate() !== 15 && payDay.getDate() !== 30) {
+    if (get_employee_attendance_payroll_frequency(frm) === "Weekly") {
         fromDate = new Date(payDay.getFullYear(), payDay.getMonth(), payDay.getDate() - 6);
         toDate = payDay;
     } else if (payDay.getDate() === 15) {

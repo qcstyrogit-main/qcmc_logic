@@ -190,6 +190,15 @@ def _get_current_user_payroll_type():
 	) or ""
 
 
+def _normalize_attendance_payroll_type(payroll_frequency=None):
+	value = (payroll_frequency or "").strip()
+	if value == "Bimonthly":
+		return "Monthly"
+	if value in ("Monthly", "Weekly"):
+		return value
+	return ""
+
+
 @frappe.whitelist()
 def get_current_user_payroll_type():
 	return _get_current_user_payroll_type()
@@ -198,7 +207,7 @@ def get_current_user_payroll_type():
 @frappe.whitelist()
 def get_payroll_period_dates(payroll_period, payroll_type=None):
 	pay_day = getdate(payroll_period)
-	payroll_type = payroll_type or _get_current_user_payroll_type()
+	payroll_type = _normalize_attendance_payroll_type(payroll_type) or _get_current_user_payroll_type()
 
 	if payroll_type == "Weekly" or (not payroll_type and pay_day.weekday() == 6 and pay_day.day not in (15, 30)):
 		from_date = add_days(pay_day, -6)
@@ -389,9 +398,15 @@ def _get_authorization_maps(attendance_names, employee_names, from_date, to_date
 	)
 
 
-def _resolve_period(from_date=None, to_date=None, cutoff_period=None, payroll_period=None):
+def _resolve_period(
+	from_date=None,
+	to_date=None,
+	cutoff_period=None,
+	payroll_period=None,
+	payroll_frequency=None,
+):
 	if payroll_period:
-		payroll_dates = get_payroll_period_dates(payroll_period)
+		payroll_dates = get_payroll_period_dates(payroll_period, payroll_frequency)
 		from_date = payroll_dates["from_date"]
 		to_date = payroll_dates["to_date"]
 	elif not from_date or not to_date:
@@ -418,18 +433,55 @@ def _get_employee_company(employee):
 	return company
 
 
+def _get_user_permission_values(allow, user=None):
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return []
+
+	return [
+		row.for_value
+		for row in frappe.get_all(
+			"User Permission",
+			filters={"user": user, "allow": allow},
+			fields=["for_value"],
+			limit_page_length=50000,
+		)
+		if row.for_value
+	]
+
+
+def _set_allowed_filter(filters, fieldname, allowed_values, fallback_value=None):
+	allowed_values = [value for value in (allowed_values or []) if value]
+	if allowed_values:
+		filters[fieldname] = ["in", allowed_values]
+	elif fallback_value:
+		filters[fieldname] = fallback_value
+
+
+def _apply_requested_employee_filter(filters, fieldname, value):
+	if not value:
+		return
+
+	existing = filters.get(fieldname)
+	if isinstance(existing, (list, tuple)) and existing and existing[0] == "in":
+		if value in (existing[1] or []):
+			filters[fieldname] = value
+		else:
+			filters["name"] = ["=", "__no_employee_access__"]
+		return
+
+	if existing and existing != value:
+		filters["name"] = ["=", "__no_employee_access__"]
+		return
+
+	filters[fieldname] = value
+
+
 def _get_logged_in_employee_filters(company=None):
 	if frappe.session.user == "Administrator":
 		return {"company": company} if company else {}
 
-	fields = [
-		"name",
-		"company",
-		"branch",
-		"department",
-		"employment_type",
-		"custom_payroll_type",
-	]
+	fields = ["name", "company", "branch", "department", "employment_type"]
 	user_employee = frappe.db.get_value(
 		"Employee",
 		{"user_id": frappe.session.user},
@@ -441,25 +493,22 @@ def _get_logged_in_employee_filters(company=None):
 		return {"name": ["=", "__no_employee_access__"]}
 
 	filters = {}
-	if company and user_employee.company and company != user_employee.company:
-		return {"name": ["=", "__no_employee_access__"]}
+	allowed_companies = _get_user_permission_values("Company")
+	allowed_branches = _get_user_permission_values("Branch")
+	allowed_departments = _get_user_permission_values("Department")
 
-	if user_employee.company:
-		filters["company"] = user_employee.company
-	elif company:
-		filters["company"] = company
+	_set_allowed_filter(filters, "company", allowed_companies, user_employee.company or company)
+	if company:
+		_apply_requested_employee_filter(filters, "company", company)
 
-	for fieldname in ("branch", "department"):
-		if user_employee.get(fieldname):
-			filters[fieldname] = user_employee.get(fieldname)
+	_set_allowed_filter(filters, "branch", allowed_branches, user_employee.branch)
+	if allowed_departments:
+		_set_allowed_filter(filters, "department", allowed_departments)
+	elif not allowed_branches:
+		_set_allowed_filter(filters, "department", [], user_employee.department)
 
 	if user_employee.employment_type in ("Regular", "Probationary"):
 		filters["employment_type"] = user_employee.employment_type
-	else:
-		return {"name": ["=", "__no_employee_access__"]}
-
-	if user_employee.custom_payroll_type in ("Monthly", "Weekly"):
-		filters["custom_payroll_type"] = user_employee.custom_payroll_type
 	else:
 		return {"name": ["=", "__no_employee_access__"]}
 
@@ -562,13 +611,25 @@ def copy_previous_period_shift_schedule(employee, from_date=None, to_date=None, 
 	}
 
 
-def _get_schedule_context(from_date=None, to_date=None, cutoff_period=None, company=None, payroll_period=None):
-	period = _resolve_period(from_date, to_date, cutoff_period, payroll_period)
+def _get_schedule_context(
+	from_date=None,
+	to_date=None,
+	cutoff_period=None,
+	company=None,
+	payroll_period=None,
+	payroll_frequency=None,
+):
+	period = _resolve_period(
+		from_date, to_date, cutoff_period, payroll_period, payroll_frequency
+	)
 	from_date = period["from_date"]
 	to_date = period["to_date"]
 
 	employee_filters = {"status": "Active"}
 	employee_filters.update(_get_logged_in_employee_filters(company))
+	payroll_type = _normalize_attendance_payroll_type(payroll_frequency)
+	if payroll_type:
+		employee_filters["custom_payroll_type"] = payroll_type
 
 	employees = frappe.get_all(
 		"Employee",
@@ -985,8 +1046,17 @@ def _summarize_exception_employees(context):
 
 
 @frappe.whitelist()
-def get_exception_dashboard(from_date=None, to_date=None, cutoff_period=None, company=None, payroll_period=None):
-	context = _get_schedule_context(from_date, to_date, cutoff_period, company, payroll_period)
+def get_exception_dashboard(
+	from_date=None,
+	to_date=None,
+	cutoff_period=None,
+	company=None,
+	payroll_period=None,
+	payroll_frequency=None,
+):
+	context = _get_schedule_context(
+		from_date, to_date, cutoff_period, company, payroll_period, payroll_frequency
+	)
 	employees_by_exception = _summarize_exception_employees(context)
 	return {
 		"from_date": context["from_date"],
@@ -999,8 +1069,18 @@ def get_exception_dashboard(from_date=None, to_date=None, cutoff_period=None, co
 
 
 @frappe.whitelist()
-def get_employee_schedule(employee, from_date=None, to_date=None, cutoff_period=None, company=None, payroll_period=None):
-	context = _get_schedule_context(from_date, to_date, cutoff_period, company, payroll_period)
+def get_employee_schedule(
+	employee,
+	from_date=None,
+	to_date=None,
+	cutoff_period=None,
+	company=None,
+	payroll_period=None,
+	payroll_frequency=None,
+):
+	context = _get_schedule_context(
+		from_date, to_date, cutoff_period, company, payroll_period, payroll_frequency
+	)
 	employee_data = context["employee_lookup"].get(employee)
 	if not employee_data:
 		frappe.throw("Employee not found for the selected filters.")
@@ -1015,8 +1095,17 @@ def get_employee_schedule(employee, from_date=None, to_date=None, cutoff_period=
 
 
 @frappe.whitelist()
-def get_employee_directory(from_date=None, to_date=None, cutoff_period=None, company=None, payroll_period=None):
-	context = _get_schedule_context(from_date, to_date, cutoff_period, company, payroll_period)
+def get_employee_directory(
+	from_date=None,
+	to_date=None,
+	cutoff_period=None,
+	company=None,
+	payroll_period=None,
+	payroll_frequency=None,
+):
+	context = _get_schedule_context(
+		from_date, to_date, cutoff_period, company, payroll_period, payroll_frequency
+	)
 	return {
 		"from_date": context["from_date"],
 		"to_date": context["to_date"],
@@ -1030,8 +1119,17 @@ def get_employee_directory(from_date=None, to_date=None, cutoff_period=None, com
 
 
 @frappe.whitelist()
-def generate(from_date=None, to_date=None, cutoff_period=None, company=None, payroll_period=None):
-	context = _get_schedule_context(from_date, to_date, cutoff_period, company, payroll_period)
+def generate(
+	from_date=None,
+	to_date=None,
+	cutoff_period=None,
+	company=None,
+	payroll_period=None,
+	payroll_frequency=None,
+):
+	context = _get_schedule_context(
+		from_date, to_date, cutoff_period, company, payroll_period, payroll_frequency
+	)
 	default_employee = next(
 		(employee["employee"] for employee in context["employee_summaries"] if employee["status"] == "Ready"),
 		context["employee_summaries"][0]["employee"] if context["employee_summaries"] else None,
