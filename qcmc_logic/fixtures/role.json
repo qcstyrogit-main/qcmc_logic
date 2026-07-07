@@ -186,6 +186,18 @@
   "doctype": "Role",
   "home_page": null,
   "is_custom": 1,
+  "name": "Head Office Sales User",
+  "restrict_to_domain": null,
+  "role_name": "Head Office Sales User",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
   "name": "ITEM_Exempt_Workflow",
   "restrict_to_domain": null,
   "role_name": "ITEM_Exempt_Workflow",
@@ -213,6 +225,18 @@
   "name": "Logistics Manager",
   "restrict_to_domain": null,
   "role_name": "Logistics Manager",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "name": "MC Prov Merch",
+  "restrict_to_domain": null,
+  "role_name": "MC Prov Merch",
   "two_factor_auth": 0
  },
  {
@@ -297,6 +321,54 @@
   "name": "Maintenance - MC",
   "restrict_to_domain": null,
   "role_name": "Maintenance - MC",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "name": "Monthly MC",
+  "restrict_to_domain": null,
+  "role_name": "Monthly MC",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "name": "Monthly QC",
+  "restrict_to_domain": null,
+  "role_name": "Monthly QC",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "name": "Monthly SMB",
+  "restrict_to_domain": null,
+  "role_name": "Monthly SMB",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "name": "Monthly VAL",
+  "restrict_to_domain": null,
+  "role_name": "Monthly VAL",
   "two_factor_auth": 0
  },
  {
@@ -561,6 +633,102 @@
   "name": "WH_PR_EDSA_Lv1",
   "restrict_to_domain": null,
   "role_name": "WH_PR_EDSA_Lv1",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "name": "Weekly MC EDSA",
+  "restrict_to_domain": null,
+  "role_name": "Weekly MC EDSA",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "name": "Weekly MC Prov",
+  "restrict_to_domain": null,
+  "role_name": "Weekly MC Prov",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "name": "Weekly MC Prov Agency",
+  "restrict_to_domain": null,
+  "role_name": "Weekly MC Prov Agency",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "name": "Weekly MC VAL",
+  "restrict_to_domain": null,
+  "role_name": "Weekly MC VAL",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "name": "Weekly QC Agency",
+  "restrict_to_domain": null,
+  "role_name": "Weekly QC Agency",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "name": "Weekly QC EDSA",
+  "restrict_to_domain": null,
+  "role_name": "Weekly QC EDSA",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "name": "Weekly QC Prov",
+  "restrict_to_domain": null,
+  "role_name": "Weekly QC Prov",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 1,
+  "name": "Weekly QC SMB",
+  "restrict_to_domain": null,
+  "role_name": "Weekly QC SMB",
   "two_factor_auth": 0
  }
 ]

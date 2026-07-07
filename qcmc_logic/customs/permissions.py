@@ -1,5 +1,6 @@
 import frappe
 
+from qcmc_logic.customs.payroll_role_scope import get_payroll_role_scope
 from qcmc_logic.utils import (
     get_user_allowed_warehouses,
     is_global_warehouse_access_enabled,
@@ -51,12 +52,68 @@ WAREHOUSE_TRANSACTION_DOCTYPES = {
 }
 
 
+SALARY_STRUCTURE_PAYROLL_FREQUENCY = {
+    "Monthly": "Bimonthly",
+    "Weekly": "Weekly",
+}
+
+
 def _warehouse_access_applies(user):
     return user != "Administrator" and is_global_warehouse_access_enabled()
 
 
 def _sql_list(values):
     return ", ".join(frappe.db.escape(value) for value in values)
+
+
+def _get_salary_structure_scope(user):
+    if user == "Administrator":
+        return None
+
+    scope = get_payroll_role_scope(user=user)
+    if not scope:
+        return None
+
+    companies = scope.get("companies") or []
+    payroll_frequencies = [
+        SALARY_STRUCTURE_PAYROLL_FREQUENCY.get(payroll_type)
+        for payroll_type in scope.get("payroll_types", [])
+    ]
+    payroll_frequencies = [value for value in payroll_frequencies if value]
+
+    if not companies or not payroll_frequencies:
+        return None
+
+    return {
+        "companies": companies,
+        "payroll_frequencies": payroll_frequencies,
+    }
+
+
+def salary_structure_permission_query(user):
+    scope = _get_salary_structure_scope(user)
+    if not scope:
+        return ""
+
+    table = "`tabSalary Structure`"
+    companies = _sql_list(scope["companies"])
+    payroll_frequencies = _sql_list(scope["payroll_frequencies"])
+    return (
+        f"{table}.`company` IN ({companies}) "
+        f"AND {table}.`payroll_frequency` IN ({payroll_frequencies})"
+    )
+
+
+def salary_structure_has_permission(doc, ptype=None, user=None):
+    user = user or frappe.session.user
+    scope = _get_salary_structure_scope(user)
+    if not scope:
+        return True
+
+    return (
+        doc.get("company") in scope["companies"]
+        and doc.get("payroll_frequency") in scope["payroll_frequencies"]
+    )
 
 
 def _doctype_has_field(doctype, fieldname):

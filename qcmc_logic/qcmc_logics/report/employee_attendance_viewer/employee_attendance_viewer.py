@@ -11,6 +11,7 @@ from qcmc_logic.api.employee_attendance_schedule import (
 def execute(filters=None):
 	filters = frappe._dict(filters or {})
 	frequency = filters.get("payroll_frequency") or "Bimonthly"
+	payroll_period_mode = filters.get("payroll_period_mode")
 	company = filters.get("company")
 	payroll_period = filters.get("payroll_period")
 	employee = _parse_employee_filter(filters.get("employee"))
@@ -18,18 +19,26 @@ def execute(filters=None):
 	if not company or not payroll_period:
 		return _get_employee_columns(), [], _("Select Company and Payroll Period."), None, []
 
-	period = get_payroll_period_dates(payroll_period, frequency)
+	period = get_payroll_period_dates(payroll_period, frequency, payroll_period_mode)
 	if employee:
-		return _get_schedule_result(employee, company, period["payroll_period"], frequency)
+		try:
+			return _get_schedule_result(
+				employee, company, period["payroll_period"], frequency, payroll_period_mode
+			)
+		except frappe.ValidationError:
+			return _get_employee_list_result(
+				company, period["payroll_period"], frequency, payroll_period_mode
+			)
 
-	return _get_employee_list_result(company, period["payroll_period"], frequency)
+	return _get_employee_list_result(company, period["payroll_period"], frequency, payroll_period_mode)
 
 
-def _get_employee_list_result(company, payroll_period, frequency):
+def _get_employee_list_result(company, payroll_period, frequency, payroll_period_mode=None):
 	result = get_employee_directory(
 		company=company,
 		payroll_period=payroll_period,
 		payroll_frequency=frequency,
+		payroll_period_mode=payroll_period_mode,
 	)
 	rows = []
 	for employee in result.get("employees", []):
@@ -71,12 +80,13 @@ def _parse_employee_filter(employee):
 	return str(employee).split(" - ", 1)[0].strip()
 
 
-def _get_schedule_result(employee, company, payroll_period, frequency):
+def _get_schedule_result(employee, company, payroll_period, frequency, payroll_period_mode=None):
 	result = get_employee_schedule(
 		employee=employee,
 		company=company,
 		payroll_period=payroll_period,
 		payroll_frequency=frequency,
+		payroll_period_mode=payroll_period_mode,
 	)
 	rows = result.get("rows", [])
 	report_summary = _get_schedule_summary(rows)
