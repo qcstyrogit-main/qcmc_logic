@@ -245,10 +245,14 @@ Transfer for Manufacture and Material Consumption for Manufacture selectors
 are unaffected.
 
 The generated Manufacture Stock Entry stores the selected final Job Card and
-its latest Actual Time row. On Stock Entry submission, the FG quantity is added
-to that row's Completed Qty and the Job Card total is recalculated. Cancelling
-the Stock Entry reverses the same quantity from the same row. A final Job Card
-must therefore have an Actual Time row before the Manufacture draft is created.
+its latest Actual Time row for traceability. The Actual Time row remains the
+source of completed output. On Stock Entry submission or cancellation, the Job
+Card's Manufactured Qty is recalculated from submitted Manufacture entries
+linked to that Job Card; the Actual Time Completed Qty is not changed by the
+Stock Entry.
+
+A final Job Card must therefore have an Actual Time row with Completed Qty
+before the Manufacture draft is created.
 
 ### Available Quantity
 
@@ -257,13 +261,15 @@ For a normal final-production Job Card:
 ```text
 Available output =
 minimum(
-    Job Card transferred quantity - Work Order produced quantity,
+    Job Card total completed quantity - Job Card manufactured quantity,
     Work Order quantity - Work Order produced quantity
 )
 ```
 
-When material transfer is skipped, availability is based on the Job Card and
-remaining Work Order quantities.
+Material transfer still controls whether enough material is available in WIP
+for Stock Entry submission and backflush, but it is not the selector's finished
+output quantity. The selector is based on completed production already recorded
+on the Job Card.
 
 The entered interval quantity must:
 
@@ -400,9 +406,160 @@ After changing Python hooks or server helpers:
 bench restart
 ```
 
+This includes changes to:
+
+- `qcmc_logic/api/stock_entry.py`
+- `qcmc_logic/customs/job_card.py`
+- `qcmc_logic/customs/stock_entry.py`
+- `qcmc_logic/customs/work_order_formulation.py`
+- `qcmc_logic/hooks.py`
+
+If a traceback says a Python function cannot be imported but the function
+exists in the file on disk, restart the bench first. A web worker may still be
+running an older loaded module.
+
 After JavaScript changes, users should perform a hard browser refresh.
 
-## 10. Verification Completed
+## 10. Live-Site Verification Checklist
+
+Use this section to verify the deployed behavior on the live site.
+
+### BOM and Roll Formulation
+
+1. Save a Roll BOM whose formulation rows total exactly 100%.
+2. Confirm the BOM marks itself as a Roll BOM.
+3. Confirm a Roll BOM with no formulation rows is rejected.
+4. Confirm a Roll BOM whose formulation total is not 100% is rejected.
+5. Confirm a non-Roll BOM is not affected by this validation.
+
+### Work Order Roll Materials
+
+1. Create or edit a Work Order from a Roll BOM.
+2. Confirm the Required Items grid allows formulation material rows to be
+   added, removed, and edited while the Work Order is draft.
+3. Use `Roll Formulation > Edit Formulation`.
+4. Split one BOM category into two matching Items.
+5. Apply the formulation and save the Work Order.
+6. Confirm the category total must match the BOM category percentage.
+7. Confirm replacement Items must have the same Item Group and Material Tag as
+   the BOM category.
+8. Confirm calculated Required Qty follows the Work Order quantity and Roll
+   trimming percentage.
+9. Confirm ordinary non-Roll Work Orders do not receive formulation updates.
+
+### Job Card Material Transfer
+
+1. Create a draft Stock Entry with purpose `Material Transfer for Manufacture`.
+2. Open `Get Items From > Job Card`.
+3. Select one Job Card.
+4. Confirm the Stock Entry fills Job Card, Work Order, BOM, From BOM, source
+   warehouse, WIP warehouse, and quantity.
+5. Confirm material rows are fetched from the selected Job Card.
+6. Submit the Stock Entry.
+7. Confirm Job Card transferred quantity and Job Card Item transferred
+   quantities are updated by ERPNext.
+
+### Job Card Material Consumption
+
+1. Create a draft Stock Entry with purpose `Material Consumption for Manufacture`.
+2. Fetch one Job Card from `Get Items From > Job Card`.
+3. Confirm the source warehouse is the Job Card or Work Order WIP warehouse.
+4. Confirm this entry consumes from WIP and does not receive finished goods.
+5. Verify whether Job Card Item consumed quantities update as expected for the
+   business process. This area depends on ERPNext's native roll-up behavior and
+   may need a separate customization if QCMC requires Material Consumption
+   entries to update Job Card Item consumed quantities.
+
+### Final Operation Manufacture
+
+1. For a Work Order with one operation, create or save the Job Card and confirm
+   it is treated as the final operation.
+2. For a Work Order with multiple operations, confirm only the highest Sequence
+   ID operation appears in the Manufacture Job Card selector.
+3. If two operations share the highest Sequence ID, confirm the later Work
+   Order operation row is treated as final.
+4. Confirm non-final Job Cards are hidden for Manufacture but remain selectable
+   for Material Transfer and Material Consumption.
+5. Confirm direct server attempts to create Manufacture from a non-final Job
+   Card are rejected.
+6. Confirm the final Job Card must have an Actual Time row before the
+   Manufacture draft can be created.
+7. Create a partial Manufacture entry from the final Job Card and submit it.
+8. Confirm Work Order produced quantity increases by the submitted FG quantity.
+9. Confirm the selected Actual Time row on the final Job Card is not changed by
+   the Manufacture entry.
+10. Confirm Job Card Manufactured Qty increases by the submitted FG quantity.
+11. Cancel the Manufacture entry and confirm Job Card Manufactured Qty is
+    recalculated downward while Actual Time Completed Qty remains unchanged.
+
+### Non-Final Operation Progress
+
+1. Add Actual Time Completed Qty to a non-final Job Card and save it.
+2. Confirm the matching Work Order Operation completed quantity updates while
+   the Job Card is still draft.
+3. Confirm the value is aggregated across all non-cancelled Job Cards for that
+   Work Order operation.
+4. Confirm Job Card process loss does not increase downstream availability.
+5. Cancel or delete a non-final Job Card and confirm the Work Order Operation
+   completed quantity recalculates.
+
+### Incremental Output and Draft Protection
+
+1. Transfer the shift's planned material quantity to WIP.
+2. Create a partial Manufacture Stock Entry from the final Job Card.
+3. Confirm the prompted quantity cannot exceed available output.
+4. Confirm available output reduces after the first Manufacture entry is
+   submitted.
+5. Confirm a second draft Manufacture Stock Entry cannot be created for the
+   same normal Work Order while another draft Manufacture entry exists.
+6. For semi-finished Job Cards, confirm draft protection is per Job Card.
+
+### Manufacture Item Rows and Actual Weight
+
+1. Open a Job Card or Work Order-based Manufacture Stock Entry.
+2. Confirm raw-material, scrap, and process-loss rows are read-only.
+3. Confirm row add, delete, duplicate, and reorder controls are unavailable.
+4. Confirm the finished-good row remains editable.
+5. Confirm `Actual Wt/Item` and `Wt UOM` are visible and mandatory only on the
+   finished-good row of a Manufacture Stock Entry.
+6. Confirm non-Manufacture Stock Entries do not show or require those fields.
+
+## 11. Troubleshooting Notes
+
+- `ImportError: cannot import name '_get_final_operation'` on Job Card save:
+  run `bench restart`. The source file has the helper, but a web worker may
+  still have an older module loaded.
+- No Job Cards shown in the Stock Entry selector: check the Stock Entry
+  purpose, Work Order filter, Job Card cancellation status, Work Order
+  submission status, Work Order stopped status, and remaining quantity.
+- Final Job Card does not appear for Manufacture: confirm it is the final
+  Work Order operation by Sequence ID and row order, and confirm it has
+  available output.
+- Manufacture draft creation says no Actual Time row exists: add at least one
+  Actual Time row to the final Job Card before creating the Manufacture entry.
+- Manufacture quantity is lower than expected: for normal final-production
+  Job Cards, availability is limited by completed-but-not-yet-manufactured
+  Job Card quantity and remaining Work Order quantity.
+- Material Consumption quantities do not roll up to Job Card Item consumed
+  quantity: verify ERPNext behavior for this purpose before treating it as a
+  supported QCMC roll-up.
+- Roll formulation preview changes after save: hard-refresh the browser to
+  clear old JavaScript and retest.
+
+## 12. Main Files Changed
+
+- `qcmc_logic/customs/bom_formulation.py`
+- `qcmc_logic/customs/work_order_formulation.py`
+- `qcmc_logic/customs/job_card.py`
+- `qcmc_logic/customs/stock_entry.py`
+- `qcmc_logic/api/stock_entry.py`
+- `qcmc_logic/public/js/work_order.js`
+- `qcmc_logic/public/js/stock_entry.js`
+- `qcmc_logic/hooks.py`
+- `qcmc_logic/fixtures/custom_field.json`
+- `qcmc_logic/patches/add_final_job_card_stock_entry_fields.py`
+
+## 13. Verification Completed
 
 The implementation has been checked with:
 
@@ -419,7 +576,7 @@ flow were:
 - Work Order: `MFG-WO-2026-00007`
 - Job Card: `PO-JOB00006`
 
-## 11. Recommended Manual Tests
+## 14. Short Smoke Test
 
 1. Transfer a full-shift material quantity from an open Job Card.
 2. Create a partial Manufacture entry for the first production interval.
@@ -428,7 +585,8 @@ flow were:
 5. Submit and confirm Work Order produced quantity increases.
 6. Create a second partial Manufacture entry from the same open Job Card.
 7. Confirm available output is reduced by the first submitted output.
-8. Confirm output cannot exceed transferred or remaining Work Order quantity.
+8. Confirm output cannot exceed completed-but-not-yet-manufactured Job Card
+   quantity or remaining Work Order quantity.
 9. Confirm non-Manufacture Stock Entries do not show the actual-weight fields.
 10. Confirm ordinary non-Roll Work Orders remain saved and receive no Roll
     formulation updates.

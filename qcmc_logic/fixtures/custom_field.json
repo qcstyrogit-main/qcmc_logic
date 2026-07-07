@@ -35100,7 +35100,7 @@
   "columns": 0,
   "default": null,
   "depends_on": null,
-  "description": "Actual Time row whose Completed Qty is synchronized with this entry.",
+  "description": "Actual Time row used as the completed-output source for this entry.",
   "docstatus": 0,
   "doctype": "Custom Field",
   "dt": "Stock Entry",
