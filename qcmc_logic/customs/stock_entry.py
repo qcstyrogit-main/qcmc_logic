@@ -76,6 +76,6 @@ def _get_final_job_card_manufactured_qty(job_card):
 			"parenttype": "Stock Entry",
 			"is_finished_item": 1,
 		},
-		fields=["sum(transfer_qty) as qty"],
+		fields=[{"SUM": "transfer_qty", "as": "qty"}],
 	)
 	return (rows and rows[0].qty) or 0
