@@ -85,22 +85,19 @@ def _pending_qty(job_card, purpose):
             work_order = frappe.db.get_value(
                 "Work Order",
                 job_card.work_order,
-                ["qty", "produced_qty", "skip_transfer"],
+                ["qty", "produced_qty"],
                 as_dict=True,
             )
             if not work_order:
                 return 0
 
             pending_work_order_qty = max(flt(work_order.qty) - flt(work_order.produced_qty), 0)
-
-            if work_order.skip_transfer:
-                return min(
-                    max(flt(job_card.for_quantity) - flt(work_order.produced_qty), 0),
-                    pending_work_order_qty,
-                )
-
+            pending_job_card_output = max(
+                flt(job_card.total_completed_qty) - flt(job_card.manufactured_qty),
+                0,
+            )
             return min(
-                max(flt(job_card.transferred_qty) - flt(work_order.produced_qty), 0),
+                pending_job_card_output,
                 pending_work_order_qty,
             )
 
@@ -171,6 +168,7 @@ def get_job_cards_for_stock_entry(purpose, work_order=None, txt=None, start=0, p
             "production_item",
             "finished_good",
             "for_quantity",
+            "total_completed_qty",
             "transferred_qty",
             "manufactured_qty",
             "status",

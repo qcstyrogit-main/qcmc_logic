@@ -27,7 +27,7 @@ def execute():
 					"read_only": 1,
 					"hidden": 1,
 					"description": (
-						"Actual Time row whose Completed Qty is synchronized with this entry."
+						"Actual Time row used as the completed-output source for this entry."
 					),
 				},
 			]

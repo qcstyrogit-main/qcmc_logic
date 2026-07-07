@@ -1,6 +1,5 @@
 import frappe
 from frappe import _
-from frappe.utils import flt
 
 
 def validate_final_job_card_time_log(doc, method=None):
@@ -31,11 +30,11 @@ def validate_final_job_card_time_log(doc, method=None):
 
 
 def update_final_job_card_time_log_on_submit(doc, method=None):
-	_update_final_job_card_time_log(doc, multiplier=1)
+	_update_final_job_card_manufactured_qty(doc)
 
 
 def update_final_job_card_time_log_on_cancel(doc, method=None):
-	_update_final_job_card_time_log(doc, multiplier=-1)
+	_update_final_job_card_manufactured_qty(doc)
 
 
 def _is_linked_manufacture_entry(doc):
@@ -46,52 +45,37 @@ def _is_linked_manufacture_entry(doc):
 	)
 
 
-def _update_final_job_card_time_log(doc, multiplier):
+def _update_final_job_card_manufactured_qty(doc):
 	if not _is_linked_manufacture_entry(doc):
 		return
 
-	completed_qty = flt(doc.fg_completed_qty) * multiplier
-	current_qty = flt(
-		frappe.db.get_value(
-			"Job Card Time Log",
-			doc.custom_job_card_time_log,
-			"completed_qty",
-		)
-	)
-	updated_qty = current_qty + completed_qty
-	if updated_qty < 0:
-		frappe.throw(
-			_(
-				"Cannot reverse {0} from Actual Time row {1}; its current Completed Qty is only {2}."
-			).format(
-				frappe.bold(abs(completed_qty)),
-				frappe.bold(doc.custom_job_card_time_log),
-				frappe.bold(current_qty),
-			)
-		)
-
-	frappe.db.set_value(
-		"Job Card Time Log",
-		doc.custom_job_card_time_log,
-		"completed_qty",
-		updated_qty,
-		update_modified=False,
-	)
-	_update_job_card_completed_qty(doc.custom_final_job_card)
+	job_card = frappe.get_doc("Job Card", doc.custom_final_job_card)
+	manufactured_qty = _get_final_job_card_manufactured_qty(job_card.name)
+	job_card.db_set("manufactured_qty", manufactured_qty)
+	job_card.manufactured_qty = manufactured_qty
+	job_card.set_status(update_status=True)
 
 
-def _update_job_card_completed_qty(job_card):
-	total_completed_qty = flt(
-		frappe.db.get_value(
-			"Job Card Time Log",
-			{"parent": job_card, "parenttype": "Job Card"},
-			"sum(completed_qty)",
-		)
+def _get_final_job_card_manufactured_qty(job_card):
+	stock_entries = frappe.get_all(
+		"Stock Entry",
+		filters={
+			"purpose": "Manufacture",
+			"docstatus": 1,
+			"custom_final_job_card": job_card,
+		},
+		pluck="name",
 	)
-	frappe.db.set_value(
-		"Job Card",
-		job_card,
-		"total_completed_qty",
-		total_completed_qty,
-		update_modified=False,
+	if not stock_entries:
+		return 0
+
+	rows = frappe.get_all(
+		"Stock Entry Detail",
+		filters={
+			"parent": ("in", stock_entries),
+			"parenttype": "Stock Entry",
+			"is_finished_item": 1,
+		},
+		fields=["sum(transfer_qty) as qty"],
 	)
+	return (rows and rows[0].qty) or 0

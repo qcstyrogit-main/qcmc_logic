@@ -8,6 +8,7 @@ from qcmc_logic.api.stock_entry import (
     _get_final_operation,
     _get_latest_actual_time_log,
     _is_final_operation_job_card,
+    _pending_qty,
     _validate_final_operation_job_card,
 )
 
@@ -103,3 +104,50 @@ class TestFinalOperationJobCard(TestCase):
         )
 
         self.assertEqual(_get_latest_actual_time_log(job_card).name, "TIME-3")
+
+
+class TestManufacturePendingQty(TestCase):
+    def test_manufacture_pending_qty_uses_completed_output(self):
+        job_card = _dict(
+            work_order="WO-TEST",
+            finished_good=None,
+            for_quantity=103000,
+            total_completed_qty=8800,
+            manufactured_qty=0,
+            transferred_qty=103000,
+        )
+
+        with patch("qcmc_logic.api.stock_entry.frappe") as frappe:
+            frappe.db.get_value.return_value = _dict(qty=203000, produced_qty=0)
+
+            self.assertEqual(_pending_qty(job_card, "Manufacture"), 8800)
+
+    def test_manufacture_pending_qty_subtracts_already_manufactured_output(self):
+        job_card = _dict(
+            work_order="WO-TEST",
+            finished_good=None,
+            for_quantity=103000,
+            total_completed_qty=8800,
+            manufactured_qty=3000,
+            transferred_qty=103000,
+        )
+
+        with patch("qcmc_logic.api.stock_entry.frappe") as frappe:
+            frappe.db.get_value.return_value = _dict(qty=203000, produced_qty=3000)
+
+            self.assertEqual(_pending_qty(job_card, "Manufacture"), 5800)
+
+    def test_manufacture_pending_qty_is_capped_by_work_order_remaining_qty(self):
+        job_card = _dict(
+            work_order="WO-TEST",
+            finished_good=None,
+            for_quantity=103000,
+            total_completed_qty=8800,
+            manufactured_qty=0,
+            transferred_qty=103000,
+        )
+
+        with patch("qcmc_logic.api.stock_entry.frappe") as frappe:
+            frappe.db.get_value.return_value = _dict(qty=203000, produced_qty=200000)
+
+            self.assertEqual(_pending_qty(job_card, "Manufacture"), 3000)

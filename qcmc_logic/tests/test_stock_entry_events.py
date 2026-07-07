@@ -19,43 +19,39 @@ def manufacture_entry(qty):
 
 
 class TestStockEntryJobCardTimeLog(TestCase):
-	def test_submit_adds_manufactured_qty_to_actual_time(self):
+	def test_submit_recalculates_job_card_manufactured_qty(self):
 		doc = manufacture_entry(25)
 
-		with (
-			patch("qcmc_logic.customs.stock_entry.frappe") as frappe,
-			patch("qcmc_logic.customs.stock_entry._update_job_card_completed_qty") as update_total,
-		):
-			frappe.db.get_value.return_value = 10
+		with patch("qcmc_logic.customs.stock_entry.frappe") as frappe:
+			job_card = frappe.get_doc.return_value
+			frappe.get_all.side_effect = [
+				["STE-1"],
+				[_dict(qty=25)],
+			]
 			update_final_job_card_time_log_on_submit(doc)
 
-		frappe.db.set_value.assert_called_once_with(
-			"Job Card Time Log",
-			"TIME-TEST",
-			"completed_qty",
-			35,
-			update_modified=False,
-		)
-		update_total.assert_called_once_with("JC-TEST")
+		frappe.get_doc.assert_called_once_with("Job Card", "JC-TEST")
+		job_card.db_set.assert_called_once_with("manufactured_qty", 25)
+		self.assertEqual(job_card.manufactured_qty, 25)
+		job_card.set_status.assert_called_once_with(update_status=True)
+		frappe.db.set_value.assert_not_called()
 
-	def test_cancel_reverses_manufactured_qty_from_actual_time(self):
+	def test_cancel_recalculates_job_card_manufactured_qty(self):
 		doc = manufacture_entry(25)
 
-		with (
-			patch("qcmc_logic.customs.stock_entry.frappe") as frappe,
-			patch("qcmc_logic.customs.stock_entry._update_job_card_completed_qty") as update_total,
-		):
-			frappe.db.get_value.return_value = 40
+		with patch("qcmc_logic.customs.stock_entry.frappe") as frappe:
+			job_card = frappe.get_doc.return_value
+			frappe.get_all.side_effect = [
+				["STE-1"],
+				[_dict(qty=10)],
+			]
 			update_final_job_card_time_log_on_cancel(doc)
 
-		frappe.db.set_value.assert_called_once_with(
-			"Job Card Time Log",
-			"TIME-TEST",
-			"completed_qty",
-			15,
-			update_modified=False,
-		)
-		update_total.assert_called_once_with("JC-TEST")
+		frappe.get_doc.assert_called_once_with("Job Card", "JC-TEST")
+		job_card.db_set.assert_called_once_with("manufactured_qty", 10)
+		self.assertEqual(job_card.manufactured_qty, 10)
+		job_card.set_status.assert_called_once_with(update_status=True)
+		frappe.db.set_value.assert_not_called()
 
 	def test_non_manufacture_entry_is_ignored(self):
 		doc = manufacture_entry(25)
