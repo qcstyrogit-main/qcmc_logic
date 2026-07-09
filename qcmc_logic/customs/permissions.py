@@ -1,6 +1,11 @@
 import frappe
 
-from qcmc_logic.customs.payroll_role_scope import get_payroll_role_scope
+from qcmc_logic.customs.payroll_role_scope import (
+	employee_matches_payroll_role_scope,
+	get_payroll_role_rules,
+	get_payroll_role_scope,
+	get_payroll_type_from_salary_structure,
+)
 from qcmc_logic.utils import (
     get_user_allowed_warehouses,
     is_global_warehouse_access_enabled,
@@ -113,6 +118,92 @@ def salary_structure_has_permission(doc, ptype=None, user=None):
     return (
         doc.get("company") in scope["companies"]
         and doc.get("payroll_frequency") in scope["payroll_frequencies"]
+    )
+
+
+def salary_structure_assignment_permission_query(user):
+    if user == "Administrator":
+        return ""
+
+    rules = get_payroll_role_rules(user=user)
+    if not rules:
+        return ""
+
+    conditions = []
+    for rule in rules:
+        employee_conditions = [
+            f"employee.`company` = {frappe.db.escape(rule.get('company'))}",
+            f"employee.`custom_payroll_type` = {frappe.db.escape(rule.get('payroll_type'))}",
+        ]
+
+        if rule.get("branches"):
+            employee_conditions.append(f"employee.`branch` IN ({_sql_list(rule.get('branches'))})")
+
+        if rule.get("employment_types"):
+            employee_conditions.append(
+                f"employee.`employment_type` IN ({_sql_list(rule.get('employment_types'))})"
+            )
+
+        payroll_frequency = SALARY_STRUCTURE_PAYROLL_FREQUENCY.get(rule.get("payroll_type"))
+        salary_structure_conditions = [
+            "`tabSalary Structure`.`name` = `tabSalary Structure Assignment`.`salary_structure`",
+        ]
+        if payroll_frequency:
+            salary_structure_conditions.append(
+                f"`tabSalary Structure`.`payroll_frequency` = {frappe.db.escape(payroll_frequency)}"
+            )
+
+        conditions.append(
+            "("
+            "EXISTS ("
+            "SELECT 1 FROM `tabEmployee` employee "
+            "WHERE employee.`name` = `tabSalary Structure Assignment`.`employee` "
+            f"AND {' AND '.join(employee_conditions)}"
+            ") "
+            "AND EXISTS ("
+            "SELECT 1 FROM `tabSalary Structure` "
+            f"WHERE {' AND '.join(salary_structure_conditions)}"
+            ")"
+            ")"
+        )
+
+    return "(" + " OR ".join(conditions) + ")"
+
+
+def salary_structure_assignment_has_permission(doc, ptype=None, user=None):
+    user = user or frappe.session.user
+    if user == "Administrator":
+        return True
+
+    all_rules = get_payroll_role_rules(user=user)
+    if not all_rules:
+        return True
+
+    payroll_type = get_payroll_type_from_salary_structure(doc.get("salary_structure"))
+    rules = [
+        rule for rule in all_rules
+        if not payroll_type or rule.get("payroll_type") == payroll_type
+    ]
+    if not rules:
+        return False
+
+    employee = _get_salary_assignment_employee(doc)
+    if not employee:
+        return True
+
+    return employee_matches_payroll_role_scope(employee, rules)
+
+
+def _get_salary_assignment_employee(doc):
+    employee_id = doc.get("employee")
+    if not employee_id:
+        return None
+
+    return frappe.db.get_value(
+        "Employee",
+        employee_id,
+        ["name", "company", "branch", "employment_type", "custom_payroll_type"],
+        as_dict=True,
     )
 
 

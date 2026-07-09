@@ -1,8 +1,12 @@
 import frappe
 from frappe import _
+from frappe.utils import get_link_to_form
 
 from hrms.payroll.doctype.bulk_salary_structure_assignment.bulk_salary_structure_assignment import (
 	BulkSalaryStructureAssignment,
+)
+from hrms.payroll.doctype.salary_structure.salary_structure import (
+	create_salary_structure_assignment,
 )
 
 from qcmc_logic.customs.payroll_role_scope import (
@@ -16,6 +20,7 @@ class CustomBulkSalaryStructureAssignment(BulkSalaryStructureAssignment):
 	@frappe.whitelist()
 	def get_employees(self, advanced_filters: list) -> list:
 		employees = super().get_employees(advanced_filters)
+		self._set_declared_income_default(employees)
 
 		rules = self._get_payroll_role_rules()
 
@@ -43,6 +48,11 @@ class CustomBulkSalaryStructureAssignment(BulkSalaryStructureAssignment):
 				rules,
 			)
 		]
+
+	def _set_declared_income_default(self, employees):
+		for row in employees or []:
+			if getattr(row, "custom_declared_income", None) is None:
+				row.custom_declared_income = getattr(row, "base", 0) or 0
 
 	@frappe.whitelist()
 	def bulk_assign_structure(self, employees: list) -> None:
@@ -74,6 +84,67 @@ class CustomBulkSalaryStructureAssignment(BulkSalaryStructureAssignment):
 				)
 
 		return super().bulk_assign_structure(employees)
+
+	def _bulk_assign_structure(self, employees: list) -> None:
+		success, failure = [], []
+		count = 0
+		savepoint = "before_salary_assignment"
+
+		for d in employees:
+			try:
+				frappe.db.savepoint(savepoint)
+				assignment = create_salary_structure_assignment(
+					employee=d["employee"],
+					salary_structure=self.salary_structure,
+					company=self.company,
+					currency=self.currency,
+					payroll_payable_account=self.payroll_payable_account,
+					from_date=self.from_date,
+					base=d["base"],
+					variable=d["variable"],
+					income_tax_slab=self.income_tax_slab,
+				)
+				frappe.db.set_value(
+					"Salary Structure Assignment",
+					assignment,
+					"custom_declared_income",
+					self._get_declared_income(d),
+					update_modified=False,
+				)
+			except Exception:
+				frappe.db.rollback(save_point=savepoint)
+				frappe.log_error(
+					f"Bulk Assignment - Salary Structure Assignment failed for employee {d['employee']}.",
+					reference_doctype="Salary Structure Assignment",
+				)
+				failure.append(d["employee"])
+			else:
+				success.append(
+					{
+						"doc": get_link_to_form("Salary Structure Assignment", assignment),
+						"employee": d["employee"],
+					}
+				)
+
+			count += 1
+			frappe.publish_progress(count * 100 / len(employees), title=_("Assigning Structure..."))
+
+		frappe.publish_realtime(
+			"completed_bulk_salary_structure_assignment",
+			message={"success": success, "failure": failure},
+			doctype="Bulk Salary Structure Assignment",
+			after_commit=True,
+		)
+
+	def _get_declared_income(self, row):
+		if "custom_declared_income" not in row:
+			return row.get("base") or 0
+
+		declared_income = row.get("custom_declared_income")
+		if declared_income in (None, ""):
+			return row.get("base") or 0
+
+		return declared_income
 
 	def _get_payroll_role_rules(self):
 		if frappe.session.user == "Administrator":

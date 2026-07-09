@@ -8,16 +8,26 @@ frappe.ui.form.on("Bulk Salary Structure Assignment", {
 	setup(frm) {
 		install_bulk_salary_structure_assignment_doctype_guard();
 		install_bulk_salary_structure_assignment_column_patch(frm);
+		install_bulk_salary_declared_income_patch(frm);
 		apply_bulk_salary_role_scope(frm);
 	},
 	refresh(frm) {
 		install_bulk_salary_structure_assignment_doctype_guard();
 		install_bulk_salary_structure_assignment_column_patch(frm);
+		install_bulk_salary_declared_income_patch(frm);
 		apply_bulk_salary_role_scope(frm);
+		setTimeout(() => ensure_declared_income_update_button(frm), 300);
+		setTimeout(() => install_bulk_salary_assign_button_patch(frm), 300);
 	},
 	async salary_structure(frm) {
 		await sync_bulk_salary_company_from_structure(frm);
 		apply_bulk_salary_role_scope(frm);
+	},
+	handle_row_check(frm) {
+		setTimeout(() => sync_declared_income_update_button(frm), 0);
+	},
+	render_update_button(frm) {
+		setTimeout(() => sync_declared_income_update_button(frm), 0);
 	},
 });
 
@@ -70,7 +80,20 @@ function install_bulk_salary_structure_assignment_column_patch(frm) {
 
 	frm.events.get_employees_datatable_columns = function() {
 		const columns = original.apply(this, arguments);
-		return (columns || []).map((column) => {
+		const patched_columns = (columns || []).slice();
+		const has_declared_income = patched_columns.some((column) => (column.id || column.name) === "custom_declared_income");
+		if (!has_declared_income) {
+			const base_index = patched_columns.findIndex((column) => (column.id || column.name) === "base");
+			patched_columns.splice(base_index >= 0 ? base_index + 1 : patched_columns.length, 0, {
+				name: "custom_declared_income",
+				id: "custom_declared_income",
+				content: __("Declared Income"),
+				dropdown: false,
+				align: "left",
+			});
+		}
+
+		return patched_columns.map((column) => {
 			const fieldname = column.id || column.name;
 			return {
 				...column,
@@ -86,8 +109,232 @@ function install_bulk_salary_structure_assignment_column_patch(frm) {
 }
 
 function get_bulk_salary_column_fieldtype(fieldname) {
-	if (["base", "variable"].includes(fieldname)) return "Currency";
+	if (["base", "variable", "custom_declared_income"].includes(fieldname)) return "Currency";
 	return "Data";
+}
+
+function install_bulk_salary_declared_income_patch(frm) {
+	if (frm.__qcmc_bulk_salary_declared_income_patched) return;
+	if (!frm.events.get_employees_datatable_columns) {
+		setTimeout(() => install_bulk_salary_declared_income_patch(frm), 100);
+		return;
+	}
+
+	frm.__qcmc_bulk_salary_declared_income_patched = true;
+
+	frm.events.render_employees_datatable = function(frm, employees) {
+		frm.checked_rows_indexes = [];
+
+		const columns = frm.events.get_employees_datatable_columns();
+		const no_data_message = __(
+			frm.doc.from_date
+				? "There are no employees without a Salary Structure Assignment on this date based on the given filters."
+				: "Please select From Date.",
+		);
+		const get_editor = (colIndex, rowIndex, value, parent, column) => {
+			if (!["base", "variable", "custom_declared_income"].includes(column.name)) return;
+			const $input = document.createElement("input");
+			$input.className = "dt-input h-100";
+			$input.type = "number";
+			$input.min = 0;
+			parent.appendChild($input);
+			return {
+				initValue(value) {
+					$input.focus();
+					$input.value = value;
+				},
+				setValue(value) {
+					$input.value = value;
+				},
+				getValue() {
+					return Number($input.value);
+				},
+			};
+		};
+		const events = {
+			onCheckRow() {
+				frm.trigger("handle_row_check");
+			},
+		};
+
+		hrms.render_employees_datatable(
+			frm,
+			columns,
+			employees,
+			no_data_message,
+			get_editor,
+			events,
+		);
+	};
+
+	frm.events.render_update_button = function(frm) {
+		[
+			{ label: "Base", fieldname: "base" },
+			{ label: "Declared Income", fieldname: "custom_declared_income" },
+			{ label: "Variable", fieldname: "variable" },
+		].forEach((field) =>
+			frm.add_custom_button(
+				__(field.label),
+				function() {
+					const dialog = new frappe.ui.Dialog({
+						title: __("Set {0} for selected employees", [__(field.label)]),
+						fields: [
+							{
+								label: __(field.label),
+								fieldname: field.fieldname,
+								fieldtype: "Currency",
+							},
+						],
+						primary_action_label: __("Update"),
+						primary_action(values) {
+							const column = frm.employees_datatable.datamanager.columns.find(
+								(col) => col.id === field.fieldname,
+							);
+							if (!column) return;
+
+							frm.checked_rows_indexes.forEach((row_idx) => {
+								frm.employees_datatable.cellmanager.updateCell(
+									column.colIndex,
+									row_idx,
+									values[field.fieldname],
+									true,
+								);
+							});
+							dialog.hide();
+						},
+					});
+					dialog.show();
+				},
+				__("Update"),
+			),
+		);
+		frm.update_button_rendered = true;
+	};
+
+	frm.events.handle_row_check = function(frm) {
+		frm.checked_rows_indexes = frm.employees_datatable.rowmanager.getCheckedRows();
+		const labels = ["Base", "Declared Income", "Variable"];
+		if (!frm.checked_rows_indexes.length && frm.update_button_rendered) {
+			labels.forEach((label) => frm.remove_custom_button(__(label), __("Update")));
+			frm.__qcmc_declared_income_button_added = false;
+			frm.update_button_rendered = false;
+		} else if (frm.checked_rows_indexes.length && !frm.update_button_rendered) {
+			frm.trigger("render_update_button");
+		} else if (frm.checked_rows_indexes.length) {
+			ensure_declared_income_update_button(frm);
+		}
+	};
+
+	frm.events.assign_structure = function(frm) {
+		return qcmc_bulk_salary_assign_structure(frm);
+	};
+}
+
+function install_bulk_salary_assign_button_patch(frm) {
+	if (!frm.page || !frm.employees_datatable) return;
+
+	frm.page.set_primary_action(__("Assign Structure"), () => {
+		qcmc_bulk_salary_assign_structure(frm);
+	});
+}
+
+function qcmc_bulk_salary_assign_structure(frm) {
+	const checked_rows_content = get_selected_bulk_salary_rows(frm);
+	const employees_with_base_zero = checked_rows_content
+		.filter((row) => !Number(row.base))
+		.map((row) => `<b>${row.employee}</b>`);
+
+	hrms.validate_mandatory_fields(frm, checked_rows_content);
+	if (employees_with_base_zero.length) {
+		return frm.events.validate_base_zero(
+			frm,
+			employees_with_base_zero,
+			checked_rows_content,
+		);
+	}
+
+	return frm.events.show_confirm_dialog(frm, checked_rows_content);
+}
+
+function get_selected_bulk_salary_rows(frm) {
+	const rows = frm.employees_datatable.getRows();
+	const checked_rows = frm.employees_datatable.rowmanager.getCheckedRows();
+
+	return checked_rows.map((idx) => {
+		const row_content = {};
+		rows[idx].forEach((cell) => {
+			const fieldname = get_bulk_salary_cell_fieldname(cell);
+			if (["employee", "base", "custom_declared_income", "variable"].includes(fieldname)) {
+				row_content[fieldname] = cell.content;
+			}
+		});
+		if (row_content.custom_declared_income === undefined) {
+			row_content.custom_declared_income = row_content.base || 0;
+		}
+		return row_content;
+	});
+}
+
+function get_bulk_salary_cell_fieldname(cell) {
+	const column = cell.column || {};
+	const value = column.id || column.name || column.content || "";
+	const normalized = String(value).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+	if (normalized === "declared_income") return "custom_declared_income";
+	return normalized;
+}
+
+function sync_declared_income_update_button(frm) {
+	if (!frm.employees_datatable) return;
+	frm.checked_rows_indexes = frm.employees_datatable.rowmanager.getCheckedRows();
+
+	if (!frm.checked_rows_indexes.length) {
+		frm.remove_custom_button(__("Declared Income"), __("Update"));
+		frm.__qcmc_declared_income_button_added = false;
+		return;
+	}
+
+	ensure_declared_income_update_button(frm);
+}
+
+function ensure_declared_income_update_button(frm) {
+	if (!frm.employees_datatable || !frm.checked_rows_indexes || !frm.checked_rows_indexes.length) return;
+	if (frm.__qcmc_declared_income_button_added) return;
+
+	frm.__qcmc_declared_income_button_added = true;
+	frm.add_custom_button(
+		__("Declared Income"),
+		function() {
+			const dialog = new frappe.ui.Dialog({
+				title: __("Set Declared Income for selected employees"),
+				fields: [
+					{
+						label: __("Declared Income"),
+						fieldname: "custom_declared_income",
+						fieldtype: "Currency",
+					},
+				],
+				primary_action_label: __("Update"),
+				primary_action(values) {
+					const column = frm.employees_datatable.datamanager.columns.find(
+						(col) => col.id === "custom_declared_income",
+					);
+					if (!column) return;
+
+					frm.checked_rows_indexes.forEach((row_idx) => {
+						frm.employees_datatable.cellmanager.updateCell(
+							column.colIndex,
+							row_idx,
+							values.custom_declared_income,
+							true,
+						);
+					});
+					dialog.hide();
+				},
+			});
+			dialog.show();
+		},
+		__("Update"),
+	);
 }
 
 function is_bulk_salary_structure_assignment_route() {

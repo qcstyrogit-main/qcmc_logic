@@ -1,96 +1,187 @@
 frappe.ui.form.on("Payroll Entry", {
+	setup(frm) {
+		apply_payroll_entry_role_scope(frm);
+	},
 	refresh(frm) {
-		add_batch_overtime_entry_button(frm);
+		apply_payroll_entry_role_scope(frm);
+		ensure_dirty_payroll_entry_save(frm);
 		add_batch_other_adjustment_entry_button(frm);
 		add_employer_contribution_journal_entry_button(frm);
-		move_salary_slips_action_to_create_menu(frm);
+	},
+	company(frm) {
+		apply_payroll_entry_role_scope(frm);
+	},
+	payroll_frequency(frm) {
+		apply_payroll_entry_role_scope(frm);
+	},
+	overtime_step(frm) {
+		ensure_dirty_payroll_entry_save(frm);
 	}
 });
 
-function move_salary_slips_action_to_create_menu(frm) {
-	if (!frm.doc.name || frm.is_new()) return;
+function ensure_dirty_payroll_entry_save(frm) {
+	if (frm.doc.docstatus !== 0 || frm.is_new()) return;
 
-	setTimeout(function() {
-		const label = __("Create Salary Slips");
-		const can_create_salary_slips =
-			(frm.doc.employees || []).length &&
-			!frappe.model.has_workflow(frm.doctype) &&
-			!cint(frm.doc.salary_slips_created) &&
-			frm.doc.docstatus === 0 &&
-			!["Create", "Submit"].includes(frm.doc.overtime_step);
-
-		const can_retry_salary_slips =
-			frm.doc.docstatus === 1 &&
-			!cint(frm.doc.salary_slips_created) &&
-			frm.doc.status === "Failed";
-
-		if (!can_create_salary_slips && !can_retry_salary_slips) return;
-
-		frm.page.clear_primary_action();
-		frm.remove_custom_button(label);
-		frm.remove_custom_button(label, __("Create"));
-		hide_page_button(frm, label);
-
-		frm.add_custom_button(label, function() {
-			if (can_create_salary_slips) {
-				frm.save("Submit").then(function() {
-					frm.page.clear_primary_action();
-					frm.refresh();
-				});
-				return;
-			}
-
-			frm.trigger("create_salary_slip");
-		}, __("Create"));
-	}, 200);
-}
-
-function hide_page_button(frm, label) {
-	const normalized_label = strip_button_text(label);
-	$(frm.page.wrapper).find("button").each(function() {
-		const $button = $(this);
-		if ($button.closest(".dropdown-menu").length) return;
-		if (strip_button_text($button.text()) === normalized_label) {
-			$button.addClass("hidden").hide();
-		}
+	[100, 350, 800].forEach(function(delay) {
+		setTimeout(function() {
+			show_dirty_payroll_entry_save(frm);
+		}, delay);
 	});
 }
 
-function strip_button_text(value) {
-	return String(value || "").replace(/\s+/g, " ").trim();
-}
+function show_dirty_payroll_entry_save(frm) {
+		if (!frm.is_dirty()) return;
 
-function add_batch_overtime_entry_button(frm) {
-	if (!frm.doc.name || frm.is_new()) return;
-
-	frm.add_custom_button(__("Batch Overtime Entry"), function() {
-		open_batch_overtime_entry(frm);
-	}, __("Create"));
-}
-
-function open_batch_overtime_entry(frm) {
-	frappe.db.get_list("Batch Overtime Entry", {
-		filters: { payroll_entry: frm.doc.name, docstatus: ["!=", 2] },
-		fields: ["name"],
-		limit: 1
-	}).then(function(rows) {
-		if (rows && rows.length) {
-			frappe.set_route("Form", "Batch Overtime Entry", rows[0].name);
-			return;
-		}
-
-		frappe.model.with_doctype("Batch Overtime Entry", function() {
-			const doc = frappe.model.get_new_doc("Batch Overtime Entry");
-			doc.payroll_entry = frm.doc.name;
-			doc.company = frm.doc.company;
-			doc.from_date = frm.doc.start_date;
-			doc.to_date = frm.doc.end_date;
-			doc.department = frm.doc.department;
-			doc.branch = frm.doc.branch;
-			doc.custom_payroll_type = frm.doc.payroll_frequency;
-			frappe.set_route("Form", "Batch Overtime Entry", doc.name);
+		frm.page.set_primary_action(__("Save"), function() {
+			frm.save();
 		});
+}
+
+function apply_payroll_entry_role_scope(frm) {
+	const scope = get_payroll_entry_role_scope(frm);
+	if (!scope) return;
+
+	setup_payroll_entry_role_queries(frm, scope);
+	apply_payroll_entry_defaults(frm, scope);
+	apply_payroll_entry_locks(frm, scope);
+}
+
+function setup_payroll_entry_role_queries(frm, scope) {
+	frm.set_query("company", () => ({
+		filters: {
+			name: ["in", scope.companies],
+		},
+	}));
+
+	if (scope.branch_restricted) {
+		frm.set_query("branch", () => ({
+			filters: {
+				name: ["in", scope.branches],
+			},
+		}));
+	}
+
+	frm.set_query("employee", "employees", () => {
+		let error_fields = [];
+		let mandatory_fields = ["company", "payroll_frequency", "start_date", "end_date"];
+		let message = __("Mandatory fields required in {0}", [__(frm.doc.doctype)]);
+
+		mandatory_fields.forEach((field) => {
+			if (!frm.doc[field]) {
+				error_fields.push(frappe.unscrub(field));
+			}
+		});
+
+		if (error_fields && error_fields.length) {
+			message = message + "<br><br><ul><li>" + error_fields.join("</li><li>") + "</ul>";
+			frappe.throw({
+				message: message,
+				indicator: "red",
+				title: __("Missing Fields"),
+			});
+		}
+
+		return {
+			query: "hrms.payroll.doctype.payroll_entry.payroll_entry.employee_query",
+			filters: get_payroll_entry_employee_filters(frm, scope),
+		};
 	});
+}
+
+function get_payroll_entry_employee_filters(frm, scope) {
+	const filters = frm.events.get_employee_filters(frm);
+	if (scope.employment_types.length) {
+		filters.employment_type = ["in", scope.employment_types];
+	}
+	if (scope.branch_restricted && scope.branches.length) {
+		filters.branch = ["in", scope.branches];
+	}
+	return filters;
+}
+
+async function apply_payroll_entry_defaults(frm, scope) {
+	if (scope.companies.length === 1 && frm.doc.company !== scope.companies[0]) {
+		await frm.set_value("company", scope.companies[0]);
+	}
+
+	if (scope.payroll_frequencies.length === 1 && frm.doc.payroll_frequency !== scope.payroll_frequencies[0]) {
+		await frm.set_value("payroll_frequency", scope.payroll_frequencies[0]);
+	}
+
+	if (scope.branch_restricted && scope.branches.length === 1 && frm.doc.branch !== scope.branches[0]) {
+		await frm.set_value("branch", scope.branches[0]);
+	}
+
+	if (scope.branch_restricted && scope.branches.length > 1 && frm.doc.branch && !scope.branches.includes(frm.doc.branch)) {
+		await frm.set_value("branch", "");
+	}
+}
+
+function apply_payroll_entry_locks(frm, scope) {
+	frm.set_df_property("company", "read_only", scope.companies.length === 1 ? 1 : 0);
+	frm.set_df_property("payroll_frequency", "read_only", scope.payroll_frequencies.length === 1 ? 1 : 0);
+	frm.set_df_property("branch", "read_only", scope.branch_restricted && scope.branches.length === 1 ? 1 : 0);
+}
+
+function get_payroll_entry_role_scope(frm) {
+	if (frappe.session && frappe.session.user === "Administrator") return null;
+	if (!frappe.user || !frappe.user.has_role) return null;
+
+	const rules = get_payroll_entry_role_rules().filter((rule) => frappe.user.has_role(rule.role));
+	if (!rules.length) return null;
+
+	const current_payroll_type = get_payroll_entry_payroll_type(frm.doc.payroll_frequency);
+	const matching_rules = current_payroll_type
+		? rules.filter((rule) => rule.payroll_type === current_payroll_type)
+		: rules;
+	const effective_rules = matching_rules.length ? matching_rules : rules;
+	const branch_restricted = effective_rules.every((rule) => (rule.branches || []).length);
+
+	return {
+		companies: unique_payroll_entry_values(effective_rules.map((rule) => rule.company)),
+		payroll_frequencies: unique_payroll_entry_values(
+			effective_rules.map((rule) => rule.payroll_type === "Weekly" ? "Weekly" : "Bimonthly")
+		),
+		branches: branch_restricted
+			? unique_payroll_entry_values(effective_rules.flatMap((rule) => rule.branches || []))
+			: [],
+		branch_restricted,
+		employment_types: unique_payroll_entry_values(effective_rules.flatMap((rule) => rule.employment_types || [])),
+	};
+}
+
+function get_payroll_entry_payroll_type(payroll_frequency) {
+	if (payroll_frequency === "Weekly") return "Weekly";
+	if (["Bimonthly", "Monthly"].includes(payroll_frequency)) return "Monthly";
+	return "";
+}
+
+function get_payroll_entry_role_rules() {
+	const regular = ["Regular", "Probation", "Probationary"];
+	const provincial = [
+		"Bacolod", "Cebu", "Cagayan De Oro", "Iloilo", "Davao", "Zamboanga",
+		"La Union", "Pampanga", "Laguna", "Quezon"
+	];
+
+	return [
+		{ role: "Monthly QC", company: "QC Styropackaging Corporation", payroll_type: "Monthly", employment_types: regular },
+		{ role: "Monthly MC", company: "Multiplast Corporation", payroll_type: "Monthly", employment_types: regular },
+		{ role: "Monthly SMB", company: "QC Styropackaging Corporation", payroll_type: "Monthly", branches: ["Guyong", "Sta. Clara"], employment_types: regular },
+		{ role: "Monthly VAL", company: "Multiplast Corporation", payroll_type: "Monthly", branches: ["Valenzuela"], employment_types: regular },
+		{ role: "MC Prov Merch", company: "Multiplast Corporation", payroll_type: "Monthly", employment_types: ["Provincial Merchandise"] },
+		{ role: "Weekly QC EDSA", company: "QC Styropackaging Corporation", payroll_type: "Weekly", branches: ["QC Edsa"], employment_types: regular },
+		{ role: "Weekly MC EDSA", company: "Multiplast Corporation", payroll_type: "Weekly", branches: ["QC Edsa"], employment_types: regular },
+		{ role: "Weekly QC Agency", company: "QC Styropackaging Corporation", payroll_type: "Weekly", branches: ["QC Edsa"], employment_types: ["Agency"] },
+		{ role: "Weekly QC SMB", company: "QC Styropackaging Corporation", payroll_type: "Weekly", branches: ["Guyong", "Sta. Clara"], employment_types: regular },
+		{ role: "Weekly MC VAL", company: "Multiplast Corporation", payroll_type: "Weekly", branches: ["Valenzuela"], employment_types: regular },
+		{ role: "Weekly QC Prov", company: "QC Styropackaging Corporation", payroll_type: "Weekly", branches: provincial, employment_types: regular },
+		{ role: "Weekly MC Prov", company: "Multiplast Corporation", payroll_type: "Weekly", branches: provincial, employment_types: regular },
+		{ role: "Weekly MC Prov Agency", company: "Multiplast Corporation", payroll_type: "Weekly", branches: provincial, employment_types: ["Agency"] },
+	];
+}
+
+function unique_payroll_entry_values(values) {
+	return Array.from(new Set((values || []).filter(Boolean)));
 }
 
 function add_batch_other_adjustment_entry_button(frm) {

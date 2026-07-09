@@ -69,8 +69,10 @@ doc_events = {
         "validate": [
             "qcmc_logic.customs.salary_slip_attendance.apply_attendance_late",
             "qcmc_logic.customs.salary_slip_employer_contributions.apply_employer_contribution_rows",
+            "qcmc_logic.customs.salary_slip_income_tax.apply_declared_income_tax",
         ],
         "before_save": "qcmc_logic.customs.salary_slip_income_tax.apply_declared_income_tax",
+        "before_submit": "qcmc_logic.customs.salary_slip_income_tax.apply_declared_income_tax",
     },
     "Overtime Slip": {
         "before_validate": "qcmc_logic.customs.overtime_slip.normalize_overtime_before_validate",
@@ -112,7 +114,6 @@ doctype_js = {
     "Material Request": "public/js/material_request.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
     "Overtime Slip": "public/js/overtime_slip.js",
-    "Batch Overtime Entry": "public/js/batch_overtime_entry.js",
     "Batch Other Adjustment Entry": "public/js/batch_other_adjustment_entry.js",
     "Payroll Entry": "public/js/payroll_entry.js",
 }
@@ -151,10 +152,12 @@ override_doctype_class = {
     "Job Requisition": "qcmc_logic.overrides.MRFApprovers.MRFApproverSetCustomFields",
     "Staffing Plan": "qcmc_logic.overrides.StaffingPlanOverrides.CustomStaffingPlan",
     "Payment Entry": "qcmc_logic.overrides.payment_entry.CustomPaymentEntry",
+    "Payroll Entry": "qcmc_logic.overrides.payroll_entry.CustomPayrollEntry",
     "Job Opening": "qcmc_logic.overrides.jobopening_overrides.CustomJobOpening",
     "Material Request":"qcmc_logic.overrides.material_request_override.CustomMaterialRequest",
     "Stock Reconciliation": "qcmc_logic.overrides.stock_reconciliation.CustomStockReconciliation",
     "Bulk Salary Structure Assignment": "qcmc_logic.overrides.bulk_salary_structure_assignment.CustomBulkSalaryStructureAssignment",
+    "Salary Structure Assignment": "qcmc_logic.overrides.salary_structure_assignment.CustomSalaryStructureAssignment",
 }
 permission_query_conditions = {
      "Appraisal": "qcmc_logic.customs.permissions.appraisal_permission_query",
@@ -166,8 +169,9 @@ permission_query_conditions = {
      "Purchase Invoice": "qcmc_logic.customs.permissions.purchase_invoice_permission_query",
      "Purchase Order": "qcmc_logic.customs.permissions.purchase_order_permission_query",
      "Purchase Receipt": "qcmc_logic.customs.permissions.purchase_receipt_permission_query",
-     "Sales Invoice": "qcmc_logic.customs.permissions.sales_invoice_permission_query",
-     "Salary Structure": "qcmc_logic.customs.permissions.salary_structure_permission_query",
+    "Sales Invoice": "qcmc_logic.customs.permissions.sales_invoice_permission_query",
+    "Salary Structure Assignment": "qcmc_logic.customs.permissions.salary_structure_assignment_permission_query",
+    "Salary Structure": "qcmc_logic.customs.permissions.salary_structure_permission_query",
      "Stock Entry": "qcmc_logic.customs.permissions.stock_entry_permission_query",
      "Stock Reconciliation": "qcmc_logic.customs.permissions.stock_reconciliation_permission_query",
      "Warehouse Transfer": "qcmc_logic.customs.permissions.warehouse_transfer_permission_query",
@@ -183,6 +187,7 @@ has_permission = {
     "Purchase Order": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Purchase Receipt": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Sales Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Salary Structure Assignment": "qcmc_logic.customs.permissions.salary_structure_assignment_has_permission",
     "Salary Structure": "qcmc_logic.customs.permissions.salary_structure_has_permission",
     "Stock Entry": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Stock Reconciliation": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
