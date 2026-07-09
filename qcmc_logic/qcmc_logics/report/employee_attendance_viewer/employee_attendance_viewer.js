@@ -3,12 +3,13 @@ frappe.query_reports["Employee Attendance Viewer"] = {
         {
             fieldname: "company",
             label: __("Company"),
-            fieldtype: "Link",
-            options: "Company",
+            fieldtype: "Autocomplete",
+            options: [],
             default: "QC Styropackaging Corporation",
             reqd: 1,
             on_change: function() {
                 const report = frappe.query_report;
+                apply_role_locked_filters(report);
                 report.set_filter_value("employee", "");
                 setup_employee_filter_options(report);
             }
@@ -22,6 +23,7 @@ frappe.query_reports["Employee Attendance Viewer"] = {
             reqd: 1,
             on_change: function() {
                 const report = frappe.query_report;
+                apply_role_locked_filters(report);
                 setup_payroll_period_filter(report, true);
                 report.set_filter_value("employee", "");
                 setup_employee_filter_options(report);
@@ -40,6 +42,12 @@ frappe.query_reports["Employee Attendance Viewer"] = {
             }
         },
         {
+            fieldname: "payroll_period_mode",
+            label: __("Payroll Period Mode"),
+            fieldtype: "Data",
+            hidden: 1
+        },
+        {
             fieldname: "employee",
             label: __("Employee"),
             fieldtype: "Autocomplete",
@@ -48,6 +56,7 @@ frappe.query_reports["Employee Attendance Viewer"] = {
     ],
 
     onload(report) {
+        apply_role_locked_filters(report);
         setup_payroll_period_filter(report, false);
         setup_employee_filter_options(report);
         install_employee_row_click(report);
@@ -57,6 +66,7 @@ frappe.query_reports["Employee Attendance Viewer"] = {
     },
 
     refresh(report) {
+        apply_role_locked_filters(report);
         setup_payroll_period_filter(report, false);
         setup_employee_filter_options(report);
         install_employee_row_click(report);
@@ -95,11 +105,190 @@ frappe.query_reports["Employee Attendance Viewer"] = {
     }
 };
 
+function apply_role_locked_filters(report) {
+    const role_defaults = get_attendance_viewer_role_defaults(report);
+    if (!role_defaults) {
+        set_filter_value_if_changed(report, "payroll_period_mode", "");
+        unlock_attendance_filter(report, "company");
+        unlock_attendance_filter(report, "payroll_frequency");
+        setup_allowed_company_filter(report, []);
+        return;
+    }
+
+    const companies = role_defaults.companies || [];
+    const payroll_frequencies = role_defaults.payroll_frequencies || [];
+    const current_company = report.get_filter_value("company");
+    set_filter_value_if_changed(report, "payroll_frequency", role_defaults.payroll_frequency);
+    set_filter_value_if_changed(report, "payroll_period_mode", role_defaults.payroll_period_mode || "");
+
+    if (companies.length && !companies.includes(current_company)) {
+        set_filter_value_if_changed(report, "company", companies[0]);
+    }
+
+    const frequency_filter = report.get_filter("payroll_frequency");
+    if (frequency_filter) {
+        frequency_filter.df.options = payroll_frequencies.join("\n");
+        frequency_filter.refresh();
+    }
+
+    if (payroll_frequencies.length === 1) {
+        lock_attendance_filter(report, "payroll_frequency");
+    } else {
+        unlock_attendance_filter(report, "payroll_frequency");
+        if (frequency_filter) {
+            frequency_filter.df.options = payroll_frequencies.join("\n");
+            frequency_filter.refresh();
+        }
+    }
+
+    setup_allowed_company_filter(report, companies);
+    if (companies.length === 1) {
+        lock_attendance_filter(report, "company");
+    } else {
+        unlock_attendance_filter(report, "company");
+    }
+}
+
+function get_attendance_viewer_role_defaults(report) {
+    if (frappe.session && frappe.session.user === "Administrator") {
+        return null;
+    }
+
+    if (!frappe.user || !frappe.user.has_role) {
+        return null;
+    }
+
+    const rules = get_attendance_viewer_ui_role_rules().filter((rule) => frappe.user.has_role(rule.role));
+    if (!rules.length) {
+        return null;
+    }
+
+    const payroll_frequencies = Array.from(new Set(rules.map((rule) => rule.payroll_frequency)));
+    const current_frequency = report ? report.get_filter_value("payroll_frequency") : "";
+    const payroll_frequency = payroll_frequencies.includes(current_frequency)
+        ? current_frequency
+        : payroll_frequencies[0];
+    const matching_frequency_rules = rules.filter((rule) => rule.payroll_frequency === payroll_frequency);
+    const companies = Array.from(new Set(matching_frequency_rules.map((rule) => rule.company)));
+    const payroll_period_mode = matching_frequency_rules.some((rule) => rule.payroll_period_mode === "calendar_bimonthly")
+        ? "calendar_bimonthly"
+        : "";
+
+    return {
+        companies,
+        payroll_frequency,
+        payroll_frequencies,
+        payroll_period_mode
+    };
+}
+
+function get_attendance_viewer_ui_role_rules() {
+    return [
+        { role: "Monthly QC", company: "QC Styropackaging Corporation", payroll_frequency: "Bimonthly" },
+        { role: "Monthly MC", company: "Multiplast Corporation", payroll_frequency: "Bimonthly" },
+        { role: "Monthly SMB", company: "QC Styropackaging Corporation", payroll_frequency: "Bimonthly" },
+        { role: "Monthly VAL", company: "Multiplast Corporation", payroll_frequency: "Bimonthly" },
+        { role: "MC Prov Merch", company: "Multiplast Corporation", payroll_frequency: "Bimonthly", payroll_period_mode: "calendar_bimonthly" },
+        { role: "Weekly QC EDSA", company: "QC Styropackaging Corporation", payroll_frequency: "Weekly" },
+        { role: "Weekly MC EDSA", company: "Multiplast Corporation", payroll_frequency: "Weekly" },
+        { role: "Weekly QC Agency", company: "QC Styropackaging Corporation", payroll_frequency: "Weekly" },
+        { role: "Weekly QC SMB", company: "QC Styropackaging Corporation", payroll_frequency: "Weekly" },
+        { role: "Weekly MC VAL", company: "Multiplast Corporation", payroll_frequency: "Weekly" },
+        { role: "Weekly QC Prov", company: "QC Styropackaging Corporation", payroll_frequency: "Weekly" },
+        { role: "Weekly MC Prov", company: "Multiplast Corporation", payroll_frequency: "Weekly" },
+        { role: "Weekly MC Prov Agency", company: "Multiplast Corporation", payroll_frequency: "Weekly" },
+    ];
+}
+
+function setup_allowed_company_filter(report, companies) {
+    const filter = report.get_filter("company");
+    if (!filter) return;
+
+    if (!companies || !companies.length) {
+        setup_all_company_filter_options(report, filter);
+        return;
+    }
+
+    const options = companies.map((company) => ({
+        label: company,
+        value: company
+    }));
+    filter.df.options = options;
+    filter.refresh();
+    if (filter.set_data) {
+        filter.set_data(options);
+    }
+}
+
+function setup_all_company_filter_options(report, filter) {
+    const request_key = "all";
+    if (report.__employee_attendance_company_options_key === request_key) return;
+    report.__employee_attendance_company_options_key = request_key;
+
+    frappe.db.get_list("Company", {
+        fields: ["name"],
+        limit: 500,
+        order_by: "name asc"
+    }).then((companies) => {
+        const options = (companies || []).map((company) => ({
+            label: company.name,
+            value: company.name
+        }));
+        filter.df.options = options;
+        filter.refresh();
+        if (filter.set_data) {
+            filter.set_data(options);
+        }
+    });
+}
+
+function set_filter_value_if_changed(report, fieldname, value) {
+    if (value !== undefined && value !== null && report.get_filter_value(fieldname) !== value) {
+        report.set_filter_value(fieldname, value);
+    }
+}
+
+function lock_attendance_filter(report, fieldname) {
+    const filter = report.get_filter(fieldname);
+    if (!filter) return;
+
+    filter.df.read_only = 1;
+    filter.refresh();
+    set_filter_disabled_state(filter, true);
+}
+
+function unlock_attendance_filter(report, fieldname) {
+    const filter = report.get_filter(fieldname);
+    if (!filter) return;
+
+    filter.df.read_only = 0;
+    if (fieldname === "payroll_frequency") {
+        filter.df.options = "Bimonthly\nWeekly";
+    }
+    filter.refresh();
+    set_filter_disabled_state(filter, false);
+}
+
+function set_filter_disabled_state(filter, disabled) {
+    if (filter.$input) {
+        filter.$input.prop("disabled", disabled);
+    }
+    if (filter.$wrapper) {
+        filter.$wrapper
+            .toggleClass("eav-filter-locked", disabled)
+            .find("input, select, textarea, button")
+            .prop("disabled", disabled);
+    }
+}
+
 function setup_payroll_period_filter(report, clear_value) {
     const filter = report.get_filter("payroll_period");
     if (!filter) return;
 
-    const options = get_payroll_period_options(report.get_filter_value("payroll_frequency"));
+    const options = get_payroll_period_options(
+        report.get_filter_value("payroll_frequency"),
+        report.get_filter_value("payroll_period_mode")
+    );
     filter.df.options = options.join("\n");
     filter.refresh();
 
@@ -116,12 +305,13 @@ function setup_employee_filter_options(report) {
     const company = report.get_filter_value("company");
     const payroll_period = report.get_filter_value("payroll_period");
     const payroll_frequency = report.get_filter_value("payroll_frequency");
+    const payroll_period_mode = report.get_filter_value("payroll_period_mode");
     if (!company || !payroll_period) {
         update_employee_filter_options(report, []);
         return;
     }
 
-    const request_key = [company, payroll_frequency, payroll_period].join("|");
+    const request_key = [company, payroll_frequency, payroll_period_mode, payroll_period].join("|");
     if (report.__employee_attendance_employee_options_key === request_key) return;
     report.__employee_attendance_employee_options_key = request_key;
 
@@ -130,7 +320,8 @@ function setup_employee_filter_options(report) {
         args: {
             company,
             payroll_period,
-            payroll_frequency
+            payroll_frequency,
+            payroll_period_mode
         },
         callback: function(response) {
             const employees = (response.message && response.message.employees) || [];
@@ -173,7 +364,7 @@ function parse_employee_filter_value(value) {
     return (value || "").split(" - ", 1)[0].trim();
 }
 
-function get_payroll_period_options(frequency) {
+function get_payroll_period_options(frequency, payroll_period_mode) {
     const today = frappe.datetime.str_to_obj(frappe.datetime.get_today());
     const options = [];
     const is_weekly = frequency === "Weekly";
@@ -182,6 +373,13 @@ function get_payroll_period_options(frequency) {
         const base = new Date(today.getFullYear(), today.getMonth() + offset, 1);
         if (is_weekly) {
             add_weekly_options(options, base);
+        } else if (payroll_period_mode === "calendar_bimonthly") {
+            options.push(format_payroll_date(new Date(base.getFullYear(), base.getMonth(), 16)));
+            options.push(format_payroll_date(new Date(
+                base.getFullYear(),
+                base.getMonth(),
+                new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate()
+            )));
         } else {
             options.push(format_payroll_date(new Date(base.getFullYear(), base.getMonth(), 15)));
             options.push(format_payroll_date(new Date(
@@ -301,6 +499,7 @@ function apply_attendance_viewer_style() {
         ".employee-attendance-viewer-legend .eav-legend-item{display:inline-flex!important;align-items:center;gap:5px;margin-right:12px;white-space:nowrap;vertical-align:middle;}" +
         ".employee-attendance-viewer-legend .eav-legend-dot{width:10px!important;height:10px!important;min-width:10px;border-radius:50%;border:1px solid;display:inline-block!important;box-sizing:border-box;}" +
         ".employee-attendance-viewer-legend .eav-legend-label{display:inline-block;}" +
+        ".query-report .eav-filter-locked input,.query-report .eav-filter-locked select{background:var(--disabled-control-bg,#f3f3f3)!important;color:var(--text-muted,#6b7280)!important;cursor:not-allowed!important;}" +
         ".query-report .dt-cell.eav-freeze-serial,.query-report .dt-cell.eav-freeze-date,.query-report .dt-cell.eav-freeze-day{position:relative!important;z-index:50!important;will-change:transform;}" +
         ".query-report .dt-cell.eav-freeze-day{box-shadow:1px 0 0 var(--border-color,#e5e5e5);}" +
         ".query-report .dt-cell.eav-freeze-serial .dt-cell__content,.query-report .dt-cell.eav-freeze-date .dt-cell__content,.query-report .dt-cell.eav-freeze-day .dt-cell__content{background:inherit;}" +

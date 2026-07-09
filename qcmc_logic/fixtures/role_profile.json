@@ -1763,6 +1763,41 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "name": "Payroll Master",
+  "role_profile": "Payroll Master",
+  "roles": [
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Payroll Master"
+   },
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "HR User"
+   },
+   {
+    "role": "Allow Rate"
+   },
+   {
+    "role": "HR Supervisor"
+   },
+   {
+    "role": "HR Manager"
+   },
+   {
+    "role": "Accounts Manager"
+   },
+   {
+    "role": "Weekly QC Agency"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
   "name": "Procurement",
   "role_profile": "Procurement",
   "roles": [

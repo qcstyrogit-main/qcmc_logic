@@ -2137,37 +2137,6 @@
   "filters": [],
   "is_standard": "Yes",
   "javascript": null,
-  "json": null,
-  "letter_head": null,
-  "module": "Loan Management",
-  "name": "Disbursement Analysis Report",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Loan Disbursement",
-  "reference_report": null,
-  "report_name": "Disbursement Analysis Report",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "role": "System Manager"
-   },
-   {
-    "role": "Loan Manager"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "add_translate_data": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
   "json": "{\"add_total_row\": 0, \"sort_by\": \"DocShare.creation\", \"sort_order\": \"desc\", \"sort_by_next\": null, \"filters\": [], \"sort_order_next\": \"desc\", \"columns\": [[\"name\", \"DocShare\"], [\"user\", \"DocShare\"], [\"share_doctype\", \"DocShare\"], [\"share_name\", \"DocShare\"], [\"read\", \"DocShare\"], [\"write\", \"DocShare\"], [\"share\", \"DocShare\"]]}",
   "letter_head": null,
   "module": "Core",
@@ -2317,46 +2286,6 @@
   "docstatus": 0,
   "doctype": "Report",
   "filters": [],
-  "is_standard": "No",
-  "javascript": "frappe.query_reports['Employee Attendance Schedule'] = {\n    onload: function(report) {\n        apply_attendance_cutoff(report);\n    },\n    filters: [\n        {\n            fieldname: 'employee',\n            label: __('Employee'),\n            fieldtype: 'Link',\n            options: 'Employee',\n            reqd: 1,\n            get_query: function() {\n                return { filters: { status: 'Active' } };\n            },\n            on_change: function() {\n                var emp = frappe.query_report.get_filter_value('employee');\n                if (emp) {\n                    frappe.db.get_value('Employee', emp, 'employee_name', function(r) {\n                        if (r && r.employee_name) {\n                            frappe.query_report.set_filter_value('employee_name', r.employee_name);\n                        }\n                    });\n                }\n            }\n        },\n        {\n            fieldname: 'employee_name',\n            label: __('Employee Name'),\n            fieldtype: 'Data',\n            read_only: 1\n        },\n        {\n            fieldname: 'cutoff_period',\n            label: __('Cutoff'),\n            fieldtype: 'Select',\n            options: [\n                { value: 'auto', label: __('Current Cutoff') },\n                { value: 'first', label: __('23-7 / Pay 15') },\n                { value: 'second', label: __('8-22 / Pay 30') }\n            ],\n            default: 'auto',\n            on_change: function() {\n                apply_attendance_cutoff(frappe.query_report);\n            }\n        },\n        {\n            fieldname: 'from_date',\n            label: __('From Date'),\n            fieldtype: 'Date',\n            reqd: 1\n        },\n        {\n            fieldname: 'to_date',\n            label: __('To Date'),\n            fieldtype: 'Date',\n            reqd: 1\n        },\n        {\n            fieldname: 'pay_day',\n            label: __('Pay Day'),\n            fieldtype: 'Date',\n            read_only: 1\n        }\n    ]\n};\n\nfunction apply_attendance_cutoff(report) {\n    if (!report) return;\n\n    var selected = report.get_filter_value('cutoff_period') || 'auto';\n    var today = frappe.datetime.str_to_obj(frappe.datetime.get_today());\n    var year = today.getFullYear();\n    var month = today.getMonth();\n    var day = today.getDate();\n\n    if (selected === 'auto') {\n        selected = day <= 7 || day >= 23 ? 'first' : 'second';\n    }\n\n    var fromDate;\n    var toDate;\n    var payDay;\n\n    if (selected === 'first') {\n        if (day <= 7) {\n            fromDate = new Date(year, month - 1, 23);\n            toDate = new Date(year, month, 7);\n            payDay = new Date(year, month, 15);\n        } else {\n            fromDate = new Date(year, month, 23);\n            toDate = new Date(year, month + 1, 7);\n            payDay = new Date(year, month + 1, 15);\n        }\n    } else {\n        fromDate = new Date(year, month, 8);\n        toDate = new Date(year, month, 22);\n        payDay = new Date(year, month, Math.min(30, new Date(year, month + 1, 0).getDate()));\n    }\n\n    report.set_filter_value('from_date', frappe.datetime.obj_to_str(fromDate));\n    report.set_filter_value('to_date', frappe.datetime.obj_to_str(toDate));\n    report.set_filter_value('pay_day', frappe.datetime.obj_to_str(payDay));\n}\n",
-  "json": null,
-  "letter_head": null,
-  "module": "HR",
-  "name": "Employee Attendance Schedule",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Attendance",
-  "reference_report": null,
-  "report_name": "Employee Attendance Schedule",
-  "report_script": "DAYS = [\"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\", \"Saturday\", \"Sunday\"]\n\ncolumns = [\n    {\"fieldname\": \"sched_date\", \"label\": \"SchedDate\", \"fieldtype\": \"Date\", \"width\": 90},\n    {\"fieldname\": \"day_of_week\", \"label\": \"DayOfWeek\", \"fieldtype\": \"Data\", \"width\": 90},\n    {\"fieldname\": \"sched_time_start\", \"label\": \"SchedTimeStart\", \"fieldtype\": \"Data\", \"width\": 110},\n    {\"fieldname\": \"sched_time_end\", \"label\": \"SchedTimeEnd\", \"fieldtype\": \"Data\", \"width\": 110},\n    {\"fieldname\": \"time_in\", \"label\": \"Time In\", \"fieldtype\": \"Data\", \"width\": 90},\n    {\"fieldname\": \"time_out\", \"label\": \"Time Out\", \"fieldtype\": \"Data\", \"width\": 90},\n    {\"fieldname\": \"late_hours\", \"label\": \"Late (Hour)\", \"fieldtype\": \"Float\", \"width\": 90},\n    {\"fieldname\": \"valid_ot\", \"label\": \"Valid OT\", \"fieldtype\": \"Float\", \"width\": 80},\n    {\"fieldname\": \"authorization_no\", \"label\": \"AuthorizationNo\", \"fieldtype\": \"Data\", \"width\": 120},\n    {\"fieldname\": \"rest_day\", \"label\": \"RestDay\", \"fieldtype\": \"Data\", \"width\": 100},\n    {\"fieldname\": \"holiday_type\", \"label\": \"HolidayType\", \"fieldtype\": \"Data\", \"width\": 120},\n    {\"fieldname\": \"leave_type\", \"label\": \"LeaveType\", \"fieldtype\": \"Data\", \"width\": 120},\n]\n\nrows = []\nemployee = filters.get(\"employee\")\n\nif not employee:\n    frappe.throw(\"Please select an Employee.\")\n\nif not frappe.db.exists(\"Employee\", employee):\n    found = frappe.db.get_value(\"Employee\", {\"employee_name\": employee}, \"name\")\n    if found:\n        employee = found\n    else:\n        frappe.throw(\"Employee '{0}' not found.\".format(employee))\n\nfrom_date_str = str(frappe.utils.getdate(filters.get(\"from_date\")))\nto_date_str = str(frappe.utils.getdate(filters.get(\"to_date\")))\n\natt_list = frappe.get_all(\n    \"Attendance\",\n    filters={\"employee\": employee, \"attendance_date\": [\"between\", [from_date_str, to_date_str]]},\n    fields=[\n        \"name\",\n        \"attendance_date\",\n        \"in_time\",\n        \"out_time\",\n        \"shift\",\n        \"status\",\n        \"leave_type\",\n        \"actual_overtime_duration\",\n    ],\n    order_by=\"attendance_date asc\",\n)\natt_map = {}\nattendance_names = []\nfor att_row in att_list:\n    att_map[str(att_row.attendance_date)] = att_row\n    attendance_names.append(att_row.name)\n\nshifts = frappe.get_all(\"Shift Type\", fields=[\"name\", \"start_time\", \"end_time\"])\nshift_map = {}\nfor shift_row in shifts:\n    shift_map[shift_row.name] = shift_row\n\nemp_doc = frappe.get_doc(\"Employee\", employee)\nholiday_list = emp_doc.holiday_list or frappe.db.get_value(\"Company\", emp_doc.company, \"default_holiday_list\")\nholiday_map = {}\nif holiday_list:\n    holidays = frappe.get_all(\n        \"Holiday\",\n        filters={\"parent\": holiday_list, \"holiday_date\": [\"between\", [from_date_str, to_date_str]]},\n        fields=[\"holiday_date\", \"description\"],\n    )\n    for holiday_row in holidays:\n        holiday_map[str(holiday_row.holiday_date)] = holiday_row\n\nleave_map = {}\nleave_apps = frappe.get_all(\n    \"Leave Application\",\n    filters={\n        \"employee\": employee,\n        \"status\": \"Approved\",\n        \"from_date\": [\"<=\", to_date_str],\n        \"to_date\": [\">=\", from_date_str],\n    },\n    fields=[\"from_date\", \"to_date\", \"leave_type\"],\n)\nfor leave_row in leave_apps:\n    n_days = frappe.utils.date_diff(str(leave_row.to_date), str(leave_row.from_date))\n    for i in range(n_days + 1):\n        leave_map[str(frappe.utils.add_days(str(leave_row.from_date), i))] = leave_row.leave_type\n\nauthorization_map = {}\nslip_names_by_date = {}\nif frappe.db.exists(\"DocType\", \"Overtime Slip\") and frappe.db.exists(\"DocType\", \"Overtime Details\"):\n    if attendance_names:\n        details = frappe.get_all(\n            \"Overtime Details\",\n            filters={\"reference_document\": [\"in\", attendance_names]},\n            fields=[\"parent\", \"reference_document\"],\n            order_by=\"idx asc\",\n        )\n        parents = []\n        for detail in details:\n            if detail.parent and detail.parent not in parents:\n                parents.append(detail.parent)\n\n        submitted_slips = {}\n        if parents:\n            slips = frappe.get_all(\n                \"Overtime Slip\",\n                filters={\"name\": [\"in\", parents], \"docstatus\": 1},\n                fields=[\"name\"],\n            )\n            for slip in slips:\n                submitted_slips[slip.name] = slip.name\n\n        for detail in details:\n            if detail.parent in submitted_slips and detail.reference_document not in authorization_map:\n                authorization_map[detail.reference_document] = detail.parent\n\n    date_details = frappe.get_all(\n        \"Overtime Details\",\n        filters={\"date\": [\"between\", [from_date_str, to_date_str]]},\n        fields=[\"parent\", \"date\"],\n        order_by=\"idx asc\",\n    )\n    parents = []\n    for detail in date_details:\n        if detail.parent and detail.parent not in parents:\n            parents.append(detail.parent)\n\n    submitted_slips = {}\n    if parents:\n        slips = frappe.get_all(\n            \"Overtime Slip\",\n            filters={\"name\": [\"in\", parents], \"employee\": employee, \"docstatus\": 1},\n            fields=[\"name\"],\n        )\n        for slip in slips:\n            submitted_slips[slip.name] = slip.name\n\n    for detail in date_details:\n        detail_date = str(detail.date)\n        if detail.parent in submitted_slips and detail_date not in slip_names_by_date:\n            slip_names_by_date[detail_date] = detail.parent\n\ntotal_days = frappe.utils.date_diff(to_date_str, from_date_str)\nfor day_idx in range(total_days + 1):\n    ds = str(frappe.utils.add_days(from_date_str, day_idx))\n    current = frappe.utils.getdate(ds)\n    dow = current.weekday()\n    day_name = DAYS[dow]\n    is_weekend = dow >= 5\n    att = att_map.get(ds)\n    holiday = holiday_map.get(ds)\n    leave_type = leave_map.get(ds) or (att.leave_type if att else \"\")\n    shift = (att.shift if att else None) or (None if (is_weekend or holiday) else (\"Monday Shift - QC\" if dow == 0 else \"Tue-Fri Shift - QC\"))\n    si = shift_map.get(shift) if shift else None\n\n    sched_s = \"\"\n    if si and si.start_time and not is_weekend and not holiday:\n        total = si.start_time.seconds\n        h = total // 3600\n        m = (total % 3600) // 60\n        suffix = \"AM\" if h < 12 else \"PM\"\n        h12 = h % 12 if h % 12 != 0 else 12\n        sched_s = \"%d:%02d %s\" % (h12, m, suffix)\n\n    sched_e = \"\"\n    if si and si.end_time and not is_weekend and not holiday:\n        total = si.end_time.seconds\n        h = total // 3600\n        m = (total % 3600) // 60\n        suffix = \"AM\" if h < 12 else \"PM\"\n        h12 = h % 12 if h % 12 != 0 else 12\n        sched_e = \"%d:%02d %s\" % (h12, m, suffix)\n\n    ti = \"\"\n    if att and att.in_time:\n        h = att.in_time.hour\n        m = att.in_time.minute\n        suffix = \"AM\" if h < 12 else \"PM\"\n        h12 = h % 12 if h % 12 != 0 else 12\n        ti = \"%d:%02d %s\" % (h12, m, suffix)\n\n    to_ = \"\"\n    if att and att.out_time:\n        h = att.out_time.hour\n        m = att.out_time.minute\n        suffix = \"AM\" if h < 12 else \"PM\"\n        h12 = h % 12 if h % 12 != 0 else 12\n        to_ = \"%d:%02d %s\" % (h12, m, suffix)\n\n    late = 0.0\n    if att and att.in_time and si and si.start_time and not is_weekend and not holiday:\n        diff = (att.in_time.hour * 3600 + att.in_time.minute * 60) - si.start_time.seconds\n        if diff > 0:\n            late = round(diff / 3600, 2)\n\n    ot = 0.0\n    if att and att.actual_overtime_duration:\n        ot = round(float(att.actual_overtime_duration), 2)\n    elif att and att.out_time and si and si.end_time and not is_weekend and not holiday:\n        diff = (att.out_time.hour * 3600 + att.out_time.minute * 60) - si.end_time.seconds\n        if diff > 0:\n            ot = round(diff / 3600, 2)\n\n    authorization_no = \"\"\n    if att:\n        authorization_no = authorization_map.get(att.name) or slip_names_by_date.get(ds) or \"\"\n\n    rest = ds if (is_weekend or holiday) else \"\"\n    htype = (holiday.description if holiday else \"Weekly Off\") if (is_weekend or holiday) else \"\"\n    rows.append({\n        \"sched_date\": ds,\n        \"day_of_week\": day_name,\n        \"sched_time_start\": sched_s,\n        \"sched_time_end\": sched_e,\n        \"time_in\": ti,\n        \"time_out\": to_,\n        \"late_hours\": late,\n        \"valid_ot\": ot,\n        \"authorization_no\": authorization_no,\n        \"rest_day\": rest,\n        \"holiday_type\": htype,\n        \"leave_type\": leave_type or \"\",\n    })\n\ndata = columns, rows\n",
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "role": "HR Manager"
-   },
-   {
-    "role": "Employee"
-   },
-   {
-    "role": "HR User"
-   },
-   {
-    "role": "System Manager"
-   },
-   {
-    "role": "Employee Self Service"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "add_translate_data": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
   "is_standard": "Yes",
   "javascript": null,
   "json": null,
@@ -2365,7 +2294,7 @@
   "name": "Employee Attendance Viewer",
   "prepared_report": 0,
   "query": null,
-  "ref_doctype": "Employee Attendance Schedule",
+  "ref_doctype": "Employee",
   "reference_report": null,
   "report_name": "Employee Attendance Viewer",
   "report_script": null,
@@ -2530,7 +2459,7 @@
   "letter_head": null,
   "module": "HR",
   "name": "Employee Leave Balance",
-  "prepared_report": 1,
+  "prepared_report": 0,
   "query": null,
   "ref_doctype": "Employee",
   "reference_report": null,
@@ -7093,7 +7022,7 @@
   "letter_head": null,
   "module": "Stock",
   "name": "Stock Ageing",
-  "prepared_report": 0,
+  "prepared_report": 1,
   "query": null,
   "ref_doctype": "Item",
   "reference_report": null,

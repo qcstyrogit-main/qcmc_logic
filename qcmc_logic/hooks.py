@@ -46,6 +46,7 @@ doc_events = {
     },
     "BOM": {
         "before_validate": [
+            "qcmc_logic.customs.bom_roll_required_kg.apply_roll_required_kg",
             "qcmc_logic.customs.bom_rate.fetch_missing_component_rates",
             "qcmc_logic.customs.bom_formulation.apply_roll_formulation_rules",
         ]
@@ -65,16 +66,14 @@ doc_events = {
         "on_update_after_submit": "qcmc_logic.customs.job_card.sync_non_final_operation_progress",
         "after_delete": "qcmc_logic.customs.job_card.sync_non_final_operation_progress",
     },
-    "Employee Attendance Schedule": {
-        "before_insert": "qcmc_logic.customs.employee_attendance_schedule.apply_defaults",
-        "validate": "qcmc_logic.customs.employee_attendance_schedule.apply_defaults",
-    },
     "Salary Slip": {
         "validate": [
             "qcmc_logic.customs.salary_slip_attendance.apply_attendance_late",
             "qcmc_logic.customs.salary_slip_employer_contributions.apply_employer_contribution_rows",
+            "qcmc_logic.customs.salary_slip_income_tax.apply_declared_income_tax",
         ],
         "before_save": "qcmc_logic.customs.salary_slip_income_tax.apply_declared_income_tax",
+        "before_submit": "qcmc_logic.customs.salary_slip_income_tax.apply_declared_income_tax",
     },
     "Overtime Slip": {
         "before_validate": "qcmc_logic.customs.overtime_slip.normalize_overtime_before_validate",
@@ -90,6 +89,9 @@ doc_events = {
     "Machine Shop Job Request": {
         "autoname": "qcmc_logic.customs.machine_shop_job_request.autoname",
         "validate": "qcmc_logic.customs.machine_shop_job_request.validate",
+    },
+    "Machine Shop Repairs and Project": {
+        "validate": "qcmc_logic.customs.machine_shop_repairs_and_project.validate",
     },
     "Job Card Downtime": {
         "validate": "qcmc_logic.customs.job_card_downtime.validate",
@@ -115,16 +117,12 @@ doctype_js = {
     "Work Order": "public/js/work_order.js",
     "Material Request": "public/js/material_request.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
-    "Employee Attendance Schedule": "public/js/employee_attendance_schedule.js",
     "Overtime Slip": "public/js/overtime_slip.js",
-    "Batch Overtime Entry": "public/js/batch_overtime_entry.js",
     "Batch Other Adjustment Entry": "public/js/batch_other_adjustment_entry.js",
     "Payroll Entry": "public/js/payroll_entry.js",
 }
 
-doctype_list_js = {
-    "Employee Attendance Schedule": "public/js/employee_attendance_schedule_list.js",
-}
+doctype_list_js = {}
 
 # override_doctype_class = {
     
@@ -158,21 +156,27 @@ override_doctype_class = {
     "Job Requisition": "qcmc_logic.overrides.MRFApprovers.MRFApproverSetCustomFields",
     "Staffing Plan": "qcmc_logic.overrides.StaffingPlanOverrides.CustomStaffingPlan",
     "Payment Entry": "qcmc_logic.overrides.payment_entry.CustomPaymentEntry",
+    "Payroll Entry": "qcmc_logic.overrides.payroll_entry.CustomPayrollEntry",
     "Job Opening": "qcmc_logic.overrides.jobopening_overrides.CustomJobOpening",
     "Material Request":"qcmc_logic.overrides.material_request_override.CustomMaterialRequest",
-    "Stock Reconciliation": "qcmc_logic.overrides.stock_reconciliation.CustomStockReconciliation"
+    "Stock Reconciliation": "qcmc_logic.overrides.stock_reconciliation.CustomStockReconciliation",
+    "Bulk Salary Structure Assignment": "qcmc_logic.overrides.bulk_salary_structure_assignment.CustomBulkSalaryStructureAssignment",
+    "Salary Structure Assignment": "qcmc_logic.overrides.salary_structure_assignment.CustomSalaryStructureAssignment",
 }
 permission_query_conditions = {
      "Appraisal": "qcmc_logic.customs.permissions.appraisal_permission_query",
      "Job Requisition": "qcmc_logic.customs.staffingplan_permission.mrf_permission_query_condition",
      "Delivery Note": "qcmc_logic.customs.permissions.delivery_note_permission_query",
      "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_permission_query",
+     "Machine Shop Repairs and Project": "qcmc_logic.customs.machine_shop_repairs_and_project.msrp_permission_query",
      "Material Request": "qcmc_logic.customs.permissions.material_request_permission_query",
      "Pick List": "qcmc_logic.customs.permissions.pick_list_permission_query",
      "Purchase Invoice": "qcmc_logic.customs.permissions.purchase_invoice_permission_query",
      "Purchase Order": "qcmc_logic.customs.permissions.purchase_order_permission_query",
      "Purchase Receipt": "qcmc_logic.customs.permissions.purchase_receipt_permission_query",
-     "Sales Invoice": "qcmc_logic.customs.permissions.sales_invoice_permission_query",
+    "Sales Invoice": "qcmc_logic.customs.permissions.sales_invoice_permission_query",
+    "Salary Structure Assignment": "qcmc_logic.customs.permissions.salary_structure_assignment_permission_query",
+    "Salary Structure": "qcmc_logic.customs.permissions.salary_structure_permission_query",
      "Stock Entry": "qcmc_logic.customs.permissions.stock_entry_permission_query",
      "Stock Reconciliation": "qcmc_logic.customs.permissions.stock_reconciliation_permission_query",
      "Warehouse Transfer": "qcmc_logic.customs.permissions.warehouse_transfer_permission_query",
@@ -182,12 +186,15 @@ permission_query_conditions = {
 has_permission = {
     "Delivery Note": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_has_permission",
+    "Machine Shop Repairs and Project": "qcmc_logic.customs.machine_shop_repairs_and_project.msrp_has_permission",
     "Material Request": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Pick List": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Purchase Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Purchase Order": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Purchase Receipt": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Sales Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Salary Structure Assignment": "qcmc_logic.customs.permissions.salary_structure_assignment_has_permission",
+    "Salary Structure": "qcmc_logic.customs.permissions.salary_structure_has_permission",
     "Stock Entry": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Stock Reconciliation": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Warehouse Transfer": "qcmc_logic.customs.permissions.warehouse_transfer_has_permission",
@@ -279,8 +286,8 @@ before_migrate = [
     "qcmc_logic.migrate.run_role_profile_updates_inline",
 ]
 after_migrate = [
-    "qcmc_logic.customs.employee_attendance_schedule.ensure_default_record_after_migrate",
     "qcmc_logic.customs.machine_shop_job_request.ensure_msjr_permissions",
+    "qcmc_logic.customs.machine_shop_repairs_and_project.ensure_msrp_permissions",
 ]
 
 # # Or ensure it loads at boot

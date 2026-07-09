@@ -31,6 +31,116 @@ REST_DAY_TOKENS = {
 DEFAULT_LATE_GRACE_PERIOD_MINUTES = 15
 NIGHT_DIFFERENTIAL_START_HOUR = 22
 NIGHT_DIFFERENTIAL_END_HOUR = 6
+ATTENDANCE_VIEWER_ROLE_FILTERS = {
+	"Monthly QC": {
+		"company": "QC Styropackaging Corporation",
+		"custom_payroll_type": "Monthly",
+		"employment_type": ["Regular", "Probation", "Probationary"],
+	},
+	"Monthly MC": {
+		"company": "Multiplast Corporation",
+		"custom_payroll_type": "Monthly",
+		"employment_type": ["Regular", "Probation", "Probationary"],
+	},
+	"Monthly SMB": {
+		"company": "QC Styropackaging Corporation",
+		"custom_payroll_type": "Monthly",
+		"branch": ["Guyong", "Sta. Clara"],
+		"employment_type": ["Regular", "Probation", "Probationary"],
+	},
+	"Monthly VAL": {
+		"company": "Multiplast Corporation",
+		"custom_payroll_type": "Monthly",
+		"branch": "Valenzuela",
+		"employment_type": ["Regular", "Probation", "Probationary"],
+	},
+	"Weekly QC EDSA": {
+		"company": "QC Styropackaging Corporation",
+		"custom_payroll_type": "Weekly",
+		"branch": "QC Edsa",
+		"employment_type": ["Regular", "Probation", "Probationary"],
+	},
+	"Weekly MC EDSA": {
+		"company": "Multiplast Corporation",
+		"custom_payroll_type": "Weekly",
+		"branch": "QC Edsa",
+		"employment_type": ["Regular", "Probation", "Probationary"],
+	},
+	"Weekly QC Agency": {
+		"company": "QC Styropackaging Corporation",
+		"custom_payroll_type": "Weekly",
+		"branch": "QC Edsa",
+		"employment_type": "Agency",
+	},
+	"Weekly QC SMB": {
+		"company": "QC Styropackaging Corporation",
+		"custom_payroll_type": "Weekly",
+		"branch": ["Guyong", "Sta. Clara"],
+		"employment_type": ["Regular", "Probation", "Probationary"],
+	},
+	"Weekly MC VAL": {
+		"company": "Multiplast Corporation",
+		"custom_payroll_type": "Weekly",
+		"branch": "Valenzuela",
+		"employment_type": ["Regular", "Probation", "Probationary"],
+	},
+	"Weekly QC Prov": {
+		"company": "QC Styropackaging Corporation",
+		"custom_payroll_type": "Weekly",
+		"branch": [
+			"Bacolod",
+			"Cebu",
+			"Cagayan De Oro",
+			"Iloilo",
+			"Davao",
+			"Zamboanga",
+			"La Union",
+			"Pampanga",
+			"Laguna",
+			"Quezon",
+		],
+		"employment_type": ["Regular", "Probation", "Probationary"],
+	},
+	"Weekly MC Prov": {
+		"company": "Multiplast Corporation",
+		"custom_payroll_type": "Weekly",
+		"branch": [
+			"Bacolod",
+			"Cebu",
+			"Cagayan De Oro",
+			"Iloilo",
+			"Davao",
+			"Zamboanga",
+			"La Union",
+			"Pampanga",
+			"Laguna",
+			"Quezon",
+		],
+		"employment_type": ["Regular", "Probation", "Probationary"],
+	},
+	"Weekly MC Prov Agency": {
+		"company": "Multiplast Corporation",
+		"custom_payroll_type": "Weekly",
+		"branch": [
+			"Bacolod",
+			"Cebu",
+			"Cagayan De Oro",
+			"Iloilo",
+			"Davao",
+			"Zamboanga",
+			"La Union",
+			"Pampanga",
+			"Laguna",
+			"Quezon",
+		],
+		"employment_type": "Agency",
+	},
+	"MC Prov Merch": {
+		"company": "Multiplast Corporation",
+		"custom_payroll_type": "Monthly",
+		"employment_type": "Provincial Merchandise",
+	},
+}
 
 
 def _fmt_time(value):
@@ -205,13 +315,21 @@ def get_current_user_payroll_type():
 
 
 @frappe.whitelist()
-def get_payroll_period_dates(payroll_period, payroll_type=None):
+def get_payroll_period_dates(payroll_period, payroll_type=None, payroll_period_mode=None):
 	pay_day = getdate(payroll_period)
 	payroll_type = _normalize_attendance_payroll_type(payroll_type) or _get_current_user_payroll_type()
+	payroll_period_mode = (payroll_period_mode or "").strip()
 
 	if payroll_type == "Weekly" or (not payroll_type and pay_day.weekday() == 6 and pay_day.day not in (15, 30)):
 		from_date = add_days(pay_day, -6)
 		to_date = pay_day
+	elif payroll_period_mode == "calendar_bimonthly":
+		if pay_day.day == 16:
+			from_date = pay_day.replace(day=1)
+			to_date = pay_day.replace(day=15)
+		else:
+			from_date = pay_day.replace(day=16)
+			to_date = _last_day(pay_day.year, pay_day.month - 1)
 	elif pay_day.day == 15:
 		from_date = add_days(pay_day.replace(day=1), -9)
 		to_date = pay_day.replace(day=7)
@@ -404,9 +522,12 @@ def _resolve_period(
 	cutoff_period=None,
 	payroll_period=None,
 	payroll_frequency=None,
+	payroll_period_mode=None,
 ):
 	if payroll_period:
-		payroll_dates = get_payroll_period_dates(payroll_period, payroll_frequency)
+		payroll_dates = get_payroll_period_dates(
+			payroll_period, payroll_frequency, payroll_period_mode
+		)
 		from_date = payroll_dates["from_date"]
 		to_date = payroll_dates["to_date"]
 	elif not from_date or not to_date:
@@ -477,9 +598,87 @@ def _apply_requested_employee_filter(filters, fieldname, value):
 	filters[fieldname] = value
 
 
+def _merge_allowed_filter(filters, fieldname, allowed_values):
+	allowed_values = [value for value in (allowed_values or []) if value]
+	if not allowed_values:
+		filters["name"] = ["=", "__no_employee_access__"]
+		return
+
+	existing = filters.get(fieldname)
+	if isinstance(existing, (list, tuple)) and existing and existing[0] == "in":
+		intersection = [value for value in existing[1] if value in allowed_values]
+		if intersection:
+			filters[fieldname] = ["in", intersection]
+		else:
+			filters["name"] = ["=", "__no_employee_access__"]
+		return
+
+	if existing:
+		if existing in allowed_values:
+			return
+		filters["name"] = ["=", "__no_employee_access__"]
+		return
+
+	filters[fieldname] = allowed_values[0] if len(allowed_values) == 1 else ["in", allowed_values]
+
+
+def _get_attendance_viewer_role_filters(company=None, user=None):
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return None
+
+	roles = set(frappe.get_roles(user))
+	matched_rules = [
+		rule for role, rule in ATTENDANCE_VIEWER_ROLE_FILTERS.items() if role in roles
+	]
+	if not matched_rules:
+		return None
+
+	allowed_employee_names = set()
+	for rule in matched_rules:
+		rule_filters = _get_employee_filters_for_attendance_role_rule(rule, company)
+		if not rule_filters:
+			continue
+		allowed_employee_names.update(
+			frappe.get_all("Employee", filters=rule_filters, pluck="name", limit_page_length=50000)
+		)
+
+	if not allowed_employee_names:
+		return {"name": ["=", "__no_employee_access__"]}
+
+	return {"name": ["in", sorted(allowed_employee_names)]}
+
+
+def _get_employee_filters_for_attendance_role_rule(rule, requested_company=None):
+	filters = {}
+	for fieldname, value in rule.items():
+		values = value if isinstance(value, (list, tuple, set)) else [value]
+		values = [item for item in values if item]
+		if not values:
+			continue
+		filters[fieldname] = values[0] if len(values) == 1 else ["in", values]
+
+	if requested_company:
+		allowed_companies = rule.get("company")
+		allowed_companies = (
+			allowed_companies
+			if isinstance(allowed_companies, (list, tuple, set))
+			else [allowed_companies]
+		)
+		if requested_company not in allowed_companies:
+			return None
+		filters["company"] = requested_company
+
+	return filters
+
+
 def _get_logged_in_employee_filters(company=None):
 	if frappe.session.user == "Administrator":
 		return {"company": company} if company else {}
+
+	role_filters = _get_attendance_viewer_role_filters(company)
+	if role_filters is not None:
+		return role_filters
 
 	fields = ["name", "company", "branch", "department", "employment_type"]
 	user_employee = frappe.db.get_value(
@@ -508,6 +707,8 @@ def _get_logged_in_employee_filters(company=None):
 		_set_allowed_filter(filters, "department", [], user_employee.department)
 
 	if user_employee.employment_type in ("Regular", "Probationary"):
+		filters["employment_type"] = user_employee.employment_type
+	elif user_employee.employment_type == "Probation":
 		filters["employment_type"] = user_employee.employment_type
 	else:
 		return {"name": ["=", "__no_employee_access__"]}
@@ -618,9 +819,10 @@ def _get_schedule_context(
 	company=None,
 	payroll_period=None,
 	payroll_frequency=None,
+	payroll_period_mode=None,
 ):
 	period = _resolve_period(
-		from_date, to_date, cutoff_period, payroll_period, payroll_frequency
+		from_date, to_date, cutoff_period, payroll_period, payroll_frequency, payroll_period_mode
 	)
 	from_date = period["from_date"]
 	to_date = period["to_date"]
@@ -629,7 +831,7 @@ def _get_schedule_context(
 	employee_filters.update(_get_logged_in_employee_filters(company))
 	payroll_type = _normalize_attendance_payroll_type(payroll_frequency)
 	if payroll_type:
-		employee_filters["custom_payroll_type"] = payroll_type
+		_merge_allowed_filter(employee_filters, "custom_payroll_type", [payroll_type])
 
 	employees = frappe.get_all(
 		"Employee",
@@ -1077,9 +1279,10 @@ def get_employee_schedule(
 	company=None,
 	payroll_period=None,
 	payroll_frequency=None,
+	payroll_period_mode=None,
 ):
 	context = _get_schedule_context(
-		from_date, to_date, cutoff_period, company, payroll_period, payroll_frequency
+		from_date, to_date, cutoff_period, company, payroll_period, payroll_frequency, payroll_period_mode
 	)
 	employee_data = context["employee_lookup"].get(employee)
 	if not employee_data:
@@ -1102,9 +1305,10 @@ def get_employee_directory(
 	company=None,
 	payroll_period=None,
 	payroll_frequency=None,
+	payroll_period_mode=None,
 ):
 	context = _get_schedule_context(
-		from_date, to_date, cutoff_period, company, payroll_period, payroll_frequency
+		from_date, to_date, cutoff_period, company, payroll_period, payroll_frequency, payroll_period_mode
 	)
 	return {
 		"from_date": context["from_date"],
@@ -1126,9 +1330,10 @@ def generate(
 	company=None,
 	payroll_period=None,
 	payroll_frequency=None,
+	payroll_period_mode=None,
 ):
 	context = _get_schedule_context(
-		from_date, to_date, cutoff_period, company, payroll_period, payroll_frequency
+		from_date, to_date, cutoff_period, company, payroll_period, payroll_frequency, payroll_period_mode
 	)
 	default_employee = next(
 		(employee["employee"] for employee in context["employee_summaries"] if employee["status"] == "Ready"),
