@@ -46,6 +46,7 @@ doc_events = {
     },
     "BOM": {
         "before_validate": [
+            "qcmc_logic.customs.bom_roll_required_kg.apply_roll_required_kg",
             "qcmc_logic.customs.bom_rate.fetch_missing_component_rates",
             "qcmc_logic.customs.bom_formulation.apply_roll_formulation_rules",
         ]

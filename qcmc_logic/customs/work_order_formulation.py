@@ -143,7 +143,11 @@ def is_roll_bom(bom):
 	if not bom.get("item"):
 		return False
 
-	return frappe.db.get_value("Item", bom.item, "item_group") == "Rolls"
+	return is_roll_item_group(frappe.db.get_value("Item", bom.item, "item_group"))
+
+
+def is_roll_item_group(item_group):
+	return (item_group or "").strip().upper() == "ROLLS"
 
 
 def get_formulation_categories(bom):

@@ -4002,7 +4002,7 @@
   "property": "field_order",
   "property_type": "Data",
   "row_name": null,
-  "value": "[\"item_code\", \"item_name\", \"operation\", \"column_break_3\", \"do_not_explode\", \"bom_no\", \"source_warehouse\", \"allow_alternative_item\", \"is_stock_item\", \"custom_is_roll\", \"custom_include_in_formulation\", \"custom_material_ratio_percent\", \"custom_apply_roll_trimming\", \"section_break_5\", \"description\", \"col_break1\", \"image\", \"image_view\", \"quantity_and_rate\", \"qty\", \"uom\", \"col_break2\", \"stock_qty\", \"stock_uom\", \"conversion_factor\", \"rate_amount_section\", \"rate\", \"base_rate\", \"column_break_21\", \"amount\", \"base_amount\", \"section_break_18\", \"qty_consumed_per_unit\", \"section_break_27\", \"has_variants\", \"include_item_in_manufacturing\", \"original_item\", \"column_break_33\", \"sourced_by_supplier\"]"
+  "value": "[\"item_code\", \"item_name\", \"operation\", \"column_break_3\", \"do_not_explode\", \"bom_no\", \"source_warehouse\", \"allow_alternative_item\", \"is_stock_item\", \"custom_include_in_formulation\", \"custom_material_ratio_percent\", \"custom_apply_roll_trimming\", \"section_break_5\", \"description\", \"col_break1\", \"image\", \"image_view\", \"quantity_and_rate\", \"qty\", \"uom\", \"col_break2\", \"stock_qty\", \"stock_uom\", \"conversion_factor\", \"rate_amount_section\", \"rate\", \"base_rate\", \"column_break_21\", \"amount\", \"base_amount\", \"section_break_18\", \"qty_consumed_per_unit\", \"section_break_27\", \"has_variants\", \"include_item_in_manufacturing\", \"original_item\", \"column_break_33\", \"sourced_by_supplier\"]"
  },
  {
   "default_value": null,

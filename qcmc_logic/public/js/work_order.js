@@ -80,7 +80,7 @@ async function configure_roll_formulation_grid(frm) {
 	let is_roll_bom = cint(bom.custom_is_roll_bom);
 	if (!is_roll_bom && bom.item) {
 		const item_response = await frappe.db.get_value("Item", bom.item, "item_group");
-		is_roll_bom = item_response?.message?.item_group === "Rolls";
+		is_roll_bom = is_roll_item_group(item_response?.message?.item_group);
 	}
 	if (!is_roll_bom || frm.doc.bom_no !== requested_bom) {
 		frm._qcmc_is_roll_bom = false;
@@ -127,6 +127,10 @@ async function configure_roll_formulation_grid(frm) {
 		can_add_rows: !grid.cannot_add_rows && !grid.df.cannot_add_rows,
 		can_delete_rows: !grid.cannot_delete_rows && !grid.df.cannot_delete_rows,
 	});
+}
+
+function is_roll_item_group(item_group) {
+	return (item_group || "").trim().toUpperCase() === "ROLLS";
 }
 
 function configure_roll_formulation_row(grid_row) {
