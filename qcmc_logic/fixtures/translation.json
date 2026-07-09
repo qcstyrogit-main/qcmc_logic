@@ -7,6 +7,7 @@
   "docstatus": 0,
   "doctype": "Translation",
   "language": "en",
+  "modified": "2026-06-26 07:54:28.109461",
   "name": "0bds8l4kb0",
   "source_text": "Purchase Receipt",
   "translated_text": "Warehouse Receiving Report"
@@ -19,6 +20,7 @@
   "docstatus": 0,
   "doctype": "Translation",
   "language": "en",
+  "modified": "2026-06-26 07:54:28.116225",
   "name": "10urdiplsu",
   "source_text": "Appointment Letter Template",
   "translated_text": "Contract Template"
@@ -31,6 +33,7 @@
   "docstatus": 0,
   "doctype": "Translation",
   "language": "en",
+  "modified": "2026-06-26 07:54:28.124325",
   "name": "3rinrcnkau",
   "source_text": "Fiscal Year",
   "translated_text": "Calendar Year"
@@ -43,6 +46,7 @@
   "docstatus": 0,
   "doctype": "Translation",
   "language": "en",
+  "modified": "2026-06-26 07:54:28.129674",
   "name": "5t0jb6625e",
   "source_text": "Purchase Invoice",
   "translated_text": "Accounts Payable Voucher"
@@ -55,18 +59,7 @@
   "docstatus": 0,
   "doctype": "Translation",
   "language": "en",
-  "name": "98019a9499",
-  "source_text": "Salary Register",
-  "translated_text": "Payroll Register"
- },
- {
-  "context": null,
-  "contributed": 0,
-  "contribution_docname": null,
-  "contribution_status": "",
-  "docstatus": 0,
-  "doctype": "Translation",
-  "language": "en",
+  "modified": "2026-06-26 07:54:28.140096",
   "name": "a0d29l2d21",
   "source_text": "Job Requisition",
   "translated_text": "Manpower Requisition Form"
@@ -79,6 +72,7 @@
   "docstatus": 0,
   "doctype": "Translation",
   "language": "en",
+  "modified": "2026-06-26 07:54:28.145054",
   "name": "a3ht0igvko",
   "source_text": "KRA",
   "translated_text": "KPI"
@@ -91,6 +85,7 @@
   "docstatus": 0,
   "doctype": "Translation",
   "language": "en",
+  "modified": "2026-06-26 07:54:28.150091",
   "name": "frst7ii48n",
   "source_text": "Stock",
   "translated_text": "Inventory"
@@ -103,6 +98,7 @@
   "docstatus": 0,
   "doctype": "Translation",
   "language": "en",
+  "modified": "2026-06-26 07:54:28.155568",
   "name": "kqruhaifjr",
   "source_text": "Appointment Letter",
   "translated_text": "Contract"
@@ -115,6 +111,7 @@
   "docstatus": 0,
   "doctype": "Translation",
   "language": "en",
+  "modified": "2026-06-26 07:54:28.161283",
   "name": "m8bgi84k8e",
   "source_text": "Sales Person",
   "translated_text": "Account Manager"
@@ -127,6 +124,7 @@
   "docstatus": 0,
   "doctype": "Translation",
   "language": "en",
+  "modified": "2026-06-26 07:54:28.166679",
   "name": "nonpeop6og",
   "source_text": "Work Order",
   "translated_text": "Job Order"
@@ -139,6 +137,7 @@
   "docstatus": 0,
   "doctype": "Translation",
   "language": "en",
+  "modified": "2026-06-26 07:54:28.171965",
   "name": "rmtnfjclpo",
   "source_text": "Tax ID",
   "translated_text": "TIN ID"
@@ -151,8 +150,22 @@
   "docstatus": 0,
   "doctype": "Translation",
   "language": "en",
+  "modified": "2026-06-26 07:54:28.177165",
   "name": "t3vjnbbhda",
   "source_text": "Buying",
   "translated_text": "Procurement"
+ },
+ {
+  "context": null,
+  "contributed": 0,
+  "contribution_docname": null,
+  "contribution_status": "",
+  "docstatus": 0,
+  "doctype": "Translation",
+  "language": "en",
+  "modified": "2024-04-16 02:07:38.940565",
+  "name": "98019a9499",
+  "source_text": "Salary Register",
+  "translated_text": "Payroll Register"
  }
 ]

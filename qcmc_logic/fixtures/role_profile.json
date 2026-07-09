@@ -2,6 +2,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:13.255042",
   "name": "Account Manager",
   "role_profile": "Account Manager",
   "roles": [
@@ -22,6 +23,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:14.200081",
   "name": "Asset Management - End User",
   "role_profile": "Asset Management - End User",
   "roles": [
@@ -51,6 +53,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:14.209682",
   "name": "Asset Management - Super User",
   "role_profile": "Asset Management - Super User",
   "roles": [
@@ -92,6 +95,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:14.218615",
   "name": "Audit - End User",
   "role_profile": "Audit - End User",
   "roles": [
@@ -106,6 +110,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:14.225704",
   "name": "Audit - Super User",
   "role_profile": "Audit - Super User",
   "roles": [
@@ -123,6 +128,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:14.233490",
   "name": "CandC",
   "role_profile": "CandC",
   "roles": [
@@ -155,6 +161,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:14.584792",
   "name": "Cost Acct. - End User",
   "role_profile": "Cost Acct. - End User",
   "roles": [
@@ -169,6 +176,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:14.591962",
   "name": "Cost Acct. - Super User",
   "role_profile": "Cost Acct. - Super User",
   "roles": [
@@ -186,6 +194,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:14.599470",
   "name": "Credit and Collection - End User",
   "role_profile": "Credit and Collection - End User",
   "roles": [
@@ -209,6 +218,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:14.607811",
   "name": "Credit and Collection - Super User",
   "role_profile": "Credit and Collection - Super User",
   "roles": [
@@ -244,6 +254,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:14.616331",
   "name": "Delivery Driver",
   "role_profile": "Delivery Driver",
   "roles": [
@@ -264,6 +275,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:14.657066",
   "name": "Edsa - Machine Shop",
   "role_profile": "Edsa - Machine Shop",
   "roles": []
@@ -271,6 +283,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:14.663977",
   "name": "Edsa - Motorpool",
   "role_profile": "Edsa - Motorpool",
   "roles": []
@@ -278,6 +291,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:14.670855",
   "name": "Edsa Warehouse",
   "role_profile": "Edsa Warehouse",
   "roles": [
@@ -295,6 +309,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:14.793052",
   "name": "Employee",
   "role_profile": "Employee",
   "roles": [
@@ -309,6 +324,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:18.450548",
   "name": "Engineering - End User",
   "role_profile": "Engineering - End User",
   "roles": [
@@ -329,6 +345,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:18.458806",
   "name": "Engineering - SME",
   "role_profile": "Engineering - SME",
   "roles": [
@@ -364,6 +381,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:18.536286",
   "name": "Engineering - Super User",
   "role_profile": "Engineering - Super User",
   "roles": [
@@ -399,6 +417,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:18.637649",
   "name": "Engineering Custodian  - End User",
   "role_profile": "Engineering Custodian  - End User",
   "roles": [
@@ -422,6 +441,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:18.652156",
   "name": "ExemptWorkflow",
   "role_profile": "ITEM_Exempt Workflow",
   "roles": [
@@ -667,6 +687,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:18.674940",
   "name": "Finance - SME",
   "role_profile": "Finance - SME",
   "roles": [
@@ -702,6 +723,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:18.683979",
   "name": "General Accounting Staff",
   "role_profile": "General Accounting Staff",
   "roles": [
@@ -731,6 +753,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:18.851944",
   "name": "General Acct - End User",
   "role_profile": "General Acct - End User",
   "roles": [
@@ -748,6 +771,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:18.859470",
   "name": "General Acct - Super User",
   "role_profile": "General Acct - Super User",
   "roles": [
@@ -777,6 +801,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:18.867429",
   "name": "Guyong - Maintenance",
   "role_profile": "Guyong - Maintenance",
   "roles": []
@@ -784,6 +809,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:18.935670",
   "name": "Guyong - Motorpool",
   "role_profile": "Guyong - Motorpool",
   "roles": []
@@ -791,6 +817,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:18.998016",
   "name": "Guyong - Production",
   "role_profile": "Guyong - Production",
   "roles": []
@@ -798,6 +825,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.005319",
   "name": "HR Learning",
   "role_profile": "HR Learning",
   "roles": [
@@ -830,6 +858,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.404357",
   "name": "HR Manager",
   "role_profile": "HR Manager",
   "roles": [
@@ -853,6 +882,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.412209",
   "name": "HR Supervisor",
   "role_profile": "HR Supervisor",
   "roles": [
@@ -873,6 +903,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.474677",
   "name": "HRD - SME",
   "role_profile": "HRD - SME",
   "roles": [
@@ -911,6 +942,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.485121",
   "name": "HRD - Super User",
   "role_profile": "HRD - Super User",
   "roles": [
@@ -946,6 +978,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.493838",
   "name": "HRD Admin  - End User",
   "role_profile": "HRD Admin  - End User",
   "roles": [
@@ -969,6 +1002,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.501776",
   "name": "HRD Compben - End User",
   "role_profile": "HRD Compben - End User",
   "roles": [
@@ -986,6 +1020,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.509316",
   "name": "HRD Payroll - End User",
   "role_profile": "HRD Payroll - End User",
   "roles": [
@@ -1009,6 +1044,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.517191",
   "name": "HRD Recruitment - End User",
   "role_profile": "HRD Recruitment - End User",
   "roles": [
@@ -1035,6 +1071,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.525093",
   "name": "LMS",
   "role_profile": "LMS",
   "roles": [
@@ -1049,6 +1086,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.532306",
   "name": "Logistic  - Motorpool - End User",
   "role_profile": "Logistic  - Motorpool - End User",
   "roles": [
@@ -1069,6 +1107,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.540740",
   "name": "Logistic - Super User",
   "role_profile": "Logistic - Super User",
   "roles": [
@@ -1107,6 +1146,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.603984",
   "name": "Logistic FG - End User",
   "role_profile": "Logistic FG - End User",
   "roles": [
@@ -1127,6 +1167,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.612129",
   "name": "Logistics - SME",
   "role_profile": "Logistics - SME",
   "roles": [
@@ -1168,6 +1209,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.668500",
   "name": "MC - Maintenance",
   "role_profile": "MC - Maintenance",
   "roles": []
@@ -1175,6 +1217,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.779788",
   "name": "MC - Motorpool",
   "role_profile": "MC - Motorpool",
   "roles": []
@@ -1182,6 +1225,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.786418",
   "name": "MC - Production",
   "role_profile": "MC - Production",
   "roles": []
@@ -1189,6 +1233,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.793762",
   "name": "MC ADMIN - SME",
   "role_profile": "MC ADMIN - SME",
   "roles": [
@@ -1218,6 +1263,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.802492",
   "name": "MC IE  - End User",
   "role_profile": "MC IE  - End User",
   "roles": [
@@ -1238,6 +1284,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.810729",
   "name": "MC IE  - Super User",
   "role_profile": "MC IE  - Super User",
   "roles": [
@@ -1267,6 +1314,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.820102",
   "name": "MC IE - SME",
   "role_profile": "MC IE - SME",
   "roles": [
@@ -1299,6 +1347,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.829277",
   "name": "MC Maintenance  - End User",
   "role_profile": "MC Maintenance  - End User",
   "roles": [
@@ -1325,6 +1374,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.887011",
   "name": "MC Maintenance  - Super User",
   "role_profile": "MC Maintenance  - Super User",
   "roles": [
@@ -1360,6 +1410,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.955172",
   "name": "MC Maintenance - SME",
   "role_profile": "MC Maintenance - SME",
   "roles": [
@@ -1395,6 +1446,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.965111",
   "name": "MC PPIC  - Super User",
   "role_profile": "MC PPIC  - Super User",
   "roles": [
@@ -1424,6 +1476,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:19.974148",
   "name": "MC Plant Manager",
   "role_profile": "MC Plant Manager",
   "roles": [
@@ -1447,6 +1500,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.041212",
   "name": "MC Production - Super User",
   "role_profile": "MC Production - Super User",
   "roles": [
@@ -1479,6 +1533,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.049780",
   "name": "MC QA - End User",
   "role_profile": "MC QA - End User",
   "roles": [
@@ -1499,6 +1554,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.057865",
   "name": "MC QA - SME",
   "role_profile": "MC QA - SME",
   "roles": [
@@ -1531,6 +1587,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.066547",
   "name": "MC QA - Super User",
   "role_profile": "MC QA - Super User",
   "roles": [
@@ -1557,6 +1614,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.074693",
   "name": "MC RM  - End User",
   "role_profile": "MC RM  - End User",
   "roles": [
@@ -1574,6 +1632,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.082091",
   "name": "MC RM  - Super User",
   "role_profile": "MC RM  - Super User",
   "roles": [
@@ -1594,6 +1653,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.089726",
   "name": "MC Toolroom",
   "role_profile": "MC Toolroom",
   "roles": [
@@ -1614,6 +1674,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.097608",
   "name": "MIS - SME",
   "role_profile": "MIS - SME",
   "roles": [
@@ -1643,6 +1704,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.107017",
   "name": "MIS - Super User",
   "role_profile": "MIS - Super User",
   "roles": [
@@ -1708,6 +1770,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.117424",
   "name": "Motorpool",
   "role_profile": "Motorpool",
   "roles": [
@@ -1725,6 +1788,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.125251",
   "name": "PPIC",
   "role_profile": "PPIC",
   "roles": [
@@ -1763,6 +1827,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.130326",
   "name": "Payroll Master",
   "role_profile": "Payroll Master",
   "roles": [
@@ -1798,6 +1863,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.138627",
   "name": "Procurement",
   "role_profile": "Procurement",
   "roles": [
@@ -1815,6 +1881,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.198100",
   "name": "Procurement - End User",
   "role_profile": "Procurement - End User",
   "roles": [
@@ -1835,6 +1902,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.206378",
   "name": "Procurement - SME",
   "role_profile": "Procurement - SME",
   "roles": [
@@ -1864,6 +1932,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.217886",
   "name": "Procurement - Super User",
   "role_profile": "Procurement - Super User",
   "roles": [
@@ -1893,6 +1962,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.226716",
   "name": "QC ADMIN - SME",
   "role_profile": "QC ADMIN - SME",
   "roles": [
@@ -1922,6 +1992,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.235355",
   "name": "QC IE  - End User",
   "role_profile": "QC IE  - End User",
   "roles": [
@@ -1942,6 +2013,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.243565",
   "name": "QC IE  - Super User",
   "role_profile": "QC IE  - Super User",
   "roles": [
@@ -1971,6 +2043,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.252452",
   "name": "QC IE - SME",
   "role_profile": "QC IE - SME",
   "roles": [
@@ -2003,6 +2076,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.261402",
   "name": "QC Maintenance  - End User",
   "role_profile": "QC Maintenance  - End User",
   "roles": [
@@ -2029,6 +2103,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.270563",
   "name": "QC Maintenance  - Super User",
   "role_profile": "QC Maintenance  - Super User",
   "roles": [
@@ -2064,6 +2139,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.281361",
   "name": "QC Maintenance - SME",
   "role_profile": "QC Maintenance - SME",
   "roles": [
@@ -2102,6 +2178,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.349395",
   "name": "QC PPIC  - Super User",
   "role_profile": "QC PPIC  - Super User",
   "roles": [
@@ -2131,6 +2208,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.357733",
   "name": "QC Plant Manager",
   "role_profile": "QC Plant Manager",
   "roles": [
@@ -2157,6 +2235,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.421677",
   "name": "QC Production - End User",
   "role_profile": "QC Production - End User",
   "roles": [
@@ -2186,6 +2265,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.430716",
   "name": "QC Production - Super User",
   "role_profile": "QC Production - Super User",
   "roles": [
@@ -2218,6 +2298,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.439038",
   "name": "QC QA - End User",
   "role_profile": "QC QA - End User",
   "roles": [
@@ -2238,6 +2319,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.447034",
   "name": "QC QA - SME",
   "role_profile": "QC QA - SME",
   "roles": [
@@ -2267,6 +2349,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.455296",
   "name": "QC QA - Super User",
   "role_profile": "QC QA - Super User",
   "roles": [
@@ -2290,6 +2373,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.463313",
   "name": "QC RM  - End User",
   "role_profile": "QC RM  - End User",
   "roles": [
@@ -2310,6 +2394,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.470805",
   "name": "QC RM  - Super User",
   "role_profile": "QC RM  - Super User",
   "roles": [
@@ -2330,6 +2415,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.487546",
   "name": "SCM",
   "role_profile": "SCM",
   "roles": [
@@ -2704,6 +2790,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.517601",
   "name": "Sales - Accounts Manager",
   "role_profile": "Sales - Accounts Manager",
   "roles": [
@@ -2727,6 +2814,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.525446",
   "name": "Sales - Coordinator - End User",
   "role_profile": "Sales - Coordinator - End User",
   "roles": [
@@ -2750,6 +2838,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.533224",
   "name": "Sales - Coordinator - Super User",
   "role_profile": "Sales - Coordinator - Super User",
   "roles": [
@@ -2773,6 +2862,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.541597",
   "name": "Sales - Invoicing Clerk - End User",
   "role_profile": "Sales - Invoicing Clerk - End User",
   "roles": [
@@ -2796,6 +2886,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.549720",
   "name": "Sales - Regional Manager",
   "role_profile": "Sales - Regional Manager",
   "roles": [
@@ -2822,6 +2913,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.557955",
   "name": "Sales - SME",
   "role_profile": "Sales - SME",
   "roles": [
@@ -2854,6 +2946,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.566476",
   "name": "Sales - Super User",
   "role_profile": "Sales - Super User",
   "roles": [
@@ -2883,6 +2976,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.574112",
   "name": "Sta Clara - Maintenance",
   "role_profile": "Sta Clara - Maintenance",
   "roles": []
@@ -2890,6 +2984,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.637755",
   "name": "Sta Clara - Motorpool",
   "role_profile": "Sta Clara - Motorpool",
   "roles": []
@@ -2897,6 +2992,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.643950",
   "name": "Sta Clara - Production",
   "role_profile": "Sta Clara - Production",
   "roles": []
@@ -2904,6 +3000,7 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "modified": "2026-07-08 16:10:20.650555",
   "name": "Stockroom Encoder",
   "role_profile": "Stockroom Encoder",
   "roles": [

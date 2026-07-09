@@ -90,6 +90,9 @@ doc_events = {
         "autoname": "qcmc_logic.customs.machine_shop_job_request.autoname",
         "validate": "qcmc_logic.customs.machine_shop_job_request.validate",
     },
+    "Machine Shop Repairs and Project": {
+        "validate": "qcmc_logic.customs.machine_shop_repairs_and_project.validate",
+    },
     "Job Card Downtime": {
         "validate": "qcmc_logic.customs.job_card_downtime.validate",
     },
@@ -165,6 +168,7 @@ permission_query_conditions = {
      "Job Requisition": "qcmc_logic.customs.staffingplan_permission.mrf_permission_query_condition",
      "Delivery Note": "qcmc_logic.customs.permissions.delivery_note_permission_query",
      "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_permission_query",
+     "Machine Shop Repairs and Project": "qcmc_logic.customs.machine_shop_repairs_and_project.msrp_permission_query",
      "Material Request": "qcmc_logic.customs.permissions.material_request_permission_query",
      "Pick List": "qcmc_logic.customs.permissions.pick_list_permission_query",
      "Purchase Invoice": "qcmc_logic.customs.permissions.purchase_invoice_permission_query",
@@ -182,6 +186,7 @@ permission_query_conditions = {
 has_permission = {
     "Delivery Note": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_has_permission",
+    "Machine Shop Repairs and Project": "qcmc_logic.customs.machine_shop_repairs_and_project.msrp_has_permission",
     "Material Request": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Pick List": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Purchase Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
@@ -282,6 +287,7 @@ before_migrate = [
 ]
 after_migrate = [
     "qcmc_logic.customs.machine_shop_job_request.ensure_msjr_permissions",
+    "qcmc_logic.customs.machine_shop_repairs_and_project.ensure_msrp_permissions",
 ]
 
 # # Or ensure it loads at boot
