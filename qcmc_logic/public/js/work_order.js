@@ -5,20 +5,6 @@ console.info(
 );
 
 frappe.ui.form.on("Work Order", {
-	setup(frm) {
-		$(frm.wrapper)
-			.off("grid-row-render.qcmc-roll-formulation")
-			.on("grid-row-render.qcmc-roll-formulation", (event, grid_row) => {
-				if (
-					frm._qcmc_is_roll_bom &&
-					frm.doc.docstatus === 0 &&
-					grid_row.grid?.df?.fieldname === "required_items"
-				) {
-					configure_roll_formulation_row(grid_row);
-				}
-			});
-	},
-
 	refresh(frm) {
 		schedule_roll_formulation_grid_config(frm);
 		schedule_roll_formulation_preview(frm);
@@ -63,6 +49,7 @@ function schedule_roll_formulation_grid_config(frm) {
 async function configure_roll_formulation_grid(frm) {
 	if (!frm.doc.bom_no || frm.doc.docstatus !== 0) {
 		frm._qcmc_is_roll_bom = false;
+		apply_roll_formulation_field_visibility(frm, false);
 		return;
 	}
 
@@ -84,11 +71,13 @@ async function configure_roll_formulation_grid(frm) {
 	}
 	if (!is_roll_bom || frm.doc.bom_no !== requested_bom) {
 		frm._qcmc_is_roll_bom = false;
+		apply_roll_formulation_field_visibility(frm, false);
 		frm.remove_custom_button(__("Edit Formulation"), __("Roll Formulation"));
 		return;
 	}
 
 	frm._qcmc_is_roll_bom = true;
+	apply_roll_formulation_field_visibility(frm, true);
 
 	const field = frm.get_field("required_items");
 	if (!field) {
@@ -131,6 +120,21 @@ async function configure_roll_formulation_grid(frm) {
 
 function is_roll_item_group(item_group) {
 	return (item_group || "").trim().toUpperCase() === "ROLLS";
+}
+
+function apply_roll_formulation_field_visibility(frm, show) {
+	const grid = frm.get_field("required_items") && frm.get_field("required_items").grid;
+	if (!grid) {
+		return;
+	}
+
+	show = show ? true : false;
+	if (frm._qcmc_work_order_roll_formulation_fields_visible === show) {
+		return;
+	}
+
+	frm._qcmc_work_order_roll_formulation_fields_visible = show;
+	grid.set_column_disp(get_roll_formulation_item_fields(), show);
 }
 
 function configure_roll_formulation_row(grid_row) {

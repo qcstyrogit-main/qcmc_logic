@@ -48,15 +48,12 @@ frappe.ui.form.on("BOM", {
 
 	items_remove(frm) {
 		recalculate_formulation_total(frm);
+		apply_roll_formulation_field_visibility(frm);
 		schedule_roll_required_kg_recalculation(frm);
 	},
 });
 
 frappe.ui.form.on("BOM Item", {
-	form_render(frm) {
-		apply_roll_formulation_field_visibility(frm);
-	},
-
 	item_code(frm, cdt, cdn) {
 		handle_roll_item_code_change(frm, cdt, cdn);
 	},
@@ -107,22 +104,17 @@ function apply_roll_formulation_field_visibility(frm) {
 		return;
 	}
 
-	const hidden = cint(frm.doc.custom_is_roll_bom) ? 0 : 1;
+	const show = cint(frm.doc.custom_is_roll_bom) ? true : false;
+	if (frm._qcmc_roll_formulation_fields_visible === show) {
+		return;
+	}
+
+	frm._qcmc_roll_formulation_fields_visible = show;
 	for (const fieldname of get_roll_formulation_item_fields()) {
-		grid.update_docfield_property(fieldname, "hidden", hidden);
+		grid.set_column_disp(fieldname, show);
+		grid.update_docfield_property(fieldname, "hidden", show ? 0 : 1);
+		grid.update_docfield_property(fieldname, "in_list_view", show ? 1 : 0);
 	}
-
-	if (grid.grid_rows) {
-		for (const grid_row of grid.grid_rows) {
-			if (grid_row && grid_row.toggle_display) {
-				for (const fieldname of get_roll_formulation_item_fields()) {
-					grid_row.toggle_display(fieldname, !hidden);
-				}
-			}
-		}
-	}
-
-	frm.refresh_field("items");
 }
 
 function get_roll_formulation_item_fields() {
