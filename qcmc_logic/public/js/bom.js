@@ -119,6 +119,7 @@ function apply_roll_formulation_field_visibility(frm) {
 	frm._qcmc_roll_formulation_fields_visible = show;
 	for (const fieldname of get_roll_formulation_item_fields()) {
 		grid.set_column_disp(fieldname, show);
+		grid.update_docfield_property(fieldname, "depends_on", "eval:parent.custom_is_roll_bom == 1");
 		grid.update_docfield_property(fieldname, "hidden", show ? 0 : 1);
 		grid.update_docfield_property(fieldname, "in_list_view", show ? 1 : 0);
 	}
