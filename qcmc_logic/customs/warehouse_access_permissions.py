@@ -6,6 +6,7 @@ SKIP_DOCTYPES = {
     "Allowed Warehouse",
     "Cost Center Warehouse Mapping",
     "Error Log",
+    "Role Profile Warehouse Access",
     "Stock Settings",
     "Warehouse Transfer",
     "Warehouse",

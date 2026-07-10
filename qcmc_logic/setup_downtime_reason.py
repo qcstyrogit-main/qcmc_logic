@@ -428,20 +428,56 @@ RECORDS = [
 
 
 def _insert_records():
-    inserted = skipped = 0
-    for dt_code, description, category, subcategory, plant in RECORDS:
-        if frappe.db.exists("Downtime Reason", dt_code):
-            skipped += 1
-            continue
-        frappe.get_doc({
-            "doctype": "Downtime Reason",
-            "dt_code": dt_code,
-            "description": description,
-            "category": category,
-            "subcategory": subcategory,
-            "plant": plant,
-            "is_active": 1,
-        }).insert(ignore_permissions=True)
-        inserted += 1
+    existing_codes = set(
+        frappe.get_all(
+            "Downtime Reason",
+            filters={"name": ["in", [record[0] for record in RECORDS]]},
+            pluck="name",
+        )
+    )
+    now = frappe.utils.now_datetime()
+    user = frappe.session.user or "Administrator"
+    fields = [
+        "name",
+        "owner",
+        "creation",
+        "modified",
+        "modified_by",
+        "docstatus",
+        "idx",
+        "dt_code",
+        "description",
+        "category",
+        "subcategory",
+        "plant",
+        "is_active",
+    ]
+    values = [
+        (
+            dt_code,
+            user,
+            now,
+            now,
+            user,
+            0,
+            0,
+            dt_code,
+            description,
+            category,
+            subcategory,
+            plant,
+            1,
+        )
+        for dt_code, description, category, subcategory, plant in RECORDS
+        if dt_code not in existing_codes
+    ]
 
-    print(f"Inserted: {inserted}  |  Skipped (already exist): {skipped}")
+    if values:
+        frappe.db.bulk_insert(
+            "Downtime Reason",
+            fields=fields,
+            values=values,
+            ignore_duplicates=True,
+        )
+
+    print(f"Inserted: {len(values)}  |  Skipped (already exist): {len(existing_codes)}")
