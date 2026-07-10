@@ -39,6 +39,45 @@ def validate_default_warehouse(doc, method=None):
         frappe.throw("Only one default Allowed Warehouse is allowed per user.")
 
 
+def validate_role_profile_default_warehouse(doc, method=None):
+    defaults = [
+        row.warehouse
+        for row in doc.allowed_warehouses
+        if getattr(row, "is_default", 0)
+    ]
+    if not doc.role_profile:
+        return
+
+    other_access_names = frappe.get_all(
+        "Role Profile Warehouse Access",
+        filters={
+            "role_profile": doc.role_profile,
+            "name": ["!=", doc.name],
+        },
+        pluck="name",
+    )
+    other_default_count = 0
+
+    if other_access_names:
+        other_default_count = frappe.db.count(
+            "Allowed Warehouse",
+            {
+                "parent": ["in", other_access_names],
+                "is_default": 1,
+            },
+        )
+
+    default_count = len(defaults) + other_default_count
+
+    if default_count == 0:
+        frappe.throw("Set one Allowed Warehouse as the default warehouse.")
+
+    if default_count > 1:
+        frappe.throw(
+            "Only one default Allowed Warehouse is allowed per role profile."
+        )
+
+
 class WarehouseAccess(Document):
     def validate(self):
         self.validate_default_warehouse()

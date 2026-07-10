@@ -14,6 +14,7 @@ TARGET_DOCTYPES = {
     "ISO Doc Series",
     "Job Report",
     "Role Profile Inventory Group Access",
+    "Role Profile Warehouse Access",
     "SSS Table",
     "Vehicle Service Category",
     "Warehouse Transfer Details",

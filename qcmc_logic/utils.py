@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 import frappe
 from frappe.utils import flt
 
@@ -8,10 +10,31 @@ STOCK_ENTRY_WAREHOUSE_TYPE_EXEMPT_PURPOSES = {
 }
 
 
+def _site_cache_key():
+    return getattr(frappe.local, "site", None)
+
+
+@lru_cache(maxsize=256)
+def _cached_table_exists(site, doctype):
+    return frappe.db.table_exists(doctype)
+
+
+def _table_exists(doctype):
+    return _cached_table_exists(_site_cache_key(), doctype)
+
+
+@lru_cache(maxsize=512)
+def _cached_has_field(site, doctype, fieldname):
+    return frappe.get_meta(doctype).has_field(fieldname)
+
+
+def _has_field(doctype, fieldname):
+    return _cached_has_field(_site_cache_key(), doctype, fieldname)
+
+
 @frappe.whitelist()
 def is_global_warehouse_access_enabled():
-    meta = frappe.get_meta("Stock Settings")
-    if not meta.has_field("custom_enable_global_warehouse_access"):
+    if not _has_field("Stock Settings", "custom_enable_global_warehouse_access"):
         return False
 
     return bool(
@@ -26,8 +49,7 @@ def is_global_warehouse_access_enabled():
 
 @frappe.whitelist()
 def is_warehouse_type_restriction_enabled():
-    meta = frappe.get_meta("Stock Settings")
-    if not meta.has_field("custom_restrict_source_target_warehouse_type"):
+    if not _has_field("Stock Settings", "custom_restrict_source_target_warehouse_type"):
         return False
 
     return bool(
@@ -42,68 +64,154 @@ def is_warehouse_type_restriction_enabled():
 
 @frappe.whitelist()
 def get_user_allowed_warehouses(user=None, require_transact=False):
-    """Fetch warehouses from Warehouse Access for the given user.
+    """Fetch effective warehouses for the given user.
 
+    User-level Warehouse Access and Role Profile Warehouse Access are combined.
     Rows in Allowed Warehouse grant selection access by default. When
     require_transact is true, only rows with allow_transact checked are returned.
     """
     if not user:
         user = frappe.session.user
 
-    access_docs = frappe.get_all(
-        "Warehouse Access",
-        filters={"user": user},
-        fields=["name"],
-    )
-    if not access_docs:
+    access_conditions, values = _get_warehouse_access_conditions(user)
+    if not access_conditions:
         return []
 
-    filters = {"parent": ["in", [d.name for d in access_docs]]}
+    conditions = [f"({' or '.join(access_conditions)})"]
     if frappe.utils.cint(require_transact):
-        filters["allow_transact"] = 1
+        conditions.append("ifnull(aw.allow_transact, 0) = 1")
 
-    allowed = frappe.get_all(
-        "Allowed Warehouse",
-        filters=filters,
-        pluck="warehouse",
-        order_by="idx",
+    rows = frappe.db.sql(
+        f"""
+        select aw.warehouse
+        from `tabAllowed Warehouse` aw
+        where ifnull(aw.warehouse, '') != ''
+            and {" and ".join(conditions)}
+        group by aw.warehouse
+        order by min(aw.idx), aw.warehouse
+        """,
+        values,
+        as_list=True,
     )
 
-    return list(dict.fromkeys(filter(None, allowed)))
+    return [row[0] for row in rows]
 
 
 def _get_user_role_profiles(user):
-    role_profiles = []
-
-    role_profile_name = frappe.db.get_value("User", user, "role_profile_name")
-    if role_profile_name:
-        role_profiles.append(role_profile_name)
-
-    if frappe.db.table_exists("User Role Profile"):
-        role_profiles.extend(
-            frappe.get_all(
-                "User Role Profile",
-                filters={"parent": user},
-                pluck="role_profile",
-            )
-        )
-
-    return list(dict.fromkeys(filter(None, role_profiles)))
-
-
-def _get_allowed_warehouse_filters(user=None, require_transact=False, is_default=False):
     if not user:
         user = frappe.session.user
 
-    access_docs = frappe.get_all(
-        "Warehouse Access",
-        filters={"user": user},
-        fields=["name"],
-    )
-    if not access_docs:
+    queries = [
+        """
+        select role_profile_name
+        from `tabUser`
+        where name = %(user)s
+            and ifnull(role_profile_name, '') != ''
+        """
+    ]
+
+    if _table_exists("User Role Profile"):
+        queries.append(
+            """
+            select role_profile
+            from `tabUser Role Profile`
+            where parent = %(user)s
+                and ifnull(role_profile, '') != ''
+            """
+        )
+
+    role_profiles = [
+        row[0]
+        for row in frappe.db.sql(
+            " union ".join(queries),
+            {"user": user},
+            as_list=True,
+        )
+    ]
+    return list(dict.fromkeys(filter(None, role_profiles)))
+
+
+def _get_warehouse_access_conditions(user=None, source=None):
+    if not user:
+        user = frappe.session.user
+
+    conditions = []
+    values = {"user": user}
+
+    if source in (None, "User") and _table_exists("Warehouse Access"):
+        conditions.append(
+            """
+            exists (
+                select 1
+                from `tabWarehouse Access` wa
+                where wa.name = aw.parent
+                    and wa.user = %(user)s
+            )
+            """
+        )
+
+    if source in (None, "Role Profile") and _table_exists(
+        "Role Profile Warehouse Access"
+    ):
+        role_profiles = _get_user_role_profiles(user)
+        if role_profiles:
+            conditions.append(
+                """
+                exists (
+                    select 1
+                    from `tabRole Profile Warehouse Access` rpwa
+                    where rpwa.name = aw.parent
+                        and rpwa.role_profile in %(role_profiles)s
+                )
+                """
+            )
+            values["role_profiles"] = tuple(role_profiles)
+
+    return conditions, values
+
+
+def _get_effective_warehouse_access_names(user=None, source=None):
+    if not user:
+        user = frappe.session.user
+
+    access_names = []
+
+    if source in (None, "User") and _table_exists("Warehouse Access"):
+        access_names.extend(
+            frappe.get_all(
+                "Warehouse Access",
+                filters={"user": user},
+                pluck="name",
+            )
+        )
+
+    if source in (None, "Role Profile") and _table_exists(
+        "Role Profile Warehouse Access"
+    ):
+        role_profiles = _get_user_role_profiles(user)
+        if role_profiles:
+            access_names.extend(
+                frappe.get_all(
+                    "Role Profile Warehouse Access",
+                    filters={"role_profile": ["in", role_profiles]},
+                    pluck="name",
+                )
+            )
+
+    return list(dict.fromkeys(access_names))
+
+
+def _get_allowed_warehouse_filters(
+    user=None,
+    require_transact=False,
+    is_default=False,
+    source=None,
+):
+    access_names = _get_effective_warehouse_access_names(user, source=source)
+    if not access_names:
         return None
 
-    filters = {"parent": ["in", [d.name for d in access_docs]]}
+    filters = {"parent": ["in", access_names]}
     if frappe.utils.cint(require_transact):
         filters["allow_transact"] = 1
     if frappe.utils.cint(is_default):
@@ -112,11 +220,12 @@ def _get_allowed_warehouse_filters(user=None, require_transact=False, is_default
     return filters
 
 
-def _get_default_warehouse_from_source(user=None, require_transact=False):
+def _get_default_warehouse_from_source(user=None, require_transact=False, source=None):
     filters = _get_allowed_warehouse_filters(
         user,
         require_transact=require_transact,
         is_default=True,
+        source=source,
     )
     if not filters:
         return None
@@ -142,21 +251,67 @@ def get_user_allowed_inventory_groups(user=None, require_transact=False):
     if not user:
         user = frappe.session.user
 
-    access_names = _get_effective_inventory_group_access_names(user)
-    if not access_names:
+    access_conditions, values = _get_inventory_group_access_conditions(user)
+    if not access_conditions:
         return []
 
-    filters = {"parent": ["in", access_names]}
+    conditions = [f"({' or '.join(access_conditions)})"]
     if frappe.utils.cint(require_transact):
-        filters["allow_transact"] = 1
+        conditions.append("ifnull(aig.allow_transact, 0) = 1")
 
-    inventory_groups = frappe.get_all(
-        "Allowed Inventory Group",
-        filters=filters,
-        pluck="inventory_group",
-        order_by="idx",
+    rows = frappe.db.sql(
+        f"""
+        select aig.inventory_group
+        from `tabAllowed Inventory Group` aig
+        where ifnull(aig.inventory_group, '') != ''
+            and {" and ".join(conditions)}
+        group by aig.inventory_group
+        order by min(aig.idx), aig.inventory_group
+        """,
+        values,
+        as_list=True,
     )
-    return list(dict.fromkeys(filter(None, inventory_groups)))
+
+    return [row[0] for row in rows]
+
+
+def _get_inventory_group_access_conditions(user=None, source=None):
+    if not user:
+        user = frappe.session.user
+
+    conditions = []
+    values = {"user": user}
+
+    if source in (None, "User") and _table_exists("Inventory Group Access"):
+        conditions.append(
+            """
+            exists (
+                select 1
+                from `tabInventory Group Access` iga
+                where iga.name = aig.parent
+                    and iga.user = %(user)s
+            )
+            """
+        )
+
+    if source in (None, "Role Profile") and _table_exists(
+        "Role Profile Inventory Group Access"
+    ):
+        role_profiles = _get_user_role_profiles(user)
+        if role_profiles:
+            conditions.append(
+                """
+                exists (
+                    select 1
+                    from `tabRole Profile Inventory Group Access` rpiga
+                    where rpiga.name = aig.parent
+                        and rpiga.role_profile in %(role_profiles)s
+                )
+                """
+            )
+            values["role_profiles"] = tuple(role_profiles)
+
+    return conditions, values
 
 
 def _get_effective_inventory_group_access_names(user=None, source=None):
@@ -165,7 +320,7 @@ def _get_effective_inventory_group_access_names(user=None, source=None):
 
     access_names = []
 
-    if source in (None, "User") and frappe.db.table_exists("Inventory Group Access"):
+    if source in (None, "User") and _table_exists("Inventory Group Access"):
         access_names.extend(
             frappe.get_all(
                 "Inventory Group Access",
@@ -174,7 +329,7 @@ def _get_effective_inventory_group_access_names(user=None, source=None):
             )
         )
 
-    if source in (None, "Role Profile") and frappe.db.table_exists(
+    if source in (None, "Role Profile") and _table_exists(
         "Role Profile Inventory Group Access"
     ):
         role_profiles = _get_user_role_profiles(user)
@@ -287,7 +442,7 @@ def check_item_inventory_group_access(user, item_code, require_transact=False):
 
 @frappe.whitelist()
 def get_default_inventory_group_for_user(user=None, require_transact=False):
-    if not frappe.db.table_exists("Allowed Inventory Group"):
+    if not _table_exists("Allowed Inventory Group"):
         return None
 
     user_default = _get_default_inventory_group_from_source(
@@ -313,12 +468,21 @@ def check_warehouse_access(user, warehouse, require_transact=False):
 
 @frappe.whitelist()
 def get_default_warehouse_for_user(user=None, require_transact=False):
-    if not frappe.get_meta("Allowed Warehouse").has_field("is_default"):
+    if not _has_field("Allowed Warehouse", "is_default"):
         return None
+
+    user_default = _get_default_warehouse_from_source(
+        user,
+        require_transact=require_transact,
+        source="User",
+    )
+    if user_default:
+        return user_default
 
     return _get_default_warehouse_from_source(
         user,
         require_transact=require_transact,
+        source="Role Profile",
     )
 
 
@@ -337,17 +501,33 @@ def get_default_company_from_default_warehouse(user=None, require_transact=False
 def _get_warehouse_company(warehouse):
     if not warehouse:
         return None
-    return frappe.db.get_value("Warehouse", warehouse, "company")
+    return _get_warehouse_values(warehouse, ["company"]).get("company")
 
 
 def _get_warehouse_type(warehouse):
     if not warehouse:
         return None
-    return frappe.db.get_value("Warehouse", warehouse, "warehouse_type")
+    return _get_warehouse_values(warehouse, ["warehouse_type"]).get("warehouse_type")
+
+
+def _get_warehouse_is_province(warehouse):
+    if not warehouse:
+        return 0
+    return frappe.utils.cint(
+        _get_warehouse_values(warehouse, ["custom_is_province"]).get("custom_is_province")
+    )
+
+
+def _get_warehouse_values(warehouse, fields):
+    if not warehouse:
+        return {}
+
+    values = frappe.get_cached_value("Warehouse", warehouse, fields, as_dict=True)
+    return values or {}
 
 
 def _has_material_request_serving_warehouses():
-    if not frappe.get_meta("Warehouse").has_field("custom_can_serve_material_requests"):
+    if not _has_field("Warehouse", "custom_can_serve_material_requests"):
         return False
 
     return bool(
@@ -573,10 +753,12 @@ def get_material_request_source_warehouse_query(doctype, txt, searchfield, start
         conditions.append("w.name != %(target_warehouse)s")
         values["target_warehouse"] = target_warehouse
 
-        target_is_province = frappe.utils.cint(
-            frappe.db.get_value("Warehouse", target_warehouse, "custom_is_province")
+        target_values = _get_warehouse_values(
+            target_warehouse,
+            ["custom_is_province", "warehouse_type"],
         )
-        target_warehouse_type = _get_warehouse_type(target_warehouse)
+        target_is_province = frappe.utils.cint(target_values.get("custom_is_province"))
+        target_warehouse_type = target_values.get("warehouse_type")
         if (
             is_warehouse_type_restriction_enabled()
             and not target_is_province
@@ -632,11 +814,13 @@ def get_source_warehouse_query(doctype, txt, searchfield, start, page_len, filte
         conditions.append("w.name != %(target_warehouse)s")
         values["target_warehouse"] = target_warehouse
 
-        target_company = _get_warehouse_company(target_warehouse)
-        target_warehouse_type = _get_warehouse_type(target_warehouse)
-        target_is_province = frappe.utils.cint(
-            frappe.db.get_value("Warehouse", target_warehouse, "custom_is_province")
+        target_values = _get_warehouse_values(
+            target_warehouse,
+            ["company", "warehouse_type", "custom_is_province"],
         )
+        target_company = target_values.get("company")
+        target_warehouse_type = target_values.get("warehouse_type")
+        target_is_province = frappe.utils.cint(target_values.get("custom_is_province"))
 
         if transfer_type == "Warehouse Transfer":
             if target_company:
@@ -698,8 +882,12 @@ def get_target_warehouse_query(doctype, txt, searchfield, start, page_len, filte
         "page_len": page_len,
     }
 
-    source_company = _get_warehouse_company(source_warehouse)
-    source_warehouse_type = _get_warehouse_type(source_warehouse)
+    source_values = _get_warehouse_values(
+        source_warehouse,
+        ["company", "warehouse_type"],
+    )
+    source_company = source_values.get("company")
+    source_warehouse_type = source_values.get("warehouse_type")
     conditions.append("w.name != %(source_warehouse)s")
     values["source_warehouse"] = source_warehouse
 
@@ -825,7 +1013,7 @@ def get_material_request_transfer_items(material_request):
         frappe.throw(f"Material Request {material_request} must be a Material Transfer request.")
 
     item_fields = ["name", "item_code", "item_name", "stock_uom", "qty", "warehouse"]
-    if frappe.get_meta("Material Request Item").has_field("from_warehouse"):
+    if _has_field("Material Request Item", "from_warehouse"):
         item_fields.append("from_warehouse")
 
     return frappe.get_all(
@@ -847,7 +1035,7 @@ def _get_material_request_warehouses(material_request):
         return mr.set_from_warehouse, mr.set_warehouse
 
     item_fields = ["warehouse"]
-    if frappe.get_meta("Material Request Item").has_field("from_warehouse"):
+    if _has_field("Material Request Item", "from_warehouse"):
         item_fields.insert(0, "from_warehouse")
 
     item_warehouses = frappe.get_all(
@@ -868,16 +1056,22 @@ def _validate_transfer_picker_context(transfer_type, source_warehouse, target_wa
     if not transfer_type or not source_warehouse or not target_warehouse:
         frappe.throw("Select Transfer Type, Source Warehouse, and Target Warehouse first.")
 
-    source_company = _get_warehouse_company(source_warehouse)
-    target_company = _get_warehouse_company(target_warehouse)
-
     if source_warehouse == target_warehouse:
         frappe.throw("Source Warehouse and Target Warehouse cannot be the same.")
-    source_warehouse_type = _get_warehouse_type(source_warehouse)
-    target_warehouse_type = _get_warehouse_type(target_warehouse)
-    target_is_province = frappe.utils.cint(
-        frappe.db.get_value("Warehouse", target_warehouse, "custom_is_province")
+
+    source_values = _get_warehouse_values(
+        source_warehouse,
+        ["company", "warehouse_type"],
     )
+    target_values = _get_warehouse_values(
+        target_warehouse,
+        ["company", "warehouse_type", "custom_is_province"],
+    )
+    source_company = source_values.get("company")
+    target_company = target_values.get("company")
+    source_warehouse_type = source_values.get("warehouse_type")
+    target_warehouse_type = target_values.get("warehouse_type")
+    target_is_province = frappe.utils.cint(target_values.get("custom_is_province"))
 
     if transfer_type == "Warehouse Transfer":
         if source_company != target_company:
@@ -902,17 +1096,16 @@ def _can_serve_material_requests(warehouse):
     if not warehouse:
         return False
 
-    if frappe.utils.cint(frappe.db.get_value("Warehouse", warehouse, "custom_is_province")):
+    if _get_warehouse_is_province(warehouse):
         return False
 
     if _has_material_request_serving_warehouses():
         return bool(
             frappe.utils.cint(
-                frappe.db.get_value(
-                    "Warehouse",
+                _get_warehouse_values(
                     warehouse,
-                    "custom_can_serve_material_requests",
-                )
+                    ["custom_can_serve_material_requests"],
+                ).get("custom_can_serve_material_requests")
             )
         )
 
@@ -1115,7 +1308,6 @@ def make_warehouse_transfer_from_material_request(source_name, target_doc=None):
     return target
 
 
-@frappe.whitelist()
 @frappe.whitelist()
 def get_msjr_material_references(msjr_no):
     rows = []
@@ -1331,11 +1523,14 @@ def make_daily_job_report(process_name):
 
 
 def _get_transfer_type_for_warehouses(source_warehouse, target_warehouse):
-    source_company = _get_warehouse_company(source_warehouse)
-    target_company = _get_warehouse_company(target_warehouse)
-    target_is_province = frappe.utils.cint(
-        frappe.db.get_value("Warehouse", target_warehouse, "custom_is_province")
+    source_values = _get_warehouse_values(source_warehouse, ["company"])
+    target_values = _get_warehouse_values(
+        target_warehouse,
+        ["company", "custom_is_province"],
     )
+    source_company = source_values.get("company")
+    target_company = target_values.get("company")
+    target_is_province = frappe.utils.cint(target_values.get("custom_is_province"))
 
     if target_is_province:
         return "Provincial Warehouse Transfer"
