@@ -7,6 +7,34 @@ ROLL_ITEM_GROUP = "Rolls"
 TOTAL_TOLERANCE = 0.000001
 
 
+@frappe.whitelist()
+def get_item_roll_details(item_code):
+	"""Return roll-related Item details for BOM client scripts.
+
+	The BOM form needs this even for users who can edit BOMs but do not have
+	direct Item master read access.
+	"""
+	if not item_code:
+		return {
+			"item_group": None,
+			"is_roll": False,
+			"weight_per_unit": 0,
+		}
+
+	item = frappe.db.get_value(
+		"Item",
+		item_code,
+		["item_group", "weight_per_unit"],
+		as_dict=True,
+	) or {}
+
+	return {
+		"item_group": item.get("item_group"),
+		"is_roll": is_roll_item_group(item.get("item_group")),
+		"weight_per_unit": flt(item.get("weight_per_unit")),
+	}
+
+
 def apply_roll_formulation_rules(doc, method=None):
 	"""Derive roll flags/totals and validate formulation percentages for Roll BOMs."""
 	if doc.doctype != "BOM":
@@ -26,7 +54,11 @@ def is_roll_bom(doc):
 	if not doc.get("item"):
 		return False
 
-	return frappe.db.get_value("Item", doc.item, "item_group") == ROLL_ITEM_GROUP
+	return is_roll_item_group(frappe.db.get_value("Item", doc.item, "item_group"))
+
+
+def is_roll_item_group(item_group):
+	return (item_group or "").strip().upper() == ROLL_ITEM_GROUP.upper()
 
 
 def get_formulation_items(doc):
