@@ -1,17 +1,24 @@
+const ROLL_FORMULATION_ITEM_FIELDS = [
+	"custom_include_in_formulation",
+	"custom_material_ratio_percent",
+	"custom_apply_roll_trimming",
+];
+
 frappe.ui.form.on("BOM", {
-	refresh(frm) {
-		set_roll_bom_flag(frm);
+	async refresh(frm) {
+		await set_roll_bom_flag(frm);
 		recalculate_formulation_total(frm);
 		apply_roll_formulation_field_visibility(frm);
 		schedule_roll_required_kg_recalculation(frm);
 	},
 
-	item(frm) {
-		set_roll_bom_flag(frm);
-		fetch_finished_good_standard_weight(frm);
+	async item(frm) {
+		await set_roll_bom_flag(frm);
+		await fetch_finished_good_standard_weight(frm);
 	},
 
-	validate(frm) {
+	async validate(frm) {
+		await set_roll_bom_flag(frm);
 		recalculate_formulation_total(frm);
 		schedule_roll_required_kg_recalculation(frm);
 	},
@@ -60,10 +67,15 @@ frappe.ui.form.on("BOM Item", {
 
 	custom_include_in_formulation(frm, cdt, cdn) {
 		recalculate_formulation_total(frm);
+		refresh_bom_items_grid(frm);
 	},
 
 	custom_material_ratio_percent(frm) {
 		recalculate_formulation_total(frm);
+	},
+
+	custom_apply_roll_trimming(frm) {
+		refresh_bom_items_grid(frm);
 	},
 
 	items_remove(frm) {
@@ -91,10 +103,9 @@ async function set_roll_bom_flag(frm) {
 		return;
 	}
 
-	const result = await frappe.db.get_value("Item", frm.doc.item, "item_group");
-	const item_group = result && result.message && result.message.item_group;
+	const details = await get_item_roll_details(frm, frm.doc.item);
 
-	await frm.set_value("custom_is_roll_bom", is_roll_item_group(item_group) ? 1 : 0);
+	await frm.set_value("custom_is_roll_bom", details.is_roll ? 1 : 0);
 	apply_roll_formulation_field_visibility(frm);
 }
 
@@ -105,24 +116,23 @@ function apply_roll_formulation_field_visibility(frm) {
 	}
 
 	const show = cint(frm.doc.custom_is_roll_bom) ? true : false;
-	if (frm._qcmc_roll_formulation_fields_visible === show) {
-		return;
-	}
-
 	frm._qcmc_roll_formulation_fields_visible = show;
 	for (const fieldname of get_roll_formulation_item_fields()) {
 		grid.set_column_disp(fieldname, show);
 		grid.update_docfield_property(fieldname, "hidden", show ? 0 : 1);
 		grid.update_docfield_property(fieldname, "in_list_view", show ? 1 : 0);
 	}
+	refresh_bom_items_grid(frm);
 }
 
 function get_roll_formulation_item_fields() {
-	return [
-		"custom_include_in_formulation",
-		"custom_material_ratio_percent",
-		"custom_apply_roll_trimming",
-	];
+	return ROLL_FORMULATION_ITEM_FIELDS;
+}
+
+function refresh_bom_items_grid(frm) {
+	if (frm && frm.fields_dict && frm.fields_dict.items) {
+		frm.refresh_field("items");
+	}
 }
 
 async function fetch_finished_good_standard_weight(frm) {
@@ -130,9 +140,8 @@ async function fetch_finished_good_standard_weight(frm) {
 		return;
 	}
 
-	const result = await frappe.db.get_value("Item", frm.doc.item, "weight_per_unit");
-	const standard_weight = result && result.message && result.message.weight_per_unit;
-	await frm.set_value("custom_standard_weight_grams", flt(standard_weight));
+	const details = await get_item_roll_details(frm, frm.doc.item);
+	await frm.set_value("custom_standard_weight_grams", flt(details.weight_per_unit));
 	schedule_roll_required_kg_recalculation(frm);
 }
 
@@ -237,20 +246,25 @@ async function is_roll_item(frm, item_code) {
 		return false;
 	}
 
-	frm._qcmc_roll_item_group_cache = frm._qcmc_roll_item_group_cache || {};
-	if (Object.prototype.hasOwnProperty.call(frm._qcmc_roll_item_group_cache, item_code)) {
-		return frm._qcmc_roll_item_group_cache[item_code];
-	}
-
-	const result = await frappe.db.get_value("Item", item_code, "item_group");
-	const item_group = result && result.message && result.message.item_group;
-	const is_roll = is_roll_item_group(item_group);
-	frm._qcmc_roll_item_group_cache[item_code] = is_roll;
-	return is_roll;
+	const details = await get_item_roll_details(frm, item_code);
+	return details.is_roll;
 }
 
-function is_roll_item_group(item_group) {
-	return (item_group || "").trim().toUpperCase() === "ROLLS";
+async function get_item_roll_details(frm, item_code) {
+	frm._qcmc_roll_item_details_cache = frm._qcmc_roll_item_details_cache || {};
+	if (Object.prototype.hasOwnProperty.call(frm._qcmc_roll_item_details_cache, item_code)) {
+		return frm._qcmc_roll_item_details_cache[item_code];
+	}
+
+	const result = await frappe.call({
+		method: "qcmc_logic.customs.bom_formulation.get_item_roll_details",
+		args: {
+			item_code,
+		},
+	});
+	const details = result.message || {};
+	frm._qcmc_roll_item_details_cache[item_code] = details;
+	return details;
 }
 
 async function get_roll_rows(frm) {
