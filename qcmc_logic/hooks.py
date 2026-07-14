@@ -302,14 +302,6 @@ fixtures = [
     {"doctype": "Downtime Reason"},
     {"doctype": "Job Card Downtime"},
     {"doctype": "HMO Rate Plan"},
-    {"doctype": "HMO Employee Rate Detail"},
-    {"doctype": "HMO Dependent Rate Detail"},
-    {"doctype": "Employee HMO Enrollment"},
-    {"doctype": "Employee HMO Dependent"},
-    {"doctype": "Bulk HMO Enrollment Creation"},
-    {"doctype": "Bulk HMO Enrollment Creation Detail"},
-    {"doctype": "Bulk HMO Enrollment Renewal"},
-    {"doctype": "Bulk HMO Enrollment Renewal Detail"},
 ]
 before_migrate = [
     "qcmc_logic.migrate.run_role_profile_updates_inline",
