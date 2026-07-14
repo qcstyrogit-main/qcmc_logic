@@ -8,6 +8,12 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "name": "Acknowledge Again",
+  "workflow_action_name": "Acknowledge Again"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "name": "Active",
   "workflow_action_name": "Active"
  },
@@ -62,6 +68,12 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "name": "Confirm Completion",
+  "workflow_action_name": "Confirm Completion"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "name": "Converted to Application",
   "workflow_action_name": "Converted to Application"
  },
@@ -76,6 +88,12 @@
   "doctype": "Workflow Action Master",
   "name": "Dispose",
   "workflow_action_name": "Dispose"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "File Back Job",
+  "workflow_action_name": "File Back Job"
  },
  {
   "docstatus": 0,
@@ -172,6 +190,12 @@
   "doctype": "Workflow Action Master",
   "name": "Resubmit for Approval",
   "workflow_action_name": "Resubmit for Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Revert to Draft",
+  "workflow_action_name": "Revert to Draft"
  },
  {
   "docstatus": 0,
