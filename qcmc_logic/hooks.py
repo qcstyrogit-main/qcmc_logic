@@ -301,7 +301,6 @@ fixtures = [
     },
     {"doctype": "Downtime Reason"},
     {"doctype": "Job Card Downtime"},
-    {"doctype": "HMO Rate Plan"},
 ]
 before_migrate = [
     "qcmc_logic.migrate.run_role_profile_updates_inline",
