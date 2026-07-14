@@ -17,7 +17,7 @@ def get_po_print_format(doctype, name=None, print_format=None, **kwargs):
         series = (doc.naming_series or "").strip()
         if any(x in series for x in [".Q.X.#", ".M.X.#", ".MCY.#"]):
             return "PO_APEX"
-        return "PO"
+        return "PO_New"
 
     # fallback for other doctypes
     return print_format or None
