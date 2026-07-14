@@ -73,10 +73,17 @@ doc_events = {
         "validate": [
             "qcmc_logic.customs.salary_slip_attendance.apply_attendance_late",
             "qcmc_logic.customs.salary_slip_employer_contributions.apply_employer_contribution_rows",
+            "qcmc_logic.customs.salary_slip_hmo.apply_hmo_deduction",
             "qcmc_logic.customs.salary_slip_income_tax.apply_declared_income_tax",
         ],
-        "before_save": "qcmc_logic.customs.salary_slip_income_tax.apply_declared_income_tax",
-        "before_submit": "qcmc_logic.customs.salary_slip_income_tax.apply_declared_income_tax",
+        "before_save": [
+            "qcmc_logic.customs.salary_slip_hmo.apply_hmo_deduction",
+            "qcmc_logic.customs.salary_slip_income_tax.apply_declared_income_tax",
+        ],
+        "before_submit": [
+            "qcmc_logic.customs.salary_slip_hmo.apply_hmo_deduction",
+            "qcmc_logic.customs.salary_slip_income_tax.apply_declared_income_tax",
+        ],
     },
     "Overtime Slip": {
         "before_validate": "qcmc_logic.customs.overtime_slip.normalize_overtime_before_validate",
@@ -88,6 +95,12 @@ doc_events = {
     "Additional Salary": {
         "before_cancel": "qcmc_logic.api.batch_other_adjustment.allow_batch_additional_salary_cancel",
         "on_cancel": "qcmc_logic.api.batch_other_adjustment.update_batch_row_on_additional_salary_cancel",
+    },
+    "HMO Rate Plan": {
+        "validate": "qcmc_logic.customs.hmo_rates.validate_rate_plan",
+    },
+    "Employee HMO Enrollment": {
+        "validate": "qcmc_logic.customs.hmo_enrollment.validate_hmo_enrollment",
     },
     "Machine Shop Job Request": {
         "autoname": "qcmc_logic.customs.machine_shop_job_request.autoname",
@@ -123,6 +136,10 @@ doctype_js = {
     "Overtime Slip": "public/js/overtime_slip.js",
     "Batch Other Adjustment Entry": "public/js/batch_other_adjustment_entry.js",
     "Payroll Entry": "public/js/payroll_entry.js",
+    "Employee HMO Enrollment": "public/js/employee_hmo_enrollment.js",
+    "HMO Rate Plan": "public/js/hmo_rate_plan.js",
+    "Bulk HMO Enrollment Creation": "public/js/bulk_hmo_enrollment_creation.js",
+    "Bulk HMO Enrollment Renewal": "public/js/bulk_hmo_enrollment_renewal.js",
 }
 
 doctype_list_js = {}
@@ -284,6 +301,15 @@ fixtures = [
     },
     {"doctype": "Downtime Reason"},
     {"doctype": "Job Card Downtime"},
+    {"doctype": "HMO Rate Plan"},
+    {"doctype": "HMO Employee Rate Detail"},
+    {"doctype": "HMO Dependent Rate Detail"},
+    {"doctype": "Employee HMO Enrollment"},
+    {"doctype": "Employee HMO Dependent"},
+    {"doctype": "Bulk HMO Enrollment Creation"},
+    {"doctype": "Bulk HMO Enrollment Creation Detail"},
+    {"doctype": "Bulk HMO Enrollment Renewal"},
+    {"doctype": "Bulk HMO Enrollment Renewal Detail"},
 ]
 before_migrate = [
     "qcmc_logic.migrate.run_role_profile_updates_inline",
@@ -369,10 +395,11 @@ app_include_js = [
 # ----------
 
 # add methods and filters to jinja environment
-# jinja = {
-# 	"methods": "qcmc_logic.utils.jinja_methods",
-# 	"filters": "qcmc_logic.utils.jinja_filters"
-# }
+jinja = {
+    "methods": [
+        "qcmc_logic.api.hmo_print.get_hmo_plan_year_history",
+    ],
+}
 
 # Installation
 # ------------

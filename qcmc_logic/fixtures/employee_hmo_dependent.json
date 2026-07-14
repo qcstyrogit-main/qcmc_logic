@@ -1,0 +1,34 @@
+[
+ {
+  "birth_date": null,
+  "dependent_ee_cutoff": 1236.166666666,
+  "dependent_ee_weekly": 0.0,
+  "dependent_hmo_rate": "Dependent-80000",
+  "dependent_name": "April Jean Magbojos",
+  "docstatus": 0,
+  "doctype": "Employee HMO Dependent",
+  "is_active": 1,
+  "mbl": 80000.0,
+  "name": "k9f9apj1i2",
+  "parent": "HMO-HR-EMP-00554-2026-03-01",
+  "parentfield": "dependents",
+  "parenttype": "Employee HMO Enrollment",
+  "relationship": "Spouse"
+ },
+ {
+  "birth_date": null,
+  "dependent_ee_cutoff": 1236.166666666,
+  "dependent_ee_weekly": 0.0,
+  "dependent_hmo_rate": "Dependent-80000",
+  "dependent_name": "April Jean Magbojos",
+  "docstatus": 0,
+  "doctype": "Employee HMO Dependent",
+  "is_active": 1,
+  "mbl": 80000.0,
+  "name": "oot9qcvgdm",
+  "parent": "HMO-HR-EMP-00554-2026-05-01",
+  "parentfield": "dependents",
+  "parenttype": "Employee HMO Enrollment",
+  "relationship": "Spouse"
+ }
+]

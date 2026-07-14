@@ -59,14 +59,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "name": "Awaiting Requestor Confirmation",
-  "style": "",
-  "workflow_state_name": "Awaiting Requestor Confirmation"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "name": "Cancelled",
   "style": "",
   "workflow_state_name": "Cancelled"
