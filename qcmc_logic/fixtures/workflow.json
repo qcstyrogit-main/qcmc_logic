@@ -2111,34 +2111,6 @@
     "update_field": "workflow_state",
     "update_value": "Cancelled",
     "workflow_builder_id": null
-   },
-   {
-    "allow_edit": "All",
-    "avoid_status_override": 0,
-    "doc_status": "0",
-    "evaluate_as_expression": 0,
-    "is_optional_state": 0,
-    "message": null,
-    "next_action_email_template": null,
-    "send_email": 1,
-    "state": "Awaiting Requestor Confirmation",
-    "update_field": "workflow_state",
-    "update_value": "Awaiting Requestor Confirmation",
-    "workflow_builder_id": null
-   },
-   {
-    "allow_edit": "All",
-    "avoid_status_override": 0,
-    "doc_status": "0",
-    "evaluate_as_expression": 0,
-    "is_optional_state": 0,
-    "message": null,
-    "next_action_email_template": null,
-    "send_email": 1,
-    "state": "Approved",
-    "update_field": "workflow_state",
-    "update_value": "Approved",
-    "workflow_builder_id": null
    }
   ],
   "transitions": [
@@ -2150,6 +2122,17 @@
     "next_state": "Active",
     "send_email_to_creator": 0,
     "state": "Draft",
+    "transition_tasks": null,
+    "workflow_builder_id": null
+   },
+   {
+    "action": "Mark as Completed",
+    "allow_self_approval": 1,
+    "allowed": "Machine Shop Foreman",
+    "condition": null,
+    "next_state": "Completed",
+    "send_email_to_creator": 0,
+    "state": "Active",
     "transition_tasks": null,
     "workflow_builder_id": null
    },
@@ -2172,160 +2155,6 @@
     "next_state": "Draft",
     "send_email_to_creator": 0,
     "state": "Cancelled",
-    "transition_tasks": null,
-    "workflow_builder_id": null
-   },
-   {
-    "action": "Mark as Completed",
-    "allow_self_approval": 1,
-    "allowed": "Machine Shop Foreman",
-    "condition": null,
-    "next_state": "Awaiting Requestor Confirmation",
-    "send_email_to_creator": 0,
-    "state": "Active",
-    "transition_tasks": null,
-    "workflow_builder_id": null
-   },
-   {
-    "action": "Mark as Completed",
-    "allow_self_approval": 1,
-    "allowed": "Machine Shop Supervisor",
-    "condition": null,
-    "next_state": "Awaiting Requestor Confirmation",
-    "send_email_to_creator": 0,
-    "state": "Active",
-    "transition_tasks": null,
-    "workflow_builder_id": null
-   },
-   {
-    "action": "Acknowledge Again",
-    "allow_self_approval": 1,
-    "allowed": "Machine Shop Foreman",
-    "condition": null,
-    "next_state": "Active",
-    "send_email_to_creator": 0,
-    "state": "Approved",
-    "transition_tasks": null,
-    "workflow_builder_id": null
-   },
-   {
-    "action": "Acknowledge Again",
-    "allow_self_approval": 1,
-    "allowed": "Machine Shop Supervisor",
-    "condition": null,
-    "next_state": "Active",
-    "send_email_to_creator": 0,
-    "state": "Approved",
-    "transition_tasks": null,
-    "workflow_builder_id": null
-   },
-   {
-    "action": "Confirm Completion",
-    "allow_self_approval": 1,
-    "allowed": "Machine Shop User",
-    "condition": "frappe.session.user == frappe.db.get_value(\"Machine Shop Job Request\", doc.msjr_no, \"owner\")",
-    "next_state": "Completed",
-    "send_email_to_creator": 0,
-    "state": "Awaiting Requestor Confirmation",
-    "transition_tasks": null,
-    "workflow_builder_id": null
-   },
-   {
-    "action": "File Back Job",
-    "allow_self_approval": 1,
-    "allowed": "Machine Shop User",
-    "condition": "frappe.session.user == frappe.db.get_value(\"Machine Shop Job Request\", doc.msjr_no, \"owner\")",
-    "next_state": "Approved",
-    "send_email_to_creator": 0,
-    "state": "Awaiting Requestor Confirmation",
-    "transition_tasks": null,
-    "workflow_builder_id": null
-   },
-   {
-    "action": "Confirm Completion",
-    "allow_self_approval": 1,
-    "allowed": "Maintenance - SMB",
-    "condition": "frappe.session.user == frappe.db.get_value(\"Machine Shop Job Request\", doc.msjr_no, \"owner\")",
-    "next_state": "Completed",
-    "send_email_to_creator": 0,
-    "state": "Awaiting Requestor Confirmation",
-    "transition_tasks": null,
-    "workflow_builder_id": null
-   },
-   {
-    "action": "File Back Job",
-    "allow_self_approval": 1,
-    "allowed": "Maintenance - SMB",
-    "condition": "frappe.session.user == frappe.db.get_value(\"Machine Shop Job Request\", doc.msjr_no, \"owner\")",
-    "next_state": "Approved",
-    "send_email_to_creator": 0,
-    "state": "Awaiting Requestor Confirmation",
-    "transition_tasks": null,
-    "workflow_builder_id": null
-   },
-   {
-    "action": "Confirm Completion",
-    "allow_self_approval": 1,
-    "allowed": "Maintenance - MC",
-    "condition": "frappe.session.user == frappe.db.get_value(\"Machine Shop Job Request\", doc.msjr_no, \"owner\")",
-    "next_state": "Completed",
-    "send_email_to_creator": 0,
-    "state": "Awaiting Requestor Confirmation",
-    "transition_tasks": null,
-    "workflow_builder_id": null
-   },
-   {
-    "action": "File Back Job",
-    "allow_self_approval": 1,
-    "allowed": "Maintenance - MC",
-    "condition": "frappe.session.user == frappe.db.get_value(\"Machine Shop Job Request\", doc.msjr_no, \"owner\")",
-    "next_state": "Approved",
-    "send_email_to_creator": 0,
-    "state": "Awaiting Requestor Confirmation",
-    "transition_tasks": null,
-    "workflow_builder_id": null
-   },
-   {
-    "action": "Confirm Completion",
-    "allow_self_approval": 1,
-    "allowed": "Fleet Manager",
-    "condition": "frappe.session.user == frappe.db.get_value(\"Machine Shop Job Request\", doc.msjr_no, \"owner\")",
-    "next_state": "Completed",
-    "send_email_to_creator": 0,
-    "state": "Awaiting Requestor Confirmation",
-    "transition_tasks": null,
-    "workflow_builder_id": null
-   },
-   {
-    "action": "File Back Job",
-    "allow_self_approval": 1,
-    "allowed": "Fleet Manager",
-    "condition": "frappe.session.user == frappe.db.get_value(\"Machine Shop Job Request\", doc.msjr_no, \"owner\")",
-    "next_state": "Approved",
-    "send_email_to_creator": 0,
-    "state": "Awaiting Requestor Confirmation",
-    "transition_tasks": null,
-    "workflow_builder_id": null
-   },
-   {
-    "action": "Confirm Completion",
-    "allow_self_approval": 1,
-    "allowed": "Asset Maintenance User",
-    "condition": "frappe.session.user == frappe.db.get_value(\"Machine Shop Job Request\", doc.msjr_no, \"owner\")",
-    "next_state": "Completed",
-    "send_email_to_creator": 0,
-    "state": "Awaiting Requestor Confirmation",
-    "transition_tasks": null,
-    "workflow_builder_id": null
-   },
-   {
-    "action": "File Back Job",
-    "allow_self_approval": 1,
-    "allowed": "Asset Maintenance User",
-    "condition": "frappe.session.user == frappe.db.get_value(\"Machine Shop Job Request\", doc.msjr_no, \"owner\")",
-    "next_state": "Approved",
-    "send_email_to_creator": 0,
-    "state": "Awaiting Requestor Confirmation",
     "transition_tasks": null,
     "workflow_builder_id": null
    }

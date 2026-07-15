@@ -166,31 +166,34 @@ def fix_payroll_entry_00013_payable_account():
 
 @frappe.whitelist()
 def delete_recent_sample_salary_slips():
-	salary_slips = [
-		"Sal Slip/HR-EMP-00554/00002",
-		"Sal Slip/HR-EMP-00337/00001",
-		"Sal Slip/HR-EMP-00554/00001",
-	]
-	deleted = []
-	for name in salary_slips:
-		if not frappe.db.exists("Salary Slip", name):
-			deleted.append({"name": name, "status": "already missing"})
-			continue
-
-		doc = frappe.get_doc("Salary Slip", name)
-		if doc.docstatus == 1:
-			doc.cancel()
-		frappe.delete_doc("Salary Slip", name, ignore_permissions=True, force=True)
-		deleted.append({"name": name, "status": "deleted"})
-
-	frappe.db.commit()
-	return deleted
+	return delete_all_payroll_entries()
 
 
 @frappe.whitelist()
 def delete_recent_sample_payroll_entries():
-	payroll_entries = ["HR-PRUN-2026-00013", "HR-PRUN-2026-00012"]
+	return delete_all_payroll_entries()
+
+
+@frappe.whitelist()
+def delete_all_payroll_entries():
+	payroll_entries = frappe.get_all("Payroll Entry", pluck="name")
 	deleted = []
+
+	if not payroll_entries:
+		return [{"status": "No Payroll Entries found"}]
+
+	salary_slips = frappe.get_all(
+		"Salary Slip",
+		filters={"payroll_entry": ["in", payroll_entries]},
+		pluck="name",
+	)
+
+	overtime_slips = frappe.get_all(
+		"Overtime Slip",
+		filters={"payroll_entry": ["in", payroll_entries]},
+		pluck="name",
+	)
+
 	journal_entries = set(
 		frappe.get_all(
 			"GL Entry",
@@ -201,64 +204,49 @@ def delete_recent_sample_payroll_entries():
 			pluck="voucher_no",
 		)
 	)
-	overtime_slips = frappe.get_all(
-		"Overtime Slip",
-		filters={"payroll_entry": ["in", payroll_entries]},
-		pluck="name",
-	)
-	for journal_entry in sorted(journal_entries):
-		if not frappe.db.exists("Journal Entry", journal_entry):
-			continue
 
-		doc = frappe.get_doc("Journal Entry", journal_entry)
-		if doc.docstatus == 1:
-			doc.cancel()
-		frappe.delete_doc("Journal Entry", journal_entry, ignore_permissions=True, force=True)
-		deleted.append({"name": journal_entry, "doctype": "Journal Entry", "status": "deleted"})
+	additional_salaries = []
+	if overtime_slips:
+		additional_salaries = frappe.get_all(
+			"Additional Salary",
+			filters={
+				"ref_doctype": "Overtime Slip",
+				"ref_docname": ["in", overtime_slips],
+			},
+			pluck="name",
+		)
 
-	for salary_slip in frappe.get_all(
-		"Salary Slip",
-		filters={"payroll_entry": ["in", payroll_entries]},
-		pluck="name",
-	):
-		doc = frappe.get_doc("Salary Slip", salary_slip)
-		if doc.docstatus == 1:
-			doc.cancel()
-		frappe.delete_doc("Salary Slip", salary_slip, ignore_permissions=True, force=True)
-		deleted.append({"name": salary_slip, "doctype": "Salary Slip", "status": "deleted"})
+	for doctype, names in [
+		("Journal Entry", sorted(journal_entries)),
+		("Salary Slip", salary_slips),
+		("Additional Salary", additional_salaries),
+		("Overtime Slip", overtime_slips),
+		("Payroll Entry", payroll_entries),
+	]:
+		for name in names:
+			if not frappe.db.exists(doctype, name):
+				continue
 
-	for additional_salary in frappe.get_all(
-		"Additional Salary",
-		filters={"ref_doctype": "Overtime Slip", "ref_docname": ["in", overtime_slips]},
-		pluck="name",
-	):
-		doc = frappe.get_doc("Additional Salary", additional_salary)
-		if doc.docstatus == 1:
-			doc.cancel()
-		frappe.delete_doc("Additional Salary", additional_salary, ignore_permissions=True, force=True)
-		deleted.append({"name": additional_salary, "doctype": "Additional Salary", "status": "deleted"})
+			doc = frappe.get_doc(doctype, name)
 
-	for overtime_slip in overtime_slips:
-		doc = frappe.get_doc("Overtime Slip", overtime_slip)
-		if doc.docstatus == 1:
-			doc.cancel()
-		frappe.delete_doc("Overtime Slip", overtime_slip, ignore_permissions=True, force=True)
-		deleted.append({"name": overtime_slip, "doctype": "Overtime Slip", "status": "deleted"})
+			if doc.docstatus == 1:
+				doc.cancel()
 
-	for name in payroll_entries:
-		if not frappe.db.exists("Payroll Entry", name):
-			deleted.append({"name": name, "doctype": "Payroll Entry", "status": "already missing"})
-			continue
+			frappe.delete_doc(
+				doctype,
+				name,
+				ignore_permissions=True,
+				force=True,
+			)
 
-		doc = frappe.get_doc("Payroll Entry", name)
-		if doc.docstatus == 1:
-			doc.cancel()
-		frappe.delete_doc("Payroll Entry", name, ignore_permissions=True, force=True)
-		deleted.append({"name": name, "doctype": "Payroll Entry", "status": "deleted"})
+			deleted.append({
+				"name": name,
+				"doctype": doctype,
+				"status": "deleted",
+			})
 
 	frappe.db.commit()
 	return deleted
-
 
 @frappe.whitelist()
 def create_sample_attendance(employee, from_date, to_date):
