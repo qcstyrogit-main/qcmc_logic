@@ -29058,11 +29058,11 @@
   "width": null
  },
  {
-  "alignment": null,
+  "alignment": "",
   "allow_in_quick_entry": 0,
   "allow_on_submit": 0,
   "bold": 0,
-  "button_color": null,
+  "button_color": "",
   "collapsible": 0,
   "collapsible_depends_on": null,
   "columns": 0,
@@ -29116,11 +29116,11 @@
   "width": null
  },
  {
-  "alignment": null,
+  "alignment": "",
   "allow_in_quick_entry": 0,
   "allow_on_submit": 1,
   "bold": 0,
-  "button_color": null,
+  "button_color": "",
   "collapsible": 0,
   "collapsible_depends_on": null,
   "columns": 0,
@@ -29144,7 +29144,7 @@
   "in_list_view": 0,
   "in_preview": 0,
   "in_standard_filter": 0,
-  "insert_after": "return_against",
+  "insert_after": "title",
   "is_system_generated": 0,
   "is_virtual": 0,
   "label": "Date Transmit",
@@ -29174,11 +29174,11 @@
   "width": null
  },
  {
-  "alignment": null,
+  "alignment": "",
   "allow_in_quick_entry": 0,
   "allow_on_submit": 0,
   "bold": 0,
-  "button_color": null,
+  "button_color": "",
   "collapsible": 0,
   "collapsible_depends_on": null,
   "columns": 0,
@@ -29232,11 +29232,11 @@
   "width": null
  },
  {
-  "alignment": null,
+  "alignment": "",
   "allow_in_quick_entry": 0,
   "allow_on_submit": 0,
   "bold": 0,
-  "button_color": null,
+  "button_color": "",
   "collapsible": 0,
   "collapsible_depends_on": null,
   "columns": 0,
@@ -29290,11 +29290,11 @@
   "width": null
  },
  {
-  "alignment": null,
+  "alignment": "",
   "allow_in_quick_entry": 0,
-  "allow_on_submit": 0,
+  "allow_on_submit": 1,
   "bold": 0,
-  "button_color": null,
+  "button_color": "",
   "collapsible": 0,
   "collapsible_depends_on": null,
   "columns": 0,
@@ -29348,11 +29348,11 @@
   "width": null
  },
  {
-  "alignment": null,
+  "alignment": "",
   "allow_in_quick_entry": 0,
   "allow_on_submit": 0,
   "bold": 0,
-  "button_color": null,
+  "button_color": "",
   "collapsible": 0,
   "collapsible_depends_on": null,
   "columns": 0,

@@ -12,15 +12,32 @@ frappe.ui.form.on("Stock Entry", {
     },
 
     refresh(frm) {
+        qcmc_logic.stock_entry.apply_job_card_field_rules(frm);
         qcmc_logic.stock_entry.add_job_card_button(frm);
         qcmc_logic.stock_entry.refresh_manufacture_row_locks(frm);
     },
 
     purpose(frm) {
+        qcmc_logic.stock_entry.apply_job_card_field_rules(frm);
         qcmc_logic.stock_entry.add_job_card_button(frm);
         qcmc_logic.stock_entry.refresh_manufacture_row_locks(frm);
     },
+
+    stock_entry_type(frm) {
+        qcmc_logic.stock_entry.apply_job_card_field_rules(frm);
+    },
 });
+
+qcmc_logic.stock_entry.apply_job_card_field_rules = function(frm) {
+    const show_job_card = qcmc_logic.stock_entry.supported_purposes.has(frm.doc.purpose);
+
+    frm.toggle_display("job_card", show_job_card);
+    frm.set_df_property("job_card", "read_only", 1);
+
+    if (!show_job_card && frm.doc.job_card) {
+        frm.set_value("job_card", "");
+    }
+};
 
 qcmc_logic.stock_entry.add_job_card_button = function(frm) {
     if (!qcmc_logic.stock_entry.can_fetch_from_job_card(frm)) return;
@@ -231,6 +248,7 @@ qcmc_logic.stock_entry.fetch_job_card_items = function(frm, dialog, job_card) {
             if (!details) return;
 
             qcmc_logic.stock_entry.set_job_card_header(frm, details).then(() => {
+                qcmc_logic.stock_entry.apply_job_card_field_rules(frm);
                 return qcmc_logic.stock_entry.get_items(frm);
             }).then(() => {
                 dialog.hide();

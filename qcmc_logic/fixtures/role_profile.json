@@ -264,6 +264,13 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
+  "name": "EDSA - FG",
+  "role_profile": "EDSA - FG",
+  "roles": []
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
   "name": "Edsa - Machine Shop",
   "role_profile": "Edsa - Machine Shop",
   "roles": []
@@ -416,6 +423,9 @@
    },
    {
     "role": "Employee"
+   },
+   {
+    "role": "Purchase User"
    }
   ]
  },
@@ -771,6 +781,32 @@
    },
    {
     "role": "MRF Finance User"
+   },
+   {
+    "role": "Accounts Manager"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "name": "Guyong - FG",
+  "role_profile": "Guyong - FG",
+  "roles": [
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "Stock User w/ Delivery Note"
+   },
+   {
+    "role": "Manufacturing User"
    }
   ]
  },
@@ -1164,6 +1200,13 @@
     "role": "Asset Maintenance User"
    }
   ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "name": "MC - FG",
+  "role_profile": "MC - FG",
+  "roles": []
  },
  {
   "docstatus": 0,
@@ -1568,6 +1611,9 @@
    },
    {
     "role": "Employee"
+   },
+   {
+    "role": "Maintenance User"
    }
   ]
  },
@@ -1588,6 +1634,9 @@
    },
    {
     "role": "RMFS_PR_MC"
+   },
+   {
+    "role": "Manufacturing Manager"
    }
   ]
  },
@@ -1829,6 +1878,9 @@
    },
    {
     "role": "Purchase User"
+   },
+   {
+    "role": "WH_PR_EDSA_Lv1"
    }
   ]
  },
@@ -1887,6 +1939,35 @@
    },
    {
     "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "name": "Provincial - AC",
+  "role_profile": "Provincial - AC",
+  "roles": [
+   {
+    "role": "Provincial Stock User"
+   },
+   {
+    "role": "Sales User"
+   },
+   {
+    "role": "Stock User"
+   },
+   {
+    "role": "Employee"
+   },
+   {
+    "role": "LMS Student"
+   },
+   {
+    "role": "Accounts User"
+   },
+   {
+    "role": "Sales Coordinator"
    }
   ]
  },
@@ -2324,6 +2405,9 @@
    },
    {
     "role": "RMFS_PR_MC"
+   },
+   {
+    "role": "Manufacturing Manager"
    }
   ]
  },
@@ -2877,6 +2961,20 @@
    },
    {
     "role": "Employee"
+   }
+  ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "name": "Sta Clara - FG",
+  "role_profile": "Sta Clara - FG",
+  "roles": [
+   {
+    "role": "Manufacturing User"
+   },
+   {
+    "role": "Stock Confirm User"
    }
   ]
  },

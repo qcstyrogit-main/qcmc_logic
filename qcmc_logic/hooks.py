@@ -49,6 +49,7 @@ doc_events = {
     },
     "BOM": {
         "before_validate": [
+            "qcmc_logic.customs.bom_soph.apply_bom_soph_and_operation_time",
             "qcmc_logic.customs.bom_roll_required_kg.apply_roll_required_kg",
             "qcmc_logic.customs.bom_rate.fetch_missing_component_rates",
             "qcmc_logic.customs.bom_formulation.apply_roll_formulation_rules",
@@ -128,6 +129,7 @@ after_request = [
 
 doctype_js = {
     "BOM": "public/js/bom.js",
+    "Item": "public/js/item.js",
     "Sales Order": "public/js/sales_order.js",
     "Stock Entry": "public/js/stock_entry.js",
     "Work Order": "public/js/work_order.js",
@@ -164,6 +166,7 @@ override_whitelisted_methods = {
     "frappe_assistant_core.api.oauth_discovery.oauth_authorization_server":"qcmc_logic.overrides.oauth_override.oauth_authorization_server",
     "erpnext.stock.doctype.delivery_note.delivery_note.make_delivery_trip":"qcmc_logic.overrides.delivery_note_override.make_delivery_trip",
     "erpnext.stock.doctype.material_request.material_request.make_stock_entry": "qcmc_logic.utils.make_stock_entry_from_material_request",
+    "erpnext.stock.doctype.purchase_receipt.purchase_receipt.make_purchase_invoice": "qcmc_logic.overrides.purchase_receipt.make_purchase_invoice",
     "erpnext.manufacturing.doctype.work_order.work_order.get_default_warehouse": "qcmc_logic.overrides.work_order.get_default_warehouse",
 }
 
