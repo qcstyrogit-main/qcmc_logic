@@ -7,6 +7,7 @@ const ROLL_FORMULATION_ITEM_FIELDS = [
 frappe.ui.form.on("BOM", {
 	async refresh(frm) {
 		await set_roll_bom_flag(frm);
+		apply_soph_and_operation_times(frm);
 		recalculate_formulation_total(frm);
 		apply_roll_formulation_field_visibility(frm);
 		schedule_roll_required_kg_recalculation(frm);
@@ -19,12 +20,26 @@ frappe.ui.form.on("BOM", {
 
 	async validate(frm) {
 		await set_roll_bom_flag(frm);
+		apply_soph_and_operation_times(frm);
 		recalculate_formulation_total(frm);
 		schedule_roll_required_kg_recalculation(frm);
 	},
 
 	quantity(frm) {
+		apply_operation_times(frm);
 		schedule_roll_required_kg_recalculation(frm);
+	},
+
+	custom_number_of_cavity(frm) {
+		apply_soph_and_operation_times(frm);
+	},
+
+	custom_rate_per_minute(frm) {
+		apply_soph_and_operation_times(frm);
+	},
+
+	custom_pack_soph(frm) {
+		apply_operation_times(frm);
 	},
 
 	custom_standard_weight_grams(frm) {
@@ -58,7 +73,62 @@ frappe.ui.form.on("BOM", {
 		apply_roll_formulation_field_visibility(frm);
 		schedule_roll_required_kg_recalculation(frm);
 	},
+
+	operations_add(frm) {
+		apply_operation_times(frm);
+	},
+
+	operations_remove(frm) {
+		apply_operation_times(frm);
+	},
 });
+
+frappe.ui.form.on("BOM Operation", {
+	operation(frm) {
+		apply_operation_times(frm);
+	},
+});
+
+function apply_soph_and_operation_times(frm) {
+	const soph = round_to_3(
+		flt(frm.doc.custom_number_of_cavity) * flt(frm.doc.custom_rate_per_minute) * 60
+	);
+
+	frm.set_value("custom_soph", soph);
+	apply_operation_times(frm, soph);
+}
+
+function apply_operation_times(frm, soph) {
+	soph = soph === undefined ? flt(frm.doc.custom_soph) : flt(soph);
+
+	for (const operation of frm.doc.operations || []) {
+		const operation_soph = get_operation_soph(frm, operation, soph);
+		if (!operation_soph) {
+			frappe.model.set_value(operation.doctype, operation.name, "time_in_mins", 0);
+			continue;
+		}
+
+		frappe.model.set_value(
+			operation.doctype,
+			operation.name,
+			"time_in_mins",
+			round_to_3((flt(frm.doc.quantity) * 60) / operation_soph)
+		);
+	}
+	frm.refresh_field("operations");
+}
+
+function get_operation_soph(frm, operation, soph) {
+	if (is_packing_operation(operation)) {
+		return flt(frm.doc.custom_pack_soph);
+	}
+
+	return soph;
+}
+
+function is_packing_operation(operation) {
+	return String(operation.operation || "").toLowerCase().includes("pack");
+}
 
 frappe.ui.form.on("BOM Item", {
 	item_code(frm, cdt, cdn) {

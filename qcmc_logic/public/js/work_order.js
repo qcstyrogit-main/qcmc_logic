@@ -137,6 +137,17 @@ function apply_roll_formulation_field_visibility(frm, show) {
 	grid.set_column_disp(get_roll_formulation_item_fields(), show);
 }
 
+function get_roll_formulation_item_fields() {
+	return [
+		"custom_include_in_formulation",
+		"custom_apply_roll_trimming",
+		"custom_material_ratio_percent",
+		"custom_bom_item_code",
+		"custom_bom_item_group",
+		"custom_bom_material_tag",
+	];
+}
+
 function configure_roll_formulation_row(grid_row) {
 	grid_row.toggle_editable("item_code", true);
 	grid_row.toggle_editable("custom_material_ratio_percent", true);
