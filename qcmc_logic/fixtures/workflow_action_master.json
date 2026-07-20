@@ -194,6 +194,12 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "name": "Return",
+  "workflow_action_name": "Return"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "name": "Revert to Draft",
   "workflow_action_name": "Revert to Draft"
  },

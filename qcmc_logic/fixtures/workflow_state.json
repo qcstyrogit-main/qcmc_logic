@@ -539,6 +539,14 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "name": "Returned",
+  "style": "",
+  "workflow_state_name": "Returned"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "name": "Scrapped",
   "style": "",
   "workflow_state_name": "Scrapped"

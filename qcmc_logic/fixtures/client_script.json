@@ -873,6 +873,16 @@
   "docstatus": 0,
   "doctype": "Client Script",
   "dt": "Purchase Receipt",
+  "enabled": 1,
+  "module": null,
+  "name": "WRR AUTO SERIES",
+  "script": "frappe.ui.form.on('Purchase Receipt', {\r\n    refresh(frm) {\r\n        set_naming_series(frm);\r\n    },\r\n\r\n    is_return(frm) {\r\n        set_naming_series(frm);\r\n    },\r\n\r\n    custom_doc_code(frm) {\r\n        set_naming_series(frm);\r\n    }\r\n});\r\n\r\nfunction set_naming_series(frm) {\r\n    if (frm.doc.is_return) {\r\n        frm.set_value('naming_series', 'RTS-.#');\r\n    } else if (frm.doc.custom_doc_code) {\r\n        frm.set_value('naming_series', `${frm.doc.custom_doc_code}.WR.-.#`);\r\n    }\r\n}",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Receipt",
   "enabled": 0,
   "module": null,
   "name": "WRR Doc Code",
