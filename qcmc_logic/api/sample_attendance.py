@@ -144,6 +144,112 @@ def create_joselito_march_april_sample():
 
 
 @frappe.whitelist()
+def create_remy_february_july_sample():
+	"""Create the approved 6 AM-8 PM payroll test data, with Saturday as rest day."""
+	employee = "HR-EMP-00618"
+	shift = "66 - 6 to 6 (DaytoNight-RD-Sat)"
+	from_date = getdate("2026-02-01")
+	to_date = getdate("2026-07-15")
+	employee_doc = frappe.get_doc("Employee", employee)
+
+	created_attendance = 0
+	created_checkins = 0
+	skipped_existing = 0
+	skipped_rest_days = 0
+	date_value = from_date
+
+	while date_value <= to_date:
+		date_key = str(date_value)
+		if date_value.strftime("%A") == "Saturday":
+			skipped_rest_days += 1
+			date_value += timedelta(days=1)
+			continue
+
+		if frappe.db.exists(
+			"Attendance",
+			{"employee": employee, "attendance_date": date_key, "docstatus": ["!=", 2]},
+		):
+			skipped_existing += 1
+			date_value += timedelta(days=1)
+			continue
+
+		row = {
+			"date": date_key,
+			"status": "Present",
+			"shift": shift,
+			"in_time": _dt(date_key, "06:00"),
+			"out_time": _dt(date_key, "20:00"),
+			"late_entry": 0,
+			"overtime_type": "Regular OT",
+			"actual_overtime_duration": 6,
+		}
+		attendance = _upsert_attendance(employee_doc, row)
+		created_attendance += 1
+		created_checkins += _sync_checkins(employee_doc, attendance, row)
+		date_value += timedelta(days=1)
+
+	frappe.db.commit()
+	return {
+		"employee": employee,
+		"from_date": str(from_date),
+		"to_date": str(to_date),
+		"created_attendance": created_attendance,
+		"created_checkins": created_checkins,
+		"skipped_existing": skipped_existing,
+		"skipped_rest_days": skipped_rest_days,
+	}
+
+
+@frappe.whitelist()
+def set_remy_july_8_14_mixed_overtime():
+	"""Make the second July test week show default-only and beyond-shift OT days."""
+	default_only_dates = {"2026-07-08", "2026-07-10", "2026-07-12", "2026-07-14"}
+	updated = []
+
+	for date_key in sorted(default_only_dates):
+		attendance_name = frappe.db.get_value(
+			"Attendance",
+			{
+				"employee": "HR-EMP-00618",
+				"attendance_date": date_key,
+				"docstatus": 1,
+			},
+			"name",
+		)
+		if not attendance_name:
+			continue
+
+		out_time = _dt(date_key, "18:00")
+		frappe.db.set_value(
+			"Attendance",
+			attendance_name,
+			{
+				"out_time": out_time,
+				"working_hours": 12,
+				"actual_overtime_duration": 4,
+			},
+			update_modified=False,
+		)
+		out_checkin = frappe.db.get_value(
+			"Employee Checkin",
+			{"attendance": attendance_name, "log_type": "OUT"},
+			"name",
+		)
+		if out_checkin:
+			frappe.db.set_value(
+				"Employee Checkin",
+				out_checkin,
+				"time",
+				out_time,
+				update_modified=False,
+			)
+		updated.append(date_key)
+
+	frappe.db.commit()
+	return {"updated_default_only_dates": updated}
+
+
+@frappe.whitelist()
 def fix_payroll_entry_00013_payable_account():
 	frappe.db.set_value(
 		"Salary Structure Assignment",

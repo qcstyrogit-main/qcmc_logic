@@ -1,0 +1,173 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 0,
+ "autoname": "format:PP-{warehouse}-{plantilla_id}",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "plantilla_id",
+  "company",
+  "warehouse",
+  "section",
+  "machine",
+  "production_position",
+  "position_order",
+  "plantilla_slot",
+  "effective_from",
+  "effective_to",
+  "is_active",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "plantilla_id",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Plantilla ID",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Section",
+   "options": "Plant Floor",
+   "reqd": 1
+  },
+  {
+   "fieldname": "machine",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Machine",
+   "options": "Workstation",
+   "reqd": 1
+  },
+  {
+   "fieldname": "production_position",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Production Position",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "position_order",
+   "fieldtype": "Int",
+   "label": "Position Order",
+   "non_negative": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "plantilla_slot",
+   "fieldtype": "Int",
+   "label": "Plantilla Slot",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "effective_from",
+   "fieldtype": "Date",
+   "label": "Effective From"
+  },
+  {
+   "fieldname": "effective_to",
+   "fieldtype": "Date",
+   "label": "Effective To"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Is Active"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "module": "QCMC Logics",
+ "name": "Production Plantilla",
+ "naming_rule": "Expression",
+ "permissions": [
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Production - MC"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Production - SMB"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Production - STCLA"
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Plant Manager MC",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Plant Manager QC",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "search_fields": "plantilla_id,warehouse,section,machine,production_position",
+ "sort_field": "plantilla_id",
+ "sort_order": "ASC",
+ "states": [],
+ "title_field": "production_position",
+ "track_changes": 1
+}

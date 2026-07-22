@@ -1,0 +1,272 @@
+{
+ "actions": [],
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "plantilla_section",
+  "section",
+  "machine",
+  "production_position",
+  "production_plantilla",
+  "plantilla_id",
+  "plantilla_slot",
+  "row_source",
+  "day_shift_section",
+  "ds_assignment_status",
+  "day_shift_employee",
+  "day_shift_mon",
+  "day_shift_tue",
+  "day_shift_wed",
+  "day_shift_thu",
+  "day_shift_fri",
+  "day_shift_sat",
+  "day_shift_sun",
+  "day_shift_restday",
+  "night_shift_section",
+  "ns_assignment_status",
+  "night_shift_employee",
+  "night_shift_mon",
+  "night_shift_tue",
+  "night_shift_wed",
+  "night_shift_thu",
+  "night_shift_fri",
+  "night_shift_sat",
+  "night_shift_sun",
+  "night_shift_restday",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "plantilla_section",
+   "fieldtype": "Section Break",
+   "label": "Plantilla"
+  },
+  {
+   "columns": 2,
+   "fieldname": "section",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Section",
+   "options": "Plant Floor",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "machine",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Machine",
+   "options": "Workstation",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "production_position",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Production Position",
+   "reqd": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "plantilla_id",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Plantilla ID",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "plantilla_slot",
+   "fieldtype": "Int",
+   "label": "Plantilla Slot",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "Plantilla",
+   "fieldname": "row_source",
+   "fieldtype": "Select",
+   "label": "Row Source",
+   "options": "Plantilla\nManual",
+   "reqd": 1
+  },
+  {
+   "fieldname": "production_plantilla",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Plantilla Record",
+   "options": "Production Plantilla",
+   "read_only_depends_on": "eval:doc.row_source == 'Plantilla'"
+  },
+  {
+   "fieldname": "day_shift_section",
+   "fieldtype": "Section Break",
+   "label": "Day Shift"
+  },
+  {
+   "columns": 1,
+   "fieldname": "ds_assignment_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "DS Status",
+   "options": "\nAssigned\nFOR POOLING\nPLAN STOP"
+  },
+  {
+   "columns": 2,
+   "fieldname": "day_shift_employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Day Shift Employee",
+   "options": "Employee"
+  },
+  {
+   "columns": 1,
+   "fieldname": "day_shift_mon",
+   "fieldtype": "Link",
+   "label": "Day Shift Mon",
+   "options": "Shift Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "day_shift_tue",
+   "fieldtype": "Link",
+   "label": "Day Shift Tue",
+   "options": "Shift Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "day_shift_wed",
+   "fieldtype": "Link",
+   "label": "Day Shift Wed",
+   "options": "Shift Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "day_shift_thu",
+   "fieldtype": "Link",
+   "label": "Day Shift Thu",
+   "options": "Shift Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "day_shift_fri",
+   "fieldtype": "Link",
+   "label": "Day Shift Fri",
+   "options": "Shift Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "day_shift_sat",
+   "fieldtype": "Link",
+   "label": "Day Shift Sat",
+   "options": "Shift Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "day_shift_sun",
+   "fieldtype": "Link",
+   "label": "Day Shift Sun",
+   "options": "Shift Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "day_shift_restday",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Day Shift Restday"
+  },
+  {
+   "fieldname": "night_shift_section",
+   "fieldtype": "Section Break",
+   "label": "Night Shift"
+  },
+  {
+   "columns": 1,
+   "fieldname": "ns_assignment_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "NS Status",
+   "options": "\nAssigned\nFOR POOLING\nPLAN STOP"
+  },
+  {
+   "columns": 2,
+   "fieldname": "night_shift_employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Night Shift Employee",
+   "options": "Employee"
+  },
+  {
+   "columns": 1,
+   "fieldname": "night_shift_mon",
+   "fieldtype": "Link",
+   "label": "Night Shift Mon",
+   "options": "Shift Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "night_shift_tue",
+   "fieldtype": "Link",
+   "label": "Night Shift Tue",
+   "options": "Shift Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "night_shift_wed",
+   "fieldtype": "Link",
+   "label": "Night Shift Wed",
+   "options": "Shift Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "night_shift_thu",
+   "fieldtype": "Link",
+   "label": "Night Shift Thu",
+   "options": "Shift Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "night_shift_fri",
+   "fieldtype": "Link",
+   "label": "Night Shift Fri",
+   "options": "Shift Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "night_shift_sat",
+   "fieldtype": "Link",
+   "label": "Night Shift Sat",
+   "options": "Shift Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "night_shift_sun",
+   "fieldtype": "Link",
+   "label": "Night Shift Sun",
+   "options": "Shift Type"
+  },
+  {
+   "columns": 1,
+   "fieldname": "night_shift_restday",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Night Shift Restday"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "module": "QCMC Logics",
+ "name": "Production Employee Schedule Detail",
+ "permissions": [],
+ "sort_field": "idx",
+ "sort_order": "ASC",
+ "states": []
+}

@@ -130,7 +130,7 @@ each command is for.
 #### License
 
 mit
-### For faster export fixtures 
+### For faster export fixtures
 ```bash
 alias export-fixtures='python3 apps/qcmc_logic/scripts/export_fixtures_clean.py'
 alias clean-fixtures='python3 apps/qcmc_logic/scripts/clean_fixtures.py'
