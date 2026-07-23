@@ -8,7 +8,7 @@ frappe.ui.form.on("Mode of Payment", {
 				return {
 					filters: [
 						["Account", "account_type", "=", "Current Asset"],
-						["Account", "account_name", "like", "%Advances%"],
+						["Account", "account_name", "like", "%Advances to Affiliates%"],
 						["Account", "is_group", "=", 0],
 						["Account", "company", "=", row.company],
 					],
