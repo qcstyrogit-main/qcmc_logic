@@ -1,9 +1,12 @@
 frappe.provide("qcmc_logic.warehouse_access");
 
 qcmc_logic.warehouse_access.skip_doctypes = new Set([
+    "BOM",
+    "Job Card",
     "Stock Settings",
     "Warehouse Access",
     "Warehouse Transfer",
+    "Work Order",
 ]);
 
 qcmc_logic.warehouse_access.enabled = null;
