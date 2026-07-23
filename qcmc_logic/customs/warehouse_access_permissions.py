@@ -4,12 +4,15 @@ import frappe
 SKIP_DOCTYPES = {
     "Warehouse Access",
     "Allowed Warehouse",
+    "BOM",
     "Cost Center Warehouse Mapping",
     "Error Log",
+    "Job Card",
     "Role Profile Warehouse Access",
     "Stock Settings",
     "Warehouse Transfer",
     "Warehouse",
+    "Work Order",
     "User Permission",
 }
 
@@ -78,10 +81,14 @@ def validate_warehouse_access(doc, method=None):
 
     from qcmc_logic.utils import (
         get_user_allowed_warehouses,
+        has_warehouse_access,
         is_global_warehouse_access_enabled,
     )
 
-    if not is_global_warehouse_access_enabled():
+    if (
+        not is_global_warehouse_access_enabled()
+        or not has_warehouse_access(frappe.session.user)
+    ):
         return
 
     allowed = set(get_user_allowed_warehouses(frappe.session.user))

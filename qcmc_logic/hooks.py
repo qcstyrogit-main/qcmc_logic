@@ -142,6 +142,7 @@ doctype_js = {
     "HMO Rate Plan": "public/js/hmo_rate_plan.js",
     "Bulk HMO Enrollment Creation": "public/js/bulk_hmo_enrollment_creation.js",
     "Bulk HMO Enrollment Renewal": "public/js/bulk_hmo_enrollment_renewal.js",
+    "Mode of Payment": "public/js/mode_of_payment.js",
 }
 
 doctype_list_js = {}
@@ -203,7 +204,6 @@ permission_query_conditions = {
      "Stock Entry": "qcmc_logic.customs.permissions.stock_entry_permission_query",
      "Stock Reconciliation": "qcmc_logic.customs.permissions.stock_reconciliation_permission_query",
      "Warehouse Transfer": "qcmc_logic.customs.permissions.warehouse_transfer_permission_query",
-     "Work Order": "qcmc_logic.customs.permissions.work_order_permission_query",
 }
 
 has_permission = {
@@ -221,7 +221,6 @@ has_permission = {
     "Stock Entry": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Stock Reconciliation": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Warehouse Transfer": "qcmc_logic.customs.permissions.warehouse_transfer_has_permission",
-    "Work Order": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
 }
 override_print_format = {
     "Purchase Order": "qcmc_logic.overrides.POPrint_Override.get_po_print_format"

@@ -8,6 +8,7 @@ from qcmc_logic.customs.payroll_role_scope import (
 )
 from qcmc_logic.utils import (
     get_user_allowed_warehouses,
+    has_warehouse_access,
     is_global_warehouse_access_enabled,
 )
 
@@ -50,10 +51,6 @@ WAREHOUSE_TRANSACTION_DOCTYPES = {
     "Warehouse Transfer": {
         "fields": ["source_warehouse", "target_warehouse"],
     },
-    "Work Order": {
-        "fields": ["source_warehouse", "wip_warehouse", "fg_warehouse", "scrap_warehouse"],
-        "children": {"Work Order Item": ["source_warehouse"]},
-    },
 }
 
 
@@ -64,7 +61,11 @@ SALARY_STRUCTURE_PAYROLL_FREQUENCY = {
 
 
 def _warehouse_access_applies(user):
-    return user != "Administrator" and is_global_warehouse_access_enabled()
+    return (
+        user != "Administrator"
+        and is_global_warehouse_access_enabled()
+        and has_warehouse_access(user)
+    )
 
 
 def _sql_list(values):
@@ -329,7 +330,7 @@ def stock_reconciliation_permission_query(user):
 
 
 def work_order_permission_query(user):
-    return _warehouse_transaction_permission_query("Work Order", user)
+    return ""
 
 
 def _iter_doc_warehouse_values(doc):

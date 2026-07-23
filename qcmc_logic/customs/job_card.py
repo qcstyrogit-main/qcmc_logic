@@ -9,6 +9,14 @@ def sync_non_final_operation_progress(doc, method=None):
 	if not doc.work_order or not doc.operation_id or doc.is_corrective_job_card:
 		return
 
+	if (
+		method == "on_update"
+		and getattr(getattr(doc, "flags", None), "in_insert", False)
+		and not flt(doc.total_completed_qty)
+		and not doc.get("time_logs")
+	):
+		return
+
 	work_order = frappe.get_doc("Work Order", doc.work_order)
 	if work_order.docstatus != 1 or work_order.status == "Stopped":
 		return
