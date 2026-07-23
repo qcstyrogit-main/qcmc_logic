@@ -242,6 +242,13 @@ def _get_default_warehouse_from_source(user=None, require_transact=False, source
 
 
 @frappe.whitelist()
+def has_warehouse_access(user=None):
+    if not user:
+        user = frappe.session.user
+    return bool(_get_effective_warehouse_access_names(user))
+
+
+@frappe.whitelist()
 def get_user_allowed_inventory_groups(user=None, require_transact=False):
     """Fetch effective inventory group access for the given user.
 
@@ -462,6 +469,9 @@ def get_default_inventory_group_for_user(user=None, require_transact=False):
 
 @frappe.whitelist()
 def check_warehouse_access(user, warehouse, require_transact=False):
+    if not has_warehouse_access(user):
+        return True
+
     allowed = get_user_allowed_warehouses(user, require_transact=require_transact)
     return warehouse in allowed
 
