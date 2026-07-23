@@ -164,12 +164,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "name": "Post Schedule",
-  "workflow_action_name": "Post Schedule"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "name": "Process",
   "workflow_action_name": "Process"
  },
@@ -202,12 +196,6 @@
   "doctype": "Workflow Action Master",
   "name": "Return",
   "workflow_action_name": "Return"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "name": "Return for Revision",
-  "workflow_action_name": "Return for Revision"
  },
  {
   "docstatus": 0,
