@@ -395,6 +395,8 @@ function render_roll_formulation_html_table(dialog) {
 			work_order_item_name: "",
 			item_code: "",
 			item_name: "",
+			item_group: "",
+			material_tag: "",
 			category: "",
 			material_ratio_percent: 0,
 			required_qty: 0,
@@ -425,6 +427,7 @@ function setup_roll_formulation_item_control(dialog, row) {
 			fieldname: `item_code_${row._qcmc_key}`,
 			options: "Item",
 			placeholder: __("Item Code"),
+			onchange: () => update_roll_formulation_item_details(dialog, row, table_row, control),
 			get_query: () => ({
 				filters: {
 					disabled: 0,
@@ -441,45 +444,93 @@ function setup_roll_formulation_item_control(dialog, row) {
 	control.$input_area.addClass("overflow-visible");
 	control.$wrapper.addClass("overflow-visible");
 	control.$input.attr("autocomplete", "off");
-	control.$input.on("change", async () => {
-		const item_code = control.get_value();
-		row.item_code = item_code;
-		if (!item_code) {
-			row.item_name = "";
-			table_row.find(".qcmc-item-name").text("");
-			return;
-		}
-
-		const response = await frappe.db.get_value(
-			"Item",
-			item_code,
-			["item_name", "item_group", "custom_material_tag"]
-		);
-		if (row.item_code === item_code) {
-			const item = response?.message || {};
-			const category = (dialog._qcmc_formulation_categories || []).find(
-				(candidate) =>
-					(candidate.item_group || "") === (item.item_group || "") &&
-					(candidate.material_tag || "") === (item.custom_material_tag || "")
-			);
-			const category_source = (dialog._qcmc_formulation_rows || []).find(
-				(candidate) =>
-					candidate.category === category?.label &&
-					candidate._qcmc_qty_per_percent
-			);
-
-			row.item_name = item.item_name || "";
-			row.category = category?.label || "";
-			row._qcmc_qty_per_percent = category_source?._qcmc_qty_per_percent || 0;
-			row.required_qty =
-				row._qcmc_qty_per_percent * flt(row.material_ratio_percent);
-			table_row.find(".qcmc-item-name").text(row.item_name);
-			table_row.find(".qcmc-category").text(row.category);
-			table_row
-				.find(".qcmc-computed-qty")
-				.text(format_number(row.required_qty, null, 4));
-		}
+	control.$input.on("awesomplete-selectcomplete change blur", () => {
+		update_roll_formulation_item_details(dialog, row, table_row, control);
 	});
+
+	if (row.item_code && (!row.category || !row.item_group)) {
+		update_roll_formulation_item_details(dialog, row, table_row, control);
+	}
+}
+
+async function update_roll_formulation_item_details(dialog, row, table_row, control) {
+	const item_code = control.get_value();
+	if (row._qcmc_fetching_item_code === item_code) {
+		return;
+	}
+
+	row.item_code = item_code;
+	if (!item_code) {
+		row.item_name = "";
+		row.item_group = "";
+		row.material_tag = "";
+		row.category = "";
+		row._qcmc_qty_per_percent = 0;
+		row.required_qty = 0;
+		refresh_roll_formulation_dialog_row(table_row, row);
+		return;
+	}
+
+	row._qcmc_fetching_item_code = item_code;
+	const response = await frappe.db.get_value(
+		"Item",
+		item_code,
+		["item_name", "item_group", "custom_material_tag"]
+	);
+	if (row.item_code !== item_code) {
+		return;
+	}
+
+	row._qcmc_fetching_item_code = null;
+	const item = response?.message || {};
+	const category = find_roll_formulation_category(
+		dialog,
+		item.item_group,
+		item.custom_material_tag
+	);
+	const category_source = find_roll_formulation_category_source(
+		dialog,
+		category,
+		row
+	);
+
+	row.item_name = item.item_name || "";
+	row.item_group = item.item_group || "";
+	row.material_tag = item.custom_material_tag || "";
+	row.category = category?.label || "";
+	row._qcmc_qty_per_percent = category_source?._qcmc_qty_per_percent || 0;
+	row.required_qty = row._qcmc_qty_per_percent * flt(row.material_ratio_percent);
+	refresh_roll_formulation_dialog_row(table_row, row);
+}
+
+function find_roll_formulation_category(dialog, item_group, material_tag) {
+	return (dialog._qcmc_formulation_categories || []).find(
+		(candidate) =>
+			(candidate.item_group || "") === (item_group || "") &&
+			(candidate.material_tag || "") === (material_tag || "")
+	);
+}
+
+function find_roll_formulation_category_source(dialog, category, current_row) {
+	if (!category) {
+		return null;
+	}
+
+	return (dialog._qcmc_formulation_rows || []).find(
+		(candidate) =>
+			candidate._qcmc_key !== current_row._qcmc_key &&
+			(candidate.item_group || "") === (category.item_group || "") &&
+			(candidate.material_tag || "") === (category.material_tag || "") &&
+			candidate._qcmc_qty_per_percent
+	);
+}
+
+function refresh_roll_formulation_dialog_row(table_row, row) {
+	table_row.find(".qcmc-item-name").text(row.item_name || "");
+	table_row.find(".qcmc-category").text(row.category || "");
+	table_row
+		.find(".qcmc-computed-qty")
+		.text(format_number(row.required_qty, null, 4));
 }
 
 function get_roll_formulation_dialog_row(dialog, element) {
@@ -512,6 +563,8 @@ async function apply_roll_formulation_editor(frm, dialog, prepared, editor_rows)
 			  };
 
 		target.item_code = row.item_code;
+		target.custom_bom_item_group = row.item_group || target.custom_bom_item_group;
+		target.custom_bom_material_tag = row.material_tag || target.custom_bom_material_tag;
 		target.custom_material_ratio_percent = flt(row.material_ratio_percent);
 		return target;
 	});
