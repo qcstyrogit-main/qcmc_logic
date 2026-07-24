@@ -294,6 +294,18 @@ def delete_all_payroll_entries():
 		pluck="name",
 	)
 
+	loan_repayments = []
+	if salary_slips:
+		loan_repayments = frappe.get_all(
+			"Salary Slip Loan",
+			filters={
+				"parent": ["in", salary_slips],
+				"loan_repayment_entry": ["is", "set"],
+			},
+			pluck="loan_repayment_entry",
+		)
+		loan_repayments = sorted(set(loan_repayments))
+
 	overtime_slips = frappe.get_all(
 		"Overtime Slip",
 		filters={"payroll_entry": ["in", payroll_entries]},
@@ -325,6 +337,7 @@ def delete_all_payroll_entries():
 	for doctype, names in [
 		("Journal Entry", sorted(journal_entries)),
 		("Salary Slip", salary_slips),
+		("Loan Repayment", loan_repayments),
 		("Additional Salary", additional_salaries),
 		("Overtime Slip", overtime_slips),
 		("Payroll Entry", payroll_entries),

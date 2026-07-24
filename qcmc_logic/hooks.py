@@ -49,6 +49,7 @@ doc_events = {
     },
     "BOM": {
         "before_validate": [
+            "qcmc_logic.customs.bom_numeric_fields.normalize_bom_numeric_fields",
             "qcmc_logic.customs.bom_soph.apply_bom_soph_and_operation_time",
             "qcmc_logic.customs.bom_roll_required_kg.apply_roll_required_kg",
             "qcmc_logic.customs.bom_rate.fetch_missing_component_rates",
@@ -57,6 +58,10 @@ doc_events = {
     },
     "Work Order": {
         "validate": "qcmc_logic.customs.work_order_formulation.apply_roll_formulation_required_qty",
+    },
+    "File": {
+        "after_insert": "qcmc_logic.customs.issue_kanban.sync_issue_kanban_image",
+        "on_trash": "qcmc_logic.customs.issue_kanban.replace_deleted_issue_kanban_image",
     },
     "Stock Entry": {
         "before_submit": "qcmc_logic.customs.stock_entry.validate_final_job_card_time_log",
@@ -76,6 +81,7 @@ doc_events = {
             "qcmc_logic.customs.salary_slip_employer_contributions.apply_employer_contribution_rows",
             "qcmc_logic.customs.salary_slip_hmo.apply_hmo_deduction",
             "qcmc_logic.customs.salary_slip_income_tax.apply_declared_income_tax",
+            "qcmc_logic.customs.salary_slip_loan_components.sync_loan_component_rows",
         ],
         "before_save": [
             "qcmc_logic.customs.salary_slip_hmo.apply_hmo_deduction",
@@ -89,6 +95,9 @@ doc_events = {
     "Overtime Slip": {
         "before_validate": "qcmc_logic.customs.overtime_slip.normalize_overtime_before_validate",
         "validate": "qcmc_logic.customs.overtime_slip.normalize_overtime_before_validate",
+    },
+    "Attendance": {
+        "before_validate": "qcmc_logic.customs.attendance_overtime.apply_6_to_6_and_7_to_7_overtime",
     },
     "Batch Other Adjustment Entry": {
         "on_cancel": "qcmc_logic.api.batch_other_adjustment.cancel_batch_additional_salaries",
@@ -138,14 +147,18 @@ doctype_js = {
     "Overtime Slip": "public/js/overtime_slip.js",
     "Batch Other Adjustment Entry": "public/js/batch_other_adjustment_entry.js",
     "Payroll Entry": "public/js/payroll_entry.js",
+    "Salary Structure": "public/js/salary_structure.js",
     "Employee HMO Enrollment": "public/js/employee_hmo_enrollment.js",
     "HMO Rate Plan": "public/js/hmo_rate_plan.js",
+    "HMO External Member": "public/js/hmo_external_member.js",
     "Bulk HMO Enrollment Creation": "public/js/bulk_hmo_enrollment_creation.js",
     "Bulk HMO Enrollment Renewal": "public/js/bulk_hmo_enrollment_renewal.js",
     "Mode of Payment": "public/js/mode_of_payment.js",
 }
 
-doctype_list_js = {}
+doctype_list_js = {
+    "Issue": "public/js/issue_list.js",
+}
 
 # override_doctype_class = {
     
@@ -310,6 +323,8 @@ before_migrate = [
 after_migrate = [
     "qcmc_logic.customs.machine_shop_job_request.ensure_msjr_permissions",
     "qcmc_logic.customs.machine_shop_repairs_and_project.ensure_msrp_permissions",
+    "qcmc_logic.customs.issue_kanban.ensure_company_ticket_kanban",
+    "qcmc_logic.customs.work_order_print_format.ensure_job_order_print_formats_use_a5",
 ]
 
 # # Or ensure it loads at boot

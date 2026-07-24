@@ -1,3 +1,4 @@
+import frappe
 from frappe.utils import flt
 
 
@@ -14,6 +15,36 @@ def validate_rate_plan(doc, method=None):
 		apply_employee_rate_formulas(row)
 	for row in doc.get("dependent_rates", []):
 		apply_dependent_rate_formulas(row)
+	validate_external_members(doc)
+
+
+def validate_external_members(doc):
+	rows = doc.get("external_members", [])
+	principal_names = {row.member_name for row in rows if row.is_active and row.member_type == "Principal"}
+	principal_rates = {
+		f"{row.level}-{int(row.mbl)}": row for row in doc.get("employee_rates", []) if row.is_active
+	}
+	dependent_rates = {
+		f"Dependent-{int(row.mbl)}": row for row in doc.get("dependent_rates", []) if row.is_active
+	}
+
+	for row in rows:
+		if not row.is_active:
+			continue
+		if row.member_type == "Dependent":
+			if row.principal_name not in principal_names:
+				frappe.throw(
+					f"External HMO member row {row.idx}: principal {row.principal_name!r} was not found."
+				)
+			if row.rate_code not in dependent_rates:
+				frappe.throw(f"External HMO member row {row.idx}: invalid dependent rate {row.rate_code!r}.")
+			row.level = None
+			row.mbl = dependent_rates[row.rate_code].mbl
+		elif row.rate_code not in principal_rates:
+			frappe.throw(f"External HMO member row {row.idx}: invalid principal rate {row.rate_code!r}.")
+		else:
+			row.level = principal_rates[row.rate_code].level
+			row.mbl = principal_rates[row.rate_code].mbl
 
 
 def apply_employee_rate_formulas(doc, has_weekly_cutoff=None):

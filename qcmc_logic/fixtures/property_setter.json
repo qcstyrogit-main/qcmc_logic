@@ -5311,21 +5311,6 @@
  },
  {
   "default_value": null,
-  "doc_type": "Customer",
-  "docstatus": 0,
-  "doctype": "Property Setter",
-  "doctype_or_field": "DocField",
-  "field_name": "tax_id",
-  "is_system_generated": 0,
-  "module": null,
-  "name": "Customer-tax_id-mask",
-  "property": "mask",
-  "property_type": "Data",
-  "row_name": null,
-  "value": "0"
- },
- {
-  "default_value": null,
   "doc_type": "Customer Credit Limit",
   "docstatus": 0,
   "doctype": "Property Setter",
@@ -24156,21 +24141,6 @@
   "doctype": "Property Setter",
   "doctype_or_field": "DocField",
   "field_name": "tax_id",
-  "is_system_generated": 0,
-  "module": null,
-  "name": "Sales Order-tax_id-mask",
-  "property": "mask",
-  "property_type": "Data",
-  "row_name": null,
-  "value": "0"
- },
- {
-  "default_value": null,
-  "doc_type": "Sales Order",
-  "docstatus": 0,
-  "doctype": "Property Setter",
-  "doctype_or_field": "DocField",
-  "field_name": "tax_id",
   "is_system_generated": 1,
   "module": null,
   "name": "Sales Order-tax_id-print_hide",
@@ -28197,7 +28167,7 @@
   "property": "default_print_format",
   "property_type": "Data",
   "row_name": null,
-  "value": "CPS"
+  "value": ""
  },
  {
   "default_value": null,

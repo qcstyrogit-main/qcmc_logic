@@ -1,0 +1,278 @@
+<style>
+	@page {
+		size: A4 landscape;
+		margin: 11mm 9mm 13mm;
+	}
+
+	.management-gl {
+		color: #172033;
+		font-family: Arial, sans-serif;
+		font-size: 9px;
+	}
+
+	.management-gl .report-header {
+		border-bottom: 2px solid #24364b;
+		margin-bottom: 8px;
+		padding-bottom: 7px;
+	}
+
+	.management-gl .company-name {
+		font-size: 18px;
+		font-weight: 700;
+		letter-spacing: .4px;
+		text-transform: uppercase;
+	}
+
+	.management-gl .report-title {
+		color: #344a62;
+		font-size: 12px;
+		font-weight: 700;
+		letter-spacing: 1.2px;
+		margin-top: 2px;
+		text-transform: uppercase;
+	}
+
+	.management-gl .confidential {
+		border: 1px solid #aab5c1;
+		color: #5d6977;
+		float: right;
+		font-size: 8px;
+		font-weight: 700;
+		letter-spacing: .8px;
+		margin-top: -34px;
+		padding: 4px 7px;
+		text-transform: uppercase;
+	}
+
+	.management-gl .report-meta {
+		background: #f2f5f8;
+		border: 1px solid #d8dfe6;
+		display: table;
+		margin-bottom: 9px;
+		padding: 6px 8px;
+		width: 100%;
+	}
+
+	.management-gl .meta-column {
+		display: table-cell;
+		line-height: 1.55;
+		vertical-align: top;
+		width: 33.33%;
+	}
+
+	.management-gl .meta-label {
+		color: #667587;
+		display: inline-block;
+		font-size: 8px;
+		font-weight: 700;
+		min-width: 72px;
+		text-transform: uppercase;
+	}
+
+	.management-gl table {
+		border-collapse: collapse;
+		table-layout: fixed;
+		width: 100%;
+	}
+
+	.management-gl thead {
+		display: table-header-group;
+	}
+
+	.management-gl th {
+		background: #24364b;
+		border: 1px solid #24364b;
+		color: white;
+		font-size: 8px;
+		letter-spacing: .35px;
+		padding: 5px 4px;
+		text-align: left;
+		text-transform: uppercase;
+	}
+
+	.management-gl td {
+		border-bottom: 1px solid #dfe4ea;
+		padding: 4px;
+		vertical-align: top;
+		word-wrap: break-word;
+	}
+
+	.management-gl tbody tr:nth-child(even) td {
+		background: #f8fafb;
+	}
+
+	.management-gl .date-column { width: 8%; }
+	.management-gl .account-column { width: 25%; }
+	.management-gl .reference-column { width: 22%; }
+	.management-gl .party-column { width: 17%; }
+	.management-gl .money-column { width: 9%; }
+	.management-gl .numeric { text-align: right; white-space: nowrap; }
+	.management-gl .muted { color: #6b7785; font-size: 8px; }
+
+	.management-gl .summary-row td {
+		background: #e9eef3 !important;
+		border-bottom: 1px solid #b7c1cc;
+		border-top: 1px solid #b7c1cc;
+		font-weight: 700;
+	}
+
+	.management-gl .closing-row td {
+		background: #dbe5ef !important;
+		border-bottom: 2px solid #24364b;
+		font-weight: 700;
+	}
+
+	.management-gl .report-footer {
+		border-top: 1px solid #aab5c1;
+		display: table;
+		margin-top: 22px;
+		padding-top: 7px;
+		width: 100%;
+	}
+
+	.management-gl .footer-cell {
+		display: table-cell;
+		color: #667587;
+		font-size: 8px;
+		width: 33.33%;
+	}
+
+	.management-gl .signature {
+		border-top: 1px solid #778596;
+		display: inline-block;
+		margin-right: 18px;
+		padding-top: 3px;
+		text-align: center;
+		width: 120px;
+	}
+</style>
+
+<div class="management-gl">
+	<div class="report-header">
+		<div class="company-name">{%= filters.company || "" %}</div>
+		<div class="report-title">{%= __("General Ledger — Management Report") %}</div>
+		<div class="confidential">{%= __("Confidential") %}</div>
+	</div>
+
+	<div class="report-meta">
+		<div class="meta-column">
+			<div><span class="meta-label">{%= __("Period") %}</span>
+				{%= frappe.datetime.str_to_user(filters.from_date) %} — {%= frappe.datetime.str_to_user(filters.to_date) %}
+			</div>
+			<div><span class="meta-label">{%= __("Currency") %}</span>
+				{%= filters.presentation_currency || filters.account_currency || filters.company_currency || "" %}
+			</div>
+		</div>
+		<div class="meta-column">
+			<div><span class="meta-label">{%= __("Account") %}</span>
+				{% if (filters.account && filters.account.length) { %}
+					{%= filters.account.join ? filters.account.join(", ") : filters.account %}
+				{% } else { %}
+					{%= __("All Accounts") %}
+				{% } %}
+			</div>
+			<div><span class="meta-label">{%= __("Cost Center") %}</span>
+				{%= filters.cost_center || __("All Cost Centers") %}
+			</div>
+		</div>
+		<div class="meta-column">
+			<div><span class="meta-label">{%= __("Party") %}</span>
+				{%= filters.party_name || filters.party || __("All Parties") %}
+			</div>
+			<div><span class="meta-label">{%= __("Grouping") %}</span>
+				{%= filters.categorize_by || filters.group_by || __("Transaction Date") %}
+			</div>
+		</div>
+	</div>
+
+	{% if (subtitle) { %}
+		<div class="show-filters">{{ subtitle }}</div>
+	{% } %}
+
+	<table>
+		<thead>
+			<tr>
+				<th class="date-column">{%= __("Date") %}</th>
+				<th class="account-column">{%= __("Account / Particulars") %}</th>
+				<th class="reference-column">{%= __("Voucher / Reference") %}</th>
+				<th class="party-column">{%= __("Party / Against") %}</th>
+				<th class="money-column numeric">{%= __("Debit") %}</th>
+				<th class="money-column numeric">{%= __("Credit") %}</th>
+				<th class="money-column numeric">{%= __("Balance") %}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for (var i = 0; i < data.length; i++) { %}
+				{% var row = data[i]; %}
+				{% var is_total = !row.posting_date && i == data.length - 2; %}
+				{% var is_closing = !row.posting_date && i == data.length - 1; %}
+				<tr class="{%= is_closing ? 'closing-row' : (is_total ? 'summary-row' : '') %}">
+					<td>
+						{% if (row.posting_date) { %}
+							{%= frappe.datetime.str_to_user(row.posting_date) %}
+						{% } %}
+					</td>
+					<td>
+						<strong>
+							{% if (is_total) { %}
+								{%= __("Period Total") %}
+							{% } else if (is_closing) { %}
+								{%= __("Closing Balance") %}
+							{% } else { %}
+								{%= row.account || __("Opening Balance") %}
+							{% } %}
+						</strong>
+						{% if (row.remarks && row.remarks != "No Remarks") { %}
+							<div class="muted">{%= row.remarks %}</div>
+						{% } %}
+					</td>
+					<td>
+						{% if (row.voucher_no) { %}
+							<strong>{%= row.voucher_no %}</strong>
+							<div class="muted">{%= row.voucher_type || "" %}</div>
+						{% } %}
+						{% if (row.against_voucher) { %}
+							<div class="muted">{%= __("Against") %}: {%= row.against_voucher %}</div>
+						{% } %}
+					</td>
+					<td>
+						{%= row.party_name || row.party || row.against || "" %}
+						{% if (row.cost_center) { %}
+							<div class="muted">{%= row.cost_center %}</div>
+						{% } %}
+					</td>
+					<td class="numeric">
+						{% if (row.debit) { %}
+							{%= format_currency(row.debit, filters.presentation_currency) %}
+						{% } %}
+					</td>
+					<td class="numeric">
+						{% if (row.credit) { %}
+							{%= format_currency(row.credit, filters.presentation_currency) %}
+						{% } %}
+					</td>
+					<td class="numeric">
+						{% if (row.balance !== undefined && row.balance !== null) { %}
+							{%= format_currency(Math.abs(row.balance), filters.presentation_currency) %}
+							{% if (row.balance > 0) { %} Dr{% } %}
+							{% if (row.balance < 0) { %} Cr{% } %}
+						{% } %}
+					</td>
+				</tr>
+			{% } %}
+		</tbody>
+	</table>
+
+	<div class="report-footer">
+		<div class="footer-cell">
+			{%= __("Printed") %}: {%= frappe.datetime.str_to_user(frappe.datetime.get_datetime_as_string()) %}
+		</div>
+		<div class="footer-cell" style="text-align:center">
+			<span class="signature">{%= __("Prepared By") %}</span>
+			<span class="signature">{%= __("Reviewed By") %}</span>
+		</div>
+		<div class="footer-cell" style="text-align:right">
+			{%= __("For management use only") %}
+		</div>
+	</div>
+</div>

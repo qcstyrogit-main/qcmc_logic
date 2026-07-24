@@ -1,0 +1,135 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-07-22 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "member_name",
+  "member_type",
+  "principal_name",
+  "relationship",
+  "employee_status",
+  "rate_code",
+  "level",
+  "mbl",
+  "override_contributions",
+  "override_ee_share",
+  "override_er_share",
+  "is_active"
+ ],
+ "fields": [
+  {
+   "fieldname": "member_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Member Name",
+   "reqd": 1
+  },
+  {
+   "default": "Principal",
+   "fieldname": "member_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Member Type",
+   "options": "Principal\nDependent",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.member_type == 'Dependent'",
+   "description": "Enter the principal's name exactly as it appears in this table.",
+   "fieldname": "principal_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Principal Name",
+   "mandatory_depends_on": "eval:doc.member_type == 'Dependent'"
+  },
+  {
+   "depends_on": "eval:doc.member_type == 'Dependent'",
+   "fieldname": "relationship",
+   "fieldtype": "Select",
+   "label": "Relationship",
+   "options": "\nSpouse\nChild\nParent\nSibling\nOther"
+  },
+  {
+   "default": "REGULAR",
+   "fieldname": "employee_status",
+   "fieldtype": "Data",
+   "label": "Employee Status"
+  },
+  {
+   "depends_on": "eval:doc.member_type == 'Principal'",
+   "fieldname": "level",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Level",
+   "mandatory_depends_on": "eval:doc.member_type == 'Principal'",
+   "options": "\n1_RankFile\n2_Leadman\n3_Foreman\n4_Supervisor\n5_Manager",
+   "read_only": 1
+  },
+  {
+   "fieldname": "mbl",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "MBL",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "description": "Select the applicable HMO plan rate. MBL and level are filled automatically.",
+   "fieldname": "rate_code",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "HMO Rate",
+   "options": "\n1_RankFile-60000\n1_RankFile-80000\n2_Leadman-60000\n2_Leadman-80000\n2_Leadman-90000\n3_Foreman-60000\n3_Foreman-80000\n3_Foreman-90000\n3_Foreman-150000\n3_Foreman-250000\n4_Supervisor-60000\n4_Supervisor-80000\n4_Supervisor-90000\n4_Supervisor-150000\n4_Supervisor-250000\n5_Manager-250000\nDependent-60000\nDependent-80000\nDependent-90000\nDependent-150000\nDependent-250000",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.member_type == 'Principal'",
+   "fieldname": "override_contributions",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Override Contributions"
+  },
+  {
+   "depends_on": "eval:doc.member_type == 'Principal' && doc.override_contributions",
+   "fieldname": "override_ee_share",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "EE Share",
+   "mandatory_depends_on": "eval:doc.member_type == 'Principal' && doc.override_contributions",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval:doc.member_type == 'Principal' && doc.override_contributions",
+   "fieldname": "override_er_share",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "ER Share",
+   "mandatory_depends_on": "eval:doc.member_type == 'Principal' && doc.override_contributions",
+   "non_negative": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Active"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-22 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "QCMC Logics",
+ "name": "HMO External Member",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

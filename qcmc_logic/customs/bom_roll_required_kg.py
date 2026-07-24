@@ -20,6 +20,9 @@ def apply_roll_required_kg(doc, method=None):
 		clear_roll_required_values(doc)
 		return
 
+	if not flt(doc.get("custom_roll_yield")):
+		doc.custom_roll_yield = 1
+
 	roll_row = roll_rows[0]
 	roll_required_kg = calculate_roll_required_kg(doc, roll_row)
 	roll_row.qty = roll_required_kg
