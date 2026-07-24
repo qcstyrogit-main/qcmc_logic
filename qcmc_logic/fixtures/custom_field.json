@@ -29754,11 +29754,11 @@
   "width": null
  },
  {
-  "alignment": null,
+  "alignment": "",
   "allow_in_quick_entry": 0,
   "allow_on_submit": 1,
   "bold": 0,
-  "button_color": null,
+  "button_color": "",
   "collapsible": 0,
   "collapsible_depends_on": null,
   "columns": 0,
@@ -29812,11 +29812,11 @@
   "width": null
  },
  {
-  "alignment": null,
+  "alignment": "",
   "allow_in_quick_entry": 0,
   "allow_on_submit": 1,
   "bold": 0,
-  "button_color": null,
+  "button_color": "",
   "collapsible": 0,
   "collapsible_depends_on": null,
   "columns": 0,
