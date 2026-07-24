@@ -115,6 +115,8 @@ def get_roll_formulation_response(doc, formulation_categories):
 				"work_order_item_name": row.name,
 				"item_code": row.item_code,
 				"item_name": row.item_name,
+				"item_group": row.get("custom_bom_item_group"),
+				"material_tag": row.get("custom_bom_material_tag"),
 				"material_ratio_percent": row.get("custom_material_ratio_percent"),
 				"required_qty": row.required_qty,
 				"category": get_category_label(category) if category else "",
