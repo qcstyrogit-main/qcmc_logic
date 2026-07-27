@@ -73,6 +73,9 @@ def get_user_allowed_warehouses(user=None, require_transact=False):
     if not user:
         user = frappe.session.user
 
+    if user == "Administrator":
+        return _get_all_leaf_warehouses()
+
     access_conditions, values = _get_warehouse_access_conditions(user)
     if not access_conditions:
         return []
@@ -95,6 +98,16 @@ def get_user_allowed_warehouses(user=None, require_transact=False):
     )
 
     return [row[0] for row in rows]
+
+
+def _get_all_leaf_warehouses():
+    rows = frappe.get_all(
+        "Warehouse",
+        filters={"is_group": 0},
+        pluck="name",
+        order_by="name",
+    )
+    return rows
 
 
 def _get_user_role_profiles(user):
@@ -245,6 +258,8 @@ def _get_default_warehouse_from_source(user=None, require_transact=False, source
 def has_warehouse_access(user=None):
     if not user:
         user = frappe.session.user
+    if user == "Administrator":
+        return False
     return bool(_get_effective_warehouse_access_names(user))
 
 
@@ -469,6 +484,9 @@ def get_default_inventory_group_for_user(user=None, require_transact=False):
 
 @frappe.whitelist()
 def check_warehouse_access(user, warehouse, require_transact=False):
+    if user == "Administrator":
+        return True
+
     if not has_warehouse_access(user):
         return True
 
@@ -478,6 +496,12 @@ def check_warehouse_access(user, warehouse, require_transact=False):
 
 @frappe.whitelist()
 def get_default_warehouse_for_user(user=None, require_transact=False):
+    if not user:
+        user = frappe.session.user
+
+    if user == "Administrator":
+        return None
+
     if not _has_field("Allowed Warehouse", "is_default"):
         return None
 
