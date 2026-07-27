@@ -8,6 +8,8 @@ frappe.ui.form.on("Work Order", {
 	refresh(frm) {
 		schedule_roll_formulation_grid_config(frm);
 		schedule_roll_formulation_preview(frm);
+		hide_custom_print_button(frm);
+		install_workstation_print_handler(frm);
 	},
 
 	bom_no(frm) {
@@ -35,6 +37,71 @@ frappe.ui.form.on("Work Order", {
 		schedule_roll_formulation_grid_config(frm);
 	},
 });
+
+function hide_custom_print_button(frm) {
+	const hide = () => frm.remove_custom_button(__("Print"));
+
+	// Client Scripts run separately and may add the button after this handler.
+	setTimeout(hide, 0);
+	frappe.after_ajax(hide);
+}
+
+function install_workstation_print_handler(frm) {
+	frm.print_doc = () => print_with_workstation_format(frm);
+
+	if (frm.toolbar) {
+		frm.toolbar.print_me = () => print_with_workstation_format(frm);
+	}
+}
+
+async function print_with_workstation_format(frm) {
+	let workstation = null;
+	const operations = frm.doc.operations || [];
+	const last_operation = [...operations].reverse().find((row) => row.workstation);
+	workstation = last_operation?.workstation;
+
+	if (!workstation && frm.doc.bom_no) {
+		const response = await frappe.db.get_list("BOM Operation", {
+			filters: { parent: frm.doc.bom_no, parenttype: "BOM" },
+			fields: ["workstation", "idx"],
+			order_by: "idx desc",
+			limit: 50,
+		});
+		workstation = response.find((row) => row.workstation)?.workstation;
+	}
+
+	if (!workstation) {
+		frappe.msgprint(__("No workstation was found for this Job Order."));
+		return;
+	}
+
+	const response = await frappe.db.get_value(
+		"Workstation",
+		workstation,
+		"custom_print_format"
+	);
+	const print_format = response?.message?.custom_print_format;
+	if (!print_format) {
+		frappe.msgprint(
+			__("No print format is assigned to workstation {0}.", [workstation])
+		);
+		return;
+	}
+
+	window.open(
+		frappe.urllib.get_full_url(
+			"/printview?" +
+				$.param({
+					doctype: frm.doc.doctype,
+					name: frm.doc.name,
+					format: print_format,
+					no_letterhead: 0,
+					lang: frappe.boot.lang || "en",
+				})
+		),
+		"_blank"
+	);
+}
 
 function schedule_roll_formulation_grid_config(frm) {
 	clearTimeout(frm._roll_formulation_grid_timer);

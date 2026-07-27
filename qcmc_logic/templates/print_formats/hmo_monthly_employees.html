@@ -1,0 +1,212 @@
+<style>
+  @page { size: A4 portrait; margin: 10mm 10mm 12mm; }
+  .hmo-monthly { color: #111; font-family: Arial, sans-serif; font-size: 9px; }
+  .hmo-monthly .report-header { position: relative; min-height: 58px; }
+  .hmo-monthly .company { font-size: 15px; font-weight: 700; }
+  .hmo-monthly .title { font-size: 14px; font-weight: 700; margin-top: 5px; }
+  .hmo-monthly .print-meta { position: absolute; right: 0; top: 0; line-height: 1.5; }
+  .hmo-monthly .period { font-size: 11px; font-weight: 700; margin: 8px 0 5px; }
+  .hmo-monthly thead { display: table-header-group; }
+  .hmo-monthly thead .repeated-report-header th { border: 0; padding: 0 3px 6px; white-space: normal; }
+  .hmo-monthly thead .repeated-period th { border: 0; padding: 4px 3px 5px; white-space: normal; }
+  .hmo-monthly table { border-collapse: collapse; table-layout: fixed; width: 100%; }
+  .hmo-monthly th, .hmo-monthly td { border: 1px solid #222; padding: 2px 3px; vertical-align: top; }
+  .hmo-monthly th { font-size: 8px; font-weight: 700; text-align: left; white-space: nowrap; }
+  .hmo-monthly .num { text-align: right; white-space: nowrap; }
+  .hmo-monthly .center { text-align: center; }
+  .hmo-monthly .group-row td { font-size: 12px; font-weight: 700; padding: 1px 2px; }
+  .hmo-monthly .location-row td, .hmo-monthly .section-row td { font-size: 11px; font-weight: 700; padding: 1px 2px; }
+  .hmo-monthly .blank { color: transparent; }
+  .hmo-monthly .dependent-name { padding-left: 15px; }
+  .hmo-monthly .total-row td { font-weight: 700; border-top: 0; }
+  .hmo-monthly .grand-total td { font-size: 9px; font-weight: 700; border-top: 2px solid #111; padding-left: 4px; padding-right: 4px; }
+  .hmo-monthly .signatures { margin-top: 22px; border: 0; }
+  .hmo-monthly .signatures td { border: 0; font-size: 10px; height: 42px; vertical-align: bottom; }
+</style>
+
+{% set payroll_period = frappe.form_dict.get('payroll_period') or doc.effective_from %}
+{% set enrollments = frappe.get_all(
+  "Employee HMO Enrollment",
+  filters={"hmo_rate_plan": doc.name, "is_active": 1, "payroll_type": "Monthly"},
+  fields=["name", "employee", "employee_name", "department", "level", "mbl", "employee_hmo_rate"],
+  order_by="level asc, department asc, employee_name asc",
+  limit_page_length=0
+) %}
+
+{% set level_labels = {
+  '1_RankFile': 'RANK & FILE', '2_Leadman': 'LEADMAN', '3_Foreman': 'FOREMAN',
+  '4_Supervisor': 'SUPERVISOR', '5_Manager': 'MANCOM'
+} %}
+{% set employee_type_levels = {
+  'Rank File I': '1_RankFile', 'Rank File II': '1_RankFile',
+  'Leadman': '2_Leadman', 'Foreman': '3_Foreman',
+  'Supervisor I': '4_Supervisor', 'Supervisor II': '4_Supervisor',
+  'Assistant Manager': '5_Manager', 'Manager': '5_Manager'
+} %}
+{% set report = namespace(rows=[], external_rows=[], grand_ee=0, grand_er=0) %}
+
+{% for enrollment in enrollments %}
+  {% set employee = frappe.get_doc("Employee", enrollment.employee) %}
+  {% set enrollment_doc = frappe.get_doc("Employee HMO Enrollment", enrollment.name) %}
+  {% set principal = namespace(rate=None) %}
+  {% for rate in doc.employee_rates %}
+    {% if (rate.level ~ '-' ~ (rate.mbl|int)) == enrollment.employee_hmo_rate %}
+      {% set principal.rate = rate %}
+    {% endif %}
+  {% endfor %}
+  {% set p_ee = principal.rate.ee_share_monthly_cutoff if principal.rate else 0 %}
+  {% set p_er = principal.rate.er_share_monthly_cutoff if principal.rate else 0 %}
+  {% set p_premium = principal.rate.premium if principal.rate else (p_ee + p_er) %}
+  {% set deps = namespace(rows=[], total=0) %}
+  {% for dep in enrollment_doc.dependents if dep.is_active %}
+    {% set dep_rate = namespace(rate=None) %}
+    {% for rate in doc.dependent_rates %}
+      {% if ('Dependent-' ~ (rate.mbl|int)) == dep.dependent_hmo_rate %}
+        {% set dep_rate.rate = rate %}
+      {% endif %}
+    {% endfor %}
+    {% set dep_ee = dep_rate.rate.ee_share_cutoff if dep_rate.rate else 0 %}
+    {% set deps.total = deps.total + dep_ee %}
+    {% set deps.rows = deps.rows + [{"name": dep.dependent_name, "mbl": dep.mbl, "premium": dep_rate.rate.ee_share_monthly if dep_rate.rate else 0, "ee": dep_ee}] %}
+  {% endfor %}
+  {% set report.rows = report.rows + [{
+    "level": employee_type_levels.get(employee.custom_employee_type, enrollment.level), "location": employee.custom_location or '',
+    "section": enrollment.department or '', "employee_name": enrollment.employee_name,
+    "status": employee.employment_type or employee.status or '', "mbl": enrollment.mbl, "premium": p_premium,
+    "ee": p_ee, "er": p_er, "dependents": deps.rows, "employee_total_ee": p_ee + deps.total
+  }] %}
+  {% set report.grand_ee = report.grand_ee + p_ee + deps.total %}
+  {% set report.grand_er = report.grand_er + p_er %}
+{% endfor %}
+
+{# External principals are report-only HMO members and never enter Employee/payroll records. #}
+{% set external_members = doc.get("external_members") or [] %}
+{% for external in external_members if external.is_active and external.member_type == 'Principal' %}
+  {% set principal = namespace(rate=None) %}
+  {% for rate in doc.employee_rates %}
+    {% if (rate.level ~ '-' ~ (rate.mbl|int)) == external.rate_code %}
+      {% set principal.rate = rate %}
+    {% endif %}
+  {% endfor %}
+  {% set p_ee = external.override_ee_share if external.override_contributions else (principal.rate.ee_share_monthly_cutoff if principal.rate else 0) %}
+  {% set p_er = external.override_er_share if external.override_contributions else (principal.rate.er_share_monthly_cutoff if principal.rate else 0) %}
+  {% set p_premium = ((p_ee + p_er) * 2) if external.override_contributions else (principal.rate.premium if principal.rate else 0) %}
+  {% set deps = namespace(rows=[], total=0) %}
+  {% for dep in external_members if dep.is_active and dep.member_type == 'Dependent' and dep.principal_name == external.member_name %}
+    {% set dep_rate = namespace(rate=None) %}
+    {% for rate in doc.dependent_rates %}
+      {% if ('Dependent-' ~ (rate.mbl|int)) == dep.rate_code %}
+        {% set dep_rate.rate = rate %}
+      {% endif %}
+    {% endfor %}
+    {% set dep_ee = dep_rate.rate.ee_share_cutoff if dep_rate.rate else 0 %}
+    {% set deps.total = deps.total + dep_ee %}
+    {% set deps.rows = deps.rows + [{
+      "name": dep.member_name, "mbl": dep.mbl,
+      "premium": dep_rate.rate.ee_share_monthly if dep_rate.rate else 0, "ee": dep_ee
+    }] %}
+  {% endfor %}
+  {% set report.external_rows = report.external_rows + [{
+    "level": external.level, "employee_name": external.member_name,
+    "status": 'REGULAR', "mbl": external.mbl,
+    "premium": p_premium, "ee": p_ee, "er": p_er, "dependents": deps.rows,
+    "employee_total_ee": p_ee + deps.total
+  }] %}
+  {% set report.grand_ee = report.grand_ee + p_ee + deps.total %}
+  {% set report.grand_er = report.grand_er + p_er %}
+{% endfor %}
+
+<div class="hmo-monthly">
+  <table>
+    <colgroup>
+      <col style="width:18%"><col style="width:22%"><col style="width:14%"><col style="width:8%">
+      <col style="width:11%"><col style="width:10%"><col style="width:7%"><col style="width:10%">
+    </colgroup>
+    <thead>
+    <tr class="repeated-report-header"><th colspan="8">
+      <div class="report-header">
+        <div class="company">{{ doc.company|upper }}</div>
+        <div class="title">HMO - MONTHLY EMPLOYEES</div>
+        <div class="print-meta">
+          <div>{{ frappe.utils.formatdate(frappe.utils.today(), "MM/dd/yyyy") }}</div>
+          <div>{{ frappe.utils.format_datetime(frappe.utils.now_datetime(), "h:mm:ssa") }}</div>
+        </div>
+      </div>
+    </th></tr>
+    <tr class="repeated-period"><th colspan="8"><div class="period">Payroll Period: {{ frappe.utils.formatdate(payroll_period, "MM/dd/yyyy") }}</div></th></tr>
+    <tr>
+      <th>Section</th><th>Employee Name</th><th>Employee Status</th><th>MBL</th>
+      <th class="num">MO. Premium</th><th colspan="2" class="center">EE Share</th><th class="num">ER Share</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for level, level_rows in report.rows|groupby('level') %}
+      <tr class="group-row"><td>{{ level_labels.get(level, level)|upper }}</td><td colspan="7"></td></tr>
+      {% for location, location_rows in level_rows|groupby('location') %}
+        <tr class="location-row"><td>{{ location or 'UNASSIGNED LOCATION' }}</td><td colspan="7"></td></tr>
+        {% set location_total = namespace(ee=0, er=0) %}
+        {% for section, section_rows in location_rows|groupby('section') %}
+          <tr class="section-row"><td>{{ section or 'UNASSIGNED SECTION' }}</td><td colspan="7"></td></tr>
+          {% for row in section_rows %}
+            <tr>
+              <td></td><td>{{ loop.index }} &nbsp; {{ row.employee_name|upper }}</td><td>{{ row.status|upper }}</td>
+              <td class="num">{{ frappe.utils.fmt_money(row.mbl, precision=0) }}</td>
+              <td class="num">{{ frappe.utils.fmt_money(row.premium) }}</td>
+              <td class="num">{% if row.dependents|length %}{{ frappe.utils.fmt_money(row.employee_total_ee) }}{% endif %}</td>
+              <td class="num">{{ frappe.utils.fmt_money(row.ee) }}</td><td class="num">{{ frappe.utils.fmt_money(row.er) }}</td>
+            </tr>
+            {% set location_total.ee = location_total.ee + row.employee_total_ee %}
+            {% set location_total.er = location_total.er + row.er %}
+            {% for dep in row.dependents %}
+              <tr>
+                <td></td><td class="dependent-name">{{ loop.index + 1 }} &nbsp; {{ dep.name }}</td><td>DEPENDENT</td>
+                <td class="num">{{ frappe.utils.fmt_money(dep.mbl, precision=0) }}</td>
+                <td class="num">{{ frappe.utils.fmt_money(dep.premium) }}</td><td class="num">{{ frappe.utils.fmt_money(dep.ee) }}</td>
+                <td></td><td></td>
+              </tr>
+            {% endfor %}
+          {% endfor %}
+        {% endfor %}
+        <tr class="total-row"><td class="num">Total</td><td colspan="4"></td>
+          <td class="num">{{ frappe.utils.fmt_money(location_total.ee) }}</td><td></td>
+          <td class="num">{{ frappe.utils.fmt_money(location_total.er) }}</td></tr>
+      {% endfor %}
+    {% endfor %}
+    {% if report.external_rows %}
+      <tr class="group-row"><td>PERSONAL WORKERS</td><td colspan="7"></td></tr>
+      {% set external_total = namespace(ee=0, er=0) %}
+      {% for row in report.external_rows %}
+        <tr>
+          <td></td><td>{{ loop.index }} &nbsp; {{ row.employee_name|upper }}</td><td>{{ row.status|upper }}</td>
+          <td class="num">{{ frappe.utils.fmt_money(row.mbl, precision=0) }}</td>
+          <td class="num">{{ frappe.utils.fmt_money(row.premium) }}</td>
+          <td class="num">{% if row.dependents|length %}{{ frappe.utils.fmt_money(row.employee_total_ee) }}{% endif %}</td>
+          <td class="num">{{ frappe.utils.fmt_money(row.ee) }}</td><td class="num">{{ frappe.utils.fmt_money(row.er) }}</td>
+        </tr>
+        {% set external_total.ee = external_total.ee + row.employee_total_ee %}
+        {% set external_total.er = external_total.er + row.er %}
+        {% for dep in row.dependents %}
+          <tr>
+            <td></td><td class="dependent-name">{{ loop.index + 1 }} &nbsp; {{ dep.name }}</td><td>DEPENDENT</td>
+            <td class="num">{{ frappe.utils.fmt_money(dep.mbl, precision=0) }}</td>
+            <td class="num">{{ frappe.utils.fmt_money(dep.premium) }}</td><td class="num">{{ frappe.utils.fmt_money(dep.ee) }}</td>
+            <td></td><td></td>
+          </tr>
+        {% endfor %}
+      {% endfor %}
+      <tr class="total-row"><td class="num">Total</td><td colspan="4"></td>
+        <td class="num">{{ frappe.utils.fmt_money(external_total.ee) }}</td><td></td>
+        <td class="num">{{ frappe.utils.fmt_money(external_total.er) }}</td></tr>
+    {% endif %}
+    {% if not report.rows and not report.external_rows %}<tr><td colspan="8" class="center">No active monthly HMO enrollments found for this rate plan.</td></tr>{% endif %}
+    <tr class="grand-total"><td class="num">Grand Total</td><td colspan="4"></td>
+      <td class="num">{{ frappe.utils.fmt_money(report.grand_ee) }}</td><td></td>
+      <td class="num">{{ frappe.utils.fmt_money(report.grand_er) }}</td></tr>
+    </tbody>
+  </table>
+
+  <table class="signatures"><tr>
+    <td style="width:50%">Prepared by:<br><br><b>HR</b></td>
+    <td style="width:50%">Received By</td>
+  </tr></table>
+</div>

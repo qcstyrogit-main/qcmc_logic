@@ -11,7 +11,16 @@ qcmc_logic.warehouse_access.skip_doctypes = new Set([
 
 qcmc_logic.warehouse_access.enabled = null;
 
+qcmc_logic.warehouse_access.is_administrator = function() {
+    return frappe.session && frappe.session.user === "Administrator";
+};
+
 qcmc_logic.warehouse_access.is_enabled = function(callback) {
+    if (qcmc_logic.warehouse_access.is_administrator()) {
+        callback(false);
+        return;
+    }
+
     if (qcmc_logic.warehouse_access.enabled !== null) {
         callback(qcmc_logic.warehouse_access.enabled);
         return;
@@ -187,7 +196,12 @@ qcmc_logic.warehouse_access.stock_entry_requires_transact = function(frm, fieldn
 };
 
 qcmc_logic.warehouse_access.apply = function(frm) {
-    if (!frm || !frm.meta || qcmc_logic.warehouse_access.skip_doctypes.has(frm.doctype)) {
+    if (
+        qcmc_logic.warehouse_access.is_administrator() ||
+        !frm ||
+        !frm.meta ||
+        qcmc_logic.warehouse_access.skip_doctypes.has(frm.doctype)
+    ) {
         return;
     }
 
