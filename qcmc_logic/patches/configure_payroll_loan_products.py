@@ -80,7 +80,16 @@ def ensure_sss_calamity_products():
 		if frappe.db.exists("Loan Product", product_code):
 			continue
 
-		template = frappe.get_doc("Loan Product", settings["template"])
+		template_name = settings["template"]
+		if not frappe.db.exists("Loan Product", template_name):
+			frappe.logger().info(
+				"Skipped creating %s because template Loan Product %s does not exist",
+				product_code,
+				template_name,
+			)
+			continue
+
+		template = frappe.get_doc("Loan Product", template_name)
 		product = frappe.copy_doc(template)
 		product.name = None
 		product.product_code = product_code
