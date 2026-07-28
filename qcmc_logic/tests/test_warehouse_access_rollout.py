@@ -54,3 +54,48 @@ class TestWarehouseAccessRollout(TestCase):
         self.assertIn("Job Card", SKIP_DOCTYPES)
         self.assertIn("Work Order", SKIP_DOCTYPES)
         self.assertIn("Stock Entry", WAREHOUSE_TRANSACTION_DOCTYPES)
+
+    def test_setup_helper_and_master_doctypes_are_strictly_excluded(self):
+        expected_exclusions = {
+            "Allowed Warehouse",
+            "BOM",
+            "BOM Creator",
+            "Bin",
+            "Cost Center Warehouse Mapping",
+            "Item Default",
+            "Job Card",
+            "Production Plan",
+            "Putaway Rule",
+            "Role Profile Warehouse Access",
+            "Serial and Batch Bundle",
+            "Stock Ledger Entry",
+            "Stock Settings",
+            "User Permission",
+            "Warehouse",
+            "Warehouse Access",
+            "Work Order",
+            "Workstation",
+        }
+
+        self.assertTrue(expected_exclusions.issubset(SKIP_DOCTYPES))
+        self.assertTrue(expected_exclusions.isdisjoint(WAREHOUSE_TRANSACTION_DOCTYPES))
+
+    def test_stock_transaction_doctypes_are_restricted(self):
+        expected_transactions = {
+            "Delivery Note",
+            "Material Request",
+            "Pick List",
+            "POS Invoice",
+            "Purchase Invoice",
+            "Purchase Order",
+            "Purchase Receipt",
+            "Sales Invoice",
+            "Sales Order",
+            "Stock Entry",
+            "Stock Reconciliation",
+            "Subcontracting Order",
+            "Subcontracting Receipt",
+            "Warehouse Transfer",
+        }
+
+        self.assertTrue(expected_transactions.issubset(WAREHOUSE_TRANSACTION_DOCTYPES))

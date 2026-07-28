@@ -15,16 +15,22 @@ from qcmc_logic.utils import (
 
 WAREHOUSE_TRANSACTION_DOCTYPES = {
     "Delivery Note": {
-        "children": {"Delivery Note Item": ["warehouse"]},
+        "fields": ["set_warehouse", "set_target_warehouse"],
+        "children": {"Delivery Note Item": ["warehouse", "target_warehouse"]},
     },
     "Material Request": {
-        "fields": ["set_warehouse"],
+        "fields": ["set_warehouse", "set_from_warehouse"],
         "children": {"Material Request Item": ["warehouse"]},
     },
     "Pick List": {
         "children": {"Pick List Item": ["warehouse"], "Pick List Item Location": ["warehouse"]},
     },
+    "POS Invoice": {
+        "fields": ["set_warehouse"],
+        "children": {"POS Invoice Item": ["warehouse"]},
+    },
     "Purchase Invoice": {
+        "fields": ["set_warehouse"],
         "children": {"Purchase Invoice Item": ["warehouse"]},
     },
     "Purchase Order": {
@@ -39,7 +45,12 @@ WAREHOUSE_TRANSACTION_DOCTYPES = {
         },
     },
     "Sales Invoice": {
+        "fields": ["set_warehouse"],
         "children": {"Sales Invoice Item": ["warehouse"]},
+    },
+    "Sales Order": {
+        "fields": ["set_warehouse"],
+        "children": {"Sales Order Item": ["warehouse"]},
     },
     "Stock Entry": {
         "fields": ["from_warehouse", "to_warehouse"],
@@ -47,6 +58,20 @@ WAREHOUSE_TRANSACTION_DOCTYPES = {
     },
     "Stock Reconciliation": {
         "children": {"Stock Reconciliation Item": ["warehouse"]},
+    },
+    "Subcontracting Order": {
+        "fields": ["set_warehouse"],
+        "children": {
+            "Subcontracting Order Item": ["warehouse"],
+            "Subcontracting Order Supplied Item": ["reserve_warehouse"],
+        },
+    },
+    "Subcontracting Receipt": {
+        "fields": ["set_warehouse"],
+        "children": {
+            "Subcontracting Receipt Item": ["warehouse", "rejected_warehouse"],
+            "Subcontracting Receipt Supplied Item": ["reserve_warehouse"],
+        },
     },
     "Warehouse Transfer": {
         "fields": ["source_warehouse", "target_warehouse"],
@@ -305,6 +330,10 @@ def pick_list_permission_query(user):
     return _warehouse_transaction_permission_query("Pick List", user)
 
 
+def pos_invoice_permission_query(user):
+    return _warehouse_transaction_permission_query("POS Invoice", user)
+
+
 def purchase_invoice_permission_query(user):
     return _warehouse_transaction_permission_query("Purchase Invoice", user)
 
@@ -321,12 +350,24 @@ def sales_invoice_permission_query(user):
     return _warehouse_transaction_permission_query("Sales Invoice", user)
 
 
+def sales_order_permission_query(user):
+    return _warehouse_transaction_permission_query("Sales Order", user)
+
+
 def stock_entry_permission_query(user):
     return _warehouse_transaction_permission_query("Stock Entry", user)
 
 
 def stock_reconciliation_permission_query(user):
     return _warehouse_transaction_permission_query("Stock Reconciliation", user)
+
+
+def subcontracting_order_permission_query(user):
+    return _warehouse_transaction_permission_query("Subcontracting Order", user)
+
+
+def subcontracting_receipt_permission_query(user):
+    return _warehouse_transaction_permission_query("Subcontracting Receipt", user)
 
 
 def work_order_permission_query(user):
