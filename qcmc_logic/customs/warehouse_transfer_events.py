@@ -8,6 +8,9 @@ from erpnext.stock.stock_ledger import make_sl_entries
 
 @frappe.whitelist()
 def validate(self):
+    if frappe.session.user == "Administrator":
+        return
+
     allowed = get_user_allowed_warehouses(frappe.session.user, require_transact=True)
 
     if self.source_warehouse not in allowed:

@@ -2,18 +2,74 @@ import frappe
 
 
 SKIP_DOCTYPES = {
-    "Warehouse Access",
     "Allowed Warehouse",
     "BOM",
+    "BOM Creator",
+    "BOM Explosion Item",
+    "BOM Item",
+    "BOM Operation",
+    "Bin",
+    "Company",
     "Cost Center Warehouse Mapping",
+    "Delivery Schedule Item",
     "Error Log",
+    "Item Default",
+    "Item Reorder",
     "Job Card",
+    "Job Card Item",
+    "Master Production Schedule",
+    "Master Production Schedule Item",
+    "Material Request Plan Item",
+    "Packed Item",
+    "Plant Floor",
+    "Pricing Rule",
+    "Production Employee Advance Schedule",
+    "Production Plan",
+    "Production Plan Item",
+    "Production Plan Material Request Warehouse",
+    "Production Plan Sub Assembly Item",
+    "Production Plantilla",
+    "Promotional Scheme Price Discount",
+    "Promotional Scheme Product Discount",
+    "Putaway Rule",
+    "Quick Stock Balance",
+    "Quotation Item",
+    "Repost Item Valuation",
+    "Request for Quotation Item",
     "Role Profile Warehouse Access",
+    "Sales Forecast",
+    "Sales Forecast Item",
+    "Serial and Batch Bundle",
+    "Serial and Batch Entry",
+    "Serial No",
+    "Stock Closing Balance",
     "Stock Settings",
-    "Warehouse Transfer",
-    "Warehouse",
-    "Work Order",
+    "Stock Ledger Entry",
+    "Stock Reservation Entry",
+    "Supplier Quotation Item",
     "User Permission",
+    "Warehouse",
+    "Warehouse Access",
+    "Warehouse Transfer",
+    "Work Order",
+    "Workstation",
+}
+
+RESTRICTED_TRANSACTION_DOCTYPES = {
+    "Delivery Note",
+    "Material Request",
+    "Pick List",
+    "POS Invoice",
+    "Purchase Invoice",
+    "Purchase Order",
+    "Purchase Receipt",
+    "Sales Invoice",
+    "Sales Order",
+    "Stock Entry",
+    "Stock Reconciliation",
+    "Subcontracting Order",
+    "Subcontracting Receipt",
+    "Warehouse Transfer",
 }
 
 SOURCE_WAREHOUSE_FIELDS = {
@@ -76,6 +132,7 @@ def validate_warehouse_access(doc, method=None):
     if (
         frappe.session.user == "Administrator"
         or doc.doctype in SKIP_DOCTYPES
+        or doc.doctype not in RESTRICTED_TRANSACTION_DOCTYPES
     ):
         return
 
