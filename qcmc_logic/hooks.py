@@ -313,21 +313,8 @@ fixtures = [
         "doctype": "Role",
         "filters": [["is_custom", "=", 1]]
     },
-    {
-        "doctype": "Role Profile",
-        "filters": [
-            [
-                "name",
-                "not in",
-                ["Accounts", "HR", "Inventory", "Manufacturing", "Purchase", "Sales"],
-            ]
-        ],
-    },
     {"doctype": "Downtime Reason"},
     {"doctype": "Job Card Downtime"},
-]
-before_migrate = [
-    "qcmc_logic.migrate.run_role_profile_updates_inline",
 ]
 after_migrate = [
     "qcmc_logic.customs.machine_shop_job_request.ensure_msjr_permissions",
