@@ -1,15 +1,60 @@
 frappe.ui.form.on("Payment Entry", {
 	refresh(frm) {
 		add_intercompany_collection_buttons(frm);
+		render_affiliate_collection_deduction_button(frm);
+	},
+	unallocated_amount(frm) {
+		render_affiliate_collection_deduction_button(frm);
+	},
+	payment_type(frm) {
+		render_affiliate_collection_deduction_button(frm);
+	},
+	company(frm) {
+		render_affiliate_collection_deduction_button(frm);
 	},
 });
+
+function render_affiliate_collection_deduction_button(frm) {
+	const button_id = "qcmc-affiliate-collection-deduction";
+	$(`#${button_id}`).remove();
+
+	if (
+		frm.doc.docstatus !== 0
+		|| frm.doc.payment_type !== "Receive"
+		|| !frm.doc.company
+		|| flt(frm.doc.unallocated_amount) <= 0
+	) {
+		return;
+	}
+
+	const $target = frm.fields_dict.deductions
+		? frm.fields_dict.deductions.$wrapper
+		: frm.fields_dict.unallocated_amount.$wrapper;
+
+	const $button = $(`
+		<div id="${button_id}" class="text-right" style="margin: 8px 0 10px;">
+			<button class="btn btn-xs btn-default">
+				${__("Add Affiliate Collection Deduction")}
+			</button>
+		</div>
+	`);
+
+	$button.find("button").on("click", () => {
+		show_affiliate_collection_deduction_dialog(frm);
+	});
+
+	$target.before($button);
+}
 
 function add_intercompany_collection_buttons(frm) {
 	if (frm.doc.docstatus !== 1 || frm.doc.payment_type !== "Receive") {
 		return;
 	}
 
-	if (flt(frm.doc.unallocated_amount) > 0 && !frm.doc.custom_intercompany_target_payment_entry) {
+	if (
+		has_affiliate_collection_deduction(frm)
+		&& !frm.doc.custom_intercompany_target_payment_entry
+	) {
 		frm.add_custom_button(__("Create Intercompany Payment Entry"), () => {
 			show_intercompany_payment_preview(frm);
 		});
@@ -22,10 +67,76 @@ function add_intercompany_collection_buttons(frm) {
 		is_intercompany_target
 		&& !frm.doc.custom_intercompany_source_journal_entry
 	) {
-		frm.add_custom_button(__("Create Reclassification JV"), () => {
+		frm.add_custom_button(__("Create Settlement JVs"), () => {
 			show_intercompany_journal_preview(frm);
 		});
 	}
+}
+
+function has_affiliate_collection_deduction(frm) {
+	return (frm.doc.deductions || []).some((row) => {
+		const account = (row.account || "").toLowerCase();
+		return flt(row.amount) < 0 && account.includes("advances from affiliates");
+	});
+}
+
+async function show_affiliate_collection_deduction_dialog(frm) {
+	const default_amount = Math.max(flt(frm.doc.unallocated_amount), 0);
+
+	const dialog = new frappe.ui.Dialog({
+		title: __("Add Affiliate Collection Deduction"),
+		fields: [
+			{
+				fieldtype: "Link",
+				fieldname: "affiliate_company",
+				label: __("Affiliate Company"),
+				options: "Company",
+				reqd: 1,
+				get_query: () => ({
+					filters: {
+						name: ["!=", frm.doc.company],
+						is_group: 0,
+					},
+				}),
+			},
+			{
+				fieldtype: "Currency",
+				fieldname: "amount",
+				label: __("Amount"),
+				default: default_amount,
+				reqd: 1,
+			},
+		],
+		primary_action_label: __("Apply"),
+		primary_action(values) {
+			if (!flt(values.amount)) {
+				frappe.msgprint(__("Amount is required."));
+				return;
+			}
+
+			frappe.call({
+				method: "qcmc_logic.overrides.payment_entry.get_affiliate_collection_deduction_defaults",
+				args: {
+					company: frm.doc.company,
+					affiliate_company: values.affiliate_company,
+				},
+				freeze: true,
+				freeze_message: __("Finding affiliate advances account..."),
+				callback(r) {
+					const defaults = r.message || {};
+					const row = frm.add_child("deductions");
+					row.account = defaults.account;
+					row.cost_center = defaults.cost_center;
+					row.amount = -Math.abs(flt(values.amount));
+					frm.refresh_field("deductions");
+					frm.trigger("set_unallocated_amount");
+					dialog.hide();
+				},
+			});
+		},
+	});
+
+	dialog.show();
 }
 
 async function show_intercompany_payment_preview(frm) {
@@ -119,11 +230,11 @@ async function show_intercompany_journal_preview(frm) {
 
 	const preview = message;
 	const dialog = new frappe.ui.Dialog({
-		title: __("Create Reclassification JV"),
+		title: __("Create Settlement JVs"),
 		fields: [
 			{ fieldtype: "HTML", fieldname: "preview_html", options: render_journal_preview(preview) },
 		],
-		primary_action_label: __("Create Draft JV"),
+		primary_action_label: __("Create and Submit JVs"),
 		primary_action() {
 			frappe.call({
 				method: "qcmc_logic.overrides.payment_entry.create_intercompany_collection_journals",
@@ -135,8 +246,8 @@ async function show_intercompany_journal_preview(frm) {
 				callback(r) {
 					dialog.hide();
 					frm.reload_doc();
-					if (r.message && r.message.journal_entry) {
-						frappe.set_route("Form", "Journal Entry", r.message.journal_entry);
+					if (r.message && r.message.source_journal_entry) {
+						frappe.set_route("Form", "Journal Entry", r.message.source_journal_entry);
 					}
 				},
 			});
@@ -161,7 +272,8 @@ function render_payment_preview(preview) {
 function render_journal_preview(preview) {
 	return `
 		<div class="small">
-			${render_journal_section(__("Reclassification JV"), preview.source_journal_entry)}
+			${render_journal_section(__("QC Settlement JV"), preview.source_journal_entry)}
+			${render_journal_section(__("MC Settlement JV"), preview.target_journal_entry)}
 		</div>
 	`;
 }

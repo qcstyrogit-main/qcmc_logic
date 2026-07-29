@@ -2,6 +2,38 @@ import frappe
 from frappe import _
 
 
+def set_msjr_receipt_warehouse_code(doc, method=None):
+	"""Derive the required Stock Entry WH Code from an MSJR receipt's target warehouse."""
+	if not (doc.get("msjr_no") and doc.purpose == "Material Receipt"):
+		return
+
+	target_warehouses = {
+		row.t_warehouse for row in (doc.get("items") or []) if row.get("t_warehouse")
+	}
+	if doc.get("to_warehouse"):
+		target_warehouses.add(doc.to_warehouse)
+
+	if not target_warehouses:
+		return
+	if len(target_warehouses) > 1:
+		frappe.throw(
+			_("MSJR output receipt items must use one Target Warehouse so the WH Code can be determined."),
+			title=_("Multiple Target Warehouses"),
+		)
+
+	target_warehouse = next(iter(target_warehouses))
+	warehouse_code = frappe.db.get_value("Warehouse", target_warehouse, "custom_wh_code")
+	if not warehouse_code:
+		frappe.throw(
+			_("Target Warehouse {0} has no WH Code configured.").format(
+				frappe.bold(target_warehouse)
+			),
+			title=_("Warehouse Code Required"),
+		)
+
+	doc.custom_wh_code = warehouse_code
+
+
 def validate_final_job_card_time_log(doc, method=None):
 	if not _is_linked_manufacture_entry(doc):
 		return

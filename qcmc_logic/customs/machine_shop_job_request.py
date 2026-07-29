@@ -1,5 +1,10 @@
 import frappe
 from frappe.model.naming import make_autoname
+from frappe.utils import flt
+
+
+PARTS_FABRICATION = "PARTS FABRICATION"
+PARTS_INVENTORY_GROUP = "CMMS"
 
 LOCATION_SERIES = {
     "Edsa - Motorpool":        "12MTP-.YY.-.####",
@@ -144,19 +149,110 @@ def validate(doc, method=None):
                 title="Job Type Locked",
             )
 
+    _validate_output_item(doc)
+
     # ── Workflow transition validation ────────────────────────────────────
     _validate_workflow_transition(doc)
 
 
+def _get_request_type(doc):
+    """Return the request master description used as the business request type."""
+    if not doc.get("request"):
+        return ""
+    return (
+        frappe.db.get_value("Machine Shop Request Code", doc.request, "description") or ""
+    ).strip().upper()
+
+
+def _is_parts_fabrication(doc):
+    return _get_request_type(doc) == PARTS_FABRICATION
+
+
+def _validate_output_item(doc):
+    """Keep a selected parts-fabrication Item inside the CMMS inventory group."""
+    item_code = doc.get("item_code")
+    if not item_code:
+        return
+
+    if not _is_parts_fabrication(doc):
+        frappe.throw(
+            "Item Code is only available for the PARTS FABRICATION request type.",
+            title="Invalid Output Item",
+        )
+
+    inventory_group = frappe.db.get_value("Item", item_code, "custom_inventory_group")
+    if inventory_group != PARTS_INVENTORY_GROUP:
+        frappe.throw(
+            f"Item Code must belong to Inventory Group {PARTS_INVENTORY_GROUP}.",
+            title="Invalid Inventory Group",
+        )
+
+
+def _validate_completion_output(doc):
+    if flt(doc.get("quantity_produced")) <= 0:
+        frappe.throw(
+            "Quantity Produced must be greater than zero before completing this request.",
+            title="Quantity Produced Required",
+        )
+
+    if doc.get("not_in_master_file"):
+        if not (doc.get("proposed_output_code") or doc.get("output_description")):
+            frappe.throw(
+                "Enter a Proposed Output Code or Output Description for an output that is not yet in the master file.",
+                title="Output Identification Required",
+            )
+        return
+
+    if _is_parts_fabrication(doc):
+        if not doc.get("item_code"):
+            frappe.throw(
+                "Item Code is required for PARTS FABRICATION before completing this request.",
+                title="Item Code Required",
+            )
+    elif not doc.get("asset"):
+        frappe.throw(
+            "Asset is required before completing this request.",
+            title="Asset Required",
+        )
+
+
+def _validate_linked_project_completed(doc):
+    projects = frappe.get_all(
+        "Machine Shop Repairs and Project",
+        filters={"msjr_no": doc.name, "docstatus": ["!=", 2]},
+        fields=["name", "workflow_state"],
+    )
+    if not projects:
+        frappe.throw(
+            "Generate and complete a Machine Shop Repairs and Project before completing this request.",
+            title="Completed Project Required",
+        )
+
+    incomplete = [row.name for row in projects if row.workflow_state != "Completed"]
+    if incomplete:
+        frappe.throw(
+            "Complete the linked Machine Shop Repairs and Project before completing this request: "
+            + ", ".join(incomplete),
+            title="Project Not Completed",
+        )
+
+
 def _validate_workflow_transition(doc):
     """Server-side enforcement of workflow transition rules beyond role checks."""
-    if doc.is_new() or frappe.session.user == "Administrator":
+    if doc.is_new():
         return
 
     old_state = frappe.db.get_value("Machine Shop Job Request", doc.name, "workflow_state") or ""
     new_state = doc.workflow_state or ""
 
     if old_state == new_state:
+        return
+
+    if old_state == "Received" and new_state == "Completed":
+        _validate_completion_output(doc)
+        _validate_linked_project_completed(doc)
+
+    if frappe.session.user == "Administrator":
         return
 
     roles = set(frappe.get_roles(frappe.session.user))
@@ -338,6 +434,75 @@ MSJR_PERMISSIONS = [
     ("Machine Shop Foreman",    0),
 ]
 
+
+MSJR_OUTPUT_FIELDS = [
+    {
+        "fieldname": "output_details_section",
+        "label": "Fabricated Output",
+        "fieldtype": "Section Break",
+        "insert_after": "work_instruction",
+    },
+    {
+        "fieldname": "item_code",
+        "label": "Item Code",
+        "fieldtype": "Link",
+        "options": "Item",
+        "insert_after": "output_details_section",
+        "description": "Used for PARTS FABRICATION and restricted to Inventory Group CMMS.",
+    },
+    {
+        "fieldname": "quantity_produced",
+        "label": "Quantity Produced",
+        "fieldtype": "Float",
+        "non_negative": 1,
+        "insert_after": "item_code",
+    },
+    {
+        "fieldname": "not_in_master_file",
+        "label": "Not Yet in Master File",
+        "fieldtype": "Check",
+        "default": "0",
+        "insert_after": "quantity_produced",
+        "description": "Use when the fabricated output has no Item or Asset master record yet.",
+    },
+    {
+        "fieldname": "proposed_output_code",
+        "label": "Proposed Output Code",
+        "fieldtype": "Data",
+        "insert_after": "not_in_master_file",
+        "depends_on": "eval:doc.not_in_master_file",
+    },
+    {
+        "fieldname": "output_description",
+        "label": "Output Description",
+        "fieldtype": "Small Text",
+        "insert_after": "proposed_output_code",
+        "depends_on": "eval:doc.not_in_master_file",
+    },
+]
+
+
+def _ensure_msjr_output_fields():
+    for field in MSJR_OUTPUT_FIELDS:
+        name = f"Machine Shop Job Request-{field['fieldname']}"
+        if frappe.db.exists("Custom Field", name):
+            continue
+        frappe.get_doc({
+            "doctype": "Custom Field",
+            "dt": "Machine Shop Job Request",
+            **field,
+        }).insert(ignore_permissions=True)
+
+
+def _ensure_parts_fabrication_request_code():
+    if frappe.db.exists("Machine Shop Request Code", {"description": PARTS_FABRICATION}):
+        return
+    frappe.get_doc({
+        "doctype": "Machine Shop Request Code",
+        "description": PARTS_FABRICATION,
+        "measure": "DAY",
+    }).insert(ignore_permissions=True)
+
 def ensure_msjr_permissions():
     """Re-apply field layout, DocPerm, and JRS doctypes after every migrate."""
     import json, os
@@ -361,8 +526,14 @@ def ensure_msjr_permissions():
     if fixture_msjr:
         dt_doc = frappe.get_doc("DocType", "Machine Shop Job Request")
         dt_doc.set("fields", fixture_msjr["fields"])
+        asset_field = next((f for f in dt_doc.fields if f.fieldname == "asset"), None)
+        if asset_field:
+            asset_field.reqd = 0
         dt_doc.flags.ignore_permissions = True
         dt_doc.save()
+
+    _ensure_msjr_output_fields()
+    _ensure_parts_fabrication_request_code()
 
     # 3. Sync MSJR workflow from fixture
     workflow_fixture = os.path.join(app_path, "fixtures", "workflow.json")

@@ -13,8 +13,11 @@ class CustomPaymentEntry(PaymentEntry):
         self.validate_intercompany_collection_payment()
 
     def on_cancel(self):
-        self.cancel_intercompany_collection_transfer()
+        self.cleanup_intercompany_collection_links(delete=False)
         super().on_cancel()
+
+    def on_trash(self):
+        self.cleanup_intercompany_collection_links(delete=True)
 
     def make_gl_entries(self, cancel=0, adv_adj=0):
         if self.get("custom_enable_manual_gl_entries") and self.payment_type == "Pay":
@@ -214,11 +217,12 @@ class CustomPaymentEntry(PaymentEntry):
         if not frappe.db.exists("Account", {"name": source_payment.paid_to, "is_group": 0}):
             frappe.throw(_("Ref Doc must be paid into a valid ledger account."))
 
-        if flt(source_payment.unallocated_amount) < flt(self.received_amount):
+        source_collection_amount = _get_affiliate_collection_deduction_amount(source_payment)
+        if source_collection_amount < flt(self.received_amount):
             frappe.throw(
-                _("Ref Doc must have at least {0} unallocated amount. Current unallocated amount is {1}.").format(
+                _("Ref Doc must have at least {0} affiliate collection deduction amount. Current amount is {1}.").format(
                     frappe.bold(self.received_amount),
-                    frappe.bold(source_payment.unallocated_amount),
+                    frappe.bold(source_collection_amount),
                 )
             )
 
@@ -230,70 +234,57 @@ class CustomPaymentEntry(PaymentEntry):
         if flt(self.received_amount) <= 0:
             frappe.throw(_("Received Amount must be greater than zero."))
 
-    def create_intercompany_collection_transfer(self):
-        if not self.is_intercompany_collection_payment():
-            return
-
-        if self.get("custom_intercompany_source_journal_entry"):
-            return
-
-        collecting_company = self.get_collecting_company()
-        source_payment = frappe.get_doc("Payment Entry", self.custom_ref_doc)
-        amount = flt(self.base_received_amount or self.received_amount)
-
-        source_jv = self.make_intercompany_source_journal_entry(
-            collecting_company=collecting_company,
-            source_payment=source_payment,
-            amount=amount,
-        )
-
-        frappe.db.set_value(
-            "Payment Entry",
-            self.name,
-            {
-                "custom_intercompany_source_journal_entry": source_jv.name,
-            },
-            update_modified=False,
-        )
-        self.db_set("custom_intercompany_source_journal_entry", source_jv.name, update_modified=False)
-
-    def cancel_intercompany_collection_transfer(self):
+    def cleanup_intercompany_collection_links(self, delete=False):
         for fieldname in ("custom_intercompany_target_journal_entry", "custom_intercompany_source_journal_entry"):
             journal_entry = self.get(fieldname)
             if journal_entry and frappe.db.exists("Journal Entry", journal_entry):
-                doc = frappe.get_doc("Journal Entry", journal_entry)
-                if doc.docstatus == 1:
-                    doc.cancel()
+                _cancel_or_delete_doc("Journal Entry", journal_entry, delete=delete)
+
+        target_payment_entry = self.get("custom_intercompany_target_payment_entry")
+        if target_payment_entry and frappe.db.exists("Payment Entry", target_payment_entry):
+            _cancel_or_delete_doc("Payment Entry", target_payment_entry, delete=delete)
+
+        source_payment_entry = self.get("custom_intercompany_source_payment_entry") or self.get("custom_ref_doc")
+        if source_payment_entry and frappe.db.exists("Payment Entry", source_payment_entry):
+            linked_target = frappe.db.get_value(
+                "Payment Entry",
+                source_payment_entry,
+                "custom_intercompany_target_payment_entry",
+            )
+            if linked_target == self.name:
+                frappe.db.set_value(
+                    "Payment Entry",
+                    source_payment_entry,
+                    "custom_intercompany_target_payment_entry",
+                    None,
+                    update_modified=False,
+                )
 
     def make_intercompany_source_journal_entry(self, collecting_company, source_payment, amount, target_company=None):
         target_company = target_company or self.company
-        payable_account = _find_affiliate_advance_account(
-            collecting_company,
-            target_company,
-            root_type="Liability",
-            account_direction="from",
-        )
+        payable_account = _get_affiliate_collection_deduction_account(source_payment, target_company)
+        cash_account = self.get_company_cash_account(collecting_company)
         journal_entry = frappe.get_doc(
             {
                 "doctype": "Journal Entry",
-                "voucher_type": "Bank Entry",
+                "voucher_type": "Cash Entry",
                 "company": collecting_company,
                 "posting_date": self.posting_date,
                 "cheque_no": self.reference_no or source_payment.reference_no or self.name,
                 "cheque_date": self.reference_date or source_payment.reference_date or self.posting_date,
+                "custom_intercompany_source_payment_entry": source_payment.name,
+                "custom_intercompany_target_payment_entry": self.name,
                 "user_remark": _(
-                    "Auto-created from intercompany collection Payment Entry {0}; source collection {1}."
+                    "Auto-created cash settlement from intercompany collection Payment Entry {0}; source collection {1}."
                 ).format(self.name, source_payment.name),
                 "accounts": [
                     {
-                        "account": source_payment.paid_from,
-                        "party_type": source_payment.party_type,
-                        "party": source_payment.party,
+                        "account": payable_account,
                         "debit_in_account_currency": amount,
                         "cost_center": self.get_company_cost_center(collecting_company),
                     },
                     {
-                        "account": payable_account,
+                        "account": cash_account,
                         "credit_in_account_currency": amount,
                         "cost_center": self.get_company_cost_center(collecting_company),
                     },
@@ -301,22 +292,25 @@ class CustomPaymentEntry(PaymentEntry):
             }
         )
         journal_entry.insert(ignore_permissions=True)
+        journal_entry.submit()
         return journal_entry
 
-    def make_intercompany_target_journal_entry(self, bank_account, amount, source_jv):
+    def make_intercompany_target_journal_entry(self, cash_account, amount, source_jv, source_payment):
         journal_entry = frappe.get_doc(
             {
                 "doctype": "Journal Entry",
-                "voucher_type": "Bank Entry",
+                "voucher_type": "Cash Entry",
                 "company": self.company,
                 "posting_date": self.posting_date,
                 "cheque_no": self.reference_no or self.name,
                 "cheque_date": self.reference_date or self.posting_date,
                 "inter_company_journal_entry_reference": source_jv.name,
-                "user_remark": _("Auto-created from intercompany collection Payment Entry {0}.").format(self.name),
+                "custom_intercompany_source_payment_entry": source_payment.name,
+                "custom_intercompany_target_payment_entry": self.name,
+                "user_remark": _("Auto-created cash settlement from intercompany collection Payment Entry {0}.").format(self.name),
                 "accounts": [
                     {
-                        "account": bank_account,
+                        "account": cash_account,
                         "debit_in_account_currency": amount,
                         "cost_center": self.get_company_cost_center(self.company),
                     },
@@ -329,6 +323,7 @@ class CustomPaymentEntry(PaymentEntry):
             }
         )
         journal_entry.insert(ignore_permissions=True)
+        journal_entry.submit()
         frappe.db.set_value(
             "Journal Entry",
             source_jv.name,
@@ -338,20 +333,35 @@ class CustomPaymentEntry(PaymentEntry):
         )
         return journal_entry
 
-    def get_company_bank_account(self, company):
-        company_default = frappe.db.get_value("Company", company, "default_bank_account")
+    def get_company_cash_account(self, company):
+        company_default = frappe.db.get_value("Company", company, "default_cash_account")
         if company_default:
             return company_default
 
+        abbr = _get_company_abbr(company)
+        if abbr:
+            cash_on_hand = frappe.db.get_value(
+                "Account",
+                {
+                    "company": company,
+                    "account_type": "Cash",
+                    "is_group": 0,
+                    "account_name": ["like", "%Cash On Hand%"],
+                },
+                "name",
+            )
+            if cash_on_hand:
+                return cash_on_hand
+
         account = frappe.db.get_value(
             "Account",
-            {"company": company, "account_type": "Bank", "is_group": 0},
+            {"company": company, "account_type": "Cash", "is_group": 0},
             "name",
         )
         if account:
             return account
 
-        frappe.throw(_("No bank account found for company {0}.").format(frappe.bold(company)))
+        frappe.throw(_("No cash account found for company {0}.").format(frappe.bold(company)))
 
     def get_company_cost_center(self, company):
         cost_center = frappe.db.get_value("Company", company, "cost_center")
@@ -363,6 +373,116 @@ class CustomPaymentEntry(PaymentEntry):
 
 def _get_company_abbr(company):
     return frappe.db.get_value("Company", company, "abbr")
+
+
+def _get_affiliate_collection_deduction_amount(payment_entry):
+    amount = 0
+    for row in payment_entry.get("deductions") or []:
+        account = frappe.db.get_value(
+            "Account",
+            row.account,
+            ["account_name", "root_type", "is_group"],
+            as_dict=True,
+        )
+        account_name = (account.account_name if account else row.account or "").lower()
+        if (
+            account
+            and account.root_type == "Liability"
+            and not account.is_group
+            and "advances from affiliates" in account_name
+            and flt(row.amount) < 0
+        ):
+            amount += abs(flt(row.amount))
+
+    return flt(amount)
+
+
+def _get_affiliate_collection_deduction_account(payment_entry, affiliate_company=None):
+    affiliate_abbr = _get_company_abbr(affiliate_company) if affiliate_company else None
+    for row in payment_entry.get("deductions") or []:
+        account = frappe.db.get_value(
+            "Account",
+            row.account,
+            ["account_name", "root_type", "is_group"],
+            as_dict=True,
+        )
+        account_name = (account.account_name if account else row.account or "").lower()
+        if not (
+            account
+            and account.root_type == "Liability"
+            and not account.is_group
+            and "advances from affiliates" in account_name
+            and flt(row.amount) < 0
+        ):
+            continue
+
+        if affiliate_abbr and affiliate_abbr.lower() not in account_name:
+            continue
+
+        return row.account
+
+    frappe.throw(_("No negative Advances From Affiliates deduction account found."))
+
+
+def _cancel_or_delete_doc(doctype, name, delete=False):
+    doc = frappe.get_doc(doctype, name)
+    doc.flags.ignore_permissions = True
+    doc.flags.ignore_validate = True
+    doc.flags.ignore_links = True
+    doc.ignore_linked_doctypes = (
+        "GL Entry",
+        "Payment Ledger Entry",
+        "Advance Payment Ledger Entry",
+        "Repost Payment Ledger",
+        "Repost Payment Ledger Items",
+        "Repost Accounting Ledger",
+        "Repost Accounting Ledger Items",
+        "Tax Withholding Entry",
+    )
+
+    if doc.docstatus == 1:
+        doc.cancel()
+
+    if (delete or doc.docstatus == 0) and frappe.db.exists(doctype, name):
+        frappe.delete_doc(doctype, name, ignore_permissions=True, force=True)
+
+
+@frappe.whitelist()
+def get_affiliate_collection_deduction_defaults(company, affiliate_company):
+    if not frappe.db.exists("Company", company):
+        frappe.throw(_("Company {0} does not exist.").format(frappe.bold(company)))
+    if not frappe.db.exists("Company", affiliate_company):
+        frappe.throw(_("Affiliate Company {0} does not exist.").format(frappe.bold(affiliate_company)))
+    if company == affiliate_company:
+        frappe.throw(_("Affiliate Company must be different from the Payment Entry company."))
+
+    return {
+        "account": _find_affiliate_advance_account(
+            company,
+            affiliate_company,
+            root_type="Liability",
+            account_direction="from",
+        ),
+        "cost_center": _get_company_cost_center(company),
+    }
+
+
+def _get_company_cost_center(company):
+    cost_center = frappe.db.get_value("Company", company, "cost_center")
+    if cost_center:
+        return cost_center
+
+    abbr = _get_company_abbr(company)
+    if abbr:
+        main_cost_center = "Main - {0}".format(abbr)
+        if frappe.db.exists("Cost Center", {"name": main_cost_center, "company": company, "is_group": 0}):
+            return main_cost_center
+
+    cost_center = frappe.db.get_value("Cost Center", {"company": company, "is_group": 0}, "name")
+    if cost_center:
+        return cost_center
+
+    frappe.throw(_("No default Cost Center found for company {0}.").format(frappe.bold(company)))
 
 
 def _get_intercompany_target_options(source_company):
@@ -507,12 +627,9 @@ def _preview_from_target_payment(target_payment):
 
     amount = flt(target_payment.base_received_amount or target_payment.received_amount)
     collecting_company = controller.get_collecting_company()
-    payable_account = _find_affiliate_advance_account(
-        collecting_company,
-        target_payment.company,
-        root_type="Liability",
-        account_direction="from",
-    )
+    payable_account = _get_affiliate_collection_deduction_account(source_payment, target_payment.company)
+    source_cash = controller.get_company_cash_account(collecting_company)
+    target_cash = controller.get_company_cash_account(target_payment.company)
 
     return {
         "source_payment_entry": source_payment.name,
@@ -528,12 +645,28 @@ def _preview_from_target_payment(target_payment):
             "posting_date": target_payment.posting_date,
             "accounts": [
                 {
-                    "account": source_payment.paid_from,
+                    "account": payable_account,
                     "debit": amount,
                     "credit": 0,
                 },
                 {
-                    "account": payable_account,
+                    "account": source_cash,
+                    "debit": 0,
+                    "credit": amount,
+                },
+            ],
+        },
+        "target_journal_entry": {
+            "company": target_payment.company,
+            "posting_date": target_payment.posting_date,
+            "accounts": [
+                {
+                    "account": target_cash,
+                    "debit": amount,
+                    "credit": 0,
+                },
+                {
+                    "account": target_payment.paid_to,
                     "debit": 0,
                     "credit": amount,
                 },
@@ -551,8 +684,9 @@ def get_intercompany_collection_payment_preview(source_payment_entry, target_com
         frappe.throw(_("Source Payment Entry must be submitted."))
     if source_payment.payment_type != "Receive":
         frappe.throw(_("Source Payment Entry must be a Receive payment."))
-    if flt(source_payment.unallocated_amount) <= 0:
-        frappe.throw(_("Source Payment Entry has no unallocated amount."))
+    collection_amount = _get_affiliate_collection_deduction_amount(source_payment)
+    if collection_amount <= 0:
+        frappe.throw(_("Source Payment Entry has no negative Advances From Affiliates deduction."))
     if source_payment.get("custom_intercompany_target_payment_entry"):
         frappe.throw(_("This Payment Entry already has an intercompany target Payment Entry."))
 
@@ -569,7 +703,7 @@ def get_intercompany_collection_payment_preview(source_payment_entry, target_com
     else:
         target_company = target_options[0]["company"]
 
-    amount = flt(source_payment.unallocated_amount)
+    amount = collection_amount
     paid_to = _find_affiliate_advance_account(target_company, source_payment.company, root_type="Asset")
 
     return {
@@ -596,8 +730,9 @@ def create_intercompany_collection_payment(source_payment_entry, target_company=
     source_payment.check_permission("write")
 
     amount = flt(amount or preview["amount"])
-    if amount <= 0 or amount > flt(source_payment.unallocated_amount):
-        frappe.throw(_("Amount must be greater than zero and not more than the source unallocated amount."))
+    collection_amount = _get_affiliate_collection_deduction_amount(source_payment)
+    if amount <= 0 or amount > collection_amount:
+        frappe.throw(_("Amount must be greater than zero and not more than the source affiliate collection deduction amount."))
 
     paid_to = paid_to or preview["paid_to"]
     if not frappe.db.exists("Account", {"name": paid_to, "company": preview["target_company"], "is_group": 0}):
@@ -670,17 +805,27 @@ def create_intercompany_collection_journals(target_payment_entry):
         amount=amount,
         target_company=target_payment.company,
     )
+    target_jv = controller.make_intercompany_target_journal_entry(
+        cash_account=controller.get_company_cash_account(target_payment.company),
+        amount=amount,
+        source_jv=source_jv,
+        source_payment=source_payment,
+    )
 
     frappe.db.set_value(
         "Payment Entry",
         target_payment.name,
         {
             "custom_intercompany_source_journal_entry": source_jv.name,
-            "custom_intercompany_target_journal_entry": None,
+            "custom_intercompany_target_journal_entry": target_jv.name,
         },
         update_modified=False,
     )
     frappe.db.commit()
 
-    return {"journal_entry": source_jv.name}
+    return {
+        "source_journal_entry": source_jv.name,
+        "target_journal_entry": target_jv.name,
+        "journal_entry": source_jv.name,
+    }
     

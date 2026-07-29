@@ -43,8 +43,30 @@ def execute():
                     "no_copy": 1,
                 },
             ]
+            ,
+            "Journal Entry": [
+                {
+                    "fieldname": "custom_intercompany_source_payment_entry",
+                    "label": "Intercompany Source Payment Entry",
+                    "fieldtype": "Link",
+                    "options": "Payment Entry",
+                    "insert_after": "inter_company_journal_entry_reference",
+                    "read_only": 1,
+                    "no_copy": 1,
+                },
+                {
+                    "fieldname": "custom_intercompany_target_payment_entry",
+                    "label": "Intercompany Target Payment Entry",
+                    "fieldtype": "Link",
+                    "options": "Payment Entry",
+                    "insert_after": "custom_intercompany_source_payment_entry",
+                    "read_only": 1,
+                    "no_copy": 1,
+                },
+            ],
         },
         ignore_validate=True,
     )
 
     frappe.clear_cache(doctype="Payment Entry")
+    frappe.clear_cache(doctype="Journal Entry")
