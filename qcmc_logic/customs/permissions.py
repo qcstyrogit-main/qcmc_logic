@@ -422,11 +422,46 @@ def warehouse_transfer_permission_query(user):
     if not _warehouse_access_applies(user):
         return ""
 
-    return _warehouse_transaction_permission_query("Warehouse Transfer", user)
+    allowed_warehouses = get_user_allowed_warehouses(user, require_transact=True)
+    if not allowed_warehouses:
+        return "1=0"
+
+    allowed_sql = _sql_list(allowed_warehouses)
+    table = "`tabWarehouse Transfer`"
+    return (
+        f"({table}.`source_warehouse` IN ({allowed_sql}) "
+        f"OR {table}.`target_warehouse` IN ({allowed_sql}))"
+    )
 
 
 def warehouse_transfer_has_permission(doc, ptype=None, user=None):
-    return warehouse_transaction_has_permission(doc, ptype=ptype, user=user)
+    if not user:
+        user = frappe.session.user
+    if not _warehouse_access_applies(user):
+        return True
+    if ptype == "create":
+        return True
+    if not doc:
+        return None
+
+    allowed_warehouses = set(get_user_allowed_warehouses(user, require_transact=True))
+    if not allowed_warehouses:
+        return False
+
+    source_allowed = doc.get("source_warehouse") in allowed_warehouses
+    target_allowed = doc.get("target_warehouse") in allowed_warehouses
+
+    if ptype in {None, "read", "select"}:
+        return source_allowed or target_allowed
+
+    if ptype in {"write", "submit", "cancel", "delete", "amend"}:
+        if doc.get("docstatus") == 0:
+            return source_allowed
+        if doc.get("docstatus") == 1 and target_allowed:
+            return True
+        return source_allowed
+
+    return source_allowed or target_allowed
 
 
 def appraisal_permission_query(user):

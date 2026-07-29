@@ -1,9 +1,13 @@
 from unittest import TestCase
 from unittest.mock import patch
 
+import frappe
+
 from qcmc_logic.customs.permissions import (
     WAREHOUSE_TRANSACTION_DOCTYPES,
     _warehouse_access_applies,
+    warehouse_transfer_has_permission,
+    warehouse_transfer_permission_query,
     work_order_permission_query,
 )
 from qcmc_logic.customs.warehouse_access_permissions import SKIP_DOCTYPES
@@ -99,3 +103,81 @@ class TestWarehouseAccessRollout(TestCase):
         }
 
         self.assertTrue(expected_transactions.issubset(WAREHOUSE_TRANSACTION_DOCTYPES))
+
+    def test_warehouse_transfer_sender_can_read_and_save_by_source_warehouse(self):
+        doc = frappe._dict(
+            doctype="Warehouse Transfer",
+            docstatus=0,
+            source_warehouse="FG - Sta Clara",
+            target_warehouse="FG - La Union - MC",
+        )
+
+        with (
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
+                return_value=["FG - Sta Clara"],
+            ),
+        ):
+            self.assertTrue(
+                warehouse_transfer_has_permission(
+                    doc,
+                    ptype="read",
+                    user="scwarehouse@qcstyro.com",
+                )
+            )
+            self.assertTrue(
+                warehouse_transfer_has_permission(
+                    doc,
+                    ptype="write",
+                    user="scwarehouse@qcstyro.com",
+                )
+            )
+
+    def test_warehouse_transfer_receiver_can_read_by_target_warehouse(self):
+        doc = frappe._dict(
+            doctype="Warehouse Transfer",
+            docstatus=1,
+            source_warehouse="FG - Sta Clara",
+            target_warehouse="FG - La Union - MC",
+        )
+
+        with (
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
+                return_value=["FG - La Union - MC"],
+            ),
+        ):
+            self.assertTrue(
+                warehouse_transfer_has_permission(
+                    doc,
+                    ptype="read",
+                    user="receiver@example.com",
+                )
+            )
+            self.assertTrue(
+                warehouse_transfer_has_permission(
+                    doc,
+                    ptype="write",
+                    user="receiver@example.com",
+                )
+            )
+
+    def test_warehouse_transfer_list_query_allows_source_or_target_access(self):
+        with (
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
+                return_value=["FG - Sta Clara"],
+            ),
+            patch(
+                "qcmc_logic.customs.permissions._sql_list",
+                return_value="'FG - Sta Clara'",
+            ),
+        ):
+            query = warehouse_transfer_permission_query("scwarehouse@qcstyro.com")
+
+        self.assertIn("`source_warehouse` IN", query)
+        self.assertIn("`target_warehouse` IN", query)
+        self.assertIn(" OR ", query)
