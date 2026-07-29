@@ -1,0 +1,167 @@
+from unittest import TestCase
+from unittest.mock import MagicMock, patch
+
+from frappe import _dict
+
+from qcmc_logic.customs.machine_shop_job_request import (
+    _validate_completion_output,
+    _validate_linked_project_completed,
+    _validate_output_item,
+)
+from qcmc_logic.utils import make_completed_output_stock_entry
+
+
+def output_doc(**values):
+    defaults = {
+        "request": "REQ-PARTS",
+        "item_code": None,
+        "asset": None,
+        "quantity_produced": 1,
+        "not_in_master_file": 0,
+        "proposed_output_code": None,
+        "output_description": None,
+    }
+    defaults.update(values)
+    return _dict(defaults)
+
+
+class TestMachineShopCompletionValidation(TestCase):
+    def _request_and_item_value(self, doctype, name, fieldname):
+        if doctype == "Machine Shop Request Code":
+            return "PARTS FABRICATION"
+        if doctype == "Item":
+            return "CMMS"
+        return None
+
+    def test_parts_fabrication_requires_item_code(self):
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.db.get_value.side_effect = self._request_and_item_value
+            frappe.throw.side_effect = RuntimeError
+            with self.assertRaises(RuntimeError):
+                _validate_completion_output(output_doc())
+
+        self.assertIn("Item Code is required", frappe.throw.call_args.args[0])
+
+    def test_non_parts_request_requires_asset(self):
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.db.get_value.return_value = "REPAIR OF MACHINE"
+            frappe.throw.side_effect = RuntimeError
+            with self.assertRaises(RuntimeError):
+                _validate_completion_output(output_doc(request="REQ-REPAIR"))
+
+        self.assertIn("Asset is required", frappe.throw.call_args.args[0])
+
+    def test_missing_master_accepts_proposed_code(self):
+        _validate_completion_output(
+            output_doc(
+                quantity_produced=2,
+                not_in_master_file=1,
+                proposed_output_code="PROPOSED-001",
+            )
+        )
+
+    def test_quantity_produced_must_be_positive(self):
+        with patch(
+            "qcmc_logic.customs.machine_shop_job_request.frappe.throw",
+            side_effect=RuntimeError,
+        ) as throw:
+            with self.assertRaises(RuntimeError):
+                _validate_completion_output(output_doc(quantity_produced=0))
+
+        self.assertIn("greater than zero", throw.call_args.args[0])
+
+    def test_parts_item_must_belong_to_cmms(self):
+        def get_value(doctype, name, fieldname):
+            return "PARTS FABRICATION" if doctype == "Machine Shop Request Code" else "MACHINE"
+
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.db.get_value.side_effect = get_value
+            frappe.throw.side_effect = RuntimeError
+            with self.assertRaises(RuntimeError):
+                _validate_output_item(output_doc(item_code="ITEM-001"))
+
+        self.assertIn("CMMS", frappe.throw.call_args.args[0])
+
+    def test_completion_requires_a_linked_project(self):
+        doc = output_doc(name="MSJR-001")
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.get_all.return_value = []
+            frappe.throw.side_effect = RuntimeError
+            with self.assertRaises(RuntimeError):
+                _validate_linked_project_completed(doc)
+
+        self.assertIn("Generate and complete", frappe.throw.call_args.args[0])
+
+    def test_completion_rejects_active_project(self):
+        doc = output_doc(name="MSJR-001")
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.get_all.return_value = [
+                _dict(name="MSRP-001", workflow_state="Active")
+            ]
+            frappe.throw.side_effect = RuntimeError
+            with self.assertRaises(RuntimeError):
+                _validate_linked_project_completed(doc)
+
+        self.assertIn("MSRP-001", frappe.throw.call_args.args[0])
+
+    def test_completion_accepts_completed_project(self):
+        doc = output_doc(name="MSJR-001")
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.get_all.return_value = [
+                _dict(name="MSRP-001", workflow_state="Completed")
+            ]
+            _validate_linked_project_completed(doc)
+
+        frappe.throw.assert_not_called()
+
+
+class TestMachineShopOutputStockEntry(TestCase):
+    def test_maps_remaining_quantity_to_material_receipt(self):
+        msjr = _dict(
+            name="MSJR-001",
+            workflow_state="Completed",
+            item_code="ITEM-001",
+            asset=None,
+            quantity_produced=10,
+            company="Test Company",
+        )
+        target = MagicMock()
+
+        with patch("qcmc_logic.utils.frappe") as frappe:
+            frappe.get_doc.return_value = msjr
+            frappe.new_doc.return_value = target
+            frappe.db.sql.return_value = [(3,)]
+
+            result = make_completed_output_stock_entry("MSJR-001")
+
+        self.assertIs(result, target)
+        self.assertEqual(target.stock_entry_type, "Material Receipt")
+        self.assertEqual(target.purpose, "Material Receipt")
+        self.assertEqual(target.company, "Test Company")
+        self.assertEqual(target.msjr_no, "MSJR-001")
+        target.append.assert_called_once_with(
+            "items", {"item_code": "ITEM-001", "qty": 7.0}
+        )
+
+    def test_asset_request_uses_assets_item_code(self):
+        msjr = _dict(
+            name="MSJR-002",
+            workflow_state="Completed",
+            item_code=None,
+            asset="ASSET-001",
+            quantity_produced=2,
+            company="Test Company",
+        )
+        target = MagicMock()
+
+        with patch("qcmc_logic.utils.frappe") as frappe:
+            frappe.get_doc.return_value = msjr
+            frappe.new_doc.return_value = target
+            frappe.db.get_value.return_value = "ITEM-FROM-ASSET"
+            frappe.db.sql.return_value = [(0,)]
+
+            make_completed_output_stock_entry("MSJR-002")
+
+        target.append.assert_called_once_with(
+            "items", {"item_code": "ITEM-FROM-ASSET", "qty": 2.0}
+        )

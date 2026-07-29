@@ -59,6 +59,14 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "name": "Approved for Posting",
+  "style": "Primary",
+  "workflow_state_name": "Approved for Posting"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "name": "Awaiting Requestor Confirmation",
   "style": "",
   "workflow_state_name": "Awaiting Requestor Confirmation"
@@ -491,6 +499,14 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "name": "Posted / Active",
+  "style": "Success",
+  "workflow_state_name": "Posted / Active"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "name": "Pre-Qualification",
   "style": "",
   "workflow_state_name": "Pre-Qualification"
@@ -542,6 +558,14 @@
   "name": "Returned",
   "style": "",
   "workflow_state_name": "Returned"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "name": "Returned for Revision",
+  "style": "Warning",
+  "workflow_state_name": "Returned for Revision"
  },
  {
   "docstatus": 0,

@@ -64,6 +64,7 @@ doc_events = {
         "on_trash": "qcmc_logic.customs.issue_kanban.replace_deleted_issue_kanban_image",
     },
     "Stock Entry": {
+        "before_validate": "qcmc_logic.customs.stock_entry.set_msjr_receipt_warehouse_code",
         "before_submit": "qcmc_logic.customs.stock_entry.validate_final_job_card_time_log",
         "on_submit": "qcmc_logic.customs.stock_entry.update_final_job_card_time_log_on_submit",
         "on_cancel": "qcmc_logic.customs.stock_entry.update_final_job_card_time_log_on_cancel",
@@ -119,6 +120,9 @@ doc_events = {
     "Machine Shop Repairs and Project": {
         "validate": "qcmc_logic.customs.machine_shop_repairs_and_project.validate",
     },
+    "Daily Job Schedule": {
+        "validate": "qcmc_logic.customs.daily_job_schedule.validate_scheduled_processes",
+    },
     "Job Card Downtime": {
         "validate": "qcmc_logic.customs.job_card_downtime.validate",
     },
@@ -143,6 +147,7 @@ doctype_js = {
     "Stock Entry": "public/js/stock_entry.js",
     "Work Order": "public/js/work_order.js",
     "Material Request": "public/js/material_request.js",
+    "Machine Shop Job Request": "public/js/machine_shop_job_request.js",
     "Payment Entry": "public/js/payment_entry.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
     "Overtime Slip": "public/js/overtime_slip.js",

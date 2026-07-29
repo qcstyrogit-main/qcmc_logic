@@ -722,6 +722,7 @@ def get_allowed_item_query(doctype, txt, searchfield, start, page_len, filters):
     filters = frappe._dict(filters or {})
     user = filters.get("user") or frappe.session.user
     require_transact = frappe.utils.cint(filters.get("require_transact", 1))
+    inventory_group = filters.get("inventory_group")
     conditions = [
         f"i.`{searchfield}` like %(txt)s",
         "ifnull(i.disabled, 0) = 0",
@@ -742,6 +743,10 @@ def get_allowed_item_query(doctype, txt, searchfield, start, page_len, filters):
 
         conditions.append("i.custom_inventory_group in %(allowed_inventory_groups)s")
         values["allowed_inventory_groups"] = tuple(allowed_inventory_groups)
+
+    if inventory_group:
+        conditions.append("i.custom_inventory_group = %(inventory_group)s")
+        values["inventory_group"] = inventory_group
 
     return frappe.db.sql(
         f"""
@@ -1418,6 +1423,52 @@ def make_material_issuance(source_name, target_doc=None):
 
 
 @frappe.whitelist()
+def make_completed_output_stock_entry(source_name, target_doc=None):
+    """Create a Material Receipt draft for the unreceived fabricated output."""
+    frappe.has_permission("Stock Entry", ptype="create", throw=True)
+
+    msjr = frappe.get_doc("Machine Shop Job Request", source_name)
+    if msjr.workflow_state != "Completed":
+        frappe.throw("Output Stock Entry can only be created from a completed request.")
+
+    item_code = msjr.get("item_code")
+    if not item_code and msjr.get("asset"):
+        item_code = frappe.db.get_value("Asset", msjr.asset, "item_code")
+    if not item_code:
+        frappe.throw(
+            "Create or link an Item Master record before receiving this fabricated output into stock."
+        )
+
+    received_qty = frappe.db.sql(
+        """
+        SELECT COALESCE(SUM(sed.qty), 0)
+        FROM `tabStock Entry` se
+        INNER JOIN `tabStock Entry Detail` sed ON sed.parent = se.name
+        WHERE se.msjr_no = %s
+          AND se.docstatus < 2
+          AND se.purpose = 'Material Receipt'
+          AND sed.item_code = %s
+        """,
+        (source_name, item_code),
+    )[0][0]
+    remaining_qty = flt(msjr.get("quantity_produced")) - flt(received_qty)
+    if remaining_qty <= 0:
+        frappe.throw("The full Quantity Produced is already covered by an output Stock Entry.")
+
+    target = (
+        frappe.get_doc(frappe.parse_json(target_doc))
+        if target_doc
+        else frappe.new_doc("Stock Entry")
+    )
+    target.stock_entry_type = "Material Receipt"
+    target.purpose = "Material Receipt"
+    target.company = msjr.company
+    target.msjr_no = msjr.name
+    target.append("items", {"item_code": item_code, "qty": remaining_qty})
+    return target
+
+
+@frappe.whitelist()
 def make_machine_shop_repairs_and_project(source_name, target_doc=None):
     msjr = frappe.get_doc("Machine Shop Job Request", source_name)
     if msjr.workflow_state not in ("Acknowledge", "Received"):
@@ -1460,9 +1511,13 @@ def search_msrp_process(doctype, txt, searchfield, start, page_len, filters):
             p.process_name,
             COALESCE(m.machine, '') AS machine_name
         FROM `tabMachine Shop Repairs and Project Process` p
+        INNER JOIN `tabMachine Shop Repairs and Project` project ON project.name = p.parent
         LEFT JOIN `tabMachine Shop Machine` m ON m.name = p.machine
         WHERE p.parent = %(parent)s
           AND p.parenttype = 'Machine Shop Repairs and Project'
+          AND project.workflow_state = 'Active'
+          AND COALESCE(p.status, '') != 'Completed'
+          AND COALESCE(p.plan_quantity, 0) > COALESCE(p.done_quantity, 0)
           AND (
               p.process_name LIKE %(txt)s
               OR COALESCE(m.machine, '') LIKE %(txt)s
