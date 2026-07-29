@@ -57,17 +57,28 @@ doc_events = {
         ]
     },
     "Work Order": {
-        "validate": "qcmc_logic.customs.work_order_formulation.apply_roll_formulation_required_qty",
+        "validate": [
+            "qcmc_logic.customs.work_order_formulation.apply_roll_formulation_required_qty",
+            "qcmc_logic.api.work_order_sales_order_items.validate_work_order_secondary_sales_order_items",
+        ],
     },
     "File": {
         "after_insert": "qcmc_logic.customs.issue_kanban.sync_issue_kanban_image",
         "on_trash": "qcmc_logic.customs.issue_kanban.replace_deleted_issue_kanban_image",
     },
     "Stock Entry": {
-        "before_validate": "qcmc_logic.customs.stock_entry.set_msjr_receipt_warehouse_code",
-        "before_submit": "qcmc_logic.customs.stock_entry.validate_final_job_card_time_log",
-        "on_submit": "qcmc_logic.customs.stock_entry.update_final_job_card_time_log_on_submit",
-        "on_cancel": "qcmc_logic.customs.stock_entry.update_final_job_card_time_log_on_cancel",
+        "before_validate": [
+            "qcmc_logic.customs.stock_entry.set_msjr_receipt_warehouse_code",
+        ],
+        "before_submit": [
+            "qcmc_logic.customs.stock_entry.validate_final_job_card_time_log",
+        ],
+        "on_submit": [
+            "qcmc_logic.customs.stock_entry.update_final_job_card_time_log_on_submit",
+        ],
+        "on_cancel": [
+            "qcmc_logic.customs.stock_entry.update_final_job_card_time_log_on_cancel",
+        ],
     },
     "Job Card": {
         "on_update": "qcmc_logic.customs.job_card.sync_non_final_operation_progress",
