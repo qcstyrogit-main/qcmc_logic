@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: http: https:">
+    <title>ERPNext + AI</title>
+    <link rel="stylesheet" href="shell.css">
+  </head>
+  <body>
+    <header class="toolbar">
+      <nav class="erp-navigation" aria-label="ERPNext navigation">
+        <button id="erp-back" type="button" title="Back">←</button>
+        <button id="erp-forward" type="button" title="Forward">→</button>
+        <button id="erp-reload" type="button" title="Reload">↻</button>
+      </nav>
+      <button id="tab-scroll-left" class="tab-scroll" type="button" title="Scroll tabs left" hidden>‹</button>
+      <div id="erp-tabs" class="erp-tabs" role="tablist"></div>
+      <button id="tab-scroll-right" class="tab-scroll" type="button" title="Scroll tabs right" hidden>›</button>
+      <button id="tab-navigator" class="tab-navigator" type="button" title="Show all ERPNext tabs" hidden>Tabs</button>
+      <button id="erp-new-tab" class="new-tab" type="button" title="New ERPNext tab (Ctrl+T)">+</button>
+      <div class="spacer"></div>
+      <select id="assistant-select" class="assistant-select" aria-label="Select AI assistant">
+        <option value="claude">Claude</option>
+        <option value="chatgpt">ChatGPT</option>
+      </select>
+      <nav class="claude-controls" aria-label="AI assistant navigation">
+        <button id="claude-back" type="button" title="Back">←</button>
+        <button id="claude-forward" type="button" title="Forward">→</button>
+        <button id="claude-reload" type="button" title="Reload">↻</button>
+      </nav>
+      <button id="toggle-claude" class="toggle" type="button">Hide AI</button>
+    </header>
+    <section id="tab-menu" class="tab-menu" aria-label="ERPNext tab navigator" hidden>
+      <header>
+        <strong>Open ERPNext tabs</strong>
+        <button id="tab-menu-close" type="button" aria-label="Close tab navigator">×</button>
+      </header>
+      <input id="tab-search" type="search" placeholder="Search tabs…" autocomplete="off">
+      <div id="tab-menu-list" class="tab-menu-list"></div>
+    </section>
+    <div id="divider" class="divider" role="separator" aria-orientation="vertical" title="Drag to resize the AI panel"></div>
+    <script src="renderer.js"></script>
+  </body>
+</html>

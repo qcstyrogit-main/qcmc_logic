@@ -11,6 +11,31 @@ from frappe_assistant_core.utils.oauth_compat import (
     validate_dynamic_client_metadata,
 )
 
+
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST", "HEAD"])
+def handle_mcp():
+    """Run FAC's MCP endpoint with a proxy-aware public server URL."""
+    import frappe.oauth as frappe_oauth
+    from frappe_assistant_core.api.fac_endpoint import handle_mcp as fac_handle_mcp
+
+    frappe_oauth.get_server_url = lambda: frappe.utils.get_url().rstrip("/")
+    return fac_handle_mcp()
+
+
+def normalize_fac_oauth_challenge(response, request):
+    """Force the public HTTPS origin in FAC's proxy-generated 401 challenge."""
+    if not request.path.endswith(
+        "/api/method/frappe_assistant_core.api.fac_endpoint.handle_mcp"
+    ):
+        return
+
+    challenge = response.headers.get("WWW-Authenticate")
+    if challenge:
+        response.headers["WWW-Authenticate"] = challenge.replace(
+            "http://desktop-vlfuuk4.tail39f829.ts.net",
+            "https://desktop-vlfuuk4.tail39f829.ts.net",
+        )
+
 @frappe.whitelist(allow_guest=True)
 def oauth_authorization_server():
     data = frappe.call("frappe_assistant_core.api.oauth_discovery.oauth_authorization_server")
@@ -144,4 +169,49 @@ def protected_resource_metadata():
         "bearer_methods_supported": ["header"],
         "resource_name": "Frappe Assistant Core",
         "resource_documentation": "https://github.com/buildswithpaul/Frappe_Assistant_Core"
+    }
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+def authorization_server_metadata():
+    """Return OAuth metadata using the proxy-aware public HTTPS origin."""
+    base = frappe.utils.get_url().rstrip("/")
+
+    return {
+        "issuer": base,
+        "authorization_endpoint": (
+            base + "/api/method/frappe.integrations.oauth2.authorize"
+        ),
+        "token_endpoint": (
+            base + "/api/method/frappe.integrations.oauth2.get_token"
+        ),
+        "response_types_supported": ["code"],
+        "response_modes_supported": ["query"],
+        "grant_types_supported": ["authorization_code", "refresh_token"],
+        "token_endpoint_auth_methods_supported": [
+            "none",
+            "client_secret_basic",
+            "client_secret_post",
+        ],
+        "service_documentation": (
+            "https://github.com/buildswithpaul/Frappe_Assistant_Core"
+        ),
+        "revocation_endpoint": (
+            base + "/api/method/frappe.integrations.oauth2.revoke_token"
+        ),
+        "revocation_endpoint_auth_methods_supported": [
+            "client_secret_basic",
+            "client_secret_post",
+        ],
+        "introspection_endpoint": (
+            base + "/api/method/frappe.integrations.oauth2.introspect_token"
+        ),
+        "userinfo_endpoint": (
+            base + "/api/method/frappe.integrations.oauth2.openid_profile"
+        ),
+        "code_challenge_methods_supported": ["S256"],
+        "registration_endpoint": (
+            base
+            + "/api/method/frappe_assistant_core.api.oauth_registration.register_client"
+        ),
     }

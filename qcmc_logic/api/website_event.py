@@ -1,5 +1,4 @@
 import frappe
-from frappe.utils import now_datetime
 
 
 @frappe.whitelist(allow_guest=True)
@@ -9,8 +8,6 @@ def get_website_events(limit=9):
         limit = int(limit)
     except (TypeError, ValueError):
         limit = 9
-
-    today = now_datetime().date()
 
     events = frappe.db.sql(
         """
@@ -23,21 +20,17 @@ def get_website_events(limit=9):
             summary,
             sort_order,
             published,
-            publish_from,
-            publish_to,
             modified
         FROM `tabWebsite Event`
         WHERE
             published = 1
-            AND (publish_from IS NULL OR DATE(publish_from) <= %(today)s)
-            AND (publish_to   IS NULL OR DATE(publish_to)   >= %(today)s)
         ORDER BY
             sort_order ASC,
             event_date DESC,
             modified DESC
         LIMIT %(limit)s
         """,
-        {"today": today, "limit": limit},
+        {"limit": limit},
         as_dict=True,
     )
 
@@ -57,8 +50,6 @@ def get_website_events(limit=9):
             "thumbnail": thumbnail,
             "summary": summary,
             "sort_order": item.get("sort_order") or 0,
-            "publish_from": item.get("publish_from"),
-            "publish_to": item.get("publish_to"),
         })
 
     return results
