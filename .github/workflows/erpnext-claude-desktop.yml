@@ -1,0 +1,57 @@
+name: Build ERPNext Claude Desktop
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "desktop-v*"
+    paths:
+      - "desktop/erpnext-claude-shell/**"
+      - ".github/workflows/erpnext-claude-desktop.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            command: dist:linux
+            artifact: linux
+          - os: windows-latest
+            command: dist:windows
+            artifact: windows
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: desktop/erpnext-claude-shell
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/erpnext-claude-shell/package-lock.json
+      - run: npm ci
+      - run: npm run ${{ matrix.command }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: erpnext-claude-${{ matrix.artifact }}
+          path: desktop/erpnext-claude-shell/dist/*
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/desktop-v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: erpnext-claude-*
+          path: release
+          merge-multiple: true
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" release/* --generate-notes --title "ERPNext AI Desktop ${GITHUB_REF_NAME#desktop-v}"

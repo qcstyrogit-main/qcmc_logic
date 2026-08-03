@@ -1,0 +1,66 @@
+{
+  "name": "erpnext-claude-desktop",
+  "version": "1.9.0",
+  "description": "Cross-platform ERPNext desktop shell with selectable Claude and ChatGPT side panels",
+  "main": "src/main.js",
+  "author": {
+    "name": "QCMC MIS Section",
+    "email": "eguilalas@qcstyro.com"
+  },
+  "homepage": "https://desktop-vlfuuk4.tail39f829.ts.net/",
+  "desktopName": "erpnext-claude-desktop.desktop",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js",
+    "dist:linux": "electron-builder --linux AppImage deb",
+    "dist:windows": "electron-builder --win nsis portable",
+    "dist": "electron-builder --linux AppImage deb --win nsis portable"
+  },
+  "devDependencies": {
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.qcmc.erpnextclaude",
+    "productName": "ERPNext AI Desktop",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "dist"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "qcstyrogit-main",
+      "repo": "qcmc_logic"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "linux": {
+      "category": "Office",
+      "syncDesktopName": true,
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  }
+}
