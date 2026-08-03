@@ -73,7 +73,7 @@ Windows SmartScreen may warn about unsigned internal applications. Production di
 
 Installed Windows builds check the public `qcstyrogit-main/qcmc_logic` GitHub releases ten seconds after startup and every four hours. When an update is downloaded, the user can restart immediately or install it when the application is closed later.
 
-To publish a release, update the version in `package.json`, commit the change, and push a matching tag such as `desktop-v1.9.0`. GitHub Actions builds the NSIS installer and publishes it with `latest.yml`. Automatic updates apply to the installed NSIS build, not the portable archive.
+To publish a release, increase the version in `package.json` and merge the desktop changes into `main`. GitHub Actions automatically builds the NSIS installer, creates the matching `desktop-vX.Y.Z` release, and publishes it with `latest.yml`. Automatic updates apply to the installed NSIS build, not the portable archive. Version tags can still be pushed manually when a release must be rebuilt deliberately.
 
 ## Login history and privacy
 
