@@ -64,7 +64,7 @@ Artifacts are written to `dist/`. Use the included GitHub Actions workflow to bu
 
 ### Run on Windows
 
-- Native CI builds produce an NSIS installer and a portable executable.
+- Native CI builds produce an NSIS installer with automatic-update support.
 - The locally generated `win-x64-unpacked.tar.gz` archive can also be extracted on Windows; run `ERPNext Claude Desktop.exe` from the extracted `win-unpacked` folder.
 
 Windows SmartScreen may warn about unsigned internal applications. Production distribution should use a Windows code-signing certificate.
