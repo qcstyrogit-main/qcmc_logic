@@ -519,6 +519,7 @@ function createWindow() {
 
   mainWindow = new BrowserWindow({
     title: "ERPNext + AI",
+    icon: path.join(__dirname, "assets", "company-icon.png"),
     width: 1500,
     height: 930,
     minWidth: 980,

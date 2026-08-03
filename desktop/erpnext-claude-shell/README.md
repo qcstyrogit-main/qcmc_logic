@@ -20,6 +20,7 @@ Desktop wrapper for Windows and Linux that displays ERPNext with a selectable Cl
 - Overflow-aware searchable tab navigator lists every open ERPNext tab and URL
 - Chrome-style adaptive tabs shrink from full titles to compact and favicon-only modes
 - Browser-style tab shortcuts, overflow arrows, middle-click close, and closed-tab reopening
+- Official QC Styropackaging and Multiplast branding on the app window, installer, executable, and shortcuts
 - Existing Claude or ChatGPT subscription sessions remain in their respective websites
 - ERP Local FAC tools remain available when the selected AI service has its MCP connector configured
 - Windows NSIS/portable and Linux AppImage/DEB packaging
