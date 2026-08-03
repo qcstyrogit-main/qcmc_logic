@@ -17,9 +17,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            command: dist:linux
-            artifact: linux
           - os: windows-latest
             command: dist:windows
             artifact: windows
