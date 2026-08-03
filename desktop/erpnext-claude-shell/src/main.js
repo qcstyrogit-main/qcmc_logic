@@ -289,6 +289,36 @@ function createView(partition, preload = null) {
   });
 }
 
+function showErpContextMenu(contents, params) {
+  const items = [];
+  const linkUrl = String(params.linkURL || "");
+  if (/^https?:\/\//i.test(linkUrl)) {
+    items.push(
+      {label: "Open link in new tab", click: () => createErpTab(linkUrl, true)},
+      {label: "Open link in browser", click: () => shell.openExternal(linkUrl)},
+      {type: "separator"},
+    );
+  }
+  if (params.isEditable) {
+    items.push(
+      {label: "Cut", accelerator: "Ctrl+X", enabled: params.editFlags.canCut, click: () => contents.cut()},
+      {label: "Copy", accelerator: "Ctrl+C", enabled: params.editFlags.canCopy, click: () => contents.copy()},
+      {label: "Paste", accelerator: "Ctrl+V", enabled: params.editFlags.canPaste, click: () => contents.paste()},
+      {type: "separator"},
+    );
+  } else if (params.selectionText) {
+    items.push({label: "Copy", accelerator: "Ctrl+C", click: () => contents.copy()}, {type: "separator"});
+  }
+  items.push(
+    {label: "Back", accelerator: "Alt+Left", enabled: contents.navigationHistory.canGoBack(), click: () => contents.navigationHistory.goBack()},
+    {label: "Forward", accelerator: "Alt+Right", enabled: contents.navigationHistory.canGoForward(), click: () => contents.navigationHistory.goForward()},
+    {label: "Reload", accelerator: "Ctrl+R", click: () => contents.reload()},
+    {type: "separator"},
+    {label: "New ERPNext tab", accelerator: "Ctrl+T", click: () => createErpTab(erpHomeUrl, true)},
+  );
+  Menu.buildFromTemplate(items).popup({window: mainWindow});
+}
+
 function tabState(tab) {
   return {
     id: tab.id,
@@ -321,6 +351,7 @@ function createErpTab(url = erpHomeUrl, activate = true) {
   mainWindow.contentView.addChildView(view);
 
   view.webContents.on("before-input-event", (_event, input) => handleShortcut(input, id));
+  view.webContents.on("context-menu", (_event, params) => showErpContextMenu(view.webContents, params));
   view.webContents.setWindowOpenHandler(({url: popupUrl}) => {
     if (popupUrl.startsWith("http://") || popupUrl.startsWith("https://")) {
       createErpTab(popupUrl, true);
