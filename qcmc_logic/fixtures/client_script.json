@@ -414,9 +414,29 @@
   "doctype": "Client Script",
   "dt": "HMO Rate Plan",
   "enabled": 1,
+  "module": "QCMC Logics",
+  "name": "HMO External Member Rate Autofill",
+  "script": "frappe.ui.form.on(\"HMO External Member\", {\n\trate_code(frm, cdt, cdn) {\n\t\tconst row = locals[cdt][cdn];\n\t\tif (!row.rate_code) return;\n\t\tconst parts = row.rate_code.split(\"-\");\n\t\tconst mbl = flt(parts.pop());\n\t\tconst level = row.member_type === \"Principal\" ? parts.join(\"-\") : \"\";\n\t\tfrappe.model.set_value(cdt, cdn, \"level\", level);\n\t\tfrappe.model.set_value(cdt, cdn, \"mbl\", mbl);\n\t\tfrm.refresh_field(\"external_members\");\n\t},\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "HMO Rate Plan",
+  "enabled": 1,
   "module": null,
   "name": "HMO Rate Plan Print Deduction Summary Button",
   "script": "frappe.ui.form.on('HMO Rate Plan', {\n    refresh: function(frm) {\n        if (frm.is_new()) {\n            return;\n        }\n\n        frm.add_custom_button(__('HMO Deduction Summary'), function() {\n            frappe.call({\n                method: 'frappe.client.get_list',\n                args: {\n                    doctype: 'Employee HMO Enrollment',\n                    filters: { hmo_rate_plan: frm.doc.name },\n                    fields: ['employee', 'employee_name'],\n                    order_by: 'employee_name asc',\n                    limit_page_length: 0\n                },\n                callback: function(r) {\n                    var enrollments = r.message || [];\n\n                    if (!enrollments.length) {\n                        frappe.msgprint(__('No employees are enrolled under this HMO Rate Plan yet.'));\n                        return;\n                    }\n\n                    var employee_ids = enrollments.map(function(e) { return e.employee; });\n\n                    var d = new frappe.ui.Dialog({\n                        title: __('Print HMO Deduction Summary'),\n                        fields: [\n                            {\n                                fieldname: 'employee',\n                                fieldtype: 'Link',\n                                options: 'Employee',\n                                label: __('Employee'),\n                                reqd: 1,\n                                get_query: function() {\n                                    return {\n                                        filters: {\n                                            name: ['in', employee_ids]\n                                        }\n                                    };\n                                }\n                            }\n                        ],\n                        primary_action_label: __('Print'),\n                        primary_action: function(values) {\n                            var url = frappe.urllib.get_full_url(\n                                '/printview?doctype=' + encodeURIComponent(frm.doc.doctype)\n                                + '&name=' + encodeURIComponent(frm.doc.name)\n                                + '&format=' + encodeURIComponent('HMO Deduction Summary')\n                                + '&no_letterhead=0'\n                                + '&employee=' + encodeURIComponent(values.employee)\n                                + '&_lang=' + encodeURIComponent(frappe.boot.lang || 'en')\n                            );\n                            window.open(url, '_blank');\n                            d.hide();\n                        }\n                    });\n\n                    d.show();\n                }\n            });\n        }, __('Print'));\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "HMO Rate Plan",
+  "enabled": 1,
+  "module": "QCMC Logics",
+  "name": "HMO Rate Plan Print Monthly Employees Button",
+  "script": "frappe.ui.form.on(\"HMO Rate Plan\", {\n\trefresh(frm) {\n\t\tif (frm.is_new()) return;\n\n\t\tfrm.add_custom_button(__(\"HMO Monthly Employees\"), () => {\n\t\t\tconst dialog = new frappe.ui.Dialog({\n\t\t\t\ttitle: __(\"Print HMO Monthly Employees\"),\n\t\t\t\tfields: [{\n\t\t\t\t\tfieldname: \"payroll_period\",\n\t\t\t\t\tfieldtype: \"Date\",\n\t\t\t\t\tlabel: __(\"Payroll Period\"),\n\t\t\t\t\treqd: 1,\n\t\t\t\t\tdefault: frappe.datetime.get_today(),\n\t\t\t\t}],\n\t\t\t\tprimary_action_label: __(\"Print\"),\n\t\t\t\tprimary_action(values) {\n\t\t\t\t\tconst url = frappe.urllib.get_full_url(\"/printview?\" + $.param({\n\t\t\t\t\t\tdoctype: frm.doc.doctype,\n\t\t\t\t\t\tname: frm.doc.name,\n\t\t\t\t\t\tformat: \"HMO Monthly Employees\",\n\t\t\t\t\t\tno_letterhead: 1,\n\t\t\t\t\t\tpayroll_period: values.payroll_period,\n\t\t\t\t\t\t_lang: frappe.boot.lang || \"en\",\n\t\t\t\t\t}));\n\t\t\t\t\twindow.open(url, \"_blank\");\n\t\t\t\t\tdialog.hide();\n\t\t\t\t},\n\t\t\t});\n\t\t\tdialog.show();\n\t\t}, __(\"Print\"));\n\t},\n});\n",
   "view": "Form"
  },
  {

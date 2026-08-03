@@ -8,10 +8,6 @@ frappe.ui.form.on("Work Order", {
 	refresh(frm) {
 		schedule_roll_formulation_grid_config(frm);
 		schedule_roll_formulation_preview(frm);
-		add_eps_sales_order_item_controls(frm);
-		apply_eps_sales_order_item_filters(frm);
-		hide_custom_print_button(frm);
-		install_workstation_print_handler(frm);
 	},
 
 	bom_no(frm) {
@@ -40,280 +36,6 @@ frappe.ui.form.on("Work Order", {
 		schedule_roll_formulation_grid_config(frm);
 	},
 });
-
-frappe.ui.form.on("EPS Work Order Sales Order Item", {
-	sales_order(frm) {
-		apply_eps_sales_order_item_filters(frm);
-	},
-
-	item_code(frm) {
-		apply_eps_sales_order_item_filters(frm);
-	},
-});
-
-function add_eps_sales_order_item_controls(frm) {
-	if (frm.doc.docstatus !== 0) {
-		return;
-	}
-
-	frm.remove_custom_button(__("Add Sales Order Items"), __("EPS"));
-	frm.add_custom_button(
-		__("Add Sales Order Items"),
-		() => open_eps_sales_order_item_picker(frm),
-		__("EPS")
-	);
-}
-
-function apply_eps_sales_order_item_filters(frm) {
-	frm.set_query("sales_order_item", "custom_eps_sales_order_items", (doc, cdt, cdn) => {
-		const row = locals[cdt][cdn];
-		const filters = {};
-		if (row.sales_order) {
-			filters.parent = row.sales_order;
-		}
-		if (row.item_code) {
-			filters.item_code = row.item_code;
-		}
-		return { filters };
-	});
-}
-
-async function open_eps_sales_order_item_picker(frm) {
-	if (!frm.doc.bom_no) {
-		frappe.msgprint(__("Select a BOM before adding EPS Sales Order Items."));
-		return;
-	}
-
-	const bom_outputs = await get_eps_bom_secondary_outputs(frm.doc.bom_no);
-	if (!bom_outputs.length) {
-		frappe.msgprint(__("This BOM has no Secondary Items to match against Sales Order Items."));
-		return;
-	}
-
-	const output_item_codes = [...new Set(bom_outputs.map((row) => row.item_code).filter(Boolean))];
-	const dialog = new frappe.ui.Dialog({
-		title: __("Add EPS Sales Order Items"),
-		size: "extra-large",
-		fields: [
-			{
-				fieldtype: "Link",
-				fieldname: "sales_order",
-				label: __("Sales Order"),
-				options: "Sales Order",
-				get_query: () => ({
-					filters: {
-						docstatus: 1,
-						status: ["not in", ["Closed", "On Hold"]],
-					},
-				}),
-			},
-			{
-				fieldtype: "Link",
-				fieldname: "item_code",
-				label: __("Item"),
-				options: "Item",
-				get_query: () => ({
-					filters: [["Item", "name", "in", output_item_codes]],
-				}),
-			},
-			{
-				fieldtype: "Button",
-				fieldname: "load_items",
-				label: __("Load"),
-				click: () => load_eps_sales_order_items(frm, dialog, bom_outputs),
-			},
-			{
-				fieldtype: "HTML",
-				fieldname: "items",
-			},
-		],
-		primary_action_label: __("Insert Selected"),
-		primary_action: () => add_selected_eps_sales_order_items(frm, dialog, bom_outputs),
-	});
-
-	dialog.show();
-	await load_eps_sales_order_items(frm, dialog, bom_outputs);
-}
-
-async function get_eps_bom_secondary_outputs(bom_no) {
-	const response = await frappe.call({
-		method: "qcmc_logic.api.work_order_sales_order_items.get_bom_secondary_outputs",
-		args: { bom_no },
-		freeze: true,
-		freeze_message: __("Reading BOM secondary items..."),
-	});
-	return response.message || [];
-}
-
-async function load_eps_sales_order_items(frm, dialog, bom_outputs) {
-	const values = dialog.get_values() || {};
-	const allowed_items = new Set(bom_outputs.map((row) => row.item_code).filter(Boolean));
-	const response = await frappe.call({
-		method: "qcmc_logic.api.work_order_sales_order_items.get_sales_order_items_for_work_order",
-		args: {
-			sales_order: values.sales_order,
-			item_code: values.item_code,
-		},
-		freeze: true,
-		freeze_message: __("Loading Sales Order Items..."),
-	});
-	const rows = (response.message || []).filter((row) => allowed_items.has(row.item_code));
-	dialog._qcmc_eps_so_items = rows;
-	render_eps_sales_order_items(dialog, rows);
-}
-
-function render_eps_sales_order_items(dialog, rows) {
-	const wrapper = dialog.get_field("items").$wrapper;
-	if (!rows.length) {
-		wrapper.html(`<p class="text-muted">${__("No matching open Sales Order Items found.")}</p>`);
-		return;
-	}
-
-	const html = rows
-		.map(
-			(row, index) => `
-			<tr>
-				<td class="text-center">
-					<input type="checkbox" class="qcmc-eps-so-item" data-index="${index}">
-				</td>
-				<td>${frappe.utils.escape_html(row.sales_order || "")}</td>
-				<td>${frappe.utils.escape_html(row.item_code || "")}</td>
-				<td>${frappe.utils.escape_html(row.item_name || "")}</td>
-				<td class="text-right">${format_number(row.pending_qty, null, 4)}</td>
-				<td>${frappe.utils.escape_html(row.stock_uom || row.uom || "")}</td>
-				<td>${frappe.utils.escape_html(row.delivery_date || "")}</td>
-				<td>${frappe.utils.escape_html(row.customer_name || row.customer || "")}</td>
-			</tr>`
-		)
-		.join("");
-
-	wrapper.html(`
-		<div class="table-responsive" style="max-height: 420px; overflow: auto;">
-			<table class="table table-bordered table-hover">
-				<thead>
-					<tr>
-						<th style="width: 36px;"></th>
-						<th>${__("Sales Order")}</th>
-						<th>${__("Item")}</th>
-						<th>${__("Item Name")}</th>
-						<th class="text-right">${__("Pending Qty")}</th>
-						<th>${__("UOM")}</th>
-						<th>${__("Delivery Date")}</th>
-						<th>${__("Customer")}</th>
-					</tr>
-				</thead>
-				<tbody>${html}</tbody>
-			</table>
-		</div>
-	`);
-}
-
-function add_selected_eps_sales_order_items(frm, dialog, bom_outputs) {
-	const selected_indexes = dialog
-		.get_field("items")
-		.$wrapper.find(".qcmc-eps-so-item:checked")
-		.map((_, input) => cint($(input).data("index")))
-		.get();
-	const rows = selected_indexes.map((index) => dialog._qcmc_eps_so_items[index]).filter(Boolean);
-	if (!rows.length) {
-		frappe.msgprint(__("Select at least one Sales Order Item."));
-		return;
-	}
-
-	for (const source of rows) {
-		if (has_eps_sales_order_item(frm, source.sales_order_item)) {
-			continue;
-		}
-
-		const output = bom_outputs.find((row) => row.item_code === source.item_code) || {};
-		const target = frm.add_child("custom_eps_sales_order_items");
-		target.item_code = source.item_code;
-		target.item_name = source.item_name;
-		target.type = output.type || "Co-Product";
-		target.qty = source.pending_qty;
-		target.stock_uom = source.stock_uom || source.uom;
-		target.sales_order = source.sales_order;
-		target.sales_order_item = source.sales_order_item;
-		target.customer_name = source.customer_name || source.customer;
-		target.delivery_date = source.delivery_date;
-		target.bom_secondary_item = output.name;
-	}
-
-	frm.refresh_field("custom_eps_sales_order_items");
-	frm.dirty();
-	dialog.hide();
-}
-
-function has_eps_sales_order_item(frm, sales_order_item) {
-	return (frm.doc.custom_eps_sales_order_items || []).some(
-		(row) => row.sales_order_item === sales_order_item
-	);
-}
-
-function hide_custom_print_button(frm) {
-	const hide = () => frm.remove_custom_button(__("Print"));
-
-	// Client Scripts run separately and may add the button after this handler.
-	setTimeout(hide, 0);
-	frappe.after_ajax(hide);
-}
-
-function install_workstation_print_handler(frm) {
-	frm.print_doc = () => print_with_workstation_format(frm);
-
-	if (frm.toolbar) {
-		frm.toolbar.print_me = () => print_with_workstation_format(frm);
-	}
-}
-
-async function print_with_workstation_format(frm) {
-	let workstation = null;
-	const operations = frm.doc.operations || [];
-	const last_operation = [...operations].reverse().find((row) => row.workstation);
-	workstation = last_operation?.workstation;
-
-	if (!workstation && frm.doc.bom_no) {
-		const response = await frappe.db.get_list("BOM Operation", {
-			filters: { parent: frm.doc.bom_no, parenttype: "BOM" },
-			fields: ["workstation", "idx"],
-			order_by: "idx desc",
-			limit: 50,
-		});
-		workstation = response.find((row) => row.workstation)?.workstation;
-	}
-
-	if (!workstation) {
-		frappe.msgprint(__("No workstation was found for this Job Order."));
-		return;
-	}
-
-	const response = await frappe.db.get_value(
-		"Workstation",
-		workstation,
-		"custom_print_format"
-	);
-	const print_format = response?.message?.custom_print_format;
-	if (!print_format) {
-		frappe.msgprint(
-			__("No print format is assigned to workstation {0}.", [workstation])
-		);
-		return;
-	}
-
-	window.open(
-		frappe.urllib.get_full_url(
-			"/printview?" +
-				$.param({
-					doctype: frm.doc.doctype,
-					name: frm.doc.name,
-					format: print_format,
-					no_letterhead: 0,
-					lang: frappe.boot.lang || "en",
-				})
-		),
-		"_blank"
-	);
-}
 
 function schedule_roll_formulation_grid_config(frm) {
 	clearTimeout(frm._roll_formulation_grid_timer);
@@ -496,10 +218,10 @@ function render_roll_formulation_categories(categories) {
 				<tr>
 					<td>${frappe.utils.escape_html(category.label || "")}</td>
 					<td class="text-right">${format_number(
-						category.target_ratio_percent,
-						null,
-						4
-					)}%</td>
+				category.target_ratio_percent,
+				null,
+				4
+			)}%</td>
 				</tr>
 			`
 		)
@@ -509,8 +231,8 @@ function render_roll_formulation_categories(categories) {
 		<div class="mb-3">
 			<div class="text-muted small mb-2">
 				${__(
-					"Materials may be split within each category, but each category must retain its BOM percentage."
-				)}
+		"Materials may be split within each category, but each category must retain its BOM percentage."
+	)}
 			</div>
 			<table class="table table-bordered table-sm">
 				<thead>
@@ -543,8 +265,8 @@ function render_roll_formulation_html_table(dialog) {
 	const rows = dialog._qcmc_formulation_rows || [];
 	const body = rows.length
 		? rows
-				.map(
-					(row) => `
+			.map(
+				(row) => `
 						<tr data-row-key="${row._qcmc_key}">
 							<td style="width: 3%" class="text-center">
 								<input type="checkbox" class="qcmc-select-row">
@@ -581,11 +303,11 @@ function render_roll_formulation_html_table(dialog) {
 							</td>
 						</tr>
 					`
-				)
-				.join("")
+			)
+			.join("")
 		: `<tr><td colspan="7" class="text-center text-muted">${__(
-				"No formulation materials"
-		  )}</td></tr>`;
+			"No formulation materials"
+		)}</td></tr>`;
 
 	wrapper.html(`
 		<div class="form-group">
@@ -835,11 +557,11 @@ async function apply_roll_formulation_editor(frm, dialog, prepared, editor_rows)
 		const target = source
 			? { ...source }
 			: {
-					doctype: "Work Order Item",
-					parentfield: "required_items",
-					parenttype: "Work Order",
-					source_warehouse: frm.doc.source_warehouse || "",
-			  };
+				doctype: "Work Order Item",
+				parentfield: "required_items",
+				parenttype: "Work Order",
+				source_warehouse: frm.doc.source_warehouse || "",
+			};
 
 		target.item_code = row.item_code;
 		target.custom_bom_item_group = row.item_group || target.custom_bom_item_group;

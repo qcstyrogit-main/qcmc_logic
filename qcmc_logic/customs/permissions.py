@@ -11,6 +11,10 @@ from qcmc_logic.utils import (
     has_warehouse_access,
     is_global_warehouse_access_enabled,
 )
+from qcmc_logic.customs.territory_access_permissions import (
+    territory_has_permission,
+    territory_permission_query,
+)
 
 
 WAREHOUSE_TRANSACTION_DOCTYPES = {
@@ -310,6 +314,18 @@ def _warehouse_transaction_permission_query(doctype, user):
     )
 
 
+def _combined_transaction_permission_query(doctype, user):
+    conditions = [
+        condition
+        for condition in (
+            _warehouse_transaction_permission_query(doctype, user),
+            territory_permission_query(doctype, user),
+        )
+        if condition
+    ]
+    return " AND ".join(f"({condition})" for condition in conditions)
+
+
 def warehouse_transaction_permission_query(user):
     doctype = frappe.local.form_dict.get("doctype")
     if not doctype:
@@ -319,7 +335,7 @@ def warehouse_transaction_permission_query(user):
 
 
 def delivery_note_permission_query(user):
-    return _warehouse_transaction_permission_query("Delivery Note", user)
+    return _combined_transaction_permission_query("Delivery Note", user)
 
 
 def material_request_permission_query(user):
@@ -347,11 +363,15 @@ def purchase_receipt_permission_query(user):
 
 
 def sales_invoice_permission_query(user):
-    return _warehouse_transaction_permission_query("Sales Invoice", user)
+    return _combined_transaction_permission_query("Sales Invoice", user)
 
 
 def sales_order_permission_query(user):
-    return _warehouse_transaction_permission_query("Sales Order", user)
+    return _combined_transaction_permission_query("Sales Order", user)
+
+
+def customer_permission_query(user):
+    return territory_permission_query("Customer", user)
 
 
 def stock_entry_permission_query(user):
@@ -400,6 +420,9 @@ def _iter_doc_warehouse_values(doc):
 def warehouse_transaction_has_permission(doc, ptype=None, user=None):
     if not user:
         user = frappe.session.user
+    territory_allowed = territory_has_permission(doc, ptype=ptype, user=user)
+    if not territory_allowed:
+        return False
     if not _warehouse_access_applies(user):
         return True
     if ptype == "create":
@@ -416,6 +439,10 @@ def warehouse_transaction_has_permission(doc, ptype=None, user=None):
         return True
 
     return warehouses.issubset(allowed_warehouses)
+
+
+def territory_document_has_permission(doc, ptype=None, user=None):
+    return territory_has_permission(doc, ptype=ptype, user=user)
 
 
 def warehouse_transfer_permission_query(user):
