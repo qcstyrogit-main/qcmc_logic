@@ -1,6 +1,6 @@
 "use strict";
 
-const {app, BrowserWindow, WebContentsView, ipcMain, shell, dialog} = require("electron");
+const {app, BrowserWindow, WebContentsView, ipcMain, shell, dialog, Menu} = require("electron");
 const {autoUpdater} = require("electron-updater");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -13,7 +13,6 @@ const ASSISTANTS = {
   chatgpt: {name: "ChatGPT", url: CHATGPT_URL, partition: "persist:chatgpt"},
 };
 const TOOLBAR_HEIGHT = 48;
-const TAB_NAVIGATOR_HEIGHT = 560;
 const MIN_PANEL_WIDTH = 360;
 const MIN_ERP_WIDTH = 560;
 
@@ -32,7 +31,6 @@ let nextTabId = 1;
 let claudeVisible = true;
 let panelWidth = 520;
 let dragging = false;
-let tabNavigatorOpen = false;
 let updatePromptOpen = false;
 
 function configureAutoUpdates() {
@@ -395,26 +393,41 @@ function reopenClosedErpTab() {
   if (closed?.url) createErpTab(closed.url, true);
 }
 
+function showTabNavigator(bounds = {}) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  const items = erpTabs.map((tab, index) => ({
+    label: `${index + 1}. ${tab.title || "ERPNext"}`,
+    type: "radio",
+    checked: tab.id === activeTabId,
+    click: () => activateErpTab(tab.id),
+  }));
+  items.push(
+    {type: "separator"},
+    {label: "New tab", accelerator: "Ctrl+T", click: () => createErpTab(erpHomeUrl, true)},
+    {label: "Reopen closed tab", accelerator: "Ctrl+Shift+T", enabled: closedErpTabs.length > 0, click: reopenClosedErpTab},
+    {label: "Close current tab", accelerator: "Ctrl+W", click: () => closeErpTab(activeTabId)},
+  );
+  const x = Number.isFinite(bounds.x) ? Math.max(0, Math.round(bounds.x)) : 0;
+  Menu.buildFromTemplate(items).popup({window: mainWindow, x, y: TOOLBAR_HEIGHT});
+}
+
 function layoutViews() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   const [width, height] = mainWindow.getContentSize();
-  const contentTop = tabNavigatorOpen
-    ? Math.min(TAB_NAVIGATOR_HEIGHT, Math.max(TOOLBAR_HEIGHT, height - 120))
-    : TOOLBAR_HEIGHT;
-  const bodyHeight = Math.max(0, height - contentTop);
+  const bodyHeight = Math.max(0, height - TOOLBAR_HEIGHT);
   const maximumPanel = Math.max(MIN_PANEL_WIDTH, width - MIN_ERP_WIDTH);
   panelWidth = Math.min(Math.max(panelWidth, MIN_PANEL_WIDTH), maximumPanel);
   const erpWidth = claudeVisible ? Math.max(0, width - panelWidth - 5) : width;
 
   for (const tab of erpTabs) {
     const isActive = tab.id === activeTabId;
-    tab.view.setBounds({x: 0, y: contentTop, width: erpWidth, height: bodyHeight});
+    tab.view.setBounds({x: 0, y: TOOLBAR_HEIGHT, width: erpWidth, height: bodyHeight});
     tab.view.setVisible(isActive);
   }
 
   for (const [key, view] of Object.entries(assistantViews)) {
     if (!view?.webContents || view.webContents.isDestroyed()) continue;
-    view.setBounds({x: erpWidth + 5, y: contentTop, width: panelWidth, height: bodyHeight});
+    view.setBounds({x: erpWidth + 5, y: TOOLBAR_HEIGHT, width: panelWidth, height: bodyHeight});
     view.setVisible(claudeVisible && key === activeAssistant);
   }
   sendState();
@@ -572,10 +585,7 @@ ipcMain.on("shell:erp-forward", () => {
   if (contents?.navigationHistory.canGoForward()) contents.navigationHistory.goForward();
 });
 ipcMain.on("shell:erp-reload", () => activeTab()?.view.webContents.reload());
-ipcMain.on("shell:tab-navigator", (_event, open) => {
-  tabNavigatorOpen = Boolean(open);
-  layoutViews();
-});
+ipcMain.on("shell:tab-navigator", (_event, bounds) => showTabNavigator(bounds));
 ipcMain.on("shell:resize-start", () => { dragging = true; });
 ipcMain.on("shell:resize", (_event, delta) => {
   if (!dragging || !claudeVisible || !Number.isFinite(delta)) return;

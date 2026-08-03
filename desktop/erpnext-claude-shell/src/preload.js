@@ -14,7 +14,7 @@ contextBridge.exposeInMainWorld("desktopShell", {
   erpBack: () => ipcRenderer.send("shell:erp-back"),
   erpForward: () => ipcRenderer.send("shell:erp-forward"),
   erpReload: () => ipcRenderer.send("shell:erp-reload"),
-  setTabNavigatorOpen: (open) => ipcRenderer.send("shell:tab-navigator", open),
+  openTabNavigator: (bounds) => ipcRenderer.send("shell:tab-navigator", bounds),
   resizeStart: () => ipcRenderer.send("shell:resize-start"),
   resize: (delta) => ipcRenderer.send("shell:resize", delta),
   resizeEnd: () => ipcRenderer.send("shell:resize-end"),
