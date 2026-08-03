@@ -15,6 +15,7 @@ doc_events = {
             "qcmc_logic.customs.warehouse_access_permissions.validate_warehouse_access",
             "qcmc_logic.customs.warehouse_access_permissions.validate_warehouse_type_restriction",
             "qcmc_logic.customs.inventory_group_access_permissions.validate_inventory_group_access",
+            "qcmc_logic.customs.territory_access_permissions.validate_territory_access",
         ]
     },
     "Warehouse Transfer": {   # 👈 name of your GUI Doctype
@@ -57,11 +58,7 @@ doc_events = {
         ]
     },
     "Work Order": {
-        "validate": [
-            "qcmc_logic.customs.work_order_formulation.apply_roll_formulation_required_qty",
-            "qcmc_logic.customs.work_order_eps_packing.apply_eps_secondary_packing_operations",
-            "qcmc_logic.api.work_order_sales_order_items.validate_work_order_secondary_sales_order_items",
-        ],
+        "validate": "qcmc_logic.customs.work_order_formulation.apply_roll_formulation_required_qty",
     },
     "File": {
         "after_insert": "qcmc_logic.customs.issue_kanban.sync_issue_kanban_image",
@@ -224,6 +221,7 @@ permission_query_conditions = {
      "Appraisal": "qcmc_logic.customs.permissions.appraisal_permission_query",
      "Job Requisition": "qcmc_logic.customs.staffingplan_permission.mrf_permission_query_condition",
      "Delivery Note": "qcmc_logic.customs.permissions.delivery_note_permission_query",
+     "Customer": "qcmc_logic.customs.permissions.customer_permission_query",
      "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_permission_query",
      "Machine Shop Repairs and Project": "qcmc_logic.customs.machine_shop_repairs_and_project.msrp_permission_query",
      "Material Request": "qcmc_logic.customs.permissions.material_request_permission_query",
@@ -244,6 +242,7 @@ permission_query_conditions = {
 }
 
 has_permission = {
+    "Customer": "qcmc_logic.customs.permissions.territory_document_has_permission",
     "Delivery Note": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_has_permission",
     "Machine Shop Repairs and Project": "qcmc_logic.customs.machine_shop_repairs_and_project.msrp_has_permission",
