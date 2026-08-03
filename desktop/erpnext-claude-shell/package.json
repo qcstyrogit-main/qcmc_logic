@@ -1,6 +1,6 @@
 {
   "name": "erpnext-claude-desktop",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "description": "Cross-platform ERPNext desktop shell with selectable Claude and ChatGPT side panels",
   "main": "src/main.js",
   "author": {
@@ -48,6 +48,7 @@
       ]
     },
     "win": {
+      "icon": "src/assets/company-icon.png",
       "target": [
         "nsis",
         "portable"
