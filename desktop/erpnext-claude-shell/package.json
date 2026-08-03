@@ -15,7 +15,7 @@
     "start": "electron .",
     "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js",
     "dist:linux": "electron-builder --linux AppImage deb",
-    "dist:windows": "electron-builder --win nsis portable",
+    "dist:windows": "electron-builder --win nsis",
     "dist": "electron-builder --linux AppImage deb --win nsis portable"
   },
   "devDependencies": {
