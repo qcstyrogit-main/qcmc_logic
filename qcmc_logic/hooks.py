@@ -59,6 +59,7 @@ doc_events = {
     "Work Order": {
         "validate": [
             "qcmc_logic.customs.work_order_formulation.apply_roll_formulation_required_qty",
+            "qcmc_logic.customs.work_order_eps_packing.apply_eps_secondary_packing_operations",
             "qcmc_logic.api.work_order_sales_order_items.validate_work_order_secondary_sales_order_items",
         ],
     },

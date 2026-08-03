@@ -18,6 +18,8 @@ class CustomPaymentEntry(PaymentEntry):
 
     def on_trash(self):
         self.cleanup_intercompany_collection_links(delete=True)
+        self.clear_intercompany_collection_reference_links()
+        _delete_voucher_ledger_rows(self.doctype, self.name)
 
     def make_gl_entries(self, cancel=0, adv_adj=0):
         if self.get("custom_enable_manual_gl_entries") and self.payment_type == "Pay":
@@ -260,6 +262,54 @@ class CustomPaymentEntry(PaymentEntry):
                     update_modified=False,
                 )
 
+    def clear_intercompany_collection_reference_links(self):
+        if self.get("custom_intercompany_target_payment_entry"):
+            frappe.db.set_value(
+                "Payment Entry",
+                self.name,
+                "custom_intercompany_target_payment_entry",
+                None,
+                update_modified=False,
+            )
+
+        for fieldname in (
+            "custom_intercompany_source_payment_entry",
+            "custom_ref_doc",
+        ):
+            linked_source = self.get(fieldname)
+            if linked_source and frappe.db.exists("Payment Entry", linked_source):
+                linked_target = frappe.db.get_value(
+                    "Payment Entry",
+                    linked_source,
+                    "custom_intercompany_target_payment_entry",
+                )
+                if linked_target == self.name:
+                    frappe.db.set_value(
+                        "Payment Entry",
+                        linked_source,
+                        "custom_intercompany_target_payment_entry",
+                        None,
+                        update_modified=False,
+                    )
+
+        for journal_entry in frappe.get_all(
+            "Journal Entry",
+            filters=[
+                ["Journal Entry", "custom_intercompany_source_payment_entry", "=", self.name],
+            ],
+            pluck="name",
+        ):
+            _cancel_or_delete_doc("Journal Entry", journal_entry, delete=True)
+
+        for journal_entry in frappe.get_all(
+            "Journal Entry",
+            filters=[
+                ["Journal Entry", "custom_intercompany_target_payment_entry", "=", self.name],
+            ],
+            pluck="name",
+        ):
+            _cancel_or_delete_doc("Journal Entry", journal_entry, delete=True)
+
     def make_intercompany_source_journal_entry(self, collecting_company, source_payment, amount, target_company=None):
         target_company = target_company or self.company
         payable_account = _get_affiliate_collection_deduction_account(source_payment, target_company)
@@ -443,8 +493,20 @@ def _cancel_or_delete_doc(doctype, name, delete=False):
     if doc.docstatus == 1:
         doc.cancel()
 
+    _delete_voucher_ledger_rows(doctype, name)
+
     if (delete or doc.docstatus == 0) and frappe.db.exists(doctype, name):
         frappe.delete_doc(doctype, name, ignore_permissions=True, force=True)
+
+
+def _delete_voucher_ledger_rows(voucher_type, voucher_no):
+    frappe.db.delete("GL Entry", {"voucher_type": voucher_type, "voucher_no": voucher_no})
+
+    if frappe.db.exists("DocType", "Payment Ledger Entry"):
+        frappe.db.delete("Payment Ledger Entry", {"voucher_type": voucher_type, "voucher_no": voucher_no})
+
+    if frappe.db.exists("DocType", "Advance Payment Ledger Entry"):
+        frappe.db.delete("Advance Payment Ledger Entry", {"voucher_type": voucher_type, "voucher_no": voucher_no})
 
 
 @frappe.whitelist()

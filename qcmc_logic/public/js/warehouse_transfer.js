@@ -9,6 +9,7 @@ frappe.ui.form.on("Warehouse Transfer", {
         qcmc_logic.warehouse_transfer.set_queries(frm);
         qcmc_logic.warehouse_transfer.apply_default_source_warehouse(frm);
         qcmc_logic.warehouse_transfer.configure_receiving_state(frm);
+        qcmc_logic.warehouse_transfer.toggle_shipping_details(frm);
         qcmc_logic.warehouse_transfer.add_get_items_buttons(frm);
     },
 
@@ -18,6 +19,11 @@ frappe.ui.form.on("Warehouse Transfer", {
 
     transfer_type(frm) {
         qcmc_logic.warehouse_transfer.set_queries(frm);
+        qcmc_logic.warehouse_transfer.toggle_shipping_details(frm);
+    },
+
+    custom_with_shipping_details(frm) {
+        qcmc_logic.warehouse_transfer.toggle_shipping_details(frm);
     },
 
     target_warehouse(frm) {
@@ -25,6 +31,34 @@ frappe.ui.form.on("Warehouse Transfer", {
         qcmc_logic.warehouse_transfer.configure_receiving_state(frm);
     },
 });
+
+qcmc_logic.warehouse_transfer.shipping_detail_fields = [
+    "custom_etd",
+    "custom_eta",
+    "custom_shipping_details_column_break",
+    "custom_seal_no",
+    "custom_van_no",
+    "custom_shipping_line",
+    "custom_shipping_remarks",
+];
+
+qcmc_logic.warehouse_transfer.toggle_shipping_details = function(frm) {
+    const is_pwt = frm.doc.transfer_type === "Provincial Warehouse Transfer";
+    const show_details = is_pwt && cint(frm.doc.custom_with_shipping_details);
+
+    if (frm.fields_dict.custom_shipping_details_section) {
+        frm.toggle_display("custom_shipping_details_section", show_details);
+    }
+    if (frm.fields_dict.custom_with_shipping_details) {
+        frm.toggle_display("custom_with_shipping_details", is_pwt);
+    }
+
+    qcmc_logic.warehouse_transfer.shipping_detail_fields.forEach(fieldname => {
+        if (frm.fields_dict[fieldname]) {
+            frm.toggle_display(fieldname, show_details);
+        }
+    });
+};
 
 qcmc_logic.warehouse_transfer.add_get_items_buttons = function(frm) {
     if (!qcmc_logic.warehouse_transfer.can_get_items_from_material_request(frm)) return;
