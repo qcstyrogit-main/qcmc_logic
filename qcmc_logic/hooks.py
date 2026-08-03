@@ -150,6 +150,7 @@ before_request = [
 
 after_request = [
     "qcmc_logic.overrides.lms_inject.inject_lms_login_redirect",
+    "qcmc_logic.overrides.oauth_override.normalize_fac_oauth_challenge",
 ]
 
 doctype_js = {
@@ -190,6 +191,7 @@ doctype_list_js = {
 
 
 override_whitelisted_methods = {
+    "frappe_assistant_core.api.fac_endpoint.handle_mcp": "qcmc_logic.overrides.oauth_override.handle_mcp",
     "frappe.desk.printing.get_print_format": "qcmc_logic.overrides.POPrint_Override.get_po_print_format",
     "frappe.desk.query_report.run": "qcmc_logic.overrides.query_report_override.run",
     "lms.lms.utils.get_courses": "qcmc_logic.overrides.lms_overrides.get_courses",
