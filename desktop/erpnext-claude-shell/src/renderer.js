@@ -84,7 +84,6 @@ function closeTabMenu() {
   if (tabMenu.hidden) return;
   tabMenu.hidden = true;
   tabNavigator.setAttribute("aria-expanded", "false");
-  window.desktopShell.setTabNavigatorOpen(false);
 }
 
 function positionTabMenu() {
@@ -139,18 +138,8 @@ function renderTabMenu() {
 }
 
 tabNavigator.addEventListener("click", () => {
-  const opening = tabMenu.hidden;
-  if (!opening) {
-    closeTabMenu();
-    return;
-  }
-  positionTabMenu();
-  tabMenu.hidden = false;
-  window.desktopShell.setTabNavigatorOpen(true);
-  tabNavigator.setAttribute("aria-expanded", "true");
-  tabSearch.value = "";
-  renderTabMenu();
-  tabSearch.focus();
+  const bounds = tabNavigator.getBoundingClientRect();
+  window.desktopShell.openTabNavigator({x: bounds.left, y: bounds.bottom});
 });
 document.querySelector("#tab-menu-close").addEventListener("click", closeTabMenu);
 tabSearch.addEventListener("input", renderTabMenu);

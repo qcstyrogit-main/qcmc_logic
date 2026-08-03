@@ -1,6 +1,6 @@
 "use strict";
 
-const {app, BrowserWindow, WebContentsView, ipcMain, shell, dialog} = require("electron");
+const {app, BrowserWindow, WebContentsView, ipcMain, shell, dialog, Menu} = require("electron");
 const {autoUpdater} = require("electron-updater");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -13,7 +13,6 @@ const ASSISTANTS = {
   chatgpt: {name: "ChatGPT", url: CHATGPT_URL, partition: "persist:chatgpt"},
 };
 const TOOLBAR_HEIGHT = 48;
-const TAB_NAVIGATOR_HEIGHT = 560;
 const MIN_PANEL_WIDTH = 360;
 const MIN_ERP_WIDTH = 560;
 
@@ -32,7 +31,6 @@ let nextTabId = 1;
 let claudeVisible = true;
 let panelWidth = 520;
 let dragging = false;
-let tabNavigatorOpen = false;
 let updatePromptOpen = false;
 
 function configureAutoUpdates() {
@@ -291,6 +289,36 @@ function createView(partition, preload = null) {
   });
 }
 
+function showErpContextMenu(contents, params) {
+  const items = [];
+  const linkUrl = String(params.linkURL || "");
+  if (/^https?:\/\//i.test(linkUrl)) {
+    items.push(
+      {label: "Open link in new tab", click: () => createErpTab(linkUrl, true)},
+      {label: "Open link in browser", click: () => shell.openExternal(linkUrl)},
+      {type: "separator"},
+    );
+  }
+  if (params.isEditable) {
+    items.push(
+      {label: "Cut", accelerator: "Ctrl+X", enabled: params.editFlags.canCut, click: () => contents.cut()},
+      {label: "Copy", accelerator: "Ctrl+C", enabled: params.editFlags.canCopy, click: () => contents.copy()},
+      {label: "Paste", accelerator: "Ctrl+V", enabled: params.editFlags.canPaste, click: () => contents.paste()},
+      {type: "separator"},
+    );
+  } else if (params.selectionText) {
+    items.push({label: "Copy", accelerator: "Ctrl+C", click: () => contents.copy()}, {type: "separator"});
+  }
+  items.push(
+    {label: "Back", accelerator: "Alt+Left", enabled: contents.navigationHistory.canGoBack(), click: () => contents.navigationHistory.goBack()},
+    {label: "Forward", accelerator: "Alt+Right", enabled: contents.navigationHistory.canGoForward(), click: () => contents.navigationHistory.goForward()},
+    {label: "Reload", accelerator: "Ctrl+R", click: () => contents.reload()},
+    {type: "separator"},
+    {label: "New ERPNext tab", accelerator: "Ctrl+T", click: () => createErpTab(erpHomeUrl, true)},
+  );
+  Menu.buildFromTemplate(items).popup({window: mainWindow});
+}
+
 function tabState(tab) {
   return {
     id: tab.id,
@@ -323,6 +351,7 @@ function createErpTab(url = erpHomeUrl, activate = true) {
   mainWindow.contentView.addChildView(view);
 
   view.webContents.on("before-input-event", (_event, input) => handleShortcut(input, id));
+  view.webContents.on("context-menu", (_event, params) => showErpContextMenu(view.webContents, params));
   view.webContents.setWindowOpenHandler(({url: popupUrl}) => {
     if (popupUrl.startsWith("http://") || popupUrl.startsWith("https://")) {
       createErpTab(popupUrl, true);
@@ -395,26 +424,41 @@ function reopenClosedErpTab() {
   if (closed?.url) createErpTab(closed.url, true);
 }
 
+function showTabNavigator(bounds = {}) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  const items = erpTabs.map((tab, index) => ({
+    label: `${index + 1}. ${tab.title || "ERPNext"}`,
+    type: "radio",
+    checked: tab.id === activeTabId,
+    click: () => activateErpTab(tab.id),
+  }));
+  items.push(
+    {type: "separator"},
+    {label: "New tab", accelerator: "Ctrl+T", click: () => createErpTab(erpHomeUrl, true)},
+    {label: "Reopen closed tab", accelerator: "Ctrl+Shift+T", enabled: closedErpTabs.length > 0, click: reopenClosedErpTab},
+    {label: "Close current tab", accelerator: "Ctrl+W", click: () => closeErpTab(activeTabId)},
+  );
+  const x = Number.isFinite(bounds.x) ? Math.max(0, Math.round(bounds.x)) : 0;
+  Menu.buildFromTemplate(items).popup({window: mainWindow, x, y: TOOLBAR_HEIGHT});
+}
+
 function layoutViews() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   const [width, height] = mainWindow.getContentSize();
-  const contentTop = tabNavigatorOpen
-    ? Math.min(TAB_NAVIGATOR_HEIGHT, Math.max(TOOLBAR_HEIGHT, height - 120))
-    : TOOLBAR_HEIGHT;
-  const bodyHeight = Math.max(0, height - contentTop);
+  const bodyHeight = Math.max(0, height - TOOLBAR_HEIGHT);
   const maximumPanel = Math.max(MIN_PANEL_WIDTH, width - MIN_ERP_WIDTH);
   panelWidth = Math.min(Math.max(panelWidth, MIN_PANEL_WIDTH), maximumPanel);
   const erpWidth = claudeVisible ? Math.max(0, width - panelWidth - 5) : width;
 
   for (const tab of erpTabs) {
     const isActive = tab.id === activeTabId;
-    tab.view.setBounds({x: 0, y: contentTop, width: erpWidth, height: bodyHeight});
+    tab.view.setBounds({x: 0, y: TOOLBAR_HEIGHT, width: erpWidth, height: bodyHeight});
     tab.view.setVisible(isActive);
   }
 
   for (const [key, view] of Object.entries(assistantViews)) {
     if (!view?.webContents || view.webContents.isDestroyed()) continue;
-    view.setBounds({x: erpWidth + 5, y: contentTop, width: panelWidth, height: bodyHeight});
+    view.setBounds({x: erpWidth + 5, y: TOOLBAR_HEIGHT, width: panelWidth, height: bodyHeight});
     view.setVisible(claudeVisible && key === activeAssistant);
   }
   sendState();
@@ -572,10 +616,7 @@ ipcMain.on("shell:erp-forward", () => {
   if (contents?.navigationHistory.canGoForward()) contents.navigationHistory.goForward();
 });
 ipcMain.on("shell:erp-reload", () => activeTab()?.view.webContents.reload());
-ipcMain.on("shell:tab-navigator", (_event, open) => {
-  tabNavigatorOpen = Boolean(open);
-  layoutViews();
-});
+ipcMain.on("shell:tab-navigator", (_event, bounds) => showTabNavigator(bounds));
 ipcMain.on("shell:resize-start", () => { dragging = true; });
 ipcMain.on("shell:resize", (_event, delta) => {
   if (!dragging || !claudeVisible || !Number.isFinite(delta)) return;
