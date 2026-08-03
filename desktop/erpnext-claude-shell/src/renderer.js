@@ -8,8 +8,6 @@ const tabNavigator = document.querySelector("#tab-navigator");
 const tabMenu = document.querySelector("#tab-menu");
 const tabMenuList = document.querySelector("#tab-menu-list");
 const tabSearch = document.querySelector("#tab-search");
-const tabScrollLeft = document.querySelector("#tab-scroll-left");
-const tabScrollRight = document.querySelector("#tab-scroll-right");
 let lastX = null;
 let currentTabs = [];
 let currentActiveTabId = null;
@@ -75,8 +73,6 @@ function renderTabs(tabs, activeTabId) {
     tabNavigator.hidden = hideNavigator;
     if (hideNavigator) closeTabMenu();
     tabNavigator.textContent = `Tabs ${tabs.length}`;
-    tabScrollLeft.hidden = !overflowing;
-    tabScrollRight.hidden = !overflowing;
   });
 }
 
@@ -152,8 +148,6 @@ tabsContainer.addEventListener("wheel", (event) => {
 tabsContainer.addEventListener("dblclick", (event) => {
   if (!event.target.closest(".erp-tab")) window.desktopShell.newErpTab();
 });
-tabScrollLeft.addEventListener("click", () => tabsContainer.scrollBy({left: -240, behavior: "smooth"}));
-tabScrollRight.addEventListener("click", () => tabsContainer.scrollBy({left: 240, behavior: "smooth"}));
 document.addEventListener("mousedown", (event) => {
   if (!tabMenu.hidden && !tabMenu.contains(event.target) && event.target !== tabNavigator) closeTabMenu();
 });

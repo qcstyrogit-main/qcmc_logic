@@ -113,8 +113,7 @@ html, body {
 
 .new-tab { min-width: 34px; padding: 4px 8px; font-size: 18px; }
 .tab-navigator { white-space: nowrap; font-weight: 600; }
-.tab-scroll { min-width: 28px; padding: 2px 7px; font-size: 20px; }
-.tab-navigator[hidden], .tab-menu[hidden], .tab-scroll[hidden] { display: none; }
+.tab-navigator[hidden], .tab-menu[hidden] { display: none; }
 
 .tab-menu {
   position: fixed;
