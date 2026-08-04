@@ -1,0 +1,223 @@
+<style>
+	@page {
+		size: Letter portrait;
+		margin: 0.25in;
+	}
+
+	.print-format {
+		padding: 0 !important;
+		margin: 0 !important;
+	}
+
+	.return-slip,
+	.return-slip * {
+		box-sizing: border-box;
+		color: #000;
+		font-family: Arial, Helvetica, sans-serif;
+		font-size: 10px;
+		line-height: 1.15;
+	}
+
+	.return-slip {
+		width: 100%;
+		min-height: 5.1in;
+		padding: 0.08in 0.08in;
+	}
+
+	.return-slip-header {
+		position: relative;
+		min-height: 52px;
+		text-align: center;
+	}
+
+	.return-slip-company {
+		font-size: 16px;
+		margin-top: 3px;
+		text-transform: uppercase;
+	}
+
+	.return-slip-title {
+		font-size: 16px;
+		font-weight: 700;
+		margin-top: 3px;
+	}
+
+	.return-slip-number {
+		position: absolute;
+		right: 6px;
+		top: 3px;
+		font-size: 14px;
+		font-weight: 700;
+	}
+
+	.return-slip-meta,
+	.return-slip-items {
+		border-collapse: collapse;
+		table-layout: fixed;
+		width: 100%;
+	}
+
+	.return-slip-meta {
+		margin-top: 1px;
+	}
+
+	.return-slip-meta td {
+		border: 0;
+		height: 23px;
+		padding: 2px 5px !important;
+		vertical-align: bottom !important;
+	}
+
+	.return-slip-label {
+		white-space: nowrap;
+		width: 62px;
+	}
+
+	.return-slip-value {
+		border-bottom: 1px solid #000;
+		display: block;
+		min-height: 15px;
+		padding: 0 2px 2px;
+	}
+
+	.return-slip-inline {
+		display: table;
+		table-layout: fixed;
+		width: 100%;
+	}
+
+	.return-slip-inline > span {
+		display: table-cell;
+		vertical-align: bottom;
+	}
+
+	.return-slip-items {
+		margin-top: 35px;
+	}
+
+	.return-slip-items th,
+	.return-slip-items td {
+		border: 1px solid #000;
+		padding: 4px 5px !important;
+		vertical-align: middle !important;
+	}
+
+	.return-slip-items th {
+		font-weight: 400;
+		text-align: center;
+	}
+
+	.return-slip-items td {
+		height: 20px;
+	}
+
+	.return-slip-center {
+		text-align: center;
+	}
+
+	.return-slip-right {
+		text-align: right;
+	}
+</style>
+
+{% set original = frappe.get_doc("Purchase Receipt", doc.return_against) if doc.return_against else None %}
+{% set supplier_address = doc.address_display or (original.address_display if original else "") or "" %}
+{% set invoice_number = doc.custom_invoice_number or (original.custom_invoice_number if original else "") or "" %}
+{% set delivery_receipt = doc.supplier_delivery_note or (original.supplier_delivery_note if original else "") or "" %}
+{% set delivered_date = original.posting_date if original else doc.posting_date %}
+
+<div class="return-slip">
+	<div class="return-slip-header">
+		<div class="return-slip-company">{{ doc.company or "" }}</div>
+		<div class="return-slip-title">RETURN SLIP</div>
+		<div class="return-slip-number">{{ doc.name or "" }}</div>
+	</div>
+
+	<table class="return-slip-meta">
+		<colgroup>
+			<col style="width: 8%;">
+			<col style="width: 66%;">
+			<col style="width: 13%;">
+			<col style="width: 13%;">
+		</colgroup>
+		<tr>
+			<td class="return-slip-label">To:</td>
+			<td><span class="return-slip-value">{{ doc.supplier_name or doc.supplier or "" }}</span></td>
+			<td class="return-slip-label">Date:</td>
+			<td><span class="return-slip-value return-slip-center">{{ frappe.utils.formatdate(doc.posting_date, "M/d/yy") if doc.posting_date else "" }}</span></td>
+		</tr>
+		<tr>
+			<td class="return-slip-label">Address:</td>
+			<td><span class="return-slip-value">{{ supplier_address | striptags }}</span></td>
+			<td class="return-slip-label">WRR Number:</td>
+			<td><span class="return-slip-value return-slip-center">{{ doc.return_against or "" }}</span></td>
+		</tr>
+	</table>
+
+	<table class="return-slip-meta">
+		<colgroup>
+			<col style="width: 8%;">
+			<col style="width: 15%;">
+			<col style="width: 6%;">
+			<col style="width: 13%;">
+			<col style="width: 14%;">
+			<col style="width: 18%;">
+			<col style="width: 26%;">
+		</colgroup>
+		<tr>
+			<td class="return-slip-label">Invoice:</td>
+			<td><span class="return-slip-value return-slip-center">{{ invoice_number }}</span></td>
+			<td class="return-slip-label">DR#:</td>
+			<td><span class="return-slip-value return-slip-center">{{ delivery_receipt }}</span></td>
+			<td class="return-slip-label">Date Delivered:</td>
+			<td><span class="return-slip-value return-slip-center">{{ frappe.utils.formatdate(delivered_date, "MM/dd/yyyy") if delivered_date else "" }}</span></td>
+			<td></td>
+		</tr>
+	</table>
+
+	<table class="return-slip-items">
+		<colgroup>
+			<col style="width: 13%;">
+			<col style="width: 9%;">
+			<col style="width: 7%;">
+			<col style="width: 11%;">
+			<col style="width: 38%;">
+			<col style="width: 11%;">
+			<col style="width: 11%;">
+		</colgroup>
+		<thead>
+			<tr>
+				<th>REFERENCE</th>
+				<th>QTY</th>
+				<th>UNIT</th>
+				<th>CODE</th>
+				<th>DESCRIPTION</th>
+				<th>UNIT PRICE</th>
+				<th>AMOUNT</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for row in doc.items %}
+			<tr>
+				<td>{{ row.purchase_order or row.material_request or "-" }}</td>
+				<td class="return-slip-center">{{ "{:,.2f}".format((row.qty or 0) | abs) }}</td>
+				<td class="return-slip-center">{{ row.uom or row.stock_uom or "" }}</td>
+				<td class="return-slip-center">{{ row.item_code or "" }}</td>
+				<td>{{ row.item_name or row.description or "" }}</td>
+				<td class="return-slip-right">-</td>
+				<td class="return-slip-right">-</td>
+			</tr>
+			{% else %}
+			<tr>
+				<td>-</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td class="return-slip-right">-</td>
+				<td class="return-slip-right">-</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
