@@ -172,27 +172,30 @@ def add_payment_entry_underpayment_table():
 def add_payment_entry_underpayment_remarks():
     if not frappe.db.exists("DocType", "Payment Entry Underpayment"):
         return
-    if frappe.db.exists(
+    field_exists = frappe.db.exists(
         "DocField",
         {"parent": "Payment Entry Underpayment", "fieldname": "remarks"},
-    ):
-        return
-
-    meta = frappe.get_meta("Payment Entry Underpayment")
-    field = frappe.get_doc(
-        {
-            "doctype": "DocField",
-            "parent": "Payment Entry Underpayment",
-            "parenttype": "DocType",
-            "parentfield": "fields",
-            "idx": len(meta.fields) + 1,
-            "fieldname": "remarks",
-            "fieldtype": "Small Text",
-            "label": "Remarks",
-            "in_list_view": 1,
-        }
     )
-    field.db_insert()
+    if not field_exists:
+        meta = frappe.get_meta("Payment Entry Underpayment")
+        field = frappe.get_doc(
+            {
+                "doctype": "DocField",
+                "parent": "Payment Entry Underpayment",
+                "parenttype": "DocType",
+                "parentfield": "fields",
+                "idx": len(meta.fields) + 1,
+                "fieldname": "remarks",
+                "fieldtype": "Small Text",
+                "label": "Remarks",
+                "in_list_view": 1,
+            }
+        )
+        field.db_insert()
+
+    if not frappe.db.has_column("Payment Entry Underpayment", "remarks"):
+        frappe.db.sql("alter table `tabPayment Entry Underpayment` add column `remarks` text")
+
     frappe.clear_cache(doctype="Payment Entry Underpayment")
 
 

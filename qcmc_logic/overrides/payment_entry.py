@@ -286,6 +286,8 @@ class CustomPaymentEntry(PaymentEntry):
                 continue
             if not _is_first_sales_invoice_payment(row.reference_name, self.name):
                 continue
+            if _has_submitted_underpayment_breakdown(row.reference_name, self.name):
+                continue
 
             required[row.reference_name] = flt(
                 required.get(row.reference_name, 0) + underpayment_amount,
@@ -305,6 +307,14 @@ class CustomPaymentEntry(PaymentEntry):
                 frappe.throw(_("Underpayment Type is required in Underpayment Breakdown row {0}.").format(row.idx))
             if flt(row.amount, precision) <= 0:
                 frappe.throw(_("Amount must be greater than zero in Underpayment Breakdown row {0}.").format(row.idx))
+            if _has_submitted_underpayment_breakdown(row.sales_invoice, self.name):
+                existing_payment = _get_submitted_underpayment_payment_entry(row.sales_invoice, self.name)
+                frappe.throw(
+                    _(
+                        "Sales Invoice {0} already has an underpayment breakdown in submitted Payment Entry {1}. "
+                        "It cannot be used again for underpayment."
+                    ).format(frappe.bold(row.sales_invoice), frappe.bold(existing_payment))
+                )
 
             breakdown[row.sales_invoice] = flt(
                 breakdown.get(row.sales_invoice, 0) + flt(row.amount, precision),
@@ -525,6 +535,71 @@ def _is_first_sales_invoice_payment(sales_invoice, payment_entry=None):
         values,
     )
     return not existing
+
+
+def _has_submitted_underpayment_breakdown(sales_invoice, payment_entry=None):
+    return bool(_get_submitted_underpayment_payment_entry(sales_invoice, payment_entry))
+
+
+def _get_submitted_underpayment_payment_entry(sales_invoice, payment_entry=None):
+    if not frappe.db.table_exists("Payment Entry Underpayment"):
+        return None
+
+    conditions = [
+        "peu.sales_invoice = %(sales_invoice)s",
+        "pe.docstatus = 1",
+    ]
+    values = {"sales_invoice": sales_invoice}
+
+    if payment_entry:
+        conditions.append("pe.name != %(payment_entry)s")
+        values["payment_entry"] = payment_entry
+
+    rows = frappe.db.sql(
+        f"""
+        select pe.name
+        from `tabPayment Entry Underpayment` peu
+        inner join `tabPayment Entry` pe on pe.name = peu.parent
+        where {" and ".join(conditions)}
+        limit 1
+        """,
+        values,
+        as_dict=True,
+    )
+    return rows[0].name if rows else None
+
+
+@frappe.whitelist()
+def get_existing_underpayment_invoices(sales_invoices, payment_entry=None):
+    if isinstance(sales_invoices, str):
+        sales_invoices = frappe.parse_json(sales_invoices)
+    sales_invoices = list(filter(None, sales_invoices or []))
+
+    if not sales_invoices or not frappe.db.table_exists("Payment Entry Underpayment"):
+        return {}
+
+    conditions = [
+        "peu.sales_invoice in %(sales_invoices)s",
+        "pe.docstatus = 1",
+    ]
+    values = {"sales_invoices": tuple(sales_invoices)}
+
+    if payment_entry:
+        conditions.append("pe.name != %(payment_entry)s")
+        values["payment_entry"] = payment_entry
+
+    rows = frappe.db.sql(
+        f"""
+        select peu.sales_invoice, pe.name as payment_entry
+        from `tabPayment Entry Underpayment` peu
+        inner join `tabPayment Entry` pe on pe.name = peu.parent
+        where {" and ".join(conditions)}
+        group by peu.sales_invoice
+        """,
+        values,
+        as_dict=True,
+    )
+    return {row.sales_invoice: row.payment_entry for row in rows}
 
 
 def _get_affiliate_collection_deduction_amount(payment_entry):

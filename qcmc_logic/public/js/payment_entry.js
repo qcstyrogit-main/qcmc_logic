@@ -3,25 +3,21 @@ frappe.ui.form.on("Payment Entry", {
 		set_underpayment_breakdown_queries(frm);
 	},
 	refresh(frm) {
-		set_underpayment_breakdown_queries(frm);
-		render_underpayment_breakdown_controls(frm);
+		refresh_underpayment_breakdown_controls(frm);
 		add_intercompany_collection_buttons(frm);
 		render_affiliate_collection_deduction_button(frm);
 	},
 	references_add(frm) {
-		set_underpayment_breakdown_queries(frm);
-		render_underpayment_breakdown_controls(frm);
+		refresh_underpayment_breakdown_controls(frm);
 	},
 	references_remove(frm) {
-		set_underpayment_breakdown_queries(frm);
-		render_underpayment_breakdown_controls(frm);
+		refresh_underpayment_breakdown_controls(frm);
 	},
 	custom_underpayment_breakdown_add(frm) {
-		set_underpayment_breakdown_queries(frm);
-		render_underpayment_breakdown_controls(frm);
+		refresh_underpayment_breakdown_controls(frm);
 	},
 	custom_underpayment_breakdown_remove(frm) {
-		render_underpayment_breakdown_controls(frm);
+		refresh_underpayment_breakdown_controls(frm);
 	},
 	unallocated_amount(frm) {
 		render_affiliate_collection_deduction_button(frm);
@@ -36,18 +32,16 @@ frappe.ui.form.on("Payment Entry", {
 
 frappe.ui.form.on("Payment Entry Reference", {
 	reference_doctype(frm) {
-		set_underpayment_breakdown_queries(frm);
-		render_underpayment_breakdown_controls(frm);
+		refresh_underpayment_breakdown_controls(frm);
 	},
 	reference_name(frm) {
-		set_underpayment_breakdown_queries(frm);
-		render_underpayment_breakdown_controls(frm);
+		refresh_underpayment_breakdown_controls(frm);
 	},
 	outstanding_amount(frm) {
-		render_underpayment_breakdown_controls(frm);
+		refresh_underpayment_breakdown_controls(frm);
 	},
 	allocated_amount(frm) {
-		render_underpayment_breakdown_controls(frm);
+		refresh_underpayment_breakdown_controls(frm);
 	},
 });
 
@@ -91,11 +85,20 @@ function render_underpayment_breakdown_controls(frm) {
 	frm.fields_dict.custom_underpayment_breakdown.$wrapper.before($button);
 }
 
+async function refresh_underpayment_breakdown_controls(frm) {
+	const existing = await get_existing_underpayment_invoice_map(frm);
+	frm.qcmc_existing_underpayment_invoices = existing;
+	set_underpayment_breakdown_queries(frm);
+	render_underpayment_breakdown_controls(frm);
+}
+
 function get_underpaid_sales_invoice_references(frm) {
 	const by_invoice = {};
+	const existing = frm.qcmc_existing_underpayment_invoices || {};
 
 	(frm.doc.references || []).forEach(row => {
 		if (row.reference_doctype !== "Sales Invoice" || !row.reference_name) return;
+		if (existing[row.reference_name]) return;
 
 		const outstanding = flt(row.outstanding_amount);
 		const allocated = flt(row.allocated_amount);
@@ -112,7 +115,26 @@ function get_underpaid_sales_invoice_references(frm) {
 	}));
 }
 
-function insert_underpayment_breakdown_rows(frm) {
+async function get_existing_underpayment_invoice_map(frm) {
+	const invoices = (frm.doc.references || [])
+		.filter(row => row.reference_doctype === "Sales Invoice" && row.reference_name)
+		.map(row => row.reference_name);
+
+	if (!invoices.length) return {};
+
+	const { message } = await frappe.call({
+		method: "qcmc_logic.overrides.payment_entry.get_existing_underpayment_invoices",
+		args: {
+			sales_invoices: invoices,
+			payment_entry: frm.doc.name,
+		},
+	});
+
+	return message || {};
+}
+
+async function insert_underpayment_breakdown_rows(frm) {
+	frm.qcmc_existing_underpayment_invoices = await get_existing_underpayment_invoice_map(frm);
 	const underpaid_invoices = get_underpaid_sales_invoice_references(frm);
 	const existing = {};
 
