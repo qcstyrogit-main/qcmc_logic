@@ -1,7 +1,11 @@
 import frappe
 from erpnext.stock.utils import get_incoming_rate
 from erpnext.accounts.general_ledger import make_reverse_gl_entries
-from qcmc_logic.utils import get_user_allowed_warehouses, _get_material_request_warehouses
+from qcmc_logic.utils import (
+    get_user_allowed_warehouses,
+    _get_material_request_warehouses,
+    _get_warehouse_is_province,
+)
 from frappe.utils import nowdate, nowtime, cint, flt, getdate
 from erpnext.stock.stock_ledger import make_sl_entries
 
@@ -132,7 +136,7 @@ def validate_transfer_type_rules(doc, method=None):
     target_company = doc.target_company
     source_warehouse_type = frappe.db.get_value("Warehouse", doc.source_warehouse, "warehouse_type")
     target_warehouse_type = frappe.db.get_value("Warehouse", doc.target_warehouse, "warehouse_type")
-    target_is_province = cint(frappe.db.get_value("Warehouse", doc.target_warehouse, "custom_is_province"))
+    target_is_province = _get_warehouse_is_province(doc.target_warehouse)
 
     if doc.transfer_type == "Warehouse Transfer":
         if source_company != target_company:

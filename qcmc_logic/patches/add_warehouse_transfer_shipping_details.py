@@ -8,6 +8,7 @@ PWT_SHIPPING_DEPENDS_ON = (
 )
 PWT_DEPENDS_ON = "eval:doc.transfer_type == 'Provincial Warehouse Transfer'"
 SHIPPING_FIELDS = (
+    "custom_with_shipping_details",
     "custom_shipping_details_section",
     "custom_etd",
     "custom_eta",
@@ -36,6 +37,7 @@ def execute():
                     "fieldtype": "Check",
                     "insert_after": "transfer_type",
                     "depends_on": PWT_DEPENDS_ON,
+                    "allow_on_submit": 1,
                 },
                 {
                     "fieldname": "custom_etd",
@@ -145,6 +147,8 @@ def make_shipping_fields_allow_on_submit():
                     "allow_on_submit": 1,
                     "depends_on": None
                     if fieldname == "custom_shipping_details_section"
+                    else PWT_DEPENDS_ON
+                    if fieldname == "custom_with_shipping_details"
                     else PWT_SHIPPING_DEPENDS_ON,
                 },
                 update_modified=False,
