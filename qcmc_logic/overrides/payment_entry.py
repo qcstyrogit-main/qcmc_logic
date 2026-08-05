@@ -240,16 +240,20 @@ class CustomPaymentEntry(PaymentEntry):
     def validate_underpayment_breakdown(self):
         if self.payment_type != "Receive":
             return
-        if self.docstatus == 0 and getattr(self, "_action", None) != "submit":
-            return
         if not frappe.db.table_exists("Payment Entry Underpayment"):
             return
 
         required = self.get_required_underpayment_by_invoice()
         breakdown = self.get_underpayment_breakdown_by_invoice()
         precision = self.precision("paid_amount") or 2
+        is_submit = getattr(self, "_action", None) == "submit"
+        invoices_to_validate = required if is_submit else {
+            invoice: amount
+            for invoice, amount in required.items()
+            if invoice in breakdown
+        }
 
-        for invoice, expected_amount in required.items():
+        for invoice, expected_amount in invoices_to_validate.items():
             actual_amount = breakdown.get(invoice, 0)
             if flt(actual_amount, precision) != flt(expected_amount, precision):
                 frappe.throw(
