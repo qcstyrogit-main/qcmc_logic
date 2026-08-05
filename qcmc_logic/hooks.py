@@ -132,6 +132,9 @@ doc_events = {
     "Daily Job Schedule": {
         "validate": "qcmc_logic.customs.daily_job_schedule.validate_scheduled_processes",
     },
+    "Daily Job Report": {
+        "validate": "qcmc_logic.customs.daily_job_report.validate",
+    },
     "Job Card Downtime": {
         "validate": "qcmc_logic.customs.job_card_downtime.validate",
     },
@@ -337,6 +340,7 @@ fixtures = [
 after_migrate = [
     "qcmc_logic.customs.machine_shop_job_request.ensure_msjr_permissions",
     "qcmc_logic.customs.machine_shop_repairs_and_project.ensure_msrp_permissions",
+    "qcmc_logic.customs.daily_job_report.remove_obsolete_schedule_fields",
     "qcmc_logic.customs.issue_kanban.ensure_company_ticket_kanban",
     "qcmc_logic.customs.work_order_print_format.ensure_job_order_print_formats_use_a5",
 ]

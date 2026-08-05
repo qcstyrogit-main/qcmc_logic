@@ -138,10 +138,12 @@ alias clean-fixtures='python3 scripts/clean_fixtures.py'
 ```
 usage: export_fixtures_clean.py [-h] [--skip-export] [--site SITE] [--app APP]
 
+
 ```bash
 export-fixtures --site erp.qcstyro.local 
 clean-fixtures
 ```bench --site 
+
 
 ### config test Git PUSH
 
