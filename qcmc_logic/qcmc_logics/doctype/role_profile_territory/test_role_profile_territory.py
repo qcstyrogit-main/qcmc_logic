@@ -43,3 +43,13 @@ class TestRoleProfileTerritory(FrappeTestCase):
         doc = self.make_doc([{"territory": "South Luzon"}, {}])
         with self.assertRaisesRegex(frappe.ValidationError, "mandatory"):
             doc.validate()
+
+    def test_uses_same_role_profile_parent_shape_as_access_doctypes(self):
+        meta = frappe.get_meta("Role Profile Territory")
+        self.assertEqual(meta.get_field("role_profile").fieldtype, "Link")
+        self.assertEqual(meta.get_field("role_profile").options, "Role Profile")
+        self.assertTrue(meta.get_field("role_profile").unique)
+        self.assertEqual(
+            meta.get_field("allowed_territories").options,
+            "Role Profile Territory Detail",
+        )

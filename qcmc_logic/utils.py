@@ -855,11 +855,11 @@ def get_source_warehouse_query(doctype, txt, searchfield, start, page_len, filte
 
         target_values = _get_warehouse_values(
             target_warehouse,
-            ["company", "warehouse_type", "custom_is_province"],
+            ["company", "warehouse_type"],
         )
         target_company = target_values.get("company")
         target_warehouse_type = target_values.get("warehouse_type")
-        target_is_province = frappe.utils.cint(target_values.get("custom_is_province"))
+        target_is_province = _get_warehouse_is_province(target_warehouse)
 
         if transfer_type == "Warehouse Transfer":
             if target_company:
@@ -908,7 +908,7 @@ def get_target_warehouse_query(doctype, txt, searchfield, start, page_len, filte
     source_warehouse = filters.get("source_warehouse")
     transfer_type = filters.get("transfer_type")
 
-    if not source_warehouse or not transfer_type:
+    if not transfer_type:
         return []
 
     conditions = [
@@ -921,16 +921,21 @@ def get_target_warehouse_query(doctype, txt, searchfield, start, page_len, filte
         "page_len": page_len,
     }
 
-    source_values = _get_warehouse_values(
-        source_warehouse,
-        ["company", "warehouse_type"],
-    )
-    source_company = source_values.get("company")
-    source_warehouse_type = source_values.get("warehouse_type")
-    conditions.append("w.name != %(source_warehouse)s")
-    values["source_warehouse"] = source_warehouse
+    source_company = None
+    source_warehouse_type = None
+    if source_warehouse:
+        source_values = _get_warehouse_values(
+            source_warehouse,
+            ["company", "warehouse_type"],
+        )
+        source_company = source_values.get("company")
+        source_warehouse_type = source_values.get("warehouse_type")
+        conditions.append("w.name != %(source_warehouse)s")
+        values["source_warehouse"] = source_warehouse
 
     if transfer_type == "Intercompany Warehouse Transfer":
+        if not source_warehouse:
+            return []
         if source_company:
             conditions.append("w.company != %(source_company)s")
             values["source_company"] = source_company
@@ -939,6 +944,8 @@ def get_target_warehouse_query(doctype, txt, searchfield, start, page_len, filte
             values["source_warehouse_type"] = source_warehouse_type
         conditions.append("ifnull(w.custom_is_province, 0) = 0")
     elif transfer_type == "Warehouse Transfer":
+        if not source_warehouse:
+            return []
         if source_company:
             conditions.append("w.company = %(source_company)s")
             values["source_company"] = source_company
@@ -1104,13 +1111,13 @@ def _validate_transfer_picker_context(transfer_type, source_warehouse, target_wa
     )
     target_values = _get_warehouse_values(
         target_warehouse,
-        ["company", "warehouse_type", "custom_is_province"],
+        ["company", "warehouse_type"],
     )
     source_company = source_values.get("company")
     target_company = target_values.get("company")
     source_warehouse_type = source_values.get("warehouse_type")
     target_warehouse_type = target_values.get("warehouse_type")
-    target_is_province = frappe.utils.cint(target_values.get("custom_is_province"))
+    target_is_province = _get_warehouse_is_province(target_warehouse)
 
     if transfer_type == "Warehouse Transfer":
         if source_company != target_company:
@@ -1183,7 +1190,10 @@ def can_create_warehouse_transfer_from_material_request(material_request, user=N
     if not source_warehouse or not target_warehouse:
         return False
 
-    return _can_transact_from_warehouse(source_warehouse, user=user)
+    return (
+        _can_transact_from_warehouse(source_warehouse, user=user)
+        and _can_serve_material_requests(source_warehouse)
+    )
 
 
 @frappe.whitelist()
@@ -1615,11 +1625,11 @@ def _get_transfer_type_for_warehouses(source_warehouse, target_warehouse):
     source_values = _get_warehouse_values(source_warehouse, ["company"])
     target_values = _get_warehouse_values(
         target_warehouse,
-        ["company", "custom_is_province"],
+        ["company"],
     )
     source_company = source_values.get("company")
     target_company = target_values.get("company")
-    target_is_province = frappe.utils.cint(target_values.get("custom_is_province"))
+    target_is_province = _get_warehouse_is_province(target_warehouse)
 
     if target_is_province:
         return "Provincial Warehouse Transfer"

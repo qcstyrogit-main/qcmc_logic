@@ -477,6 +477,37 @@ def setup():
     frappe.clear_cache(doctype=MSRP_DT)
 
 
+@frappe.whitelist()
+def restore_legacy_completed_for_back_job(name):
+    """Move an old direct-completion MSRP into the requestor confirmation stage."""
+    frappe.only_for("System Manager")
+    values = frappe.db.get_value(
+        MSRP_DT,
+        name,
+        ["workflow_state", "docstatus", "served_date", "modified", "msjr_no"],
+        as_dict=True,
+    )
+    if not values:
+        frappe.throw(f"Machine Shop Repairs and Project {name} does not exist.")
+    if values.workflow_state != "Completed" or values.docstatus != 1:
+        frappe.throw("Only a legacy submitted Completed project can be restored.")
+
+    served_date = values.served_date or getdate(values.modified)
+    frappe.db.set_value(
+        MSRP_DT,
+        name,
+        {
+            "workflow_state": "Awaiting Requestor Confirmation",
+            "docstatus": 0,
+            "served_date": served_date,
+            "acceptance_due_date": _compute_acceptance_due_date(served_date, values.msjr_no),
+        },
+        update_modified=False,
+    )
+    frappe.clear_cache(doctype=MSRP_DT)
+    return name
+
+
 def ensure_msrp_permissions():
     """Re-apply MSRP field layout, workflow and DocPerm after every migrate."""
     import json as _json
@@ -507,6 +538,10 @@ def ensure_msrp_permissions():
         wf_doc.flags.ignore_validate = True
         wf_doc.save()
 
+    _add_company_setting_field()
+    _add_msrp_rework_log_doctype()
+    _add_msrp_custom_fields()
     _add_msrp_docperm()
     _add_msrp_field_permlevels()
+    _update_msrp_workflow()
     frappe.clear_cache(doctype=MSRP_DT)
