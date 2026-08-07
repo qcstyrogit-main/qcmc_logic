@@ -202,6 +202,7 @@ override_whitelisted_methods = {
     "erpnext.stock.doctype.material_request.material_request.make_stock_entry": "qcmc_logic.utils.make_stock_entry_from_material_request",
     "erpnext.stock.doctype.purchase_receipt.purchase_receipt.make_purchase_invoice": "qcmc_logic.overrides.purchase_receipt.make_purchase_invoice",
     "erpnext.manufacturing.doctype.work_order.work_order.get_default_warehouse": "qcmc_logic.overrides.work_order.get_default_warehouse",
+    "erpnext.stock.doctype.putaway_rule.putaway_rule.apply_putaway_rule": "qcmc_logic.overrides.putaway_rule_dimension.apply_dimension_putaway_rule",
 }
 
 
@@ -217,6 +218,9 @@ override_doctype_class = {
     "Job Opening": "qcmc_logic.overrides.jobopening_overrides.CustomJobOpening",
     "Material Request":"qcmc_logic.overrides.material_request_override.CustomMaterialRequest",
     "Stock Reconciliation": "qcmc_logic.overrides.stock_reconciliation.CustomStockReconciliation",
+    "Putaway Rule": "qcmc_logic.overrides.putaway_rule.CustomPutawayRule",
+    "Purchase Receipt": "qcmc_logic.overrides.purchase_receipt.CustomPurchaseReceipt",
+    "Stock Entry": "qcmc_logic.overrides.stock_entry.CustomStockEntry",
     "Bulk Salary Structure Assignment": "qcmc_logic.overrides.bulk_salary_structure_assignment.CustomBulkSalaryStructureAssignment",
     "Salary Structure Assignment": "qcmc_logic.overrides.salary_structure_assignment.CustomSalaryStructureAssignment",
 }

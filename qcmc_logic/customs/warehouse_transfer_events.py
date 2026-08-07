@@ -8,6 +8,11 @@ from qcmc_logic.utils import (
 )
 from frappe.utils import nowdate, nowtime, cint, flt, getdate
 from erpnext.stock.stock_ledger import make_sl_entries
+from qcmc_logic.overrides.putaway_rule_dimension import (
+    get_dimension_putaway_for_item,
+    get_dimension_values,
+    get_rule_dimension_values,
+)
 
 
 @frappe.whitelist()
@@ -386,10 +391,17 @@ def create_target_stock_entry(docname):
                 continue
 
             location = _require_location_for_dimension(doc.target_warehouse, doc.target_company)
+            putaway_rule = get_dimension_putaway_for_item(
+                item.item_code,
+                doc.target_company,
+                source_warehouse=doc.source_warehouse,
+                item_dimensions=get_dimension_values(item),
+            )
+            target_warehouse = putaway_rule.warehouse if putaway_rule else doc.target_warehouse
             # Build the SLE as a frappe._dict so code that uses row.warehouse works
             sle = frappe._dict({
                 "item_code": item.item_code,
-                "warehouse": doc.target_warehouse,          # required by some code paths
+                "warehouse": target_warehouse,          # required by some code paths
                 "posting_date": posting_date,
                 "posting_time": posting_time,
                 "voucher_type": "Warehouse Transfer",       # keep audit trail
@@ -406,6 +418,8 @@ def create_target_stock_entry(docname):
                 "is_cancelled": 0,
                 "location": location,
             })
+            if putaway_rule:
+                sle.update(get_rule_dimension_values(putaway_rule))
 
             sl_entries.append(sle)
 

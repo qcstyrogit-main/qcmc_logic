@@ -128,6 +128,34 @@ def _has_pending_material(job_card, purpose):
     return bool(job_card.items)
 
 
+def _can_use_job_card_for_purpose(job_card, work_order, purpose):
+    """Return whether the selected Stock Entry purpose can act on this Job Card."""
+    if not _has_pending_material(job_card, purpose):
+        return False
+
+    if purpose == "Material Transfer for Manufacture":
+        return bool(
+            work_order.transfer_material_against == "Job Card"
+            and not cint(job_card.skip_material_transfer)
+            and not cint(job_card.backflush_from_wip_warehouse)
+            and job_card.items
+        )
+
+    if purpose == "Material Consumption for Manufacture":
+        return bool(
+            cint(job_card.skip_material_transfer)
+            or cint(job_card.backflush_from_wip_warehouse)
+        )
+
+    if purpose == "Manufacture":
+        if job_card.finished_good:
+            return job_card.docstatus == 1
+
+        return _is_final_operation_job_card(job_card, work_order)
+
+    return False
+
+
 def _job_card_row(job_card, purpose):
     pending_qty = _pending_qty(job_card, purpose)
     consumed_qty = sum(flt(row.get("consumed_qty")) for row in job_card.items)
@@ -198,12 +226,11 @@ def get_job_cards_for_stock_entry(purpose, work_order=None, txt=None, start=0, p
         if item.work_order not in work_order_docs:
             work_order_docs[item.work_order] = frappe.get_doc("Work Order", item.work_order)
 
-        if purpose == "Manufacture" and not _is_final_operation_job_card(
-            job_card, work_order_docs[item.work_order]
+        if not _can_use_job_card_for_purpose(
+            job_card,
+            work_order_docs[item.work_order],
+            purpose,
         ):
-            continue
-
-        if purpose == "Manufacture" and job_card.finished_good and job_card.docstatus != 1:
             continue
 
         rows.append(_job_card_row(job_card, purpose))
@@ -242,6 +269,14 @@ def get_job_card_details_for_stock_entry(job_card, purpose, work_order=None):
                 "Items may not be limited to this Job Card."
             ).format(frappe.bold(wo.name)),
             indicator="orange",
+        )
+
+    if not _can_use_job_card_for_purpose(jc, wo, purpose):
+        frappe.throw(
+            _("Job Card {0} cannot be used for {1}.").format(
+                frappe.bold(jc.name),
+                frappe.bold(purpose),
+            )
         )
 
     pending_qty = _pending_qty(jc, purpose)
