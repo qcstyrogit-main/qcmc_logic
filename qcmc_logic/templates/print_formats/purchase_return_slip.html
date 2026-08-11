@@ -80,6 +80,10 @@
 		padding: 0 2px 2px;
 	}
 
+	.return-slip-wrr {
+		white-space: nowrap;
+	}
+
 	.return-slip-inline {
 		display: table;
 		table-layout: fixed;
@@ -136,9 +140,9 @@
 	<table class="return-slip-meta">
 		<colgroup>
 			<col style="width: 8%;">
-			<col style="width: 66%;">
+			<col style="width: 59%;">
 			<col style="width: 13%;">
-			<col style="width: 13%;">
+			<col style="width: 20%;">
 		</colgroup>
 		<tr>
 			<td class="return-slip-label">To:</td>
@@ -150,7 +154,7 @@
 			<td class="return-slip-label">Address:</td>
 			<td><span class="return-slip-value">{{ supplier_address | striptags }}</span></td>
 			<td class="return-slip-label">WRR Number:</td>
-			<td><span class="return-slip-value return-slip-center">{{ doc.return_against or "" }}</span></td>
+			<td><span class="return-slip-value return-slip-center return-slip-wrr">{{ doc.return_against or "" }}</span></td>
 		</tr>
 	</table>
 
@@ -204,8 +208,8 @@
 				<td class="return-slip-center">{{ row.uom or row.stock_uom or "" }}</td>
 				<td class="return-slip-center">{{ row.item_code or "" }}</td>
 				<td>{{ row.item_name or row.description or "" }}</td>
-				<td class="return-slip-right">-</td>
-				<td class="return-slip-right">-</td>
+				<td class="return-slip-right">{{ "{:,.2f}".format(row.rate or 0) }}</td>
+				<td class="return-slip-right">{{ "{:,.2f}".format((row.amount * -1) or 0) }}</td>
 			</tr>
 			{% else %}
 			<tr>
