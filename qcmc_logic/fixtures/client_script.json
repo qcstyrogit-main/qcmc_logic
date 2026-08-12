@@ -905,6 +905,16 @@
   "dt": "Purchase Receipt",
   "enabled": 1,
   "module": null,
+  "name": "WRR Default Print Out",
+  "script": "frappe.ui.form.on('Purchase Receipt', {\r\n    onload(frm) {\r\n        set_print_format(frm);\r\n    },\r\n\r\n    refresh(frm) {\r\n        set_print_format(frm);\r\n    },\r\n\r\n    is_return(frm) {\r\n        set_print_format(frm);\r\n    }\r\n});\r\n\r\nfunction set_print_format(frm) {\r\n    let print_format = \"\";\r\n\r\n    if (frm.doc.is_return) {\r\n        print_format = \"Purchase Receipt Return Slip\";\r\n    } else {\r\n        print_format = \"Purchase Receipt WRR Half Page\";\r\n    }\r\n\r\n    frm.meta.default_print_format = print_format;\r\n}",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Receipt",
+  "enabled": 1,
+  "module": null,
   "name": "WRR Display Status based on Type for Draft",
   "script": "frappe.ui.form.on('Purchase Receipt', {\r\n    refresh(frm) {\r\n        filter_purchase_receipt_actions(frm);\r\n    },\r\n\r\n    is_return(frm) {\r\n        filter_purchase_receipt_actions(frm);\r\n    },\r\n\r\n    before_workflow_action(frm) {\r\n        const action = frm.selected_workflow_action;\r\n\r\n        if (frm.doc.is_return && action !== 'Return') {\r\n            frappe.throw(\r\n                __('Only the Return action is allowed for a Purchase Return.')\r\n            );\r\n        }\r\n\r\n        if (!frm.doc.is_return && action === 'Return') {\r\n            frappe.throw(\r\n                __('The Return action is only allowed when Is Return is checked.')\r\n            );\r\n        }\r\n    }\r\n});\r\n\r\n\r\nfunction filter_purchase_receipt_actions(frm) {\r\n    // Workflow buttons may load after the form refreshes,\r\n    // so run the filter several times.\r\n    [100, 300, 700, 1200].forEach(delay => {\r\n        setTimeout(() => {\r\n            apply_action_filter(frm);\r\n        }, delay);\r\n    });\r\n}\r\n\r\n\r\nfunction apply_action_filter(frm) {\r\n    const allowed_actions = frm.doc.is_return\r\n        ? ['Return']\r\n        : ['Transfer', 'Receive'];\r\n\r\n    const all_actions = ['Transfer', 'Receive', 'Return'];\r\n\r\n    // Workflow actions inside the Actions dropdown\r\n    frm.page.wrapper\r\n        .find('.actions-btn-group .dropdown-menu .dropdown-item, .actions-btn-group .dropdown-menu a')\r\n        .each(function () {\r\n            const button = $(this);\r\n            const action_name = button.text().trim();\r\n\r\n            if (all_actions.includes(action_name)) {\r\n                button.toggle(allowed_actions.includes(action_name));\r\n            }\r\n        });\r\n\r\n    // Handles workflow actions displayed as individual buttons\r\n    frm.page.wrapper\r\n        .find('button')\r\n        .each(function () {\r\n            const button = $(this);\r\n            const action_name = button.text().trim();\r\n\r\n            if (all_actions.includes(action_name)) {\r\n                button.toggle(allowed_actions.includes(action_name));\r\n            }\r\n        });\r\n}",
   "view": "Form"
