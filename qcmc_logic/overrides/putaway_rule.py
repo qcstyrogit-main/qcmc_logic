@@ -1,8 +1,10 @@
 import frappe
 from frappe import _
+from frappe.utils import flt
 
 from erpnext.stock.doctype.inventory_dimension.inventory_dimension import get_inventory_dimensions
 from erpnext.stock.doctype.putaway_rule.putaway_rule import PutawayRule
+from qcmc_logic.overrides.putaway_rule_dimension import get_dimension_putaway_balance
 
 
 class CustomPutawayRule(PutawayRule):
@@ -12,6 +14,21 @@ class CustomPutawayRule(PutawayRule):
 		self.validate_capacity()
 		self.validate_priority()
 		self.set_stock_capacity()
+
+	def validate_capacity(self):
+		stock_uom = frappe.db.get_value("Item", self.item_code, "stock_uom")
+		balance_qty = get_dimension_putaway_balance(self)
+
+		if flt(self.stock_capacity) < flt(balance_qty):
+			frappe.throw(
+				_(
+					"Warehouse Capacity for Item '{0}' must be greater than the existing stock level of {1} {2}."
+				).format(self.item_code, frappe.bold(balance_qty), stock_uom),
+				title=_("Insufficient Capacity"),
+			)
+
+		if not self.capacity:
+			frappe.throw(_("Capacity must be greater than 0"), title=_("Invalid"))
 
 	def validate_duplicate_rule(self):
 		filters, dimension_fields = self.get_duplicate_filters()

@@ -160,6 +160,7 @@ doctype_js = {
     "Stock Entry": "public/js/stock_entry.js",
     "Work Order": "public/js/work_order.js",
     "Material Request": "public/js/material_request.js",
+    "Pick List": "public/js/pick_list.js",
     "Machine Shop Job Request": "public/js/machine_shop_job_request.js",
     "Payment Entry": "public/js/payment_entry.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
@@ -203,6 +204,9 @@ override_whitelisted_methods = {
     "erpnext.stock.doctype.purchase_receipt.purchase_receipt.make_purchase_invoice": "qcmc_logic.overrides.purchase_receipt.make_purchase_invoice",
     "erpnext.manufacturing.doctype.work_order.work_order.get_default_warehouse": "qcmc_logic.overrides.work_order.get_default_warehouse",
     "erpnext.stock.doctype.putaway_rule.putaway_rule.apply_putaway_rule": "qcmc_logic.overrides.putaway_rule_dimension.apply_dimension_putaway_rule",
+    "erpnext.stock.doctype.putaway_rule.putaway_rule.get_available_putaway_capacity": "qcmc_logic.overrides.putaway_rule_dimension.get_available_dimension_putaway_capacity",
+    "erpnext.stock.dashboard.warehouse_capacity_dashboard.get_data": "qcmc_logic.overrides.warehouse_capacity_dashboard.get_data",
+    "erpnext.stock.doctype.inventory_dimension.inventory_dimension.get_inventory_documents": "qcmc_logic.overrides.inventory_dimension.get_inventory_documents",
 }
 
 
@@ -221,6 +225,7 @@ override_doctype_class = {
     "Putaway Rule": "qcmc_logic.overrides.putaway_rule.CustomPutawayRule",
     "Purchase Receipt": "qcmc_logic.overrides.purchase_receipt.CustomPurchaseReceipt",
     "Stock Entry": "qcmc_logic.overrides.stock_entry.CustomStockEntry",
+    "Inventory Dimension": "qcmc_logic.overrides.inventory_dimension.CustomInventoryDimension",
     "Bulk Salary Structure Assignment": "qcmc_logic.overrides.bulk_salary_structure_assignment.CustomBulkSalaryStructureAssignment",
     "Salary Structure Assignment": "qcmc_logic.overrides.salary_structure_assignment.CustomSalaryStructureAssignment",
 }

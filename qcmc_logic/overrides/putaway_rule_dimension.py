@@ -390,11 +390,19 @@ def get_receiving_warehouse(doc, item, rule):
 
 
 def get_available_dimension_putaway_capacity(rule):
+	if isinstance(rule, str):
+		rule = frappe.get_cached_doc("Putaway Rule", rule)
+
+	balance_qty = get_dimension_putaway_balance(rule)
+	free_space = flt(rule.stock_capacity) - flt(balance_qty)
+	return free_space if free_space > 0 else 0
+
+
+def get_dimension_putaway_balance(rule):
 	balance_qty = get_stock_balance(
 		rule.item_code,
 		rule.warehouse,
 		nowdate(),
 		inventory_dimensions_dict=get_rule_dimension_values(rule) or None,
 	)
-	free_space = flt(rule.stock_capacity) - flt(balance_qty)
-	return free_space if free_space > 0 else 0
+	return flt(balance_qty)
