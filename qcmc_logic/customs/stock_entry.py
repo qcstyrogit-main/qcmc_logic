@@ -2,36 +2,81 @@ import frappe
 from frappe import _
 
 
-def set_msjr_receipt_warehouse_code(doc, method=None):
-	"""Derive the required Stock Entry WH Code from an MSJR receipt's target warehouse."""
-	if not (doc.get("msjr_no") and doc.purpose == "Material Receipt"):
+INCOMING_STOCK_ENTRY_PURPOSES = {
+	"Material Receipt",
+	"Manufacture",
+	"Receive from Customer",
+	"Subcontracting Return",
+}
+
+ISSUANCE_STOCK_ENTRY_PURPOSES = {
+	"Material Issue",
+	"Material Consumption for Manufacture",
+	"Send to Subcontractor",
+	"Return Raw Material to Customer",
+	"Subcontracting Delivery",
+}
+
+
+def set_stock_entry_warehouse_code(doc, method=None):
+	"""Set WH Code from target warehouse for receipts and source warehouse for issues."""
+	warehouse_field = _get_stock_entry_wh_code_warehouse_field(doc)
+	if not warehouse_field:
 		return
 
-	target_warehouses = {
-		row.t_warehouse for row in (doc.get("items") or []) if row.get("t_warehouse")
-	}
-	if doc.get("to_warehouse"):
-		target_warehouses.add(doc.to_warehouse)
-
-	if not target_warehouses:
+	warehouses = _get_stock_entry_warehouses(doc, warehouse_field)
+	if not warehouses:
 		return
-	if len(target_warehouses) > 1:
+
+	if len(warehouses) > 1:
 		frappe.throw(
-			_("MSJR output receipt items must use one Target Warehouse so the WH Code can be determined."),
-			title=_("Multiple Target Warehouses"),
+			_("Stock Entry items must use one {0} so the WH Code can be determined.").format(
+				_("Target Warehouse") if warehouse_field == "t_warehouse" else _("Source Warehouse")
+			),
+			title=_("Multiple Warehouses"),
 		)
 
-	target_warehouse = next(iter(target_warehouses))
-	warehouse_code = frappe.db.get_value("Warehouse", target_warehouse, "custom_wh_code")
+	warehouse = next(iter(warehouses))
+	warehouse_code = frappe.db.get_value("Warehouse", warehouse, "custom_wh_code")
 	if not warehouse_code:
 		frappe.throw(
-			_("Target Warehouse {0} has no WH Code configured.").format(
-				frappe.bold(target_warehouse)
+			_("{0} {1} has no WH Code configured.").format(
+				_("Target Warehouse") if warehouse_field == "t_warehouse" else _("Source Warehouse"),
+				frappe.bold(warehouse),
 			),
 			title=_("Warehouse Code Required"),
 		)
 
 	doc.custom_wh_code = warehouse_code
+
+
+def set_msjr_receipt_warehouse_code(doc, method=None):
+	set_stock_entry_warehouse_code(doc, method=method)
+
+
+def _get_stock_entry_wh_code_warehouse_field(doc):
+	purpose = doc.get("purpose")
+	if purpose in INCOMING_STOCK_ENTRY_PURPOSES:
+		return "t_warehouse"
+	if purpose in ISSUANCE_STOCK_ENTRY_PURPOSES:
+		return "s_warehouse"
+
+	if purpose in {"Material Transfer", "Material Transfer for Manufacture", "Repack", "Disassemble"}:
+		if _get_stock_entry_warehouses(doc, "s_warehouse"):
+			return "s_warehouse"
+		if _get_stock_entry_warehouses(doc, "t_warehouse"):
+			return "t_warehouse"
+
+	return None
+
+
+def _get_stock_entry_warehouses(doc, warehouse_field):
+	header_field = "to_warehouse" if warehouse_field == "t_warehouse" else "from_warehouse"
+	warehouses = {row.get(warehouse_field) for row in (doc.get("items") or []) if row.get(warehouse_field)}
+	if doc.get(header_field):
+		warehouses.add(doc.get(header_field))
+
+	return warehouses
 
 
 def validate_final_job_card_time_log(doc, method=None):

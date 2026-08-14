@@ -28666,7 +28666,7 @@
   "docstatus": 0,
   "doctype": "Custom Field",
   "dt": "Stock Entry",
-  "fetch_from": "from_warehouse.custom_wh_code",
+  "fetch_from": null,
   "fetch_if_empty": 0,
   "fieldname": "custom_wh_code",
   "fieldtype": "Data",
