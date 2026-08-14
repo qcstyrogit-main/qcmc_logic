@@ -4,7 +4,7 @@ from unittest.mock import patch
 from frappe import _dict
 
 from qcmc_logic.customs.stock_entry import (
-	set_msjr_receipt_warehouse_code,
+	set_stock_entry_warehouse_code,
 	update_final_job_card_time_log_on_cancel,
 	update_final_job_card_time_log_on_submit,
 )
@@ -64,10 +64,9 @@ class TestStockEntryJobCardTimeLog(TestCase):
 		frappe.db.get_value.assert_not_called()
 
 
-class TestMSJROutputWarehouseCode(TestCase):
+class TestStockEntryWarehouseCode(TestCase):
 	def test_material_receipt_uses_target_warehouse_code(self):
 		doc = _dict(
-			msjr_no="MSJR-TEST",
 			purpose="Material Receipt",
 			to_warehouse=None,
 			custom_wh_code=None,
@@ -76,28 +75,32 @@ class TestMSJROutputWarehouseCode(TestCase):
 
 		with patch("qcmc_logic.customs.stock_entry.frappe") as frappe:
 			frappe.db.get_value.return_value = "QC-SC-STK"
-			set_msjr_receipt_warehouse_code(doc)
+			set_stock_entry_warehouse_code(doc)
 
 		self.assertEqual(doc.custom_wh_code, "QC-SC-STK")
 		frappe.db.get_value.assert_called_once_with(
 			"Warehouse", "Stockroom - Sta Clara", "custom_wh_code"
 		)
 
-	def test_non_msjr_stock_entry_is_ignored(self):
+	def test_material_issue_uses_source_warehouse_code(self):
 		doc = _dict(
-			msjr_no=None,
-			purpose="Material Receipt",
-			items=[_dict(t_warehouse="Stockroom - Sta Clara")],
+			purpose="Material Issue",
+			from_warehouse=None,
+			custom_wh_code=None,
+			items=[_dict(s_warehouse="RMFS - Sta Clara")],
 		)
 
 		with patch("qcmc_logic.customs.stock_entry.frappe") as frappe:
-			set_msjr_receipt_warehouse_code(doc)
+			frappe.db.get_value.return_value = "QC-SC-RM"
+			set_stock_entry_warehouse_code(doc)
 
-		frappe.db.get_value.assert_not_called()
+		self.assertEqual(doc.custom_wh_code, "QC-SC-RM")
+		frappe.db.get_value.assert_called_once_with(
+			"Warehouse", "RMFS - Sta Clara", "custom_wh_code"
+		)
 
 	def test_multiple_target_warehouses_are_rejected(self):
 		doc = _dict(
-			msjr_no="MSJR-TEST",
 			purpose="Material Receipt",
 			to_warehouse=None,
 			items=[
@@ -112,4 +115,4 @@ class TestMSJROutputWarehouseCode(TestCase):
 		):
 			frappe.throw.side_effect = RuntimeError
 			with self.assertRaises(RuntimeError):
-				set_msjr_receipt_warehouse_code(doc)
+				set_stock_entry_warehouse_code(doc)

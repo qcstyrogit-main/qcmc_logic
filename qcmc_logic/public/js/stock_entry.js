@@ -17,7 +17,7 @@ frappe.ui.form.on("Stock Entry", {
         qcmc_logic.stock_entry.apply_job_card_field_rules(frm);
         qcmc_logic.stock_entry.add_job_card_button(frm);
         qcmc_logic.stock_entry.refresh_manufacture_row_locks(frm);
-        qcmc_logic.stock_entry.refresh_msjr_warehouse_code(frm);
+        qcmc_logic.stock_entry.refresh_warehouse_code(frm);
     },
 
     company(frm) {
@@ -33,14 +33,20 @@ frappe.ui.form.on("Stock Entry", {
         qcmc_logic.stock_entry.apply_job_card_field_rules(frm);
         qcmc_logic.stock_entry.add_job_card_button(frm);
         qcmc_logic.stock_entry.refresh_manufacture_row_locks(frm);
+        qcmc_logic.stock_entry.refresh_warehouse_code(frm);
     },
 
     stock_entry_type(frm) {
         qcmc_logic.stock_entry.apply_job_card_field_rules(frm);
+        qcmc_logic.stock_entry.refresh_warehouse_code(frm);
+    },
+
+    from_warehouse(frm) {
+        qcmc_logic.stock_entry.refresh_warehouse_code(frm);
     },
 
     to_warehouse(frm) {
-        qcmc_logic.stock_entry.refresh_msjr_warehouse_code(frm);
+        qcmc_logic.stock_entry.refresh_warehouse_code(frm);
     },
 });
 
@@ -64,38 +70,86 @@ qcmc_logic.stock_entry.apply_manufacturing_warehouse_queries = function(frm) {
 };
 
 frappe.ui.form.on("Stock Entry Detail", {
+    s_warehouse(frm) {
+        qcmc_logic.stock_entry.refresh_warehouse_code(frm);
+    },
+
     t_warehouse(frm, cdt, cdn) {
-        const row = locals[cdt][cdn];
-        qcmc_logic.stock_entry.apply_msjr_warehouse_code(frm, row && row.t_warehouse);
+        qcmc_logic.stock_entry.refresh_warehouse_code(frm);
     },
 });
 
-qcmc_logic.stock_entry.refresh_msjr_warehouse_code = function(frm) {
-    const row_warehouse = (frm.doc.items || [])
-        .map(row => row.t_warehouse)
-        .find(Boolean);
-    return qcmc_logic.stock_entry.apply_msjr_warehouse_code(
-        frm,
-        frm.doc.to_warehouse || row_warehouse
-    );
-};
-
-qcmc_logic.stock_entry.apply_msjr_warehouse_code = function(frm, target_warehouse) {
-    if (
-        !frm.doc.msjr_no ||
-        frm.doc.purpose !== "Material Receipt" ||
-        !target_warehouse
-    ) {
+qcmc_logic.stock_entry.refresh_warehouse_code = function(frm) {
+    const warehouse_field = qcmc_logic.stock_entry.get_wh_code_warehouse_field(frm);
+    if (!warehouse_field) {
         return Promise.resolve();
     }
 
-    return frappe.db.get_value("Warehouse", target_warehouse, "custom_wh_code")
+    const warehouse = qcmc_logic.stock_entry.get_single_warehouse(frm, warehouse_field);
+    if (!warehouse) {
+        if (frm.doc.custom_wh_code) {
+            return frm.set_value("custom_wh_code", "");
+        }
+        return Promise.resolve();
+    }
+
+    return frappe.db.get_value("Warehouse", warehouse, "custom_wh_code")
         .then(r => {
             const warehouse_code = r.message && r.message.custom_wh_code;
-            if (warehouse_code && frm.doc.custom_wh_code !== warehouse_code) {
+            if ((warehouse_code || "") !== (frm.doc.custom_wh_code || "")) {
                 return frm.set_value("custom_wh_code", warehouse_code);
             }
         });
+};
+
+qcmc_logic.stock_entry.get_wh_code_warehouse_field = function(frm) {
+    const source_visible = qcmc_logic.stock_entry.is_warehouse_field_visible(frm, "from_warehouse");
+    const target_visible = qcmc_logic.stock_entry.is_warehouse_field_visible(frm, "to_warehouse");
+    const source_warehouse = qcmc_logic.stock_entry.get_single_warehouse(frm, "s_warehouse");
+    const target_warehouse = qcmc_logic.stock_entry.get_single_warehouse(frm, "t_warehouse");
+
+    if (target_visible && !source_visible) {
+        return "t_warehouse";
+    }
+    if (source_visible && !target_visible) {
+        return "s_warehouse";
+    }
+    if (target_warehouse && !source_warehouse) {
+        return "t_warehouse";
+    }
+    if (source_warehouse && !target_warehouse) {
+        return "s_warehouse";
+    }
+    if (source_warehouse) {
+        return "s_warehouse";
+    }
+    if (target_warehouse) {
+        return "t_warehouse";
+    }
+};
+
+qcmc_logic.stock_entry.is_warehouse_field_visible = function(frm, fieldname) {
+    const field = frm.get_field(fieldname);
+    if (!field) {
+        return false;
+    }
+
+    return !field.df.hidden && field.disp_status !== "None" && field.$wrapper.is(":visible");
+};
+
+qcmc_logic.stock_entry.get_single_warehouse = function(frm, warehouse_field) {
+    const header_field = warehouse_field === "t_warehouse" ? "to_warehouse" : "from_warehouse";
+    const warehouses = new Set(
+        (frm.doc.items || [])
+            .map(row => row[warehouse_field])
+            .filter(Boolean)
+    );
+
+    if (frm.doc[header_field]) {
+        warehouses.add(frm.doc[header_field]);
+    }
+
+    return warehouses.size === 1 ? Array.from(warehouses)[0] : null;
 };
 
 qcmc_logic.stock_entry.apply_job_card_field_rules = function(frm) {

@@ -2,36 +2,62 @@ import frappe
 from frappe import _
 
 
-def set_msjr_receipt_warehouse_code(doc, method=None):
-	"""Derive the required Stock Entry WH Code from an MSJR receipt's target warehouse."""
-	if not (doc.get("msjr_no") and doc.purpose == "Material Receipt"):
+def set_stock_entry_warehouse_code(doc, method=None):
+	"""Set WH Code from the warehouse side implied by the selected Stock Entry Type."""
+	warehouse_field = _get_stock_entry_wh_code_warehouse_field(doc)
+	if not warehouse_field:
 		return
 
-	target_warehouses = {
-		row.t_warehouse for row in (doc.get("items") or []) if row.get("t_warehouse")
-	}
-	if doc.get("to_warehouse"):
-		target_warehouses.add(doc.to_warehouse)
-
-	if not target_warehouses:
+	warehouses = _get_stock_entry_warehouses(doc, warehouse_field)
+	if not warehouses:
 		return
-	if len(target_warehouses) > 1:
+
+	if len(warehouses) > 1:
 		frappe.throw(
-			_("MSJR output receipt items must use one Target Warehouse so the WH Code can be determined."),
-			title=_("Multiple Target Warehouses"),
+			_("Stock Entry items must use one {0} so the WH Code can be determined.").format(
+				_("Target Warehouse") if warehouse_field == "t_warehouse" else _("Source Warehouse")
+			),
+			title=_("Multiple Warehouses"),
 		)
 
-	target_warehouse = next(iter(target_warehouses))
-	warehouse_code = frappe.db.get_value("Warehouse", target_warehouse, "custom_wh_code")
+	warehouse = next(iter(warehouses))
+	warehouse_code = frappe.db.get_value("Warehouse", warehouse, "custom_wh_code")
 	if not warehouse_code:
 		frappe.throw(
-			_("Target Warehouse {0} has no WH Code configured.").format(
-				frappe.bold(target_warehouse)
+			_("{0} {1} has no WH Code configured.").format(
+				_("Target Warehouse") if warehouse_field == "t_warehouse" else _("Source Warehouse"),
+				frappe.bold(warehouse),
 			),
 			title=_("Warehouse Code Required"),
 		)
 
 	doc.custom_wh_code = warehouse_code
+
+
+def _get_stock_entry_wh_code_warehouse_field(doc):
+	source_warehouses = _get_stock_entry_warehouses(doc, "s_warehouse")
+	target_warehouses = _get_stock_entry_warehouses(doc, "t_warehouse")
+
+	if target_warehouses and not source_warehouses:
+		return "t_warehouse"
+	if source_warehouses and not target_warehouses:
+		return "s_warehouse"
+
+	if source_warehouses:
+		return "s_warehouse"
+	if target_warehouses:
+		return "t_warehouse"
+
+	return None
+
+
+def _get_stock_entry_warehouses(doc, warehouse_field):
+	header_field = "to_warehouse" if warehouse_field == "t_warehouse" else "from_warehouse"
+	warehouses = {row.get(warehouse_field) for row in (doc.get("items") or []) if row.get(warehouse_field)}
+	if doc.get(header_field):
+		warehouses.add(doc.get(header_field))
+
+	return warehouses
 
 
 def validate_final_job_card_time_log(doc, method=None):

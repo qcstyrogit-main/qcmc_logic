@@ -82,7 +82,7 @@ doc_events = {
     },
     "Stock Entry": {
         "before_validate": [
-            "qcmc_logic.customs.stock_entry.set_msjr_receipt_warehouse_code",
+            "qcmc_logic.customs.stock_entry.set_stock_entry_warehouse_code",
             "qcmc_logic.customs.manufacturing_warehouse_access.validate_stock_entry_bom_company",
         ],
         "before_submit": [
