@@ -2,7 +2,10 @@ import frappe
 from frappe import _
 from frappe.utils import cint, flt
 
-from qcmc_logic.customs.manufacturing_warehouse_access import user_can_transact_work_order
+from qcmc_logic.customs.manufacturing_warehouse_access import (
+    user_can_transact_job_card,
+    user_can_transact_work_order,
+)
 
 
 SUPPORTED_PURPOSES = {
@@ -233,6 +236,9 @@ def get_job_cards_for_stock_entry(purpose, work_order=None, txt=None, start=0, p
             continue
 
         job_card = frappe.get_doc("Job Card", item.name)
+        if not user_can_transact_job_card(job_card):
+            continue
+
         if item.work_order not in work_order_docs:
             work_order_docs[item.work_order] = frappe.get_doc("Work Order", item.work_order)
 
@@ -262,6 +268,12 @@ def get_job_card_details_for_stock_entry(job_card, purpose, work_order=None):
     jc = frappe.get_doc("Job Card", job_card)
     if jc.docstatus == 2 or jc.status == "Cancelled":
         frappe.throw(_("Job Card {0} is cancelled.").format(frappe.bold(job_card)))
+    if not user_can_transact_job_card(jc):
+        frappe.throw(
+            _("You are not allowed to transact against Job Card {0}.").format(
+                frappe.bold(job_card)
+            )
+        )
 
     wo = _get_work_order(jc.work_order)
 
@@ -322,6 +334,13 @@ def make_manufacture_stock_entry_from_job_card(job_card, qty=None):
         frappe.throw(_("Please select a Job Card."))
 
     jc = frappe.get_doc("Job Card", job_card)
+    if not user_can_transact_job_card(jc):
+        frappe.throw(
+            _("You are not allowed to transact against Job Card {0}.").format(
+                frappe.bold(job_card)
+            )
+        )
+
     wo = _get_work_order(jc.work_order)
     _validate_final_operation_job_card(jc, wo)
 

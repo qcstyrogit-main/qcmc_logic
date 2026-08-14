@@ -73,7 +73,13 @@ class TestWarehouseAccessRollout(TestCase):
                 return_value=["FG - Sta Clara"],
             ),
         ):
-            self.assertIn("`tabWork Order`.`fg_warehouse`", work_order_permission_query("user@example.com"))
+            query = work_order_permission_query("user@example.com")
+
+        self.assertIn("`tabWork Order`.`fg_warehouse`", query)
+        self.assertIn("`tabWork Order Item` child", query)
+        self.assertIn("child.`source_warehouse` NOT IN", query)
+        self.assertIn("`tabWork Order Operation` child", query)
+        self.assertIn("child.`wip_warehouse` NOT IN", query)
 
     def test_setup_helper_and_master_doctypes_are_strictly_excluded(self):
         expected_exclusions = {

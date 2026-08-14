@@ -15,12 +15,36 @@ from qcmc_logic.utils import (
 )
 
 
-WORK_ORDER_WAREHOUSE_FIELDS = (
+WORK_ORDER_PARENT_WAREHOUSE_FIELDS = (
     "source_warehouse",
     "wip_warehouse",
     "fg_warehouse",
     "scrap_warehouse",
 )
+
+WORK_ORDER_CHILD_WAREHOUSE_FIELDS = {
+    "Work Order Item": {
+        "parentfield": "required_items",
+        "fields": ("source_warehouse",),
+    },
+    "Work Order Operation": {
+        "parentfield": "operations",
+        "fields": ("source_warehouse", "wip_warehouse", "fg_warehouse"),
+    },
+}
+
+JOB_CARD_PARENT_WAREHOUSE_FIELDS = (
+    "source_warehouse",
+    "wip_warehouse",
+    "target_warehouse",
+)
+
+JOB_CARD_CHILD_WAREHOUSE_FIELDS = {
+    "Job Card Item": {
+        "parentfield": "items",
+        "fields": ("source_warehouse",),
+    },
+}
 
 
 def manufacturing_warehouse_access_applies(user=None):
@@ -49,24 +73,22 @@ def work_order_permission_query(user):
         return "1=0"
 
     allowed_sql = _sql_list(allowed_warehouses)
-    table = "`tabWork Order`"
-    warehouse_conditions = [
-        _warehouse_field_condition(table, fieldname, allowed_sql)
-        for fieldname in WORK_ORDER_WAREHOUSE_FIELDS
-    ]
-
-    return "(" + " AND ".join(warehouse_conditions) + ")"
+    return _work_order_sql_conditions(allowed_sql, parent_table="`tabWork Order`")
 
 
 def job_card_permission_query(user):
     if not manufacturing_warehouse_access_applies(user):
         return ""
 
-    work_order_query = work_order_permission_query(user)
-    if not work_order_query:
-        return ""
+    allowed_warehouses = get_user_allowed_warehouses(user, require_list_view=True)
+    if not allowed_warehouses:
+        return "1=0"
 
+    allowed_sql = _sql_list(allowed_warehouses)
+    job_card_query = _job_card_sql_conditions(allowed_sql, parent_table="`tabJob Card`")
+    work_order_query = _work_order_sql_conditions(allowed_sql, parent_table="`tabWork Order`")
     return (
+        f"{job_card_query} AND "
         "EXISTS ("
         "SELECT 1 FROM `tabWork Order` "
         "WHERE `tabWork Order`.`name` = `tabJob Card`.`work_order` "
@@ -93,7 +115,7 @@ def work_order_has_permission(doc, ptype=None, user=None):
     if not allowed:
         return False
 
-    warehouses = _get_doc_warehouses(doc, WORK_ORDER_WAREHOUSE_FIELDS)
+    warehouses = _get_work_order_warehouses(doc)
     return not warehouses or warehouses.issubset(allowed)
 
 
@@ -104,24 +126,22 @@ def job_card_has_permission(doc, ptype=None, user=None):
     if not doc:
         return None
 
-    work_order = doc.get("work_order")
-    if not work_order:
-        return True
-
-    work_order_values = frappe.db.get_value(
-        "Work Order",
-        work_order,
-        ["name", *WORK_ORDER_WAREHOUSE_FIELDS],
-        as_dict=True,
+    allowed = set(
+        get_user_allowed_warehouses(
+            user,
+            require_transact=ptype not in {None, "read", "select"},
+            require_list_view=ptype in {None, "read", "select"},
+        )
     )
-    if not work_order_values:
+    if not allowed:
         return False
 
-    return work_order_has_permission(
-        frappe._dict({"doctype": "Work Order", **work_order_values}),
-        ptype=ptype,
-        user=user,
-    )
+    warehouses = _get_job_card_warehouses(doc)
+    work_order = doc.get("work_order")
+    if work_order:
+        warehouses.update(_get_work_order_warehouses(work_order))
+
+    return not warehouses or warehouses.issubset(allowed)
 
 
 @frappe.whitelist()
@@ -171,10 +191,7 @@ def work_order_query(doctype, txt, searchfield, start, page_len, filters):
             return []
 
         allowed_sql = _sql_list(allowed_warehouses)
-        conditions.extend(
-            _warehouse_field_condition("`tabWork Order`", fieldname, allowed_sql)
-            for fieldname in WORK_ORDER_WAREHOUSE_FIELDS
-        )
+        conditions.append(_work_order_sql_conditions(allowed_sql, parent_table="`tabWork Order`"))
 
     return frappe.db.sql(
         f"""
@@ -274,20 +291,42 @@ def user_can_transact_work_order(work_order, user=None):
     if not manufacturing_warehouse_access_applies(user):
         return True
 
-    values = frappe.db.get_value(
-        "Work Order",
-        work_order,
-        ["name", *WORK_ORDER_WAREHOUSE_FIELDS],
-        as_dict=True,
-    )
-    if not values:
+    if not frappe.db.exists("Work Order", work_order):
         return False
 
-    return work_order_has_permission(
-        frappe._dict({"doctype": "Work Order", **values}),
-        ptype="write",
-        user=user,
-    )
+    allowed = set(get_user_allowed_warehouses(user, require_transact=True))
+    if not allowed:
+        return False
+
+    warehouses = _get_work_order_warehouses(work_order)
+    return not warehouses or warehouses.issubset(allowed)
+
+
+def user_can_transact_job_card(job_card, user=None):
+    if not job_card:
+        return True
+
+    user = user or frappe.session.user
+    if not manufacturing_warehouse_access_applies(user):
+        return True
+
+    if isinstance(job_card, str):
+        if not frappe.db.exists("Job Card", job_card):
+            return False
+
+        work_order = frappe.db.get_value("Job Card", job_card, "work_order")
+    else:
+        work_order = job_card.get("work_order")
+
+    allowed = set(get_user_allowed_warehouses(user, require_transact=True))
+    if not allowed:
+        return False
+
+    warehouses = _get_job_card_warehouses(job_card)
+    if work_order:
+        warehouses.update(_get_work_order_warehouses(work_order))
+
+    return not warehouses or warehouses.issubset(allowed)
 
 
 def _get_default_bom_for_company(item, project=None, company=None):
@@ -323,6 +362,108 @@ def _get_doc_warehouses(doc, fieldnames):
         for fieldname in fieldnames
         if doc.get(fieldname)
     }
+
+
+def _get_work_order_warehouses(doc_or_name):
+    return _get_document_warehouses(
+        "Work Order",
+        doc_or_name,
+        WORK_ORDER_PARENT_WAREHOUSE_FIELDS,
+        WORK_ORDER_CHILD_WAREHOUSE_FIELDS,
+    )
+
+
+def _get_job_card_warehouses(doc_or_name):
+    return _get_document_warehouses(
+        "Job Card",
+        doc_or_name,
+        JOB_CARD_PARENT_WAREHOUSE_FIELDS,
+        JOB_CARD_CHILD_WAREHOUSE_FIELDS,
+    )
+
+
+def _get_document_warehouses(doctype, doc_or_name, parent_fields, child_fields):
+    if isinstance(doc_or_name, str):
+        return _get_document_warehouses_from_db(
+            doctype,
+            doc_or_name,
+            parent_fields,
+            child_fields,
+        )
+
+    warehouses = _get_doc_warehouses(doc_or_name, parent_fields)
+    for child_doctype, config in child_fields.items():
+        parentfield = config["parentfield"]
+        for row in doc_or_name.get(parentfield) or []:
+            warehouses.update(_get_doc_warehouses(row, config["fields"]))
+
+    return warehouses
+
+
+def _get_document_warehouses_from_db(doctype, name, parent_fields, child_fields):
+    values = frappe.db.get_value(doctype, name, list(parent_fields), as_dict=True)
+    if not values:
+        return set()
+
+    warehouses = _get_doc_warehouses(values, parent_fields)
+    for child_doctype, config in child_fields.items():
+        rows = frappe.get_all(
+            child_doctype,
+            filters={
+                "parent": name,
+                "parenttype": doctype,
+                "parentfield": config["parentfield"],
+            },
+            fields=list(config["fields"]),
+        )
+        for row in rows:
+            warehouses.update(_get_doc_warehouses(row, config["fields"]))
+
+    return warehouses
+
+
+def _work_order_sql_conditions(allowed_sql, parent_table):
+    return _document_sql_conditions(
+        "Work Order",
+        parent_table,
+        WORK_ORDER_PARENT_WAREHOUSE_FIELDS,
+        WORK_ORDER_CHILD_WAREHOUSE_FIELDS,
+        allowed_sql,
+    )
+
+
+def _job_card_sql_conditions(allowed_sql, parent_table):
+    return _document_sql_conditions(
+        "Job Card",
+        parent_table,
+        JOB_CARD_PARENT_WAREHOUSE_FIELDS,
+        JOB_CARD_CHILD_WAREHOUSE_FIELDS,
+        allowed_sql,
+    )
+
+
+def _document_sql_conditions(doctype, parent_table, parent_fields, child_fields, allowed_sql):
+    conditions = [
+        _warehouse_field_condition(parent_table, fieldname, allowed_sql)
+        for fieldname in parent_fields
+    ]
+
+    for child_doctype, config in child_fields.items():
+        child_table = f"`tab{child_doctype}`"
+        parentfield = frappe.db.escape(config["parentfield"])
+        for fieldname in config["fields"]:
+            conditions.append(
+                "NOT EXISTS ("
+                f"SELECT 1 FROM {child_table} child "
+                f"WHERE child.`parent` = {parent_table}.`name` "
+                f"AND child.`parenttype` = {frappe.db.escape(doctype)} "
+                f"AND child.`parentfield` = {parentfield} "
+                f"AND IFNULL(child.`{fieldname}`, '') != '' "
+                f"AND child.`{fieldname}` NOT IN ({allowed_sql})"
+                ")"
+            )
+
+    return "(" + " AND ".join(conditions) + ")"
 
 
 def _warehouse_field_condition(table, fieldname, allowed_sql):
