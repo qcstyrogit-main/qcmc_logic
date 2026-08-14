@@ -265,7 +265,7 @@ def _warehouse_transaction_permission_query(doctype, user):
     if not _warehouse_access_applies(user):
         return ""
 
-    allowed_warehouses = get_user_allowed_warehouses(user, require_transact=True)
+    allowed_warehouses = get_user_allowed_warehouses(user, require_list_view=True)
     if not allowed_warehouses:
         return "1=0"
 
@@ -430,7 +430,12 @@ def warehouse_transaction_has_permission(doc, ptype=None, user=None):
     if not doc:
         return None
 
-    allowed_warehouses = set(get_user_allowed_warehouses(user, require_transact=True))
+    if ptype in {None, "read", "select"}:
+        allowed_warehouses = set(
+            get_user_allowed_warehouses(user, require_list_view=True)
+        )
+    else:
+        allowed_warehouses = set(get_user_allowed_warehouses(user, require_transact=True))
     if not allowed_warehouses:
         return False
 
@@ -449,7 +454,7 @@ def warehouse_transfer_permission_query(user):
     if not _warehouse_access_applies(user):
         return ""
 
-    allowed_warehouses = get_user_allowed_warehouses(user, require_transact=True)
+    allowed_warehouses = get_user_allowed_warehouses(user, require_list_view=True)
     if not allowed_warehouses:
         return "1=0"
 
@@ -471,24 +476,26 @@ def warehouse_transfer_has_permission(doc, ptype=None, user=None):
     if not doc:
         return None
 
-    allowed_warehouses = set(get_user_allowed_warehouses(user, require_transact=True))
-    if not allowed_warehouses:
-        return False
-
-    source_allowed = doc.get("source_warehouse") in allowed_warehouses
-    target_allowed = doc.get("target_warehouse") in allowed_warehouses
-
     if ptype in {None, "read", "select"}:
-        return source_allowed or target_allowed
+        list_view_warehouses = set(
+            get_user_allowed_warehouses(user, require_list_view=True)
+        )
+        source_list_allowed = doc.get("source_warehouse") in list_view_warehouses
+        target_list_allowed = doc.get("target_warehouse") in list_view_warehouses
+        return source_list_allowed or target_list_allowed
+
+    transact_warehouses = set(get_user_allowed_warehouses(user, require_transact=True))
+    source_transact_allowed = doc.get("source_warehouse") in transact_warehouses
+    target_transact_allowed = doc.get("target_warehouse") in transact_warehouses
 
     if ptype in {"write", "submit", "cancel", "delete", "amend"}:
         if doc.get("docstatus") == 0:
-            return source_allowed
-        if doc.get("docstatus") == 1 and target_allowed:
+            return source_transact_allowed
+        if doc.get("docstatus") == 1 and target_transact_allowed:
             return True
-        return source_allowed
+        return source_transact_allowed
 
-    return source_allowed or target_allowed
+    return source_transact_allowed or target_transact_allowed
 
 
 def appraisal_permission_query(user):

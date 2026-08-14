@@ -8,6 +8,15 @@ from qcmc_logic.utils import (
 )
 from frappe.utils import nowdate, nowtime, cint, flt, getdate
 from erpnext.stock.stock_ledger import make_sl_entries
+from qcmc_logic.overrides.putaway_rule_dimension import (
+    get_dimension_putaway_for_item,
+    get_dimension_values,
+    get_rule_dimension_values,
+)
+from qcmc_logic.overrides.pick_list import (
+    update_pick_list_progress,
+    validate_pick_list_references,
+)
 
 
 @frappe.whitelist()
@@ -160,6 +169,7 @@ def validate_transfer_type_rules(doc, method=None):
 
     _validate_source_warehouse_access(doc)
     _validate_material_request_references(doc)
+    validate_pick_list_references(doc)
 
 
 def validate_update_after_submit(doc, method):
@@ -217,6 +227,8 @@ def _validate_receiving_update(doc, previous):
                 "reference_doc",
                 "material_request",
                 "material_request_item",
+                "against_pick_list",
+                "pick_list_item",
             ):
                 if row.get(field) != previous_row.get(field):
                     frappe.throw("Receivers can only modify Received Qty on existing item rows.")
@@ -245,6 +257,7 @@ def on_submit(doc, method=None):
     if doc.docstatus == 1:
         create_source_stock_entry(doc.name)
         update_material_request_progress(doc.name)
+        update_pick_list_progress(doc.name)
         if doc.source_company != doc.target_company:
             create_intercompany_gl(doc.name, source=True)
 
@@ -261,6 +274,7 @@ def on_update_after_submit(doc, method=None):
         create_source_stock_entry(doc.name)
         create_target_stock_entry(doc.name)
         update_material_request_progress(doc.name)
+        update_pick_list_progress(doc.name)
         if doc.source_company != doc.target_company:
             create_intercompany_gl(doc.name, source=False)
 
@@ -386,10 +400,17 @@ def create_target_stock_entry(docname):
                 continue
 
             location = _require_location_for_dimension(doc.target_warehouse, doc.target_company)
+            putaway_rule = get_dimension_putaway_for_item(
+                item.item_code,
+                doc.target_company,
+                source_warehouse=doc.source_warehouse,
+                item_dimensions=get_dimension_values(item),
+            )
+            target_warehouse = putaway_rule.warehouse if putaway_rule else doc.target_warehouse
             # Build the SLE as a frappe._dict so code that uses row.warehouse works
             sle = frappe._dict({
                 "item_code": item.item_code,
-                "warehouse": doc.target_warehouse,          # required by some code paths
+                "warehouse": target_warehouse,          # required by some code paths
                 "posting_date": posting_date,
                 "posting_time": posting_time,
                 "voucher_type": "Warehouse Transfer",       # keep audit trail
@@ -406,6 +427,8 @@ def create_target_stock_entry(docname):
                 "is_cancelled": 0,
                 "location": location,
             })
+            if putaway_rule:
+                sle.update(get_rule_dimension_values(putaway_rule))
 
             sl_entries.append(sle)
 
@@ -768,6 +791,7 @@ def on_cancel(doc, method):
             }], allow_negative_stock=True)
 
         update_material_request_progress(doc.name)
+        update_pick_list_progress(doc.name)
 
     except Exception as e:
         frappe.log_error(
@@ -798,6 +822,7 @@ def on_trash(doc, method):
             linked_sle = frappe.get_doc("Stock Ledger Entry", sle)
             if linked_sle.docstatus in (0, 2):
                 frappe.delete_doc("Stock Ledger Entry", sle, force=1)
+        update_pick_list_progress(doc.name)
     except Exception as e:
         frappe.log_error(
             f"Failed to delete GL Entries for Warehouse Transfer {doc.name}: {str(e)}",

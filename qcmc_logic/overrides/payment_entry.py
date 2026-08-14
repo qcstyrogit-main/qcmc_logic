@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import cint, flt
 from erpnext.accounts.doctype.payment_entry.payment_entry import PaymentEntry
 from erpnext.accounts.general_ledger import make_gl_entries, process_gl_map
 from collections import defaultdict
@@ -9,9 +9,30 @@ from collections import defaultdict
 #comment ako dito
 class CustomPaymentEntry(PaymentEntry):
     def validate(self):
+        self.apply_payment_type_role_default()
         super().validate()
+        self.validate_payment_type_role_access()
         self.validate_intercompany_collection_payment()
         self.validate_underpayment_breakdown()
+
+    def apply_payment_type_role_default(self):
+        access = get_payment_entry_type_role_access()
+        if access.get("enabled") and access.get("default_payment_type") and not self.payment_type:
+            self.payment_type = access["default_payment_type"]
+
+    def validate_payment_type_role_access(self):
+        access = get_payment_entry_type_role_access()
+        allowed_payment_types = access.get("allowed_payment_types") or []
+
+        if not access.get("enabled") or not allowed_payment_types or not self.payment_type:
+            return
+
+        if self.payment_type not in allowed_payment_types:
+            frappe.throw(
+                _("Your role only allows Payment Entry Type: {0}.").format(
+                    frappe.bold(", ".join(allowed_payment_types))
+                )
+            )
 
     def on_cancel(self):
         self.cleanup_intercompany_collection_links(delete=False)
@@ -240,16 +261,20 @@ class CustomPaymentEntry(PaymentEntry):
     def validate_underpayment_breakdown(self):
         if self.payment_type != "Receive":
             return
-        if self.docstatus == 0 and getattr(self, "_action", None) != "submit":
-            return
         if not frappe.db.table_exists("Payment Entry Underpayment"):
             return
 
         required = self.get_required_underpayment_by_invoice()
         breakdown = self.get_underpayment_breakdown_by_invoice()
         precision = self.precision("paid_amount") or 2
+        is_submit = getattr(self, "_action", None) == "submit"
+        invoices_to_validate = required if is_submit else {
+            invoice: amount
+            for invoice, amount in required.items()
+            if invoice in breakdown
+        }
 
-        for invoice, expected_amount in required.items():
+        for invoice, expected_amount in invoices_to_validate.items():
             actual_amount = breakdown.get(invoice, 0)
             if flt(actual_amount, precision) != flt(expected_amount, precision):
                 frappe.throw(
@@ -911,6 +936,75 @@ def _preview_from_target_payment(target_payment):
                 },
             ],
         },
+    }
+
+
+def _is_payment_entry_type_role_access_enabled():
+    if not frappe.db.exists(
+        "Custom Field",
+        {
+            "dt": "Accounts Settings",
+            "fieldname": "custom_enforce_payment_entry_type_by_role",
+        },
+    ):
+        return False
+
+    return cint(
+        frappe.db.get_single_value(
+            "Accounts Settings",
+            "custom_enforce_payment_entry_type_by_role",
+        )
+    )
+
+
+def _get_payment_entry_type_role_rule(user=None):
+    roles = set(frappe.get_roles(user))
+    is_ar_user = "AR User" in roles
+    is_ap_user = "AP User" in roles
+
+    if is_ar_user and not is_ap_user:
+        return {
+            "restricted": True,
+            "allowed_payment_types": ["Receive"],
+            "default_payment_type": "Receive",
+        }
+
+    if is_ap_user and not is_ar_user:
+        return {
+            "restricted": True,
+            "allowed_payment_types": ["Pay"],
+            "default_payment_type": "Pay",
+        }
+
+    if is_ar_user and is_ap_user:
+        return {
+            "restricted": True,
+            "allowed_payment_types": ["Receive", "Pay"],
+            "default_payment_type": "",
+        }
+
+    return {
+        "restricted": False,
+        "allowed_payment_types": [],
+        "default_payment_type": "",
+    }
+
+
+@frappe.whitelist()
+def get_payment_entry_type_role_access():
+    enabled = _is_payment_entry_type_role_access_enabled()
+    rule = _get_payment_entry_type_role_rule(frappe.session.user)
+
+    if not enabled:
+        rule = {
+            "restricted": False,
+            "allowed_payment_types": [],
+            "default_payment_type": "",
+        }
+
+    return {
+        "enabled": enabled,
+        **rule,
     }
 
 

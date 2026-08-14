@@ -1,8 +1,10 @@
 frappe.ui.form.on("Payment Entry", {
 	setup(frm) {
 		set_underpayment_breakdown_queries(frm);
+		apply_payment_type_role_access(frm);
 	},
 	refresh(frm) {
+		apply_payment_type_role_access(frm);
 		refresh_underpayment_breakdown_controls(frm);
 		add_intercompany_collection_buttons(frm);
 		render_affiliate_collection_deduction_button(frm);
@@ -23,12 +25,49 @@ frappe.ui.form.on("Payment Entry", {
 		render_affiliate_collection_deduction_button(frm);
 	},
 	payment_type(frm) {
+		enforce_payment_type_role_access(frm);
 		render_affiliate_collection_deduction_button(frm);
 	},
 	company(frm) {
 		render_affiliate_collection_deduction_button(frm);
 	},
 });
+
+const PAYMENT_TYPE_OPTIONS = ["Receive", "Pay", "Internal Transfer"];
+
+async function apply_payment_type_role_access(frm) {
+	if (frm.qcmc_payment_type_access_loaded) {
+		enforce_payment_type_role_access(frm);
+		return;
+	}
+
+	frm.qcmc_payment_type_access_loaded = true;
+
+	const { message } = await frappe.call({
+		method: "qcmc_logic.overrides.payment_entry.get_payment_entry_type_role_access",
+	});
+
+	frm.qcmc_payment_type_access = message || {};
+	enforce_payment_type_role_access(frm);
+}
+
+function enforce_payment_type_role_access(frm) {
+	const access = frm.qcmc_payment_type_access || {};
+	const allowed = access.enabled && access.allowed_payment_types && access.allowed_payment_types.length
+		? access.allowed_payment_types
+		: PAYMENT_TYPE_OPTIONS;
+
+	frm.set_df_property("payment_type", "options", allowed.join("\n"));
+
+	if (
+		frm.doc.docstatus === 0
+		&& access.enabled
+		&& access.default_payment_type
+		&& frm.doc.payment_type !== access.default_payment_type
+	) {
+		frm.set_value("payment_type", access.default_payment_type);
+	}
+}
 
 frappe.ui.form.on("Payment Entry Reference", {
 	reference_doctype(frm) {

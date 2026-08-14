@@ -63,12 +63,18 @@ def is_warehouse_type_restriction_enabled():
 
 
 @frappe.whitelist()
-def get_user_allowed_warehouses(user=None, require_transact=False):
+def get_user_allowed_warehouses(
+    user=None,
+    require_transact=False,
+    require_list_view=False,
+):
     """Fetch effective warehouses for the given user.
 
     User-level Warehouse Access and Role Profile Warehouse Access are combined.
     Rows in Allowed Warehouse grant selection access by default. When
     require_transact is true, only rows with allow_transact checked are returned.
+    When require_list_view is true, only rows with allow_in_list_view checked
+    are returned.
     """
     if not user:
         user = frappe.session.user
@@ -83,6 +89,11 @@ def get_user_allowed_warehouses(user=None, require_transact=False):
     conditions = [f"({' or '.join(access_conditions)})"]
     if frappe.utils.cint(require_transact):
         conditions.append("ifnull(aw.allow_transact, 0) = 1")
+    if frappe.utils.cint(require_list_view):
+        if _has_field("Allowed Warehouse", "allow_in_list_view"):
+            conditions.append("ifnull(aw.allow_in_list_view, 0) = 1")
+        else:
+            conditions.append("ifnull(aw.allow_transact, 0) = 1")
 
     rows = frappe.db.sql(
         f"""

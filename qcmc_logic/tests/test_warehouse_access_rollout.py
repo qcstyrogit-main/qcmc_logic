@@ -8,8 +8,8 @@ from qcmc_logic.customs.permissions import (
     _warehouse_access_applies,
     warehouse_transfer_has_permission,
     warehouse_transfer_permission_query,
-    work_order_permission_query,
 )
+from qcmc_logic.customs.manufacturing_warehouse_access import work_order_permission_query
 from qcmc_logic.customs.warehouse_access_permissions import SKIP_DOCTYPES
 from qcmc_logic.utils import check_warehouse_access
 
@@ -51,13 +51,35 @@ class TestWarehouseAccessRollout(TestCase):
                 )
             )
 
-    def test_manufacturing_planning_doctypes_are_not_warehouse_restricted(self):
+    def test_manufacturing_planning_doctypes_use_targeted_warehouse_rules(self):
         self.assertNotIn("Work Order", WAREHOUSE_TRANSACTION_DOCTYPES)
-        self.assertEqual(work_order_permission_query("user@example.com"), "")
         self.assertIn("BOM", SKIP_DOCTYPES)
         self.assertIn("Job Card", SKIP_DOCTYPES)
         self.assertIn("Work Order", SKIP_DOCTYPES)
         self.assertIn("Stock Entry", WAREHOUSE_TRANSACTION_DOCTYPES)
+
+        with (
+            patch(
+                "qcmc_logic.customs.manufacturing_warehouse_access."
+                "is_global_warehouse_access_enabled",
+                return_value=True,
+            ),
+            patch(
+                "qcmc_logic.customs.manufacturing_warehouse_access.has_warehouse_access",
+                return_value=True,
+            ),
+            patch(
+                "qcmc_logic.customs.manufacturing_warehouse_access.get_user_allowed_warehouses",
+                return_value=["FG - Sta Clara"],
+            ),
+        ):
+            query = work_order_permission_query("user@example.com")
+
+        self.assertIn("`tabWork Order`.`fg_warehouse`", query)
+        self.assertIn("`tabWork Order Item` child", query)
+        self.assertIn("child.`source_warehouse` NOT IN", query)
+        self.assertIn("`tabWork Order Operation` child", query)
+        self.assertIn("child.`wip_warehouse` NOT IN", query)
 
     def test_setup_helper_and_master_doctypes_are_strictly_excluded(self):
         expected_exclusions = {
@@ -117,7 +139,7 @@ class TestWarehouseAccessRollout(TestCase):
             patch(
                 "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
                 return_value=["FG - Sta Clara"],
-            ),
+            ) as get_user_allowed_warehouses,
         ):
             self.assertTrue(
                 warehouse_transfer_has_permission(
@@ -133,6 +155,14 @@ class TestWarehouseAccessRollout(TestCase):
                     user="scwarehouse@qcstyro.com",
                 )
             )
+        get_user_allowed_warehouses.assert_any_call(
+            "scwarehouse@qcstyro.com",
+            require_list_view=True,
+        )
+        get_user_allowed_warehouses.assert_any_call(
+            "scwarehouse@qcstyro.com",
+            require_transact=True,
+        )
 
     def test_warehouse_transfer_receiver_can_read_by_target_warehouse(self):
         doc = frappe._dict(
@@ -170,7 +200,7 @@ class TestWarehouseAccessRollout(TestCase):
             patch(
                 "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
                 return_value=["FG - Sta Clara"],
-            ),
+            ) as get_user_allowed_warehouses,
             patch(
                 "qcmc_logic.customs.permissions._sql_list",
                 return_value="'FG - Sta Clara'",
@@ -178,6 +208,10 @@ class TestWarehouseAccessRollout(TestCase):
         ):
             query = warehouse_transfer_permission_query("scwarehouse@qcstyro.com")
 
+        get_user_allowed_warehouses.assert_called_once_with(
+            "scwarehouse@qcstyro.com",
+            require_list_view=True,
+        )
         self.assertIn("`source_warehouse` IN", query)
         self.assertIn("`target_warehouse` IN", query)
         self.assertIn(" OR ", query)

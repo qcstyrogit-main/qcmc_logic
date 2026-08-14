@@ -25,6 +25,15 @@ doc_events = {
         "on_cancel": "qcmc_logic.customs.warehouse_transfer_events.on_cancel",
         "on_trash": "qcmc_logic.customs.warehouse_transfer_events.on_trash"
     },
+    "Customer": {
+        "validate": "qcmc_logic.customs.customer_warehouse_defaults.validate_customer_company_warehouse_defaults",
+    },
+    "Delivery Note": {
+        "before_validate": "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
+    },
+    "POS Invoice": {
+        "before_validate": "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
+    },
     "Warehouse Access": {
         "validate": "qcmc_logic.doctype.warehouse_access.warehouse_access.validate_default_warehouse",
     },
@@ -41,10 +50,14 @@ doc_events = {
         "before_save": "qcmc_logic.overrides.wrr_override.validate"
     },
     "Sales Invoice": {
-         "validate": "qcmc_logic.overrides.sales_invoice_override.validate"
+        "before_validate": "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
+        "validate": "qcmc_logic.overrides.sales_invoice_override.validate",
     },
     "Sales Order": {
-        "before_validate": "qcmc_logic.customs.sales_order.set_customer_account_manager",
+        "before_validate": [
+            "qcmc_logic.customs.sales_order.set_customer_account_manager",
+            "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
+        ],
         "on_submit": "qcmc_logic.customs.sales_order.update_customer_item_history_on_submit",
         "on_cancel": "qcmc_logic.customs.sales_order.update_customer_item_history_on_cancel",
     },
@@ -58,7 +71,10 @@ doc_events = {
         ]
     },
     "Work Order": {
-        "validate": "qcmc_logic.customs.work_order_formulation.apply_roll_formulation_required_qty",
+        "validate": [
+            "qcmc_logic.customs.manufacturing_warehouse_access.validate_work_order_bom_company",
+            "qcmc_logic.customs.work_order_formulation.apply_roll_formulation_required_qty",
+        ],
     },
     "File": {
         "after_insert": "qcmc_logic.customs.issue_kanban.sync_issue_kanban_image",
@@ -67,6 +83,7 @@ doc_events = {
     "Stock Entry": {
         "before_validate": [
             "qcmc_logic.customs.stock_entry.set_msjr_receipt_warehouse_code",
+            "qcmc_logic.customs.manufacturing_warehouse_access.validate_stock_entry_bom_company",
         ],
         "before_submit": [
             "qcmc_logic.customs.stock_entry.validate_final_job_card_time_log",
@@ -160,6 +177,7 @@ doctype_js = {
     "Stock Entry": "public/js/stock_entry.js",
     "Work Order": "public/js/work_order.js",
     "Material Request": "public/js/material_request.js",
+    "Pick List": "public/js/pick_list.js",
     "Machine Shop Job Request": "public/js/machine_shop_job_request.js",
     "Payment Entry": "public/js/payment_entry.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
@@ -202,6 +220,11 @@ override_whitelisted_methods = {
     "erpnext.stock.doctype.material_request.material_request.make_stock_entry": "qcmc_logic.utils.make_stock_entry_from_material_request",
     "erpnext.stock.doctype.purchase_receipt.purchase_receipt.make_purchase_invoice": "qcmc_logic.overrides.purchase_receipt.make_purchase_invoice",
     "erpnext.manufacturing.doctype.work_order.work_order.get_default_warehouse": "qcmc_logic.overrides.work_order.get_default_warehouse",
+    "erpnext.manufacturing.doctype.work_order.work_order.get_item_details": "qcmc_logic.customs.manufacturing_warehouse_access.get_work_order_item_details",
+    "erpnext.stock.doctype.putaway_rule.putaway_rule.apply_putaway_rule": "qcmc_logic.overrides.putaway_rule_dimension.apply_dimension_putaway_rule",
+    "erpnext.stock.doctype.putaway_rule.putaway_rule.get_available_putaway_capacity": "qcmc_logic.overrides.putaway_rule_dimension.get_available_dimension_putaway_capacity",
+    "erpnext.stock.dashboard.warehouse_capacity_dashboard.get_data": "qcmc_logic.overrides.warehouse_capacity_dashboard.get_data",
+    "erpnext.stock.doctype.inventory_dimension.inventory_dimension.get_inventory_documents": "qcmc_logic.overrides.inventory_dimension.get_inventory_documents",
 }
 
 
@@ -217,6 +240,10 @@ override_doctype_class = {
     "Job Opening": "qcmc_logic.overrides.jobopening_overrides.CustomJobOpening",
     "Material Request":"qcmc_logic.overrides.material_request_override.CustomMaterialRequest",
     "Stock Reconciliation": "qcmc_logic.overrides.stock_reconciliation.CustomStockReconciliation",
+    "Putaway Rule": "qcmc_logic.overrides.putaway_rule.CustomPutawayRule",
+    "Purchase Receipt": "qcmc_logic.overrides.purchase_receipt.CustomPurchaseReceipt",
+    "Stock Entry": "qcmc_logic.overrides.stock_entry.CustomStockEntry",
+    "Inventory Dimension": "qcmc_logic.overrides.inventory_dimension.CustomInventoryDimension",
     "Bulk Salary Structure Assignment": "qcmc_logic.overrides.bulk_salary_structure_assignment.CustomBulkSalaryStructureAssignment",
     "Salary Structure Assignment": "qcmc_logic.overrides.salary_structure_assignment.CustomSalaryStructureAssignment",
 }
@@ -242,6 +269,8 @@ permission_query_conditions = {
      "Subcontracting Order": "qcmc_logic.customs.permissions.subcontracting_order_permission_query",
      "Subcontracting Receipt": "qcmc_logic.customs.permissions.subcontracting_receipt_permission_query",
      "Warehouse Transfer": "qcmc_logic.customs.permissions.warehouse_transfer_permission_query",
+     "Work Order": "qcmc_logic.customs.manufacturing_warehouse_access.work_order_permission_query",
+     "Job Card": "qcmc_logic.customs.manufacturing_warehouse_access.job_card_permission_query",
 }
 
 has_permission = {
@@ -264,6 +293,8 @@ has_permission = {
     "Subcontracting Order": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Subcontracting Receipt": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Warehouse Transfer": "qcmc_logic.customs.permissions.warehouse_transfer_has_permission",
+    "Work Order": "qcmc_logic.customs.manufacturing_warehouse_access.work_order_has_permission",
+    "Job Card": "qcmc_logic.customs.manufacturing_warehouse_access.job_card_has_permission",
 }
 override_print_format = {
     "Purchase Order": "qcmc_logic.overrides.POPrint_Override.get_po_print_format"
@@ -371,7 +402,8 @@ app_include_js = [
     "/assets/qcmc_logic/js/hide_print_selection.js",
     "/assets/qcmc_logic/js/warehouse_access.js",
     "/assets/qcmc_logic/js/inventory_group_access.js",
-    "/assets/qcmc_logic/js/warehouse_transfer.js"
+    "/assets/qcmc_logic/js/warehouse_transfer.js",
+    "/assets/qcmc_logic/js/customer_warehouse_defaults.js"
 ]
 
 
