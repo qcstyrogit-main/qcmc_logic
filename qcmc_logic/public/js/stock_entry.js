@@ -79,21 +79,6 @@ frappe.ui.form.on("Stock Entry Detail", {
     },
 });
 
-qcmc_logic.stock_entry.incoming_purposes = new Set([
-    "Material Receipt",
-    "Manufacture",
-    "Receive from Customer",
-    "Subcontracting Return",
-]);
-
-qcmc_logic.stock_entry.issuance_purposes = new Set([
-    "Material Issue",
-    "Material Consumption for Manufacture",
-    "Send to Subcontractor",
-    "Return Raw Material to Customer",
-    "Subcontracting Delivery",
-]);
-
 qcmc_logic.stock_entry.refresh_warehouse_code = function(frm) {
     const warehouse_field = qcmc_logic.stock_entry.get_wh_code_warehouse_field(frm);
     if (!warehouse_field) {
@@ -118,22 +103,38 @@ qcmc_logic.stock_entry.refresh_warehouse_code = function(frm) {
 };
 
 qcmc_logic.stock_entry.get_wh_code_warehouse_field = function(frm) {
-    if (qcmc_logic.stock_entry.incoming_purposes.has(frm.doc.purpose)) {
+    const source_visible = qcmc_logic.stock_entry.is_warehouse_field_visible(frm, "from_warehouse");
+    const target_visible = qcmc_logic.stock_entry.is_warehouse_field_visible(frm, "to_warehouse");
+    const source_warehouse = qcmc_logic.stock_entry.get_single_warehouse(frm, "s_warehouse");
+    const target_warehouse = qcmc_logic.stock_entry.get_single_warehouse(frm, "t_warehouse");
+
+    if (target_visible && !source_visible) {
         return "t_warehouse";
     }
-    if (qcmc_logic.stock_entry.issuance_purposes.has(frm.doc.purpose)) {
+    if (source_visible && !target_visible) {
         return "s_warehouse";
     }
-
-    if (["Material Transfer", "Material Transfer for Manufacture", "Repack", "Disassemble"]
-        .includes(frm.doc.purpose)) {
-        if (qcmc_logic.stock_entry.get_single_warehouse(frm, "s_warehouse")) {
-            return "s_warehouse";
-        }
-        if (qcmc_logic.stock_entry.get_single_warehouse(frm, "t_warehouse")) {
-            return "t_warehouse";
-        }
+    if (target_warehouse && !source_warehouse) {
+        return "t_warehouse";
     }
+    if (source_warehouse && !target_warehouse) {
+        return "s_warehouse";
+    }
+    if (source_warehouse) {
+        return "s_warehouse";
+    }
+    if (target_warehouse) {
+        return "t_warehouse";
+    }
+};
+
+qcmc_logic.stock_entry.is_warehouse_field_visible = function(frm, fieldname) {
+    const field = frm.get_field(fieldname);
+    if (!field) {
+        return false;
+    }
+
+    return !field.df.hidden && field.disp_status !== "None" && field.$wrapper.is(":visible");
 };
 
 qcmc_logic.stock_entry.get_single_warehouse = function(frm, warehouse_field) {

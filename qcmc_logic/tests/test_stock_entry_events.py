@@ -4,7 +4,6 @@ from unittest.mock import patch
 from frappe import _dict
 
 from qcmc_logic.customs.stock_entry import (
-	set_msjr_receipt_warehouse_code,
 	set_stock_entry_warehouse_code,
 	update_final_job_card_time_log_on_cancel,
 	update_final_job_card_time_log_on_submit,
@@ -117,17 +116,3 @@ class TestStockEntryWarehouseCode(TestCase):
 			frappe.throw.side_effect = RuntimeError
 			with self.assertRaises(RuntimeError):
 				set_stock_entry_warehouse_code(doc)
-
-	def test_legacy_msjr_function_uses_general_warehouse_code_logic(self):
-		doc = _dict(
-			purpose="Material Receipt",
-			to_warehouse="Stockroom - Sta Clara",
-			custom_wh_code=None,
-			items=[],
-		)
-
-		with patch("qcmc_logic.customs.stock_entry.frappe") as frappe:
-			frappe.db.get_value.return_value = "QC-SC-STK"
-			set_msjr_receipt_warehouse_code(doc)
-
-		self.assertEqual(doc.custom_wh_code, "QC-SC-STK")

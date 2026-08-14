@@ -2,24 +2,8 @@ import frappe
 from frappe import _
 
 
-INCOMING_STOCK_ENTRY_PURPOSES = {
-	"Material Receipt",
-	"Manufacture",
-	"Receive from Customer",
-	"Subcontracting Return",
-}
-
-ISSUANCE_STOCK_ENTRY_PURPOSES = {
-	"Material Issue",
-	"Material Consumption for Manufacture",
-	"Send to Subcontractor",
-	"Return Raw Material to Customer",
-	"Subcontracting Delivery",
-}
-
-
 def set_stock_entry_warehouse_code(doc, method=None):
-	"""Set WH Code from target warehouse for receipts and source warehouse for issues."""
+	"""Set WH Code from the warehouse side implied by the selected Stock Entry Type."""
 	warehouse_field = _get_stock_entry_wh_code_warehouse_field(doc)
 	if not warehouse_field:
 		return
@@ -50,22 +34,19 @@ def set_stock_entry_warehouse_code(doc, method=None):
 	doc.custom_wh_code = warehouse_code
 
 
-def set_msjr_receipt_warehouse_code(doc, method=None):
-	set_stock_entry_warehouse_code(doc, method=method)
-
-
 def _get_stock_entry_wh_code_warehouse_field(doc):
-	purpose = doc.get("purpose")
-	if purpose in INCOMING_STOCK_ENTRY_PURPOSES:
+	source_warehouses = _get_stock_entry_warehouses(doc, "s_warehouse")
+	target_warehouses = _get_stock_entry_warehouses(doc, "t_warehouse")
+
+	if target_warehouses and not source_warehouses:
 		return "t_warehouse"
-	if purpose in ISSUANCE_STOCK_ENTRY_PURPOSES:
+	if source_warehouses and not target_warehouses:
 		return "s_warehouse"
 
-	if purpose in {"Material Transfer", "Material Transfer for Manufacture", "Repack", "Disassemble"}:
-		if _get_stock_entry_warehouses(doc, "s_warehouse"):
-			return "s_warehouse"
-		if _get_stock_entry_warehouses(doc, "t_warehouse"):
-			return "t_warehouse"
+	if source_warehouses:
+		return "s_warehouse"
+	if target_warehouses:
+		return "t_warehouse"
 
 	return None
 
