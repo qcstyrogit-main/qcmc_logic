@@ -5,9 +5,22 @@ console.info(
 );
 
 frappe.ui.form.on("Work Order", {
+	setup(frm) {
+		apply_manufacturing_warehouse_queries(frm);
+	},
+
 	refresh(frm) {
+		apply_manufacturing_warehouse_queries(frm);
 		schedule_roll_formulation_grid_config(frm);
 		schedule_roll_formulation_preview(frm);
+	},
+
+	company(frm) {
+		apply_manufacturing_warehouse_queries(frm);
+	},
+
+	production_item(frm) {
+		apply_manufacturing_warehouse_queries(frm);
 	},
 
 	bom_no(frm) {
@@ -36,6 +49,16 @@ frappe.ui.form.on("Work Order", {
 		schedule_roll_formulation_grid_config(frm);
 	},
 });
+
+function apply_manufacturing_warehouse_queries(frm) {
+	frm.set_query("bom_no", () => ({
+		query: "qcmc_logic.customs.manufacturing_warehouse_access.bom_query",
+		filters: {
+			item: frm.doc.production_item,
+			company: frm.doc.company,
+		},
+	}));
+}
 
 function schedule_roll_formulation_grid_config(frm) {
 	clearTimeout(frm._roll_formulation_grid_timer);

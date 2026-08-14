@@ -2,6 +2,8 @@ import frappe
 from frappe import _
 from frappe.utils import cint, flt
 
+from qcmc_logic.customs.manufacturing_warehouse_access import user_can_transact_work_order
+
 
 SUPPORTED_PURPOSES = {
     "Material Transfer for Manufacture",
@@ -24,6 +26,12 @@ def _get_work_order(work_order):
         frappe.throw(_("Work Order {0} must be submitted.").format(frappe.bold(work_order)))
     if wo.status == "Stopped":
         frappe.throw(_("Work Order {0} is stopped.").format(frappe.bold(work_order)))
+    if not user_can_transact_work_order(wo.name):
+        frappe.throw(
+            _("You are not allowed to transact against Work Order {0}.").format(
+                frappe.bold(work_order)
+            )
+        )
 
     return wo
 
@@ -220,6 +228,8 @@ def get_job_cards_for_stock_entry(purpose, work_order=None, txt=None, start=0, p
             as_dict=True,
         )
         if not wo or cint(wo.docstatus) != 1 or wo.status == "Stopped":
+            continue
+        if not user_can_transact_work_order(item.work_order):
             continue
 
         job_card = frappe.get_doc("Job Card", item.name)

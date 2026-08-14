@@ -9,16 +9,27 @@ qcmc_logic.stock_entry.supported_purposes = new Set([
 frappe.ui.form.on("Stock Entry", {
     setup(frm) {
         qcmc_logic.stock_entry.setup_manufacture_row_lock(frm);
+        qcmc_logic.stock_entry.apply_manufacturing_warehouse_queries(frm);
     },
 
     refresh(frm) {
+        qcmc_logic.stock_entry.apply_manufacturing_warehouse_queries(frm);
         qcmc_logic.stock_entry.apply_job_card_field_rules(frm);
         qcmc_logic.stock_entry.add_job_card_button(frm);
         qcmc_logic.stock_entry.refresh_manufacture_row_locks(frm);
         qcmc_logic.stock_entry.refresh_msjr_warehouse_code(frm);
     },
 
+    company(frm) {
+        qcmc_logic.stock_entry.apply_manufacturing_warehouse_queries(frm);
+    },
+
+    production_item(frm) {
+        qcmc_logic.stock_entry.apply_manufacturing_warehouse_queries(frm);
+    },
+
     purpose(frm) {
+        qcmc_logic.stock_entry.apply_manufacturing_warehouse_queries(frm);
         qcmc_logic.stock_entry.apply_job_card_field_rules(frm);
         qcmc_logic.stock_entry.add_job_card_button(frm);
         qcmc_logic.stock_entry.refresh_manufacture_row_locks(frm);
@@ -32,6 +43,25 @@ frappe.ui.form.on("Stock Entry", {
         qcmc_logic.stock_entry.refresh_msjr_warehouse_code(frm);
     },
 });
+
+qcmc_logic.stock_entry.apply_manufacturing_warehouse_queries = function(frm) {
+    frm.set_query("work_order", () => ({
+        query: "qcmc_logic.customs.manufacturing_warehouse_access.work_order_query",
+        filters: {
+            company: frm.doc.company,
+            production_item: frm.doc.production_item,
+            bom_no: frm.doc.bom_no,
+        },
+    }));
+
+    frm.set_query("bom_no", () => ({
+        query: "qcmc_logic.customs.manufacturing_warehouse_access.bom_query",
+        filters: {
+            company: frm.doc.company,
+            item: frm.doc.production_item,
+        },
+    }));
+};
 
 frappe.ui.form.on("Stock Entry Detail", {
     t_warehouse(frm, cdt, cdn) {
