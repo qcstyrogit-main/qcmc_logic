@@ -9,7 +9,10 @@ from qcmc_logic.customs.permissions import (
     warehouse_transfer_has_permission,
     warehouse_transfer_permission_query,
 )
-from qcmc_logic.customs.manufacturing_warehouse_access import work_order_permission_query
+from qcmc_logic.customs.manufacturing_warehouse_access import (
+    bom_permission_query,
+    work_order_permission_query,
+)
 from qcmc_logic.customs.warehouse_access_permissions import SKIP_DOCTYPES
 from qcmc_logic.utils import check_warehouse_access
 
@@ -80,6 +83,25 @@ class TestWarehouseAccessRollout(TestCase):
         self.assertIn("child.`source_warehouse` NOT IN", query)
         self.assertIn("`tabWork Order Operation` child", query)
         self.assertIn("child.`wip_warehouse` NOT IN", query)
+
+    def test_bom_list_filters_by_role_profile_default_warehouse_company(self):
+        with patch(
+            "qcmc_logic.customs.manufacturing_warehouse_access."
+            "get_default_company_from_role_profile_default_warehouse",
+            return_value="QC Styropackaging Corporation",
+        ):
+            query = bom_permission_query("user@example.com")
+
+        self.assertIn("`tabBOM`.`company`", query)
+        self.assertIn("QC Styropackaging Corporation", query)
+
+    def test_bom_list_uses_default_behavior_without_role_profile_default_warehouse(self):
+        with patch(
+            "qcmc_logic.customs.manufacturing_warehouse_access."
+            "get_default_company_from_role_profile_default_warehouse",
+            return_value=None,
+        ):
+            self.assertEqual(bom_permission_query("user@example.com"), "")
 
     def test_setup_helper_and_master_doctypes_are_strictly_excluded(self):
         expected_exclusions = {

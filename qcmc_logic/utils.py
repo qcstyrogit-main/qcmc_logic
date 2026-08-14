@@ -543,6 +543,28 @@ def get_default_company_from_default_warehouse(user=None, require_transact=False
     return _get_warehouse_company(default_warehouse)
 
 
+@frappe.whitelist()
+def get_default_company_from_role_profile_default_warehouse(user=None, require_transact=False):
+    if not user:
+        user = frappe.session.user
+
+    if user == "Administrator":
+        return None
+
+    if not _has_field("Allowed Warehouse", "is_default"):
+        return None
+
+    default_warehouse = _get_default_warehouse_from_source(
+        user,
+        require_transact=require_transact,
+        source="Role Profile",
+    )
+    if not default_warehouse:
+        return None
+
+    return _get_warehouse_company(default_warehouse)
+
+
 def _get_warehouse_company(warehouse):
     if not warehouse:
         return None

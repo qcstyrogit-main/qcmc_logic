@@ -249,6 +249,7 @@ override_doctype_class = {
 }
 permission_query_conditions = {
      "Appraisal": "qcmc_logic.customs.permissions.appraisal_permission_query",
+     "BOM": "qcmc_logic.customs.manufacturing_warehouse_access.bom_permission_query",
      "Job Requisition": "qcmc_logic.customs.staffingplan_permission.mrf_permission_query_condition",
      "Delivery Note": "qcmc_logic.customs.permissions.delivery_note_permission_query",
      "Customer": "qcmc_logic.customs.permissions.customer_permission_query",

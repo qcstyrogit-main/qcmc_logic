@@ -8,7 +8,7 @@ from erpnext.manufacturing.doctype.work_order.work_order import (
 from erpnext.controllers.queries import bom as erpnext_bom_query
 
 from qcmc_logic.utils import (
-    get_default_company_from_default_warehouse,
+    get_default_company_from_role_profile_default_warehouse,
     get_user_allowed_warehouses,
     has_warehouse_access,
     is_global_warehouse_access_enabled,
@@ -61,7 +61,18 @@ def get_bom_company_scope(user=None, fallback_company=None):
     if user == "Administrator":
         return fallback_company
 
-    return get_default_company_from_default_warehouse(user) or fallback_company
+    return (
+        get_default_company_from_role_profile_default_warehouse(user)
+        or fallback_company
+    )
+
+
+def bom_permission_query(user):
+    company = get_bom_company_scope(user=user)
+    if not company:
+        return ""
+
+    return f"`tabBOM`.`company` = {frappe.db.escape(company)}"
 
 
 def work_order_permission_query(user):
