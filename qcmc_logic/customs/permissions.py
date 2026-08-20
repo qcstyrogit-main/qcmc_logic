@@ -24,7 +24,7 @@ WAREHOUSE_TRANSACTION_DOCTYPES = {
     },
     "Material Request": {
         "fields": ["set_warehouse", "set_from_warehouse"],
-        "children": {"Material Request Item": ["warehouse"]},
+        "children": {"Material Request Item": ["warehouse", "from_warehouse"]},
     },
     "Pick List": {
         "children": {"Pick List Item": ["warehouse"], "Pick List Item Location": ["warehouse"]},
@@ -276,14 +276,10 @@ def _warehouse_transaction_permission_query(doctype, user):
     table = f"`tab{doctype}`"
     allowed_sql = _sql_list(allowed_warehouses)
     has_allowed_conditions = []
-    no_disallowed_conditions = []
 
     for fieldname in config["fields"]:
         field = f"{table}.`{fieldname}`"
         has_allowed_conditions.append(f"{field} IN ({allowed_sql})")
-        no_disallowed_conditions.append(
-            f"(IFNULL({field}, '') = '' OR {field} IN ({allowed_sql}))"
-        )
 
     for child_doctype, fieldnames in config["children"].items():
         child_table = f"`tab{child_doctype}`"
@@ -296,22 +292,11 @@ def _warehouse_transaction_permission_query(doctype, user):
                 f"WHERE {parent_match} AND {child_field} IN ({allowed_sql})"
                 ")"
             )
-            no_disallowed_conditions.append(
-                "NOT EXISTS ("
-                f"SELECT 1 FROM {child_table} "
-                f"WHERE {parent_match} "
-                f"AND IFNULL({child_field}, '') != '' "
-                f"AND {child_field} NOT IN ({allowed_sql})"
-                ")"
-            )
 
     if not has_allowed_conditions:
         return "1=0"
 
-    return "({0}) AND ({1})".format(
-        " OR ".join(has_allowed_conditions),
-        " AND ".join(no_disallowed_conditions),
-    )
+    return "(" + " OR ".join(has_allowed_conditions) + ")"
 
 
 def _combined_transaction_permission_query(doctype, user):
@@ -441,7 +426,10 @@ def warehouse_transaction_has_permission(doc, ptype=None, user=None):
 
     warehouses = set(_iter_doc_warehouse_values(doc))
     if not warehouses:
-        return True
+        return False
+
+    if ptype in {None, "read", "select"}:
+        return bool(warehouses.intersection(allowed_warehouses))
 
     return warehouses.issubset(allowed_warehouses)
 
