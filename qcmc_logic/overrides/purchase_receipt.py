@@ -25,6 +25,7 @@ def make_purchase_invoice(source_name, target_doc=None, args=None):
 
 	purchase_invoice.bill_no = invoice_number
 	purchase_invoice.bill_date = posting_date
+	purchase_invoice.posting_date = posting_date
 	return purchase_invoice
 
 

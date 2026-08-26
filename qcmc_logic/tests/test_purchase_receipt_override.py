@@ -8,8 +8,8 @@ from qcmc_logic.overrides.purchase_receipt import make_purchase_invoice
 class TestPurchaseReceiptOverride(TestCase):
 	@patch("qcmc_logic.overrides.purchase_receipt.frappe")
 	@patch("qcmc_logic.overrides.purchase_receipt._make_erpnext_purchase_invoice")
-	def test_maps_supplier_invoice_details(self, make_invoice, frappe_mock):
-		purchase_invoice = SimpleNamespace(bill_no=None, bill_date=None)
+	def test_maps_supplier_invoice_details_and_wrr_posting_date(self, make_invoice, frappe_mock):
+		purchase_invoice = SimpleNamespace(bill_no=None, bill_date=None, posting_date=None)
 		make_invoice.return_value = purchase_invoice
 		frappe_mock.db.get_value.return_value = ("SUP-INV-001", "2026-07-17")
 
@@ -23,3 +23,4 @@ class TestPurchaseReceiptOverride(TestCase):
 		)
 		self.assertEqual(result.bill_no, "SUP-INV-001")
 		self.assertEqual(result.bill_date, "2026-07-17")
+		self.assertEqual(result.posting_date, "2026-07-17")
