@@ -380,6 +380,7 @@ after_migrate = [
 # # Or ensure it loads at boot
 # app_include = [
 #     "qcmc_logic.patches.monkey_patches"
+    "qcmc_logic.patches.add_manufacturing_details_to_delivery_receipt_pr.execute",
 # ]
 # required_apps = []
 
