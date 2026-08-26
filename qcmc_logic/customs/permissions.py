@@ -12,6 +12,8 @@ from qcmc_logic.utils import (
     is_global_warehouse_access_enabled,
 )
 from qcmc_logic.customs.territory_access_permissions import (
+    get_user_allowed_territories,
+    has_territory_access,
     territory_has_permission,
     territory_permission_query,
 )
@@ -357,6 +359,49 @@ def sales_order_permission_query(user):
 
 def customer_permission_query(user):
     return territory_permission_query("Customer", user)
+
+
+def payment_entry_permission_query(user):
+    if not has_territory_access(user):
+        return ""
+
+    allowed = get_user_allowed_territories(user)
+    payment_table = "`tabPayment Entry`"
+    customer_table = "`tabCustomer`"
+    unrestricted_condition = (
+        f"({payment_table}.`payment_type` != 'Receive' "
+        f"OR {payment_table}.`party_type` != 'Customer')"
+    )
+    if not allowed:
+        return unrestricted_condition
+
+    allowed_sql = _sql_list(allowed)
+    return (
+        f"({unrestricted_condition} "
+        f"OR EXISTS ("
+        f"SELECT 1 FROM {customer_table} "
+        f"WHERE {customer_table}.`name` = {payment_table}.`party` "
+        f"AND {customer_table}.`territory` IN ({allowed_sql})"
+        f"))"
+    )
+
+
+def payment_entry_has_permission(doc, ptype=None, user=None):
+    user = user or frappe.session.user
+    if (
+        not has_territory_access(user)
+        or ptype == "create"
+        or not doc
+        or doc.payment_type != "Receive"
+        or doc.party_type != "Customer"
+        or not doc.party
+    ):
+        return True
+
+    require_transactions = ptype in {"write", "submit", "cancel", "delete", "amend"}
+    allowed = set(get_user_allowed_territories(user, require_transactions))
+    territory = frappe.db.get_value("Customer", doc.party, "territory")
+    return not territory or territory in allowed
 
 
 def stock_entry_permission_query(user):
