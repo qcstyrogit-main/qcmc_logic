@@ -606,7 +606,9 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
             return replay
 
         doc = frappe.get_doc("Stock Reconciliation", reconciliation_id)
-        doc.check_permission("write")
+        # Dedicated scanner authorization is the authenticated mobile user plus
+        # Role Profile Warehouse Access with Allow Transact. Scanner operators
+        # do not require Desk-level Stock Reconciliation write permission.
         ensure_scanner_warehouse_access(user, [doc.set_warehouse], require_transact=True)
         if doc.docstatus != 0:
             frappe.throw(f"Stock Reconciliation '{reconciliation_id}' is not editable.")
@@ -940,7 +942,7 @@ def _submit_increment_entries(reconciliation_id, submission_id, entries, user):
             return replay
 
         doc = frappe.get_doc("Stock Reconciliation", reconciliation_id)
-        doc.check_permission("write")
+        # Keep scanner authorization consistent with adjustment submissions.
         ensure_scanner_warehouse_access(user, [doc.set_warehouse], require_transact=True)
         if doc.docstatus != 0:
             frappe.throw(f"Stock Reconciliation '{reconciliation_id}' is not editable.")
@@ -1406,7 +1408,7 @@ def get_pcount_scan_details(
         frappe.throw("Session expired. Please log in again.", frappe.AuthenticationError)
 
     doc = frappe.get_doc("Stock Reconciliation", reconciliation_id)
-    doc.check_permission("read")
+    # Scanner reads are authorized by Role Profile Warehouse Access.
     ensure_scanner_warehouse_access(user, [doc.set_warehouse])
     item_code = str(item_code or "").strip()
     storage_location = str(storage_location or "").strip()
@@ -1488,7 +1490,7 @@ def get_pcount_item_baseline(
     if user == "Guest" or not user:
         frappe.throw("Session expired. Please log in again.", frappe.AuthenticationError)
     doc = frappe.get_doc("Stock Reconciliation", str(reconciliation_id or "").strip())
-    doc.check_permission("read")
+    # Scanner reads are authorized by Role Profile Warehouse Access.
     ensure_scanner_warehouse_access(user, [doc.set_warehouse])
     if doc.docstatus != 0:
         frappe.throw(f"Stock Reconciliation '{doc.name}' is not editable.")
@@ -1543,7 +1545,7 @@ def get_pcount_state(reconciliation_id, mobile_token=None):
     if not reconciliation_id:
         frappe.throw("Reconciliation ID is required.")
     doc = frappe.get_doc("Stock Reconciliation", reconciliation_id)
-    doc.check_permission("read")
+    # Scanner reads are authorized by Role Profile Warehouse Access.
     ensure_scanner_warehouse_access(user, [doc.set_warehouse])
     entries = []
     for row in doc.items:
