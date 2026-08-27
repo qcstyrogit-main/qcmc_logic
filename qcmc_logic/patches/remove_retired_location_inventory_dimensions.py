@@ -29,6 +29,16 @@ INVENTORY_DIMENSION_LAYOUT_ANCHORS = {
 }
 
 
+def _active_inventory_dimension_names():
+	"""Support ERPNext versions both with and without Inventory Dimension.disabled."""
+	filters = (
+		{"disabled": 0}
+		if frappe.get_meta("Inventory Dimension").has_field("disabled")
+		else None
+	)
+	return frappe.get_all("Inventory Dimension", filters=filters, pluck="name")
+
+
 def execute():
 	affected_doctypes = set()
 
@@ -91,13 +101,21 @@ def sync_active_inventory_dimensions():
 	from erpnext.stock.doctype.inventory_dimension.inventory_dimension import get_inventory_documents
 
 	dimension_layouts = {}
-	for dimension_name in frappe.get_all(
-		"Inventory Dimension",
-		filters={"disabled": 0},
-		pluck="name",
-	):
+	for dimension_name in _active_inventory_dimension_names():
 		dimension = frappe.get_doc("Inventory Dimension", dimension_name)
-		dimension.add_custom_fields()
+		try:
+			dimension.add_custom_fields()
+		except frappe.ValidationError as exc:
+			# Some upgraded sites contain an unrelated legacy Dynamic Link whose
+			# options fail current Frappe validation whenever any Custom Field is
+			# saved. The preceding Location migration has already generated the
+			# dimension fields; continue with the targeted synchronization below.
+			if "Options 'Dynamic Link' type of field" not in str(exc):
+				raise
+			frappe.log_error(
+				title="Inventory Dimension legacy Dynamic Link validation",
+				message=str(exc),
+			)
 		# ERPNext creates ledger fields separately from the inventory-document
 		# loop. Existing generated fields are not refreshed when the dimension's
 		# reference document changes, so keep their Link target authoritative too.
@@ -237,9 +255,7 @@ def audit_inventory_dimension_visibility():
 
 	applicable_doctypes = {row[0] for row in get_inventory_documents()} - IGNORED_INVENTORY_DOCTYPES
 	results = []
-	for dimension_name in frappe.get_all(
-		"Inventory Dimension", filters={"disabled": 0}, pluck="name"
-	):
+	for dimension_name in _active_inventory_dimension_names():
 		dimension = frappe.get_doc("Inventory Dimension", dimension_name)
 		doctypes = (
 			applicable_doctypes
