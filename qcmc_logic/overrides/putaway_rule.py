@@ -4,31 +4,58 @@ from frappe.utils import flt
 
 from erpnext.stock.doctype.inventory_dimension.inventory_dimension import get_inventory_dimensions
 from erpnext.stock.doctype.putaway_rule.putaway_rule import PutawayRule
-from qcmc_logic.overrides.putaway_rule_dimension import get_dimension_putaway_balance
+from qcmc_logic.overrides.putaway_rule_dimension import get_dimension_stock_balance
 
 
 class CustomPutawayRule(PutawayRule):
 	def validate(self):
 		self.validate_duplicate_rule()
 		self.validate_warehouse_and_company()
+		self.validate_storage_location_warehouse()
+		# stock_capacity is derived from the visible Capacity and Conversion
+		# Factor fields, so calculate it before comparing it with existing stock.
+		self.set_stock_capacity()
 		self.validate_capacity()
 		self.validate_priority()
-		self.set_stock_capacity()
 
-	def validate_capacity(self):
-		stock_uom = frappe.db.get_value("Item", self.item_code, "stock_uom")
-		balance_qty = get_dimension_putaway_balance(self)
-
-		if flt(self.stock_capacity) < flt(balance_qty):
+	def validate_storage_location_warehouse(self):
+		location = self.get("location")
+		if not location:
+			return
+		location_warehouse = frappe.db.get_value("Storage Location", location, "custom_warehouse") or ""
+		if _normalize_warehouse(self.warehouse) != _normalize_warehouse(location_warehouse):
 			frappe.throw(
-				_(
-					"Warehouse Capacity for Item '{0}' must be greater than the existing stock level of {1} {2}."
-				).format(self.item_code, frappe.bold(balance_qty), stock_uom),
-				title=_("Insufficient Capacity"),
+				_("Putaway Rule warehouse '{0}' does not match Storage Location warehouse '{1}'.\n[PUTAWAY_LOCATION_WAREHOUSE_MISMATCH]").format(
+					self.warehouse, location_warehouse
+				)
 			)
 
+	def validate_capacity(self):
 		if not self.capacity:
 			frappe.throw(_("Capacity must be greater than 0"), title=_("Invalid"))
+
+		stock_uom = frappe.db.get_value("Item", self.item_code, "stock_uom")
+		dimensions = {
+			fieldname: self.get(fieldname)
+			for fieldname in self.get_inventory_dimension_fields()
+			if self.get(fieldname)
+		}
+		balance_qty = get_dimension_stock_balance(
+			self.item_code,
+			self.warehouse,
+			dimensions,
+		)
+
+		if flt(self.stock_capacity) < flt(balance_qty):
+			location = dimensions.get("location")
+			scope = _(" at Location {0}").format(frappe.bold(location)) if location else ""
+			frappe.throw(
+				_(
+					"Capacity for Item '{0}'{1} must not be lower than the existing stock "
+					"level of {2} {3}."
+				).format(self.item_code, scope, frappe.bold(balance_qty), stock_uom),
+				title=_("Insufficient Capacity"),
+			)
 
 	def validate_duplicate_rule(self):
 		filters, dimension_fields = self.get_duplicate_filters()
@@ -81,3 +108,7 @@ class CustomPutawayRule(PutawayRule):
 		return _("Putaway Rule already exists for Item {0} with {1}.").format(
 			frappe.bold(self.item_code), dimensions
 		)
+
+
+def _normalize_warehouse(value):
+	return "".join(str(value or "").lower().replace("-", "").split())

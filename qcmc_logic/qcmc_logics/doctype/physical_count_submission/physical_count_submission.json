@@ -1,0 +1,108 @@
+{
+ "actions": [],
+ "autoname": "field:submission_id",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "submission_id",
+  "reconciliation",
+  "operation",
+  "status",
+  "processed_at",
+  "processed_by",
+  "device_ids",
+  "request_hash",
+  "request_json",
+  "result_json"
+ ],
+ "fields": [
+  {
+   "fieldname": "submission_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Submission ID",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "reconciliation",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Stock Reconciliation",
+   "options": "Stock Reconciliation",
+   "reqd": 1
+  },
+  {
+   "fieldname": "operation",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Operation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "processed_at",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Processed At",
+   "reqd": 1
+  },
+  {
+   "fieldname": "processed_by",
+   "fieldtype": "Link",
+   "label": "Processed By",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "device_ids",
+   "fieldtype": "Small Text",
+   "label": "Device IDs",
+   "read_only": 1
+  },
+  {
+   "fieldname": "request_hash",
+   "fieldtype": "Data",
+   "label": "Request Hash",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "request_json",
+   "fieldtype": "Long Text",
+   "label": "Request JSON",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "result_json",
+   "fieldtype": "Long Text",
+   "label": "Result JSON",
+   "read_only": 1,
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "module": "QCMC Logics",
+ "name": "Physical Count Submission",
+ "permissions": [
+  {
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  }
+ ],
+ "sort_field": "processed_at",
+ "sort_order": "DESC"
+}

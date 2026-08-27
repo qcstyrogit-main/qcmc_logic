@@ -13,6 +13,7 @@ frappe.ui.form.on("Work Order", {
 		apply_manufacturing_warehouse_queries(frm);
 		schedule_roll_formulation_grid_config(frm);
 		schedule_roll_formulation_preview(frm);
+		add_next_job_card_button(frm);
 	},
 
 	company(frm) {
@@ -49,6 +50,37 @@ frappe.ui.form.on("Work Order", {
 		schedule_roll_formulation_grid_config(frm);
 	},
 });
+
+function add_next_job_card_button(frm) {
+	frm.remove_custom_button(__("Create Next Job Card"));
+
+	const remaining_qty = flt(frm.doc.qty) - flt(frm.doc.produced_qty);
+	const blocked_statuses = ["Completed", "Closed", "Stopped", "Cancelled"];
+	if (
+		frm.doc.docstatus !== 1 ||
+		remaining_qty <= 0 ||
+		blocked_statuses.includes(frm.doc.status) ||
+		!(frm.doc.operations || []).length
+	) {
+		return;
+	}
+
+	frm.add_custom_button(__("Create Next Job Card"), () => {
+		frappe.call({
+			method: "qcmc_logic.api.work_order_job_card.create_next_job_card",
+			args: { work_order: frm.doc.name },
+			freeze: true,
+			freeze_message: __("Creating Job Card..."),
+			callback(response) {
+				const result = response.message;
+				if (!result?.job_card) {
+					return;
+				}
+				frappe.set_route("Form", "Job Card", result.job_card);
+			},
+		});
+	});
+}
 
 function apply_manufacturing_warehouse_queries(frm) {
 	frm.set_query("bom_no", () => ({

@@ -1,0 +1,31 @@
+{
+ "actions": [],
+ "autoname": "field:tracker_name",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["tracker_name", "enabled", "credentials_section", "server_url", "username", "password", "warning_html", "status_section", "device_id", "last_position_time", "last_sync_at", "last_status", "last_error"],
+ "fields": [
+  {"fieldname": "tracker_name", "fieldtype": "Data", "in_list_view": 1, "label": "Tracker Name", "reqd": 1, "unique": 1},
+  {"default": "0", "fieldname": "enabled", "fieldtype": "Check", "in_list_view": 1, "label": "Enabled"},
+  {"fieldname": "credentials_section", "fieldtype": "Section Break", "label": "AIKA Account"},
+  {"default": "http://aika168.com", "description": "Restricted to aika168.com hosts.", "fieldname": "server_url", "fieldtype": "Data", "label": "Server URL", "reqd": 1},
+  {"fieldname": "username", "fieldtype": "Data", "label": "Account / Device ID", "reqd": 1},
+  {"description": "Encrypted by Frappe. Never written to application logs.", "fieldname": "password", "fieldtype": "Password", "label": "Password", "reqd": 1},
+  {"fieldname": "warning_html", "fieldtype": "HTML", "options": "<div class=\"alert alert-warning\">AIKA currently exposes its OpenAPI service over unencrypted HTTP. Use a dedicated read-only tracker password if available.</div>"},
+  {"fieldname": "status_section", "fieldtype": "Section Break", "label": "Last Synchronization"},
+  {"fieldname": "device_id", "fieldtype": "Data", "label": "Device ID", "read_only": 1},
+  {"fieldname": "last_position_time", "fieldtype": "Datetime", "label": "Last Position Time", "read_only": 1},
+  {"fieldname": "last_sync_at", "fieldtype": "Datetime", "label": "Last Sync At", "read_only": 1},
+  {"fieldname": "last_status", "fieldtype": "Select", "in_list_view": 1, "label": "Last Status", "options": "Never Synced\nOnline\nError", "read_only": 1},
+  {"fieldname": "last_error", "fieldtype": "Small Text", "label": "Last Error", "read_only": 1}
+ ],
+ "links": [],
+ "module": "QCMC Logics",
+ "name": "AIKA GPS Tracker",
+ "naming_rule": "By fieldname",
+ "permissions": [{"create": 1, "delete": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1}],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "tracker_name",
+ "track_changes": 1
+}

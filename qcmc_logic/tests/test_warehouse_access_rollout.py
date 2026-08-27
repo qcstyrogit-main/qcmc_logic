@@ -16,10 +16,54 @@ from qcmc_logic.customs.manufacturing_warehouse_access import (
     work_order_permission_query,
 )
 from qcmc_logic.customs.warehouse_access_permissions import SKIP_DOCTYPES
-from qcmc_logic.utils import check_warehouse_access
+from qcmc_logic.utils import check_warehouse_access, ensure_scanner_warehouse_access
 
 
 class TestWarehouseAccessRollout(TestCase):
+    def test_scanner_read_uses_list_view_warehouse_access(self):
+        with patch(
+            "qcmc_logic.utils.get_user_allowed_warehouses",
+            return_value=["FG - Sta Clara"],
+        ) as allowed:
+            ensure_scanner_warehouse_access(
+                "scanner@example.com", ["FG - Sta Clara"], require_transact=False
+            )
+
+        allowed.assert_called_once_with(
+            "scanner@example.com",
+            require_transact=False,
+            require_list_view=True,
+            source="Role Profile",
+        )
+
+    def test_scanner_write_uses_transact_warehouse_access(self):
+        with patch(
+            "qcmc_logic.utils.get_user_allowed_warehouses",
+            return_value=["FG - Sta Clara"],
+        ) as allowed:
+            ensure_scanner_warehouse_access(
+                "scanner@example.com", ["FG - Sta Clara"], require_transact=True
+            )
+
+        allowed.assert_called_once_with(
+            "scanner@example.com",
+            require_transact=True,
+            require_list_view=False,
+            source="Role Profile",
+        )
+
+    def test_scanner_rejects_any_warehouse_not_in_role_profile_access(self):
+        with patch(
+            "qcmc_logic.utils.get_user_allowed_warehouses",
+            return_value=["FG - Sta Clara"],
+        ):
+            with self.assertRaises(frappe.PermissionError):
+                ensure_scanner_warehouse_access(
+                    "scanner@example.com",
+                    ["FG - Sta Clara", "FG - Guyong"],
+                    require_transact=True,
+                )
+
     def _transaction_doc(self, doctype, rows=None, **values):
         table_fields = []
         for fieldname, child_doctype in (rows or {}).keys():

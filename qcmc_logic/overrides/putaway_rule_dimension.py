@@ -1,14 +1,14 @@
 import copy
 import json
+import re
 from collections import defaultdict
 
 import frappe
 from frappe import _
-from frappe.utils import cint, cstr, floor, flt, nowdate
+from frappe.utils import cint, cstr, floor, flt, nowdate, nowtime
 
 from erpnext.stock.doctype.inventory_dimension.inventory_dimension import get_inventory_dimensions
 from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos
-from erpnext.stock.utils import get_stock_balance
 
 
 RECEIVING_STOCK_ENTRY_PURPOSES = {
@@ -46,6 +46,40 @@ def get_rule_dimension_values(rule):
 		for fieldname in get_rule_dimension_fields()
 		if rule.get(fieldname)
 	}
+
+
+def get_dimension_stock_balance(item_code, warehouse, dimensions=None, posting_date=None, posting_time=None, batch_no=None, serial_no=None):
+	"""Return stock for the exact dimension combination, not warehouse running qty.
+
+	ERPNext's get_stock_balance filters the last SLE by inventory dimension but
+	returns qty_after_transaction, whose running value is warehouse-wide. Summing
+	actual_qty is required for a true location/bin balance.
+	"""
+	dimensions = dimensions or {}
+	valid_fields = set(get_dimension_fields_for_doctype("Stock Ledger Entry"))
+	conditions = ["item_code = %(item_code)s", "warehouse = %(warehouse)s", "is_cancelled = 0"]
+	values = {
+		"item_code": item_code,
+		"warehouse": warehouse,
+		"posting_date": posting_date or nowdate(),
+		"posting_time": posting_time or nowtime(),
+	}
+	conditions.append("(posting_date < %(posting_date)s or (posting_date = %(posting_date)s and posting_time <= %(posting_time)s))")
+	for fieldname, value in dimensions.items():
+		if fieldname not in valid_fields:
+			frappe.throw(f"{fieldname} is not a valid Inventory Dimension fieldname.")
+		conditions.append(f"`{fieldname}` = %({fieldname})s")
+		values[fieldname] = value
+	if batch_no:
+		conditions.append("batch_no = %(batch_no)s")
+		values["batch_no"] = batch_no
+	if serial_no:
+		conditions.append("serial_no = %(serial_no)s")
+		values["serial_no"] = serial_no
+	return flt(frappe.db.sql(
+		f"select coalesce(sum(actual_qty), 0) from `tabStock Ledger Entry` where {' and '.join(conditions)}",
+		values,
+	)[0][0])
 
 
 def apply_dimension_putaway_rule(doctype, items, company, sync=None, purpose=None):
@@ -183,6 +217,17 @@ def get_ordered_dimension_putaway_rules(item_code, company, source_warehouse=Non
 		filters=filters,
 		order_by="priority asc, capacity desc",
 	)
+	for rule in rules:
+		location = rule.get("location")
+		if not location:
+			continue
+		location_warehouse = frappe.db.get_value("Storage Location", location, "custom_warehouse") or ""
+		if _normalize_warehouse(rule.warehouse) != _normalize_warehouse(location_warehouse):
+			frappe.throw(
+				_("Putaway Rule warehouse '{0}' does not match Storage Location warehouse '{1}'.\n[PUTAWAY_LOCATION_WAREHOUSE_MISMATCH]").format(
+					rule.warehouse, location_warehouse
+				)
+			)
 
 	rules = filter_rules_by_item_dimensions(rules, item_dimensions or {})
 	if not rules:
@@ -191,11 +236,10 @@ def get_ordered_dimension_putaway_rules(item_code, company, source_warehouse=Non
 	vacant_rules = []
 	for rule in rules:
 		dimensions = get_rule_dimension_values(rule)
-		balance_qty = get_stock_balance(
+		balance_qty = get_dimension_stock_balance(
 			rule.item_code,
 			rule.warehouse,
-			nowdate(),
-			inventory_dimensions_dict=dimensions or None,
+			dimensions,
 		)
 		free_space = flt(rule.stock_capacity) - flt(balance_qty)
 		if free_space > 0:
@@ -206,6 +250,10 @@ def get_ordered_dimension_putaway_rules(item_code, company, source_warehouse=Non
 		return True, None
 
 	return False, sorted(vacant_rules, key=lambda i: (i["priority"], -i["free_space"]))
+
+
+def _normalize_warehouse(value):
+	return re.sub(r"[\s-]+", "", str(value or "").strip().lower())
 
 
 def filter_rules_by_item_dimensions(rules, item_dimensions):
@@ -399,10 +447,9 @@ def get_available_dimension_putaway_capacity(rule):
 
 
 def get_dimension_putaway_balance(rule):
-	balance_qty = get_stock_balance(
+	balance_qty = get_dimension_stock_balance(
 		rule.item_code,
 		rule.warehouse,
-		nowdate(),
-		inventory_dimensions_dict=get_rule_dimension_values(rule) or None,
+		get_rule_dimension_values(rule),
 	)
 	return flt(balance_qty)

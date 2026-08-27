@@ -18,6 +18,7 @@ frappe.ui.form.on("Stock Entry", {
         qcmc_logic.stock_entry.add_job_card_button(frm);
         qcmc_logic.stock_entry.refresh_manufacture_row_locks(frm);
         qcmc_logic.stock_entry.refresh_warehouse_code(frm);
+        qcmc_logic.stock_entry.refresh_msjr_warehouse_code(frm);
     },
 
     company(frm) {
@@ -47,6 +48,7 @@ frappe.ui.form.on("Stock Entry", {
 
     to_warehouse(frm) {
         qcmc_logic.stock_entry.refresh_warehouse_code(frm);
+        qcmc_logic.stock_entry.refresh_msjr_warehouse_code(frm);
     },
 });
 
@@ -69,6 +71,34 @@ qcmc_logic.stock_entry.apply_manufacturing_warehouse_queries = function(frm) {
     }));
 };
 
+qcmc_logic.stock_entry.refresh_msjr_warehouse_code = function(frm) {
+    const row_warehouse = (frm.doc.items || [])
+        .map(row => row.t_warehouse)
+        .find(Boolean);
+    return qcmc_logic.stock_entry.apply_msjr_warehouse_code(
+        frm,
+        frm.doc.to_warehouse || row_warehouse
+    );
+};
+
+qcmc_logic.stock_entry.apply_msjr_warehouse_code = function(frm, target_warehouse) {
+    if (
+        !frm.doc.msjr_no
+        || frm.doc.purpose !== "Material Receipt"
+        || !target_warehouse
+    ) {
+        return Promise.resolve();
+    }
+
+    return frappe.db.get_value("Warehouse", target_warehouse, "custom_wh_code")
+        .then(r => {
+            const warehouse_code = r.message && r.message.custom_wh_code;
+            if (warehouse_code && frm.doc.custom_wh_code !== warehouse_code) {
+                return frm.set_value("custom_wh_code", warehouse_code);
+            }
+        });
+};
+
 frappe.ui.form.on("Stock Entry Detail", {
     s_warehouse(frm) {
         qcmc_logic.stock_entry.refresh_warehouse_code(frm);
@@ -76,6 +106,8 @@ frappe.ui.form.on("Stock Entry Detail", {
 
     t_warehouse(frm, cdt, cdn) {
         qcmc_logic.stock_entry.refresh_warehouse_code(frm);
+        const row = locals[cdt][cdn];
+        qcmc_logic.stock_entry.apply_msjr_warehouse_code(frm, row && row.t_warehouse);
     },
 });
 

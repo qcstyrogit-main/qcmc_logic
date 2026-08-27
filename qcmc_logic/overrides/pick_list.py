@@ -1,8 +1,109 @@
+import copy
 import json
 
 import frappe
 from frappe import _
 from frappe.utils import flt
+from erpnext.stock.doctype.pick_list.pick_list import (
+	PickList,
+	create_stock_entry as erpnext_create_stock_entry,
+)
+
+
+class CustomPickList(PickList):
+	def before_save(self):
+		super().before_save()
+		if not self.pick_manually:
+			assign_storage_locations(self)
+
+
+def get_location_balances(item_code, warehouse, batch_no=None):
+	conditions = [
+		"sle.item_code = %(item_code)s",
+		"sle.warehouse = %(warehouse)s",
+		"sle.is_cancelled = 0",
+		"ifnull(sle.location, '') != ''",
+		"ifnull(sl.disabled, 0) = 0",
+	]
+	values = {"item_code": item_code, "warehouse": warehouse}
+	if batch_no:
+		conditions.append("sle.batch_no = %(batch_no)s")
+		values["batch_no"] = batch_no
+
+	return frappe.db.sql(
+		f"""
+		select sle.location, sum(sle.actual_qty) as available_qty
+		from `tabStock Ledger Entry` sle
+		inner join `tabStorage Location` sl on sl.name = sle.location
+		where {' and '.join(conditions)}
+		group by sle.location
+		having sum(sle.actual_qty) > 0
+		order by sle.location
+		""",
+		values,
+		as_dict=True,
+	)
+
+
+def assign_storage_locations(doc):
+	"""Split Pick List rows by exact positive Storage Location balance."""
+	balances = {}
+	allocated_rows = []
+	for source in list(doc.get("locations") or []):
+		row = frappe._dict(copy.deepcopy(source.as_dict()))
+		key = (row.item_code, row.warehouse, row.batch_no or "")
+		if key not in balances:
+			balances[key] = get_location_balances(*key)
+
+		remaining = flt(row.stock_qty)
+		remaining_picked = flt(row.picked_qty)
+		if row.get("location"):
+			for balance in balances[key]:
+				if balance.location == row.location:
+					balance.available_qty = max(flt(balance.available_qty) - remaining, 0)
+					break
+			allocated_rows.append(row)
+			continue
+		if remaining <= 0:
+			allocated_rows.append(row)
+			continue
+
+		for balance in balances[key]:
+			available = flt(balance.available_qty)
+			if available <= 0 or remaining <= 0:
+				continue
+			stock_qty = min(remaining, available)
+			allocated = frappe._dict(copy.deepcopy(row))
+			allocated.update(
+				name=None,
+				idx=None,
+				location=balance.location,
+				stock_qty=stock_qty,
+				qty=stock_qty / (flt(row.conversion_factor) or 1),
+				picked_qty=min(remaining_picked, stock_qty),
+			)
+			allocated_rows.append(allocated)
+			balance.available_qty = available - stock_qty
+			remaining -= stock_qty
+			remaining_picked = max(remaining_picked - stock_qty, 0)
+
+		if remaining > 1e-9:
+			unallocated = frappe._dict(copy.deepcopy(row))
+			unallocated.update(
+				name=None,
+				idx=None,
+				location=None,
+				stock_qty=remaining,
+				qty=remaining / (flt(row.conversion_factor) or 1),
+				picked_qty=remaining_picked,
+			)
+			allocated_rows.append(unallocated)
+
+	doc.set("locations", [])
+	for row in allocated_rows:
+		for fieldname in ("name", "parent", "parenttype", "parentfield", "idx"):
+			row.pop(fieldname, None)
+		doc.append("locations", row)
 
 
 def warehouse_transfer_exists(pick_list_name):
@@ -113,8 +214,27 @@ def get_inventory_dimension_fieldnames():
 	return frappe.get_all(
 		"Inventory Dimension",
 		filters={"disabled": 0},
-		pluck="fieldname",
+		pluck="source_fieldname",
 	)
+
+
+@frappe.whitelist()
+def create_stock_entry(pick_list):
+	pick_list_doc = frappe.get_doc(json.loads(pick_list))
+	stock_entry = erpnext_create_stock_entry(pick_list)
+	if not stock_entry:
+		return stock_entry
+
+	stock_entry = frappe._dict(stock_entry)
+	if pick_list_doc.get("custom_job_card"):
+		stock_entry.job_card = pick_list_doc.custom_job_card
+	for source, target in zip(pick_list_doc.get("locations") or [], stock_entry.get("items") or []):
+		if source.get("custom_job_card_item"):
+			target["job_card_item"] = source.custom_job_card_item
+		for fieldname in get_inventory_dimension_fieldnames():
+			if source.get(fieldname):
+				target[fieldname] = source.get(fieldname)
+	return stock_entry
 
 
 def validate_pick_list_references(doc):

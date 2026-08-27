@@ -3131,7 +3131,7 @@
   "docstatus": 0,
   "doctype": "Workflow",
   "document_type": "Stock Reconciliation",
-  "enable_action_confirmation": 0,
+  "enable_action_confirmation": 1,
   "is_active": 1,
   "name": "PC_WORKFLOW",
   "override_status": 0,
