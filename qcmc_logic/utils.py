@@ -1,6 +1,7 @@
 from functools import lru_cache
 
 import frappe
+from frappe import _
 from frappe.utils import flt
 
 
@@ -67,10 +68,12 @@ def get_user_allowed_warehouses(
     user=None,
     require_transact=False,
     require_list_view=False,
+    source=None,
 ):
     """Fetch effective warehouses for the given user.
 
-    User-level Warehouse Access and Role Profile Warehouse Access are combined.
+    User-level Warehouse Access and Role Profile Warehouse Access are combined
+    by default. ``source`` can restrict lookup to one access source.
     Rows in Allowed Warehouse grant selection access by default. When
     require_transact is true, only rows with allow_transact checked are returned.
     When require_list_view is true, only rows with allow_in_list_view checked
@@ -82,7 +85,7 @@ def get_user_allowed_warehouses(
     if user == "Administrator":
         return _get_all_leaf_warehouses()
 
-    access_conditions, values = _get_warehouse_access_conditions(user)
+    access_conditions, values = _get_warehouse_access_conditions(user, source=source)
     if not access_conditions:
         return []
 
@@ -109,6 +112,40 @@ def get_user_allowed_warehouses(
     )
 
     return [row[0] for row in rows]
+
+
+def ensure_scanner_warehouse_access(user, warehouses, require_transact=False):
+    """Enforce effective Warehouse Access for an authenticated scanner user.
+
+    Scanner access comes only from the user's Role Profile Warehouse Access.
+    Scanner reads require ``Allow in List View``; scanner mutations require
+    ``Allow Transact``.
+    """
+    requested = {
+        str(warehouse or "").strip()
+        for warehouse in (warehouses or [])
+        if str(warehouse or "").strip()
+    }
+    if not requested or user == "Administrator":
+        return
+
+    allowed = set(
+        get_user_allowed_warehouses(
+            user,
+            require_transact=require_transact,
+            require_list_view=not require_transact,
+            source="Role Profile",
+        )
+    )
+    denied = sorted(requested - allowed)
+    if denied:
+        action = "transact in" if require_transact else "access"
+        frappe.throw(
+            _("You are not allowed to {0} Warehouse(s): {1}.").format(
+                action, ", ".join(denied)
+            ),
+            frappe.PermissionError,
+        )
 
 
 def _get_all_leaf_warehouses():

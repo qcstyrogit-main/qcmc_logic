@@ -110,7 +110,11 @@ def job_card_permission_query(user):
 
 def work_order_has_permission(doc, ptype=None, user=None):
     user = user or frappe.session.user
-    if not manufacturing_warehouse_access_applies(user) or ptype == "create":
+    if (
+        not manufacturing_warehouse_access_applies(user)
+        or ptype == "create"
+        or (doc and doc.is_new())
+    ):
         return True
     if not doc:
         return None
@@ -132,7 +136,11 @@ def work_order_has_permission(doc, ptype=None, user=None):
 
 def job_card_has_permission(doc, ptype=None, user=None):
     user = user or frappe.session.user
-    if not manufacturing_warehouse_access_applies(user) or ptype == "create":
+    if (
+        not manufacturing_warehouse_access_applies(user)
+        or ptype == "create"
+        or (doc and doc.is_new())
+    ):
         return True
     if not doc:
         return None

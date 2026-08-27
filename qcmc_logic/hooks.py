@@ -7,8 +7,6 @@ app_license = "mit"
 
 # Apps
 # ------------------
-override_whitelisted_methods = {}
-
 doc_events = {
     "*": {
         "validate": [
@@ -173,8 +171,11 @@ after_request = [
 doctype_js = {
     "BOM": "public/js/bom.js",
     "Item": "public/js/item.js",
+    "Job Card": "public/js/job_card.js",
     "Sales Order": "public/js/sales_order.js",
     "Stock Entry": "public/js/stock_entry.js",
+    "Stock Reconciliation": "public/js/stock_reconciliation.js",
+    "Storage Location": "public/js/storage_location.js",
     "Work Order": "public/js/work_order.js",
     "Material Request": "public/js/material_request.js",
     "Pick List": "public/js/pick_list.js",
@@ -191,6 +192,7 @@ doctype_js = {
     "Bulk HMO Enrollment Creation": "public/js/bulk_hmo_enrollment_creation.js",
     "Bulk HMO Enrollment Renewal": "public/js/bulk_hmo_enrollment_renewal.js",
     "Mode of Payment": "public/js/mode_of_payment.js",
+	"Delivery Trip": "public/js/delivery_trip_gps.js",
 }
 
 doctype_list_js = {
@@ -209,6 +211,7 @@ doctype_list_js = {
 
 
 override_whitelisted_methods = {
+	"erpnext.stock.doctype.pick_list.pick_list.create_stock_entry": "qcmc_logic.overrides.pick_list.create_stock_entry",
     "frappe_assistant_core.api.fac_endpoint.handle_mcp": "qcmc_logic.overrides.oauth_override.handle_mcp",
     "frappe.desk.printing.get_print_format": "qcmc_logic.overrides.POPrint_Override.get_po_print_format",
     "frappe.desk.query_report.run": "qcmc_logic.overrides.query_report_override.run",
@@ -225,6 +228,8 @@ override_whitelisted_methods = {
     "erpnext.stock.doctype.putaway_rule.putaway_rule.get_available_putaway_capacity": "qcmc_logic.overrides.putaway_rule_dimension.get_available_dimension_putaway_capacity",
     "erpnext.stock.dashboard.warehouse_capacity_dashboard.get_data": "qcmc_logic.overrides.warehouse_capacity_dashboard.get_data",
     "erpnext.stock.doctype.inventory_dimension.inventory_dimension.get_inventory_documents": "qcmc_logic.overrides.inventory_dimension.get_inventory_documents",
+    "route_optimizer.api.delivery_trip.optimize_route_osrm": "qcmc_logic.api.delivery_trip_route.optimize_route_osrm",
+    "route_optimizer.api.delivery_trip.calculate_etas_osrm": "qcmc_logic.api.delivery_trip_route.calculate_etas_osrm",
 }
 
 
@@ -243,7 +248,9 @@ override_doctype_class = {
     "Putaway Rule": "qcmc_logic.overrides.putaway_rule.CustomPutawayRule",
     "Purchase Receipt": "qcmc_logic.overrides.purchase_receipt.CustomPurchaseReceipt",
     "Stock Entry": "qcmc_logic.overrides.stock_entry.CustomStockEntry",
+    "Job Card": "qcmc_logic.overrides.job_card.CustomJobCard",
     "Inventory Dimension": "qcmc_logic.overrides.inventory_dimension.CustomInventoryDimension",
+    "Pick List": "qcmc_logic.overrides.pick_list.CustomPickList",
     "Bulk Salary Structure Assignment": "qcmc_logic.overrides.bulk_salary_structure_assignment.CustomBulkSalaryStructureAssignment",
     "Salary Structure Assignment": "qcmc_logic.overrides.salary_structure_assignment.CustomSalaryStructureAssignment",
 }
@@ -256,6 +263,7 @@ permission_query_conditions = {
      "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_permission_query",
      "Machine Shop Repairs and Project": "qcmc_logic.customs.machine_shop_repairs_and_project.msrp_permission_query",
      "Material Request": "qcmc_logic.customs.permissions.material_request_permission_query",
+     "Payment Entry": "qcmc_logic.customs.permissions.payment_entry_permission_query",
      "Pick List": "qcmc_logic.customs.permissions.pick_list_permission_query",
      "POS Invoice": "qcmc_logic.customs.permissions.pos_invoice_permission_query",
      "Purchase Invoice": "qcmc_logic.customs.permissions.purchase_invoice_permission_query",
@@ -280,6 +288,7 @@ has_permission = {
     "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_has_permission",
     "Machine Shop Repairs and Project": "qcmc_logic.customs.machine_shop_repairs_and_project.msrp_has_permission",
     "Material Request": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Payment Entry": "qcmc_logic.customs.permissions.payment_entry_has_permission",
     "Pick List": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "POS Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Purchase Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
@@ -375,6 +384,8 @@ after_migrate = [
     "qcmc_logic.customs.daily_job_report.remove_obsolete_schedule_fields",
     "qcmc_logic.customs.issue_kanban.ensure_company_ticket_kanban",
     "qcmc_logic.customs.work_order_print_format.ensure_job_order_print_formats_use_a5",
+    "qcmc_logic.patches.add_manufacturing_details_to_delivery_receipt_pr.execute",
+    "qcmc_logic.patches.remove_retired_location_inventory_dimensions.execute",
 ]
 
 # # Or ensure it loads at boot
@@ -420,7 +431,9 @@ app_include_js = [
 # webform_include_css = {"doctype": "public/css/doctype.css"}
 
 # include js in page
-# page_js = {"page" : "public/js/file.js"}
+page_js = {
+    "warehouse-capacity-summary": "public/js/warehouse_capacity_summary.js",
+}
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
@@ -531,6 +544,9 @@ jinja = {
 
 scheduler_events = {
     "cron": {
+		"*/5 * * * *": [
+			"qcmc_logic.integrations.aika_gps.enqueue_enabled_trackers"
+		],
         "*/30 * * * *": [
             "qcmc_logic.api.zkteco.fetch_and_insert_attendance_logs"
         ]

@@ -1,9 +1,12 @@
 import frappe
 from frappe.desk.reportview import build_match_conditions
-from frappe.utils import escape_html, flt, nowdate
+from frappe.utils import escape_html, flt
 
-from erpnext.stock.utils import get_stock_balance
-from qcmc_logic.overrides.putaway_rule_dimension import get_rule_dimension_fields, get_rule_dimension_values
+from qcmc_logic.overrides.putaway_rule_dimension import (
+	get_dimension_stock_balance,
+	get_rule_dimension_fields,
+	get_rule_dimension_values,
+)
 
 
 @frappe.whitelist()
@@ -72,14 +75,10 @@ def get_warehouse_capacity_data(filters, start):
 
 	for entry in capacity_data:
 		dimensions = get_rule_dimension_values(entry)
-		balance_qty = (
-			get_stock_balance(
-				entry.item_code,
-				entry.warehouse,
-				nowdate(),
-				inventory_dimensions_dict=dimensions or None,
-			)
-			or 0
+		balance_qty = get_dimension_stock_balance(
+			entry.item_code,
+			entry.warehouse,
+			dimensions,
 		)
 		entry.update(
 			{

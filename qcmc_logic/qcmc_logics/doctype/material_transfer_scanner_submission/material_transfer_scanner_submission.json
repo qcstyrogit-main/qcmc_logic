@@ -1,0 +1,38 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-08-12 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "submission_id", "job_card", "work_order", "stock_entry", "status",
+  "processed_by", "processed_at", "request_hash", "request_json", "result_json"
+ ],
+ "fields": [
+  {"fieldname":"submission_id","fieldtype":"Data","label":"Submission ID","reqd":1,"unique":1},
+  {"fieldname":"job_card","fieldtype":"Link","label":"Job Card","options":"Job Card","reqd":1},
+  {"fieldname":"work_order","fieldtype":"Link","label":"Work Order","options":"Work Order","reqd":1},
+  {"fieldname":"stock_entry","fieldtype":"Link","label":"Stock Entry","options":"Stock Entry","reqd":1},
+  {"fieldname":"status","fieldtype":"Select","label":"Status","options":"Success\nFailed","reqd":1},
+  {"fieldname":"processed_by","fieldtype":"Link","label":"Processed By","options":"User","reqd":1},
+  {"fieldname":"processed_at","fieldtype":"Datetime","label":"Processed At","reqd":1},
+  {"fieldname":"request_hash","fieldtype":"Data","label":"Request Hash","reqd":1},
+  {"fieldname":"request_json","fieldtype":"Long Text","label":"Request JSON","reqd":1},
+  {"fieldname":"result_json","fieldtype":"Long Text","label":"Result JSON","reqd":1}
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-08-12 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "QCMC Logics",
+ "name": "Material Transfer Scanner Submission",
+ "naming_rule": "By fieldname",
+ "autoname": "field:submission_id",
+ "owner": "Administrator",
+ "permissions": [
+  {"create":1,"delete":1,"email":1,"export":1,"print":1,"read":1,"report":1,"role":"System Manager","share":1,"write":1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

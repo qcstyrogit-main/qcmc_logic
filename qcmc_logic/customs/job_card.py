@@ -5,7 +5,7 @@ from qcmc_logic.api.stock_entry import _get_final_operation
 
 
 def sync_non_final_operation_progress(doc, method=None):
-	"""Credit saved Actual Time output from non-final Job Cards to the Work Order."""
+	"""Credit actual shift output without treating unfinished quantity as loss."""
 	if not doc.work_order or not doc.operation_id or doc.is_corrective_job_card:
 		return
 
@@ -22,8 +22,16 @@ def sync_non_final_operation_progress(doc, method=None):
 		return
 
 	final_operation = _get_final_operation(work_order)
-	if not final_operation or doc.operation_id == final_operation.name:
+	if not final_operation:
 		return
+
+	# A QCMC Job Card represents one shift. Completing less than for_quantity
+	# leaves production for a later Job Card; it is not manufacturing process
+	# loss. True process loss must be recorded through its dedicated flow.
+	if flt(doc.get("process_loss_qty")):
+		frappe.db.set_value(
+			"Job Card", doc.name, "process_loss_qty", 0, update_modified=False
+		)
 
 	job_cards = frappe.get_all(
 		"Job Card",
@@ -77,3 +85,20 @@ def _get_operation_status(accounted_qty, work_order_qty):
 	if accounted_qty < work_order_qty:
 		return "Work in Progress"
 	return "Completed"
+
+
+def repair_shift_process_loss(job_card_name):
+	"""Repair shift shortfall previously stored as manufacturing process loss."""
+	doc = frappe.get_doc("Job Card", job_card_name)
+	sync_non_final_operation_progress(doc, "repair")
+	doc.reload()
+	operation = frappe.get_doc("Work Order Operation", doc.operation_id)
+	return {
+		"job_card": doc.name,
+		"for_quantity": flt(doc.for_quantity),
+		"completed_quantity": flt(doc.total_completed_qty),
+		"job_card_process_loss": flt(doc.process_loss_qty),
+		"operation_completed_quantity": flt(operation.completed_qty),
+		"operation_process_loss": flt(operation.process_loss_qty),
+		"operation_status": operation.status,
+	}

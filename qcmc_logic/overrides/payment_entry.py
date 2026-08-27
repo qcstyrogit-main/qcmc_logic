@@ -4,6 +4,10 @@ from frappe.utils import cint, flt
 from erpnext.accounts.doctype.payment_entry.payment_entry import PaymentEntry
 from erpnext.accounts.general_ledger import make_gl_entries, process_gl_map
 from collections import defaultdict
+from qcmc_logic.customs.territory_access_permissions import (
+    get_user_allowed_territories,
+    has_territory_access,
+)
 
 
 #comment ako dito
@@ -12,6 +16,7 @@ class CustomPaymentEntry(PaymentEntry):
         self.apply_payment_type_role_default()
         super().validate()
         self.validate_payment_type_role_access()
+        self.validate_customer_territory_access()
         self.validate_intercompany_collection_payment()
         self.validate_underpayment_breakdown()
 
@@ -31,6 +36,28 @@ class CustomPaymentEntry(PaymentEntry):
             frappe.throw(
                 _("Your role only allows Payment Entry Type: {0}.").format(
                     frappe.bold(", ".join(allowed_payment_types))
+                )
+            )
+
+    def validate_customer_territory_access(self):
+        if (
+            not has_territory_access()
+            or self.payment_type != "Receive"
+            or self.party_type != "Customer"
+            or not self.party
+        ):
+            return
+
+        territory = frappe.db.get_value("Customer", self.party, "territory")
+        if not territory:
+            return
+
+        allowed = set(get_user_allowed_territories(require_transactions=True))
+        if territory not in allowed:
+            frappe.throw(
+                _("Customer {0} is not allowed for Territory {1}.").format(
+                    frappe.bold(self.party),
+                    frappe.bold(territory),
                 )
             )
 

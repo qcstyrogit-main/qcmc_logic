@@ -1256,7 +1256,7 @@
   "enabled": 1,
   "module": null,
   "name": "Stock Entry Print Format Default",
-  "script": "frappe.ui.form.on('Stock Entry', {\n\tonload(frm) {\n        set_print_format(frm);\n    },\n\n    refresh(frm) {\n        set_print_format(frm);\n    },\n\n    stock_entry_type(frm) {\n        set_print_format(frm);\n    }\n});\n\nfunction set_print_format(frm) {\n    let print_format = \"\";\n\n    if (frm.doc.stock_entry_type === \"Material Issue\") {\n        print_format = \"SE - Issuance to Production\";\n    } else {\n        print_format = \"Stock Entry With ISO\";\n    }\n    \n    frm.meta.default_print_format = print_format;\n\n}",
+  "script": "frappe.ui.form.on('Stock Entry', {\n\tonload(frm) {\n        set_print_format(frm);\n    },\n\n    refresh(frm) {\n        set_print_format(frm);\n    },\n\n    stock_entry_type(frm) {\n        set_print_format(frm);\n    }\n});\n\nfunction set_print_format(frm) {\n    let print_format = \"\";\n\n    if (frm.doc.stock_entry_type === \"Material Issue\") {\n        print_format = \"SE - Issuance to Production\";\n    } else if (frm.doc.stock_entry_type === \"Material Transfer for Manufacture\") {\n        print_format = \"SE - Material Transfer to Manufacture\";\n    } else {\n        print_format = \"Stock Entry With ISO\";\n    }\n    \n    frm.meta.default_print_format = print_format;\n\n}",
   "view": "Form"
  },
  {

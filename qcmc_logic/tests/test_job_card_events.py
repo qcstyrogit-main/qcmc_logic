@@ -81,7 +81,7 @@ class TestDraftJobCardProgress(TestCase):
 			update_modified=False,
 		)
 
-	def test_final_operation_is_not_updated_from_draft_actual_time(self):
+	def test_final_operation_partial_shift_is_not_treated_as_process_loss(self):
 		injection = operation("WO-OP-1", 1, 1)
 		packing = operation("WO-OP-2", 2, 2)
 		work_order = _dict(
@@ -94,11 +94,27 @@ class TestDraftJobCardProgress(TestCase):
 
 		with patch("qcmc_logic.customs.job_card.frappe") as frappe:
 			frappe.get_doc.return_value = work_order
+			frappe.get_all.return_value = [
+				_dict(total_completed_qty=25),
+			]
 
-			sync_non_final_operation_progress(job_card(packing.name))
+			sync_non_final_operation_progress(
+				job_card(packing.name, total_completed_qty=25, process_loss_qty=75)
+			)
 
-		frappe.get_all.assert_not_called()
-		frappe.db.set_value.assert_not_called()
+		frappe.db.set_value.assert_any_call(
+			"Job Card", "JC-TEST", "process_loss_qty", 0, update_modified=False
+		)
+		frappe.db.set_value.assert_any_call(
+			"Work Order Operation",
+			packing.name,
+			{
+				"completed_qty": 25,
+				"process_loss_qty": 0,
+				"status": "Work in Progress",
+			},
+			update_modified=False,
+		)
 
 	def test_cancel_with_zero_remaining_progress_resets_operation(self):
 		injection = operation("WO-OP-1", 1, 1)

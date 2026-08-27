@@ -396,18 +396,39 @@ def make_manufacture_stock_entry_from_job_card(job_card, qty=None):
             qty=qty,
         )
     )
+    # Preserve the authoritative manufacturing link explicitly. Some customized
+    # Stock Entry mappings can omit it while syncing the generated document.
+    stock_entry.work_order = wo.name
+    # The native Stock Entry.job_card link is reserved by ERPNext for Job Cards
+    # with a configured semi-finished `finished_good`. Final-operation Job Cards
+    # are linked through custom_final_job_card and the Stock Entry override
+    # synchronizes the final Work Order quantity after submit/cancel.
     stock_entry.custom_final_job_card = jc.name
     stock_entry.custom_job_card_time_log = time_log.name
     stock_entry.insert()
+    if stock_entry.work_order != wo.name:
+        stock_entry.db_set("work_order", wo.name, update_modified=False)
+        stock_entry.work_order = wo.name
     return stock_entry.as_dict()
 
 
 def _sync_operation_for_incremental_output(job_card, work_order, qty):
-    """Allow incremental output while the shift Job Card remains open."""
+    """Allow partial shift output without converting the remainder to loss."""
     if not job_card.operation_id:
         return
 
     operation = frappe.get_doc("Work Order Operation", job_card.operation_id)
+
+    # QCMC uses successive Job Cards/shifts to complete a Work Order. ERPNext's
+    # standard Job Card submission treats ``for_quantity - completed_qty`` as
+    # process loss. Here that difference is remaining production, not loss.
+    # Clear legacy values as part of Draft creation so already-submitted Job
+    # Cards can be retried safely after this correction.
+    if flt(job_card.get("process_loss_qty")):
+        job_card.db_set("process_loss_qty", 0, update_modified=False)
+    if flt(operation.process_loss_qty):
+        operation.db_set("process_loss_qty", 0, update_modified=False)
+
     completed_qty = max(
         flt(operation.completed_qty),
         flt(work_order.produced_qty) + flt(qty),

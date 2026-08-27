@@ -1,0 +1,46 @@
+{
+ "actions": [],
+ "autoname": "field:transaction_id",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "transaction_id", "submission_id", "entry_number", "reconciliation", "item_code", "warehouse",
+  "storage_location", "uom", "action", "quantity_change", "previous_quantity", "running_quantity",
+  "physical_count", "variance", "adjustment_document_type", "adjustment_document",
+  "scanned_at", "processed_at", "scanner_user", "employee_id", "scanner_full_name", "device_id"
+ ],
+ "fields": [
+  {"fieldname":"transaction_id","fieldtype":"Data","in_list_view":1,"in_standard_filter":1,"label":"Transaction ID","reqd":1,"unique":1},
+  {"fieldname":"submission_id","fieldtype":"Data","in_list_view":1,"in_standard_filter":1,"label":"Submission ID","reqd":1},
+  {"fieldname":"entry_number","fieldtype":"Int","label":"Entry Number","reqd":1},
+  {"fieldname":"reconciliation","fieldtype":"Link","in_list_view":1,"in_standard_filter":1,"label":"Stock Reconciliation","options":"Stock Reconciliation","reqd":1},
+  {"fieldname":"item_code","fieldtype":"Link","in_list_view":1,"in_standard_filter":1,"label":"Item","options":"Item","reqd":1},
+  {"fieldname":"warehouse","fieldtype":"Link","label":"Warehouse","options":"Warehouse","reqd":1},
+  {"fieldname":"storage_location","fieldtype":"Link","in_list_view":1,"in_standard_filter":1,"label":"Storage Location","options":"Storage Location","reqd":1},
+  {"fieldname":"uom","fieldtype":"Link","label":"UOM","options":"UOM","reqd":1},
+  {"fieldname":"action","fieldtype":"Select","in_list_view":1,"in_standard_filter":1,"label":"Action","options":"ADD\nDEDUCT\nSUBMITTED\nCORRECTION_SUBMITTED","reqd":1},
+  {"fieldname":"quantity_change","fieldtype":"Float","in_list_view":1,"label":"Quantity Change","reqd":1},
+  {"fieldname":"previous_quantity","fieldtype":"Float","label":"Previous Quantity"},
+  {"fieldname":"running_quantity","fieldtype":"Float","in_list_view":1,"label":"Running Quantity","reqd":1},
+  {"fieldname":"physical_count","fieldtype":"Float","label":"Physical Count"},
+  {"fieldname":"variance","fieldtype":"Float","label":"Variance"},
+  {"fieldname":"adjustment_document_type","fieldtype":"Data","label":"Adjustment Document Type"},
+  {"fieldname":"adjustment_document","fieldtype":"Dynamic Link","label":"Adjustment Document","options":"adjustment_document_type"},
+  {"fieldname":"scanned_at","fieldtype":"Datetime","in_list_view":1,"label":"Scanned At","reqd":1},
+  {"fieldname":"processed_at","fieldtype":"Datetime","label":"Processed At","reqd":1},
+  {"fieldname":"scanner_user","fieldtype":"Link","label":"Scanner User","options":"User","reqd":1},
+  {"fieldname":"employee_id","fieldtype":"Data","label":"Employee ID"},
+  {"fieldname":"scanner_full_name","fieldtype":"Data","label":"Scanner Full Name","read_only":1},
+  {"fieldname":"device_id","fieldtype":"Data","label":"Device ID","reqd":1}
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "module": "QCMC Logics",
+ "name": "Physical Count Scan Transaction",
+ "permissions": [
+  {"export":1,"print":1,"read":1,"report":1,"role":"System Manager"},
+  {"export":1,"print":1,"read":1,"report":1,"role":"Stock Manager"}
+ ],
+ "sort_field": "scanned_at",
+ "sort_order": "DESC"
+}

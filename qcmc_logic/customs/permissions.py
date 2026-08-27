@@ -12,6 +12,8 @@ from qcmc_logic.utils import (
     is_global_warehouse_access_enabled,
 )
 from qcmc_logic.customs.territory_access_permissions import (
+    get_user_allowed_territories,
+    has_territory_access,
     territory_has_permission,
     territory_permission_query,
 )
@@ -24,7 +26,7 @@ WAREHOUSE_TRANSACTION_DOCTYPES = {
     },
     "Material Request": {
         "fields": ["set_warehouse", "set_from_warehouse"],
-        "children": {"Material Request Item": ["warehouse"]},
+        "children": {"Material Request Item": ["warehouse", "from_warehouse"]},
     },
     "Pick List": {
         "children": {"Pick List Item": ["warehouse"], "Pick List Item Location": ["warehouse"]},
@@ -276,14 +278,10 @@ def _warehouse_transaction_permission_query(doctype, user):
     table = f"`tab{doctype}`"
     allowed_sql = _sql_list(allowed_warehouses)
     has_allowed_conditions = []
-    no_disallowed_conditions = []
 
     for fieldname in config["fields"]:
         field = f"{table}.`{fieldname}`"
         has_allowed_conditions.append(f"{field} IN ({allowed_sql})")
-        no_disallowed_conditions.append(
-            f"(IFNULL({field}, '') = '' OR {field} IN ({allowed_sql}))"
-        )
 
     for child_doctype, fieldnames in config["children"].items():
         child_table = f"`tab{child_doctype}`"
@@ -296,22 +294,11 @@ def _warehouse_transaction_permission_query(doctype, user):
                 f"WHERE {parent_match} AND {child_field} IN ({allowed_sql})"
                 ")"
             )
-            no_disallowed_conditions.append(
-                "NOT EXISTS ("
-                f"SELECT 1 FROM {child_table} "
-                f"WHERE {parent_match} "
-                f"AND IFNULL({child_field}, '') != '' "
-                f"AND {child_field} NOT IN ({allowed_sql})"
-                ")"
-            )
 
     if not has_allowed_conditions:
         return "1=0"
 
-    return "({0}) AND ({1})".format(
-        " OR ".join(has_allowed_conditions),
-        " AND ".join(no_disallowed_conditions),
-    )
+    return "(" + " OR ".join(has_allowed_conditions) + ")"
 
 
 def _combined_transaction_permission_query(doctype, user):
@@ -372,6 +359,49 @@ def sales_order_permission_query(user):
 
 def customer_permission_query(user):
     return territory_permission_query("Customer", user)
+
+
+def payment_entry_permission_query(user):
+    if not has_territory_access(user):
+        return ""
+
+    allowed = get_user_allowed_territories(user)
+    payment_table = "`tabPayment Entry`"
+    customer_table = "`tabCustomer`"
+    unrestricted_condition = (
+        f"({payment_table}.`payment_type` != 'Receive' "
+        f"OR {payment_table}.`party_type` != 'Customer')"
+    )
+    if not allowed:
+        return unrestricted_condition
+
+    allowed_sql = _sql_list(allowed)
+    return (
+        f"({unrestricted_condition} "
+        f"OR EXISTS ("
+        f"SELECT 1 FROM {customer_table} "
+        f"WHERE {customer_table}.`name` = {payment_table}.`party` "
+        f"AND {customer_table}.`territory` IN ({allowed_sql})"
+        f"))"
+    )
+
+
+def payment_entry_has_permission(doc, ptype=None, user=None):
+    user = user or frappe.session.user
+    if (
+        not has_territory_access(user)
+        or ptype == "create"
+        or not doc
+        or doc.payment_type != "Receive"
+        or doc.party_type != "Customer"
+        or not doc.party
+    ):
+        return True
+
+    require_transactions = ptype in {"write", "submit", "cancel", "delete", "amend"}
+    allowed = set(get_user_allowed_territories(user, require_transactions))
+    territory = frappe.db.get_value("Customer", doc.party, "territory")
+    return not territory or territory in allowed
 
 
 def stock_entry_permission_query(user):
@@ -441,7 +471,10 @@ def warehouse_transaction_has_permission(doc, ptype=None, user=None):
 
     warehouses = set(_iter_doc_warehouse_values(doc))
     if not warehouses:
-        return True
+        return False
+
+    if ptype in {None, "read", "select"}:
+        return bool(warehouses.intersection(allowed_warehouses))
 
     return warehouses.issubset(allowed_warehouses)
 
