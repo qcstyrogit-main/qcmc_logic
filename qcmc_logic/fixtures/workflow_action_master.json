@@ -116,6 +116,12 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "name": "Close Inventory",
+  "workflow_action_name": "Close Inventory"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "name": "For Recon",
   "workflow_action_name": "For Recon"
  },

@@ -225,6 +225,7 @@ qcmc_logic.job_card.show_qr_label = async function(frm, values, payload, item, l
 	if (!response.message) return;
 
 	const escape = (value) => frappe.utils.escape_html(String(value || ""));
+	const displayed_quantity = `${values.pack_type === "Big Pack" ? "Big Pack " : ""}${values.quantity} ${item.stock_uom}`;
 	const logo = `<img src="/assets/qcmc_logic/images/QC.webp" alt="QCSC Logo" style="max-width:70px;max-height:70px;object-fit:contain">`;
 	const line = (label, value) => `<div style="display:grid;grid-template-columns:105px 1fr;gap:5px;align-items:end;margin:5px 0">
 		<span style="font-size:10px;font-weight:700;color:#555">${escape(label)}:</span>
@@ -264,7 +265,7 @@ qcmc_logic.job_card.show_qr_label = async function(frm, values, payload, item, l
 					</tr>
 					<tr>
 						<td style="width:76px;font-weight:700;padding:4px 5px 4px 0;vertical-align:top">${escape(__("Quantity"))}:</td>
-						<td style="padding:4px 2px;border-bottom:1px solid #777;vertical-align:top;font-size:12px;font-weight:700">${escape(`${values.quantity} ${item.stock_uom}`)}</td>
+						<td style="padding:4px 2px;border-bottom:1px solid #777;vertical-align:top;font-size:12px;font-weight:700">${escape(displayed_quantity)}</td>
 					</tr>
 				</table>
 			</div>

@@ -43,6 +43,7 @@ def generate_packing_label_pdf(job_card, pack_type, orientation="Portrait", labe
 		frappe.throw(_("Pack Type must be Standard Pack or Big Pack."))
 
 	pack_quantity = flt(bom.custom_standard_pack if pack_type == "Standard Pack" else bom.quantity)
+	pack_quantity_prefix = "Big Pack " if pack_type == "Big Pack" else ""
 	job_quantity = flt(doc.for_quantity)
 	if pack_quantity <= 0 or job_quantity <= 0:
 		frappe.throw(_("Job Card and pack quantities must be greater than zero."))
@@ -100,7 +101,7 @@ def generate_packing_label_pdf(job_card, pack_type, orientation="Portrait", labe
 			<table>
 				<tr><th>Lot No.:</th><td>{escape(data.get('lot_no'))}</td></tr>
 				<tr><th>Part Name / No. / Code:</th><td>{escape(data.get('part_name'))}</td></tr>
-				<tr><th>Quantity:</th><td class="quantity">{escape(pack_quantity)} {escape(item.stock_uom)}</td></tr>
+				<tr><th>Quantity:</th><td class="quantity">{escape(pack_quantity_prefix)}{escape(pack_quantity)} {escape(item.stock_uom)}</td></tr>
 			</table>
 		</div>
 	</div>"""

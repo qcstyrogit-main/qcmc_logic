@@ -4,6 +4,7 @@
  "module": "QCMC Logics",
  "istable": 1,
  "editable_grid": 1,
+ "grid_page_length": 10,
  "engine": "InnoDB",
  "field_order": [
   "submission_id", "item_code", "item_name", "warehouse", "inventory_location",
@@ -37,8 +38,8 @@
   {"fieldname":"counted_at","fieldtype":"Datetime","label":"Counted At","read_only":1},
   {"fieldname":"submitted_at","fieldtype":"Datetime","label":"Submitted At","read_only":1,"in_list_view":1},
   {"fieldname":"transaction_count","fieldtype":"Int","label":"Transaction Count","read_only":1},
-  {"fieldname":"scan_history_json","fieldtype":"Long Text","label":"Scan History JSON","read_only":1},
-  {"fieldname":"status","fieldtype":"Select","label":"Status","options":"Pending adjustment\nNo adjustment required\nAdjusted\nSuperseded\nFailed","read_only":1,"in_list_view":1}
+  {"fieldname":"scan_history_json","fieldtype":"Long Text","label":"Scan History JSON","read_only":1,"hidden":1},
+  {"fieldname":"status","fieldtype":"Select","label":"Status","options":"Pending adjustment\nNo adjustment required\nAdjusted\nOld Count\nFailed","read_only":1,"in_list_view":1}
  ],
  "permissions": []
 }

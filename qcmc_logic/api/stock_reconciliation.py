@@ -616,6 +616,18 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
             _validate_adjustment_entry(entry, index, doc)
             for index, entry in enumerate(entries, start=1)
         ]
+        latest_count_by_key = {}
+        for result_row in doc.get("custom_physical_count_results") or []:
+            result_key = (
+                result_row.item_code,
+                result_row.warehouse,
+                result_row.get("location") or result_row.inventory_location,
+                result_row.get("batch_no") or "",
+                result_row.get("serial_no") or "",
+                result_row.uom or "",
+            )
+            latest_count_by_key[result_key] = _safe_float(result_row.physical_count)
+
         planned = []
         for index, entry in enumerate(normalized, start=1):
             dimensions = {"location": entry.location}
@@ -627,7 +639,40 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
             if not _quantities_equal(current, expected_baseline):
                 entry.expected = expected_baseline
                 raise PhysicalCountConflict(current, entry)
-            variance = entry.physical_count - current
+
+            count_key = (
+                entry.item_code, entry.warehouse, entry.location,
+                entry.batch_no or "", entry.serial_no or "", entry.stock_uom or "",
+            )
+            previous_physical_count = latest_count_by_key.get(count_key, 0.0)
+            authoritative_physical_count = previous_physical_count + entry.quantity_delta
+            if authoritative_physical_count < -1e-9:
+                frappe.throw(
+                    f"Entry #{index}: the physical count cannot become negative."
+                )
+
+            running_quantity = previous_physical_count
+            normalized_transactions = []
+            for transaction in entry.transactions:
+                normalized_transaction = dict(transaction)
+                change = _parse_finite_number(
+                    transaction.get("quantityChange", transaction.get("quantity_change")),
+                    "quantityChange", index,
+                )
+                running_quantity += change
+                if running_quantity < -1e-9:
+                    frappe.throw(
+                        f"Entry #{index}: transaction history makes the physical count negative."
+                    )
+                normalized_transaction["quantityChange"] = change
+                normalized_transaction["runningQuantity"] = running_quantity
+                normalized_transactions.append(normalized_transaction)
+
+            entry.expected = previous_physical_count
+            entry.physical_count = authoritative_physical_count
+            entry.transactions = normalized_transactions
+            latest_count_by_key[count_key] = authoritative_physical_count
+            variance = authoritative_physical_count - current
             planned.append((index, entry, current, variance))
 
         scanner_full_name = frappe.get_cached_value("User", user, "full_name") or user
@@ -704,11 +749,14 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                 "inventory_location": entry.location,
                 "inventory_location_id": entry.location,
                 "location": entry.location,
+                "location_name": frappe.db.get_value(
+                    "Storage Location", entry.location, "location_name"
+                ) or entry.location,
                 "uom": entry.stock_uom,
                 "batch_no": entry.batch_no,
                 "serial_no": entry.serial_no,
                 "erp_quantity_before": current,
-                "expected_previous_count": expected_baseline,
+                "expected_previous_count": entry.expected,
                 "quantity_delta": entry.quantity_delta,
                 "physical_count": entry.physical_count,
                 "variance": variance,
@@ -769,8 +817,8 @@ def post_pending_pcount_adjustments(doc):
             result.uom or "",
         )
         if key in latest:
-            latest[key].status = "Superseded"
-            latest[key].adjustment_status = "Superseded"
+            latest[key].status = "Old Count"
+            latest[key].adjustment_status = "Old Count"
         latest[key] = result
 
     if not latest:

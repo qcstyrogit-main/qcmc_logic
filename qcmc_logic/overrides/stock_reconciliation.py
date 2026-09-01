@@ -1,5 +1,6 @@
 import hashlib
 import json
+import uuid
 
 import frappe
 from frappe import _
@@ -48,14 +49,79 @@ class CustomStockReconciliation(StockReconciliation):
         if self.get("custom_physical_count"):
             self.purpose = "Stock Reconciliation"
             if self.workflow_state == "For Recon":
+                self.capture_for_recon_count_corrections()
+            if self.workflow_state == "Close Inventory":
                 self.add_missing_location_zero_counts()
             self.rebuild_physical_count_summary()
         super().validate()
         if self.get("custom_physical_count"):
             self.difference_amount = 0
 
+    def capture_for_recon_count_corrections(self):
+        """Preserve scanner history when a reviewer changes a physical count."""
+        results = self.get("custom_physical_count_results") or []
+        latest = latest_physical_count_results(results)
+        corrections = []
+
+        for result in results:
+            if not result.name or result.is_new():
+                continue
+            previous_count = frappe.db.get_value(
+                "QCMC Physical Count Result", result.name, "physical_count"
+            )
+            if previous_count is None or flt(previous_count) == flt(result.physical_count):
+                continue
+            latest_result = latest.get(physical_count_location_key(result))
+            corrected_count = flt(result.physical_count)
+            if corrected_count < 0:
+                frappe.throw(_("Physical Count cannot be negative."))
+
+            # Restore the immutable scanner snapshot and append a reviewed snapshot.
+            result.physical_count = flt(previous_count)
+            result.status = "Old Count"
+            result.adjustment_status = "Old Count"
+            if latest_result and latest_result is not result:
+                latest_result.status = "Old Count"
+                latest_result.adjustment_status = "Old Count"
+            values = result.as_dict(no_nulls=False)
+            for fieldname in (
+                "name", "owner", "creation", "modified", "modified_by", "docstatus",
+                "idx", "parent", "parentfield", "parenttype",
+            ):
+                values.pop(fieldname, None)
+            values.update({
+                "submission_id": f"ERP-CORRECTION-{uuid.uuid4()}",
+                "physical_count": corrected_count,
+                "quantity_delta": corrected_count - flt(previous_count),
+                "variance": corrected_count - flt(result.erp_quantity_before),
+                "adjustment_document_type": "",
+                "adjustment_document": "",
+                "adjustment_status": "Pending",
+                "scanner_user": frappe.session.user,
+                "scanner_full_name": (
+                    frappe.get_cached_value("User", frappe.session.user, "full_name")
+                    or frappe.session.user
+                ),
+                "device_id": "ERP Review",
+                "counted_at": now_datetime(),
+                "submitted_at": now_datetime(),
+                "transaction_count": 1,
+                "scan_history_json": json.dumps({
+                    "source": "ERP For Recon review",
+                    "previous_physical_count": flt(previous_count),
+                    "corrected_physical_count": corrected_count,
+                    "reviewed_by": frappe.session.user,
+                    "reviewed_at": str(now_datetime()),
+                }),
+                "status": "Pending adjustment",
+            })
+            corrections.append(values)
+
+        for values in corrections:
+            self.append("custom_physical_count_results", values)
+
     def add_missing_location_zero_counts(self):
-        """Infer zero counts for ERP locations absent from a completed item count."""
+        """Infer zero counts only while closing a completed physical count."""
         results = self.get("custom_physical_count_results") or []
         counted_locations = set()
         scopes = set()
@@ -92,8 +158,8 @@ class CustomStockReconciliation(StockReconciliation):
                 key = (item_code, warehouse, balance.location)
                 if key in counted_locations:
                     if key in automatic_rows:
-                        automatic_rows[key].status = "Superseded"
-                        automatic_rows[key].adjustment_status = "Superseded"
+                        automatic_rows[key].status = "Old Count"
+                        automatic_rows[key].adjustment_status = "Old Count"
                     continue
 
                 quantity = flt(balance.quantity)
@@ -115,11 +181,11 @@ class CustomStockReconciliation(StockReconciliation):
                     "item_name": frappe.get_cached_value("Item", item_code, "item_name") or item_code,
                     "warehouse": warehouse,
                     "inventory_location": balance.location,
-                    "inventory_location_id": (
-                        frappe.db.get_value("Storage Location", balance.location, "location_code")
-                        or balance.location
-                    ),
+                    "inventory_location_id": balance.location,
                     "location": balance.location,
+                    "location_name": frappe.db.get_value(
+                        "Storage Location", balance.location, "location_name"
+                    ) or balance.location,
                     "uom": uom or frappe.get_cached_value("Item", item_code, "stock_uom"),
                     "erp_quantity_before": quantity,
                     "physical_count": 0,
