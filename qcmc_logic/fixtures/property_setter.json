@@ -15072,7 +15072,7 @@
   "property": "options",
   "property_type": "Text",
   "row_name": null,
-  "value": "ACC-PAY-.YYYY.-"
+  "value": "ACC-REC-.YYYY.-\nACC-PAY-.YYYY.-"
  },
  {
   "default_value": null,

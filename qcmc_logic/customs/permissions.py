@@ -362,6 +362,30 @@ def customer_permission_query(user):
 
 
 def payment_entry_permission_query(user):
+    conditions = []
+    access = _get_payment_entry_type_role_access(user)
+    allowed_payment_types = access.get("allowed_payment_types") or []
+
+    if access.get("enabled") and allowed_payment_types:
+        payment_table = "`tabPayment Entry`"
+        conditions.append(
+            f"{payment_table}.`payment_type` IN ({_sql_list(allowed_payment_types)})"
+        )
+
+    territory_condition = _payment_entry_territory_permission_query(user)
+    if territory_condition:
+        conditions.append(territory_condition)
+
+    return " AND ".join(f"({condition})" for condition in conditions)
+
+
+def _get_payment_entry_type_role_access(user):
+    from qcmc_logic.overrides.payment_entry import get_payment_entry_type_role_access_for_user
+
+    return get_payment_entry_type_role_access_for_user(user)
+
+
+def _payment_entry_territory_permission_query(user):
     if not has_territory_access(user):
         return ""
 
@@ -388,10 +412,19 @@ def payment_entry_permission_query(user):
 
 def payment_entry_has_permission(doc, ptype=None, user=None):
     user = user or frappe.session.user
+    if not doc:
+        return True
+
+    access = _get_payment_entry_type_role_access(user)
+
+    if access.get("enabled"):
+        allowed_payment_types = access.get("allowed_payment_types") or []
+        if allowed_payment_types and doc.get("payment_type") not in allowed_payment_types:
+            return False
+
     if (
         not has_territory_access(user)
         or ptype == "create"
-        or not doc
         or doc.payment_type != "Receive"
         or doc.party_type != "Customer"
         or not doc.party
