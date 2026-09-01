@@ -48,7 +48,10 @@ doc_events = {
         "before_save": "qcmc_logic.overrides.wrr_override.validate"
     },
     "Sales Invoice": {
-        "before_validate": "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
+        "before_validate": [
+            "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
+            "qcmc_logic.overrides.sales_invoice_override.warn_duplicate_invoice_references",
+        ],
         "validate": "qcmc_logic.overrides.sales_invoice_override.validate",
     },
     "Sales Order": {
