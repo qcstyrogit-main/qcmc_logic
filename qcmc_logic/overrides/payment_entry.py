@@ -24,10 +24,22 @@ class CustomPaymentEntry(PaymentEntry):
         access = get_payment_entry_type_role_access()
         if access.get("enabled") and access.get("default_payment_type") and not self.payment_type:
             self.payment_type = access["default_payment_type"]
+        allowed_naming_series = access.get("allowed_naming_series") or []
+        if (
+            self.is_new()
+            and access.get("enabled")
+            and access.get("default_naming_series")
+            and (
+                not self.naming_series
+                or self.naming_series not in allowed_naming_series
+            )
+        ):
+            self.naming_series = access["default_naming_series"]
 
     def validate_payment_type_role_access(self):
         access = get_payment_entry_type_role_access()
         allowed_payment_types = access.get("allowed_payment_types") or []
+        allowed_naming_series = access.get("allowed_naming_series") or []
 
         if not access.get("enabled") or not allowed_payment_types or not self.payment_type:
             return
@@ -36,6 +48,13 @@ class CustomPaymentEntry(PaymentEntry):
             frappe.throw(
                 _("Your role only allows Payment Entry Type: {0}.").format(
                     frappe.bold(", ".join(allowed_payment_types))
+                )
+            )
+
+        if allowed_naming_series and self.naming_series not in allowed_naming_series:
+            frappe.throw(
+                _("Your role only allows Payment Entry Series: {0}.").format(
+                    frappe.bold(", ".join(allowed_naming_series))
                 )
             )
 
@@ -1017,10 +1036,37 @@ def _get_payment_entry_type_role_rule(user=None):
     }
 
 
-@frappe.whitelist()
-def get_payment_entry_type_role_access():
+PAYMENT_ENTRY_TYPE_NAMING_SERIES = {
+    "Receive": ("ACC-REC-.YYYY.-",),
+    "Pay": ("ACC-PAY-.YYYY.-",),
+}
+
+
+def _get_payment_entry_naming_series_options():
+    field = frappe.get_meta("Payment Entry").get_field("naming_series")
+    if not field or not field.options:
+        return []
+
+    return [series.strip() for series in field.options.splitlines() if series.strip()]
+
+
+def _get_allowed_payment_entry_naming_series(allowed_payment_types):
+    all_series = _get_payment_entry_naming_series_options()
+    if not all_series:
+        return []
+
+    mapped_series = []
+    for payment_type in allowed_payment_types or []:
+        mapped_series.extend(PAYMENT_ENTRY_TYPE_NAMING_SERIES.get(payment_type, ()))
+
+    allowed_series = [series for series in all_series if series in mapped_series]
+    return allowed_series or all_series
+
+
+def get_payment_entry_type_role_access_for_user(user=None):
+    user = user or frappe.session.user
     enabled = _is_payment_entry_type_role_access_enabled()
-    rule = _get_payment_entry_type_role_rule(frappe.session.user)
+    rule = _get_payment_entry_type_role_rule(user)
 
     if not enabled:
         rule = {
@@ -1029,10 +1075,23 @@ def get_payment_entry_type_role_access():
             "default_payment_type": "",
         }
 
+    allowed_naming_series = (
+        _get_allowed_payment_entry_naming_series(rule.get("allowed_payment_types"))
+        if enabled and rule.get("allowed_payment_types")
+        else []
+    )
+
     return {
         "enabled": enabled,
+        "allowed_naming_series": allowed_naming_series,
+        "default_naming_series": allowed_naming_series[0] if len(allowed_naming_series) == 1 else "",
         **rule,
     }
+
+
+@frappe.whitelist()
+def get_payment_entry_type_role_access():
+    return get_payment_entry_type_role_access_for_user(frappe.session.user)
 
 
 @frappe.whitelist()

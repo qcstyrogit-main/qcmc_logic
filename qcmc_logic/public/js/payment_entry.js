@@ -56,8 +56,14 @@ function enforce_payment_type_role_access(frm) {
 	const allowed = access.enabled && access.allowed_payment_types && access.allowed_payment_types.length
 		? access.allowed_payment_types
 		: PAYMENT_TYPE_OPTIONS;
+	const allowed_series = access.enabled && access.allowed_naming_series && access.allowed_naming_series.length
+		? access.allowed_naming_series
+		: null;
 
 	frm.set_df_property("payment_type", "options", allowed.join("\n"));
+	if (allowed_series) {
+		frm.set_df_property("naming_series", "options", allowed_series.join("\n"));
+	}
 
 	if (
 		frm.doc.docstatus === 0
@@ -66,6 +72,15 @@ function enforce_payment_type_role_access(frm) {
 		&& frm.doc.payment_type !== access.default_payment_type
 	) {
 		frm.set_value("payment_type", access.default_payment_type);
+	}
+
+	if (
+		frm.doc.docstatus === 0
+		&& access.enabled
+		&& access.default_naming_series
+		&& frm.doc.naming_series !== access.default_naming_series
+	) {
+		frm.set_value("naming_series", access.default_naming_series);
 	}
 }
 
