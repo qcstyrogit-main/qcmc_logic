@@ -444,6 +444,53 @@ def assign_printing_format_to_workstations():
 		)
 
 
+@frappe.whitelist()
+def get_work_order_print_format(work_order):
+	"""Resolve a Job Order format without requiring Workstation read access."""
+	doc = frappe.get_doc("Work Order", work_order)
+	if not frappe.has_permission("Work Order", "read", doc=doc):
+		frappe.throw("Not permitted", frappe.PermissionError)
+
+	operations = [row for row in (doc.operations or []) if row.workstation]
+	final_operation = next(
+		(
+			row
+			for row in operations
+			if getattr(row, "is_final_finished_good", 0)
+		),
+		None,
+	)
+	workstation = (
+		final_operation.workstation
+		if final_operation
+		else operations[-1].workstation if operations else None
+	)
+
+	if not workstation and doc.bom_no:
+		bom_operations = frappe.get_all(
+			"BOM Operation",
+			filters={"parent": doc.bom_no, "parenttype": "BOM"},
+			fields=["workstation", "idx"],
+			order_by="idx desc",
+		)
+		workstation = next(
+			(row.workstation for row in bom_operations if row.workstation),
+			None,
+		)
+
+	print_format = (
+		frappe.db.get_value("Workstation", workstation, "custom_print_format")
+		if workstation
+		else None
+	)
+	if print_format and not frappe.db.exists(
+		"Print Format", {"name": print_format, "doc_type": "Work Order", "disabled": 0}
+	):
+		print_format = None
+
+	return {"workstation": workstation, "print_format": print_format}
+
+
 def audit_job_order_print_formats():
 	"""Return Job Order formats missing any required company-layout component."""
 	formats = frappe.get_all(
