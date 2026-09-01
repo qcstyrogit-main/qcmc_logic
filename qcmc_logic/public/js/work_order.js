@@ -14,6 +14,7 @@ frappe.ui.form.on("Work Order", {
 		schedule_roll_formulation_grid_config(frm);
 		schedule_roll_formulation_preview(frm);
 		add_next_job_card_button(frm);
+		install_job_order_print_handler(frm);
 	},
 
 	company(frm) {
@@ -50,6 +51,53 @@ frappe.ui.form.on("Work Order", {
 		schedule_roll_formulation_grid_config(frm);
 	},
 });
+
+function install_job_order_print_handler(frm) {
+	frm.print_doc = () => open_job_order_print(frm);
+	if (frm.toolbar) {
+		frm.toolbar.print_me = () => open_job_order_print(frm);
+	}
+}
+
+async function open_job_order_print(frm) {
+	const print_window = window.open("", "_blank");
+	if (!print_window) {
+		frappe.msgprint(__("Please allow pop-ups to print this Job Order."));
+		return;
+	}
+
+	try {
+		const response = await frappe.call({
+			method: "qcmc_logic.customs.work_order_print_format.get_work_order_print_format",
+			args: { work_order: frm.doc.name },
+		});
+		const result = response.message || {};
+		if (!result.print_format) {
+			print_window.close();
+			frappe.msgprint(
+				__("No Job Order print format is assigned to workstation {0}.", [
+					result.workstation || __("None"),
+				])
+			);
+			return;
+		}
+
+		print_window.location = frappe.urllib.get_full_url(
+			"/printview?" +
+				$.param({
+					doctype: frm.doc.doctype,
+					name: frm.doc.name,
+					format: result.print_format,
+					no_letterhead: 0,
+					lang: frappe.boot.lang || "en",
+				})
+		);
+	} catch (error) {
+		print_window.close();
+		console.error("[QCMC Job Order Print]", error);
+		frappe.msgprint(__("Unable to determine the Job Order print format."));
+	}
+}
 
 function add_next_job_card_button(frm) {
 	frm.remove_custom_button(__("Create Next Job Card"));

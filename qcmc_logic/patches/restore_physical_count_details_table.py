@@ -33,6 +33,7 @@ def execute():
 		doc = frappe.get_doc("Stock Reconciliation", name)
 		if not doc.items:
 			continue
+		migrated_rows = []
 		for row in list(doc.items):
 			if not row.get("location"):
 				continue
@@ -42,7 +43,7 @@ def execute():
 				and detail.inventory_location == row.location), None)
 			if existing:
 				continue
-			doc.append("custom_physical_count_results", {
+			detail = doc.append("custom_physical_count_results", {
 				"submission_id": f"migrated:{name}:{row.name}",
 				"item_code": row.item_code,
 				"item_name": row.item_name,
@@ -57,8 +58,16 @@ def execute():
 				"submitted_at": now_datetime(),
 				"status": "No adjustment required" if not flt(row.quantity_difference) else "Adjusted",
 			})
-		doc.set("items", [row for row in doc.items if not row.get("location")])
-		doc.difference_amount = 0
-		doc.save(ignore_permissions=True)
+			# This is a data migration, not an edit to the reconciliation. Insert
+			# the child row directly so unrelated legacy drafts that predate the
+			# mandatory Default Warehouse rule do not fail full document validation.
+			detail.db_insert()
+			migrated_rows.append(row.name)
+
+		if migrated_rows:
+			frappe.db.delete("Stock Reconciliation Item", {"name": ["in", migrated_rows]})
+			frappe.db.set_value(
+				"Stock Reconciliation", name, "difference_amount", 0, update_modified=False
+			)
 
 	frappe.clear_cache(doctype="Stock Reconciliation")

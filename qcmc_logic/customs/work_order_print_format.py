@@ -9,6 +9,9 @@ SOURCE_OPEN = '<template class="qcmc-job-order-source">'
 SOURCE_CLOSE = "</template>"
 MC_FORM_CODE = "F-PP01-6/REV01/11June2018"
 QC_FORM_CODE = "PIC-QR-005/rev01/January 19, 2018"
+PRINTING_FORM_CODE = "PIC-QR-004 / rev 02 / July 07, 2017"
+PRINTING_FORMAT = "PRINTING"
+PRINTING_TEMPLATE_FORMAT = "THERMOFORMING"
 
 LARGE_COPY_FORMATS = {"EXPANSION", "EXTRUDER QC"}
 MEDIUM_COPY_FORMATS = {"EXTRUDER MC", "PELLETIZING MC", "PELLETIZING QC"}
@@ -279,6 +282,7 @@ NO_SHADE_CSS = """
 
 def ensure_job_order_print_formats_use_a5():
 	"""Apply the company-specific half-A4 Job Order layouts."""
+	ensure_printing_job_order_format()
 	formats = frappe.get_all(
 		"Print Format",
 		filters={"doc_type": "Work Order"},
@@ -393,6 +397,98 @@ def ensure_job_order_print_formats_use_a5():
 		)
 
 	frappe.clear_cache(doctype="Print Format")
+
+
+def ensure_printing_job_order_format():
+	"""Create PRINTING from the maintained Thermoforming Job Order layout."""
+	if frappe.db.exists("Print Format", PRINTING_FORMAT):
+		assign_printing_format_to_workstations()
+		return PRINTING_FORMAT
+
+	if not frappe.db.exists("Print Format", PRINTING_TEMPLATE_FORMAT):
+		frappe.throw(
+			f"Template Print Format {PRINTING_TEMPLATE_FORMAT} was not found."
+		)
+
+	source = frappe.get_doc("Print Format", PRINTING_TEMPLATE_FORMAT)
+	printing = frappe.copy_doc(source)
+	printing.name = PRINTING_FORMAT
+	printing.module = "Manufacturing"
+	printing.standard = "No"
+	printing.disabled = 0
+	printing.html = (printing.html or "").replace(
+		">THERMOFORMING<", ">PRINTING JOB ORDER FORM<"
+	)
+	printing.html = printing.html.replace(
+		QC_FORM_CODE, PRINTING_FORM_CODE
+	)
+	printing.insert(ignore_permissions=True)
+	assign_printing_format_to_workstations()
+	return printing.name
+
+
+def assign_printing_format_to_workstations():
+	"""Route printer Work Orders to PRINTING through their workstation."""
+	workstations = frappe.get_all(
+		"Workstation",
+		filters=[["name", "like", "PRINTER%"]],
+		pluck="name",
+	)
+	for workstation in workstations:
+		frappe.db.set_value(
+			"Workstation",
+			workstation,
+			"custom_print_format",
+			PRINTING_FORMAT,
+			update_modified=False,
+		)
+
+
+@frappe.whitelist()
+def get_work_order_print_format(work_order):
+	"""Resolve a Job Order format without requiring Workstation read access."""
+	doc = frappe.get_doc("Work Order", work_order)
+	if not frappe.has_permission("Work Order", "read", doc=doc):
+		frappe.throw("Not permitted", frappe.PermissionError)
+
+	operations = [row for row in (doc.operations or []) if row.workstation]
+	final_operation = next(
+		(
+			row
+			for row in operations
+			if getattr(row, "is_final_finished_good", 0)
+		),
+		None,
+	)
+	workstation = (
+		final_operation.workstation
+		if final_operation
+		else operations[-1].workstation if operations else None
+	)
+
+	if not workstation and doc.bom_no:
+		bom_operations = frappe.get_all(
+			"BOM Operation",
+			filters={"parent": doc.bom_no, "parenttype": "BOM"},
+			fields=["workstation", "idx"],
+			order_by="idx desc",
+		)
+		workstation = next(
+			(row.workstation for row in bom_operations if row.workstation),
+			None,
+		)
+
+	print_format = (
+		frappe.db.get_value("Workstation", workstation, "custom_print_format")
+		if workstation
+		else None
+	)
+	if print_format and not frappe.db.exists(
+		"Print Format", {"name": print_format, "doc_type": "Work Order", "disabled": 0}
+	):
+		print_format = None
+
+	return {"workstation": workstation, "print_format": print_format}
 
 
 def audit_job_order_print_formats():

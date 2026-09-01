@@ -34,6 +34,21 @@ def set_stock_entry_warehouse_code(doc, method=None):
 	doc.custom_wh_code = warehouse_code
 
 
+def set_manufacture_actual_weight_uom(doc, method=None):
+	if doc.get("purpose") != "Manufacture" and doc.get("stock_entry_type") != "Manufacture":
+		return
+
+	default_weight_uom = frappe.db.get_single_value(
+		"Stock Settings", "custom_default_actual_weight_uom"
+	)
+	if not default_weight_uom:
+		return
+
+	for row in doc.get("items") or []:
+		if row.get("is_finished_item") and not row.get("custom_actual_weight_uom"):
+			row.custom_actual_weight_uom = default_weight_uom
+
+
 def _get_stock_entry_wh_code_warehouse_field(doc):
 	source_warehouses = _get_stock_entry_warehouses(doc, "s_warehouse")
 	target_warehouses = _get_stock_entry_warehouses(doc, "t_warehouse")

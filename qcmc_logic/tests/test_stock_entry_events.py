@@ -4,6 +4,7 @@ from unittest.mock import patch
 from frappe import _dict
 
 from qcmc_logic.customs.stock_entry import (
+	set_manufacture_actual_weight_uom,
 	set_stock_entry_warehouse_code,
 	update_final_job_card_time_log_on_cancel,
 	update_final_job_card_time_log_on_submit,
@@ -116,3 +117,51 @@ class TestStockEntryWarehouseCode(TestCase):
 			frappe.throw.side_effect = RuntimeError
 			with self.assertRaises(RuntimeError):
 				set_stock_entry_warehouse_code(doc)
+
+
+class TestManufactureActualWeightUOM(TestCase):
+	def test_sets_default_weight_uom_on_finished_item_rows(self):
+		doc = _dict(
+			purpose="Manufacture",
+			stock_entry_type="Manufacture",
+			items=[
+				_dict(is_finished_item=1, custom_actual_weight_uom=None),
+				_dict(is_finished_item=0, custom_actual_weight_uom=None),
+			],
+		)
+
+		with patch("qcmc_logic.customs.stock_entry.frappe") as frappe:
+			frappe.db.get_single_value.return_value = "Kg"
+			set_manufacture_actual_weight_uom(doc)
+
+		self.assertEqual(doc["items"][0].custom_actual_weight_uom, "Kg")
+		self.assertIsNone(doc["items"][1].custom_actual_weight_uom)
+		frappe.db.get_single_value.assert_called_once_with(
+			"Stock Settings", "custom_default_actual_weight_uom"
+		)
+
+	def test_keeps_existing_finished_item_weight_uom(self):
+		doc = _dict(
+			purpose="Manufacture",
+			stock_entry_type="Manufacture",
+			items=[_dict(is_finished_item=1, custom_actual_weight_uom="g")],
+		)
+
+		with patch("qcmc_logic.customs.stock_entry.frappe") as frappe:
+			frappe.db.get_single_value.return_value = "Kg"
+			set_manufacture_actual_weight_uom(doc)
+
+		self.assertEqual(doc["items"][0].custom_actual_weight_uom, "g")
+
+	def test_non_manufacture_entry_is_ignored(self):
+		doc = _dict(
+			purpose="Material Transfer",
+			stock_entry_type="Material Transfer",
+			items=[_dict(is_finished_item=1, custom_actual_weight_uom=None)],
+		)
+
+		with patch("qcmc_logic.customs.stock_entry.frappe") as frappe:
+			set_manufacture_actual_weight_uom(doc)
+
+		self.assertIsNone(doc["items"][0].custom_actual_weight_uom)
+		frappe.db.get_single_value.assert_not_called()

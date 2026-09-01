@@ -211,9 +211,14 @@ def get_inventory_dimension_fieldnames():
 	if not frappe.db.exists("DocType", "Inventory Dimension"):
 		return []
 
+	filters = (
+		{"disabled": 0}
+		if frappe.get_meta("Inventory Dimension").has_field("disabled")
+		else None
+	)
 	return frappe.get_all(
 		"Inventory Dimension",
-		filters={"disabled": 0},
+		filters=filters,
 		pluck="source_fieldname",
 	)
 
