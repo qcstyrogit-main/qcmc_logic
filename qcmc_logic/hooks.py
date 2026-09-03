@@ -186,6 +186,7 @@ doctype_js = {
     "Machine Shop Job Request": "public/js/machine_shop_job_request.js",
     "Payment Entry": "public/js/payment_entry.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
+    "Warehouse Allocation": "qcmc_logics/doctype/warehouse_allocation/warehouse_allocation.js",
     "Overtime Slip": "public/js/overtime_slip.js",
     "Batch Other Adjustment Entry": "public/js/batch_other_adjustment_entry.js",
     "Payroll Entry": "public/js/payroll_entry.js",
