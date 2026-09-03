@@ -6,6 +6,10 @@ from qcmc_logic.customs.manufacturing_warehouse_access import (
     user_can_transact_job_card,
     user_can_transact_work_order,
 )
+from qcmc_logic.utils import (
+    get_user_allowed_inventory_groups,
+    has_inventory_group_access,
+)
 
 
 SUPPORTED_PURPOSES = {
@@ -139,6 +143,71 @@ def _has_pending_material(job_card, purpose):
     return bool(job_card.items)
 
 
+def _get_unauthorized_pending_material_items(job_card, purpose, user=None):
+    if purpose != "Material Transfer for Manufacture":
+        return []
+
+    if not user:
+        user = frappe.session.user
+    if not has_inventory_group_access(user):
+        return []
+
+    allowed_inventory_groups = set(
+        get_user_allowed_inventory_groups(user, require_transact=True)
+    )
+    item_codes = [
+        row.item_code
+        for row in job_card.items
+        if row.item_code and flt(row.required_qty) > flt(row.transferred_qty)
+    ]
+    if not item_codes:
+        return []
+
+    inventory_groups = {
+        row.name: row.custom_inventory_group
+        for row in frappe.get_all(
+            "Item",
+            filters={"name": ["in", item_codes]},
+            fields=["name", "custom_inventory_group"],
+        )
+    }
+
+    unauthorized = []
+    for row in job_card.items:
+        if not row.item_code or flt(row.required_qty) <= flt(row.transferred_qty):
+            continue
+
+        inventory_group = inventory_groups.get(row.item_code)
+        if not inventory_group or inventory_group not in allowed_inventory_groups:
+            unauthorized.append(
+                frappe._dict(
+                    item_code=row.item_code,
+                    inventory_group=inventory_group,
+                )
+            )
+
+    return unauthorized
+
+
+def _validate_pending_material_inventory_group_access(job_card, purpose, user=None):
+    unauthorized = _get_unauthorized_pending_material_items(job_card, purpose, user=user)
+    if not unauthorized:
+        return
+
+    item_list = ", ".join(
+        "{0} ({1})".format(
+            frappe.bold(row.item_code),
+            frappe.bold(row.inventory_group or _("No Inventory Group")),
+        )
+        for row in unauthorized
+    )
+    frappe.throw(
+        _(
+            "You are not allowed to transact these pending material items for Job Card {0}: {1}"
+        ).format(frappe.bold(job_card.name), item_list)
+    )
+
+
 def _can_use_job_card_for_purpose(job_card, work_order, purpose):
     """Return whether the selected Stock Entry purpose can act on this Job Card."""
     if not _has_pending_material(job_card, purpose):
@@ -150,6 +219,7 @@ def _can_use_job_card_for_purpose(job_card, work_order, purpose):
             and not cint(job_card.skip_material_transfer)
             and not cint(job_card.backflush_from_wip_warehouse)
             and job_card.items
+            and not _get_unauthorized_pending_material_items(job_card, purpose)
         )
 
     if purpose == "Material Consumption for Manufacture":
@@ -177,6 +247,9 @@ def _job_card_row(job_card, purpose):
     return {
         "name": job_card.name,
         "work_order": job_card.work_order,
+        "operation": job_card.get("operation"),
+        "workstation": job_card.get("workstation"),
+        "work_order_operation": job_card.get("operation_id"),
         "production_item": job_card.finished_good or job_card.production_item,
         "for_quantity": flt(job_card.for_quantity),
         "transferred_qty": flt(job_card.transferred_qty),
@@ -188,7 +261,14 @@ def _job_card_row(job_card, purpose):
 
 
 @frappe.whitelist()
-def get_job_cards_for_stock_entry(purpose, work_order=None, txt=None, start=0, page_len=20):
+def get_job_cards_for_stock_entry(
+    purpose,
+    work_order=None,
+    company=None,
+    txt=None,
+    start=0,
+    page_len=20,
+):
     """Return selectable Job Cards with Work Order, item, and remaining qty."""
     _validate_purpose(purpose)
 
@@ -198,21 +278,29 @@ def get_job_cards_for_stock_entry(purpose, work_order=None, txt=None, start=0, p
     if txt:
         filters.append(["name", "like", f"%{txt}%"])
 
+    job_card_meta = frappe.get_meta("Job Card")
+    fields = [
+        "name",
+        "work_order",
+        "production_item",
+        "finished_good",
+        "for_quantity",
+        "total_completed_qty",
+        "transferred_qty",
+        "manufactured_qty",
+        "status",
+        "modified",
+    ]
+    fields.extend(
+        fieldname
+        for fieldname in ("operation", "workstation", "operation_id")
+        if job_card_meta.has_field(fieldname)
+    )
+
     job_cards = frappe.get_all(
         "Job Card",
         filters=filters,
-        fields=[
-            "name",
-            "work_order",
-            "production_item",
-            "finished_good",
-            "for_quantity",
-            "total_completed_qty",
-            "transferred_qty",
-            "manufactured_qty",
-            "status",
-            "modified",
-        ],
+        fields=fields,
         order_by="modified desc",
         limit_start=cint(start),
         limit_page_length=cint(page_len) or 20,
@@ -227,10 +315,12 @@ def get_job_cards_for_stock_entry(purpose, work_order=None, txt=None, start=0, p
         wo = frappe.db.get_value(
             "Work Order",
             item.work_order,
-            ["docstatus", "status", "transfer_material_against"],
+            ["docstatus", "status", "transfer_material_against", "company"],
             as_dict=True,
         )
         if not wo or cint(wo.docstatus) != 1 or wo.status == "Stopped":
+            continue
+        if company and wo.company != company:
             continue
         if not user_can_transact_work_order(item.work_order):
             continue
@@ -304,6 +394,7 @@ def get_job_card_details_for_stock_entry(job_card, purpose, work_order=None):
     pending_qty = _pending_qty(jc, purpose)
     if not _has_pending_material(jc, purpose):
         frappe.throw(_("No pending material found for Job Card {0}.").format(frappe.bold(jc.name)))
+    _validate_pending_material_inventory_group_access(jc, purpose)
 
     if purpose == "Material Transfer for Manufacture":
         from_warehouse = jc.source_warehouse or wo.source_warehouse

@@ -18,9 +18,46 @@ from qcmc_logic.api.stock_reconciliation import (
 	get_pcount_state,
 	submit_pcount_entries,
 )
+from qcmc_logic.overrides.stock_reconciliation import CustomStockReconciliation
 
 
 class TestStockReconciliationIncrement(FrappeTestCase):
+	def test_for_recon_does_not_infer_zero_counts(self):
+		doc = CustomStockReconciliation({
+			"doctype": "Stock Reconciliation",
+			"custom_physical_count": 1,
+			"workflow_state": "For Recon",
+		})
+		with (
+			patch.object(doc, "capture_for_recon_count_corrections") as capture,
+			patch.object(doc, "add_missing_location_zero_counts") as infer_zero,
+			patch.object(doc, "rebuild_physical_count_summary"),
+			patch(
+				"erpnext.stock.doctype.stock_reconciliation.stock_reconciliation.StockReconciliation.validate"
+			),
+		):
+			doc.validate()
+		capture.assert_called_once_with()
+		infer_zero.assert_not_called()
+
+	def test_close_inventory_infers_zero_counts(self):
+		doc = CustomStockReconciliation({
+			"doctype": "Stock Reconciliation",
+			"custom_physical_count": 1,
+			"workflow_state": "Close Inventory",
+		})
+		with (
+			patch.object(doc, "capture_for_recon_count_corrections") as capture,
+			patch.object(doc, "add_missing_location_zero_counts") as infer_zero,
+			patch.object(doc, "rebuild_physical_count_summary"),
+			patch(
+				"erpnext.stock.doctype.stock_reconciliation.stock_reconciliation.StockReconciliation.validate"
+			),
+		):
+			doc.validate()
+		capture.assert_not_called()
+		infer_zero.assert_called_once_with()
+
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -477,6 +514,35 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 				self._adjust(reconciliation, [self._adjustment_entry(0, 1, self.locations[0])])
 		self.assertEqual(conflict.exception.current_quantity, 5)
 
+	def test_adjustment_does_not_add_erp_baseline_to_first_physical_count(self):
+		reconciliation = self._new_reconciliation()
+		entry = self._adjustment_entry(
+			80,
+			80,
+			transactions=[self._transaction("ADD", 80, 160)],
+			physicalCount=160,
+			expectedERPQuantity=80,
+		)
+		with patch(
+			"qcmc_logic.api.stock_reconciliation._current_inventory_quantity",
+			return_value=80,
+		):
+			result = self._adjust(reconciliation, [entry])
+
+		self.assertEqual(result["results"][0]["physical_count"], 80)
+		doc = frappe.get_doc("Stock Reconciliation", reconciliation)
+		count = doc.custom_physical_count_results[-1]
+		self.assertEqual(count.expected_previous_count, 0)
+		self.assertEqual(count.physical_count, 80)
+		self.assertEqual(count.variance, 0)
+		history = frappe.get_all(
+			"Physical Count Scan Transaction",
+			filters={"reconciliation": reconciliation, "action": "ADD"},
+			fields=["previous_quantity", "running_quantity"],
+		)
+		self.assertEqual(history[0].previous_quantity, 0)
+		self.assertEqual(history[0].running_quantity, 80)
+
 	def test_followup_snapshot_replaces_prior_snapshot_without_losing_audit(self):
 		reconciliation = self._new_reconciliation()
 		first = self._adjustment_entry(
@@ -494,10 +560,50 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 		doc = frappe.get_doc("Stock Reconciliation", reconciliation)
 		self.assertEqual([row.physical_count for row in doc.custom_physical_count_results], [260, 100260])
 		self.assertEqual([row.quantity_delta for row in doc.custom_physical_count_results], [260, 100000])
-		self.assertEqual([row.expected_previous_count for row in doc.custom_physical_count_results], [0, 0])
+		self.assertEqual([row.expected_previous_count for row in doc.custom_physical_count_results], [0, 260])
 		self.assertEqual(self._summary_quantity(reconciliation), 100260)
 		self.assertEqual(result["docstatus"], 0)
 		self.assertEqual(result["status"], "Draft")
+
+	def test_for_recon_manual_edit_appends_correction_snapshot(self):
+		reconciliation = self._new_reconciliation()
+		self._adjust(
+			reconciliation,
+			[self._adjustment_entry(0, 20, transactions=[self._transaction("ADD", 20, 20)])],
+		)
+		doc = frappe.get_doc("Stock Reconciliation", reconciliation)
+		doc.workflow_state = "For Recon"
+		doc.custom_physical_count_results[-1].physical_count = 15
+		doc.save()
+
+		doc.reload()
+		self.assertEqual(len(doc.custom_physical_count_results), 2)
+		self.assertEqual(doc.custom_physical_count_results[0].physical_count, 20)
+		self.assertEqual(doc.custom_physical_count_results[0].status, "Old Count")
+		self.assertEqual(doc.custom_physical_count_results[1].physical_count, 15)
+		self.assertEqual(doc.custom_physical_count_results[1].quantity_delta, -5)
+		self.assertEqual(doc.custom_physical_count_results[1].device_id, "ERP Review")
+		self.assertEqual(self._summary_quantity(reconciliation), 15)
+
+	def test_for_recon_can_correct_an_older_audit_snapshot(self):
+		reconciliation = self._new_reconciliation()
+		self._adjust(reconciliation, [self._adjustment_entry(0, 20, physicalCount=20)])
+		self._adjust(reconciliation, [self._adjustment_entry(0, 80, physicalCount=100)])
+
+		doc = frappe.get_doc("Stock Reconciliation", reconciliation)
+		doc.workflow_state = "For Recon"
+		doc.custom_physical_count_results[0].physical_count = 25
+		doc.save()
+
+		doc.reload()
+		self.assertEqual(len(doc.custom_physical_count_results), 3)
+		self.assertEqual(doc.custom_physical_count_results[0].physical_count, 20)
+		self.assertEqual(doc.custom_physical_count_results[0].status, "Old Count")
+		self.assertEqual(doc.custom_physical_count_results[1].physical_count, 100)
+		self.assertEqual(doc.custom_physical_count_results[1].status, "Old Count")
+		self.assertEqual(doc.custom_physical_count_results[2].physical_count, 25)
+		self.assertEqual(doc.custom_physical_count_results[2].device_id, "ERP Review")
+		self.assertEqual(self._summary_quantity(reconciliation), 25)
 
 	def test_adjustment_negative_missing_row_and_duplicate_submission(self):
 		reconciliation = self._new_reconciliation()

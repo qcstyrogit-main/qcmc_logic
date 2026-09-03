@@ -6,6 +6,11 @@ qcmc_logic.stock_entry.supported_purposes = new Set([
     "Manufacture",
 ]);
 
+qcmc_logic.stock_entry.job_card_required_purposes = new Set([
+    "Material Transfer for Manufacture",
+    "Manufacture",
+]);
+
 frappe.ui.form.on("Stock Entry", {
     setup(frm) {
         qcmc_logic.stock_entry.setup_manufacture_row_lock(frm);
@@ -186,9 +191,11 @@ qcmc_logic.stock_entry.get_single_warehouse = function(frm, warehouse_field) {
 
 qcmc_logic.stock_entry.apply_job_card_field_rules = function(frm) {
     const show_job_card = qcmc_logic.stock_entry.supported_purposes.has(frm.doc.purpose);
+    const job_card_required = qcmc_logic.stock_entry.job_card_required_purposes.has(frm.doc.purpose);
 
     frm.toggle_display("job_card", show_job_card);
     frm.set_df_property("job_card", "read_only", 1);
+    frm.set_df_property("work_order", "read_only", job_card_required ? 1 : 0);
 
     if (!show_job_card && frm.doc.job_card) {
         frm.set_value("job_card", "");
@@ -255,6 +262,7 @@ qcmc_logic.stock_entry.load_job_cards = function(frm, dialog) {
         args: {
             purpose: frm.doc.purpose,
             work_order: frm.doc.work_order,
+            company: frm.doc.company,
             txt: values.search || "",
             page_len: 20,
         },
@@ -279,12 +287,22 @@ qcmc_logic.stock_entry.render_job_card_rows = function(rows) {
     const body = rows.map((row) => {
         const disabled = row.has_pending_material ? "" : "disabled";
         const muted = row.has_pending_material ? "" : "text-muted";
+        const job_card = frappe.utils.escape_html(row.name || "");
+        const work_order = frappe.utils.escape_html(row.work_order || "");
+        const job_card_link = job_card
+            ? `<a href="/app/job-card/${encodeURIComponent(row.name)}">${job_card}</a>`
+            : "";
+        const work_order_link = work_order
+            ? `<a href="/app/work-order/${encodeURIComponent(row.work_order)}">${work_order}</a>`
+            : "";
 
         return `
             <tr class="${muted}">
                 <td><input type="radio" name="qcmc_job_card" value="${frappe.utils.escape_html(row.name)}" ${disabled}></td>
-                <td>${frappe.utils.escape_html(row.name || "")}</td>
-                <td>${frappe.utils.escape_html(row.work_order || "")}</td>
+                <td>${job_card_link}</td>
+                <td>${work_order_link}</td>
+                <td>${frappe.utils.escape_html(row.operation || "")}</td>
+                <td>${frappe.utils.escape_html(row.workstation || "")}</td>
                 <td>${frappe.utils.escape_html(row.production_item || "")}</td>
                 <td class="text-right">${format_number(row.for_quantity || 0)}</td>
                 <td class="text-right">${format_number(row.transferred_qty || 0)}</td>
@@ -302,6 +320,8 @@ qcmc_logic.stock_entry.render_job_card_rows = function(rows) {
                     <th style="width: 32px"></th>
                     <th>${__("Job Card")}</th>
                     <th>${__("Work Order")}</th>
+                    <th>${__("Operation")}</th>
+                    <th>${__("Workstation")}</th>
                     <th>${__("Production Item")}</th>
                     <th class="text-right">${__("Qty")}</th>
                     <th class="text-right">${__("Transferred")}</th>

@@ -7,8 +7,10 @@ from frappe import _dict
 from qcmc_logic.api.stock_entry import (
     _get_final_operation,
     _get_latest_actual_time_log,
+    _get_unauthorized_pending_material_items,
     _is_final_operation_job_card,
     _pending_qty,
+    _validate_pending_material_inventory_group_access,
     _validate_final_operation_job_card,
 )
 
@@ -151,3 +153,94 @@ class TestManufacturePendingQty(TestCase):
             frappe.db.get_value.return_value = _dict(qty=203000, produced_qty=200000)
 
             self.assertEqual(_pending_qty(job_card, "Manufacture"), 3000)
+
+
+class TestMaterialTransferInventoryGroupAccess(TestCase):
+    def test_authorized_pending_material_is_allowed(self):
+        job_card = _dict(
+            items=[
+                _dict(item_code="RAW-1", required_qty=10, transferred_qty=0),
+                _dict(item_code="RAW-2", required_qty=10, transferred_qty=10),
+            ]
+        )
+
+        with (
+            patch("qcmc_logic.api.stock_entry.has_inventory_group_access", return_value=True),
+            patch(
+                "qcmc_logic.api.stock_entry.get_user_allowed_inventory_groups",
+                return_value=["RESIN"],
+            ),
+            patch("qcmc_logic.api.stock_entry.frappe") as frappe,
+        ):
+            frappe.get_all.return_value = [
+                _dict(name="RAW-1", custom_inventory_group="RESIN"),
+                _dict(name="RAW-2", custom_inventory_group="PACKING"),
+            ]
+
+            unauthorized = _get_unauthorized_pending_material_items(
+                job_card,
+                "Material Transfer for Manufacture",
+                user="operator@example.com",
+            )
+
+        self.assertEqual(unauthorized, [])
+
+    def test_unauthorized_pending_material_is_returned(self):
+        job_card = _dict(
+            items=[
+                _dict(item_code="RAW-1", required_qty=10, transferred_qty=0),
+                _dict(item_code="RAW-2", required_qty=8, transferred_qty=3),
+            ]
+        )
+
+        with (
+            patch("qcmc_logic.api.stock_entry.has_inventory_group_access", return_value=True),
+            patch(
+                "qcmc_logic.api.stock_entry.get_user_allowed_inventory_groups",
+                return_value=["RESIN"],
+            ),
+            patch("qcmc_logic.api.stock_entry.frappe") as frappe,
+        ):
+            frappe.get_all.return_value = [
+                _dict(name="RAW-1", custom_inventory_group="RESIN"),
+                _dict(name="RAW-2", custom_inventory_group="PACKING"),
+            ]
+
+            unauthorized = _get_unauthorized_pending_material_items(
+                job_card,
+                "Material Transfer for Manufacture",
+                user="operator@example.com",
+            )
+
+        self.assertEqual(len(unauthorized), 1)
+        self.assertEqual(unauthorized[0].item_code, "RAW-2")
+        self.assertEqual(unauthorized[0].inventory_group, "PACKING")
+
+    def test_validation_rejects_unauthorized_pending_material(self):
+        job_card = _dict(
+            name="JC-TEST",
+            items=[_dict(item_code="RAW-2", required_qty=8, transferred_qty=3)],
+        )
+
+        with (
+            patch("qcmc_logic.api.stock_entry._", side_effect=lambda message: message),
+            patch("qcmc_logic.api.stock_entry.has_inventory_group_access", return_value=True),
+            patch(
+                "qcmc_logic.api.stock_entry.get_user_allowed_inventory_groups",
+                return_value=["RESIN"],
+            ),
+            patch("qcmc_logic.api.stock_entry.frappe") as frappe,
+        ):
+            frappe.get_all.return_value = [
+                _dict(name="RAW-2", custom_inventory_group="PACKING"),
+            ]
+            frappe.throw.side_effect = RuntimeError
+
+            with self.assertRaises(RuntimeError):
+                _validate_pending_material_inventory_group_access(
+                    job_card,
+                    "Material Transfer for Manufacture",
+                    user="operator@example.com",
+                )
+
+        self.assertIn("RAW-2", frappe.throw.call_args.args[0])

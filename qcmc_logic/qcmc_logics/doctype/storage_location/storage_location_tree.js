@@ -6,6 +6,20 @@ frappe.treeview_settings["Storage Location"] = {
 	get_tree_root: true,
 	toolbar: [
 		{
+			label: __("View Item Balances"),
+			condition(node) {
+				return Boolean(
+					!node.is_root &&
+						node.data &&
+						node.data.value &&
+						!Number(node.data.expandable)
+				);
+			},
+			click(node) {
+				show_storage_location_item_balances(node.data.value);
+			},
+		},
+		{
 			label: __("Rename"),
 			condition(node) {
 				return !node.is_root && frappe.model.can_write("Storage Location");
@@ -60,6 +74,52 @@ frappe.treeview_settings["Storage Location"] = {
 	],
 	ignore_fields: ["parent_storage_location"],
 };
+
+function show_storage_location_item_balances(storage_location) {
+	frappe.call({
+		method:
+			"qcmc_logic.qcmc_logics.doctype.storage_location.storage_location.get_storage_location_item_balances",
+		args: { storage_location },
+		freeze: true,
+		freeze_message: __("Loading item balances..."),
+	}).then((response) => {
+		const data = response.message || {};
+		const balances = data.balances || [];
+		const escape = (value) => frappe.utils.escape_html(String(value ?? ""));
+		const quantity = (value) => format_number(value, null, 3);
+		const rows = balances.length
+			? balances
+					.map(
+						(row) => `<tr>
+							<td><strong>${escape(row.item_code)}</strong><br><small>${escape(row.item_name)}</small></td>
+							<td>${escape(row.batch_no || "—")}</td>
+							<td class="text-right"><strong>${escape(quantity(row.actual_qty))}</strong> ${escape(row.uom)}</td>
+							<td>${escape(row.last_movement || "—")}</td>
+						</tr>`
+					)
+					.join("")
+			: `<tr><td colspan="4" class="text-muted text-center">${__("No positive item balances in this location.")}</td></tr>`;
+		const dialog = new frappe.ui.Dialog({
+			title: __("Item Balances — {0}", [data.location_code || storage_location]),
+			size: "extra-large",
+			fields: [
+				{
+					fieldtype: "HTML",
+					fieldname: "balances",
+					options: `<div class="mb-3">
+						<strong>${escape(data.location_name || data.location_code)}</strong><br>
+						<span class="text-muted">${escape(data.warehouse)} · ${escape(data.item_count || 0)} ${__("item(s)")}</span>
+					</div>
+					<div class="table-responsive"><table class="table table-bordered table-hover">
+						<thead><tr><th>${__("Item")}</th><th>${__("Batch")}</th><th class="text-right">${__("Available Quantity")}</th><th>${__("Last Movement")}</th></tr></thead>
+						<tbody>${rows}</tbody>
+					</table></div>`,
+				},
+			],
+		});
+		dialog.show();
+	});
+}
 
 function show_storage_location_rename_dialog(node) {
 	frappe.db

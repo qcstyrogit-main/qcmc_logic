@@ -3174,9 +3174,9 @@
     "message": null,
     "next_action_email_template": null,
     "send_email": 0,
-    "state": "Active",
+    "state": "Close Inventory",
     "update_field": null,
-    "update_value": "Active",
+    "update_value": "Close Inventory",
     "workflow_builder_id": null
    }
   ],
@@ -3193,22 +3193,22 @@
     "workflow_builder_id": null
    },
    {
-    "action": "Active",
+    "action": "Close Inventory",
     "allow_self_approval": 1,
     "allowed": "Stock Manager",
     "condition": "doc.custom_physical_count == 1",
-    "next_state": "Active",
+    "next_state": "Close Inventory",
     "send_email_to_creator": 0,
     "state": "For Recon",
     "transition_tasks": null,
     "workflow_builder_id": null
    },
    {
-    "action": "Active",
+    "action": "Close Inventory",
     "allow_self_approval": 1,
     "allowed": "Stock User",
     "condition": "doc.custom_physical_count == 0",
-    "next_state": "Active",
+    "next_state": "Close Inventory",
     "send_email_to_creator": 0,
     "state": "Draft",
     "transition_tasks": null,

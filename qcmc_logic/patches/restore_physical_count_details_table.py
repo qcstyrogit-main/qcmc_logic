@@ -50,6 +50,9 @@ def execute():
 				"warehouse": row.warehouse,
 				"inventory_location": row.location,
 				"inventory_location_id": row.location,
+				"location_name": frappe.db.get_value(
+					"Storage Location", row.location, "location_name"
+				) or row.location,
 				"uom": row.stock_uom,
 				"erp_quantity_before": row.current_qty,
 				"physical_count": row.qty,

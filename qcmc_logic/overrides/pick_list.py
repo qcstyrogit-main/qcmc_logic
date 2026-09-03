@@ -203,8 +203,20 @@ def get_pick_list_target_warehouse(pick_list):
 
 def copy_inventory_dimensions(source, target):
 	for fieldname in get_inventory_dimension_fieldnames():
-		if source.get(fieldname):
+		if source.get(fieldname) and _dimension_field_matches(source.doctype, target.doctype, fieldname):
 			target.set(fieldname, source.get(fieldname))
+
+
+def _dimension_field_matches(source_doctype, target_doctype, fieldname):
+	source_field = frappe.get_meta(source_doctype).get_field(fieldname)
+	target_field = frappe.get_meta(target_doctype).get_field(fieldname)
+	if not source_field or not target_field:
+		return False
+	if source_field.fieldtype != target_field.fieldtype:
+		return False
+	if source_field.fieldtype == "Link" and source_field.options != target_field.options:
+		return False
+	return True
 
 
 def get_inventory_dimension_fieldnames():

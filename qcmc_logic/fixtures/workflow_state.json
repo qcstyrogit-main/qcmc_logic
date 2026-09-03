@@ -251,6 +251,14 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "name": "Close Inventory",
+  "style": "",
+  "workflow_state_name": "Close Inventory"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "name": "For Recon",
   "style": "",
   "workflow_state_name": "For Recon"

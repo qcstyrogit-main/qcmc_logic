@@ -251,6 +251,68 @@ def get_storage_location_tree_nodes(doctype=None, parent="", include_disabled=Fa
 	)
 
 
+@frappe.whitelist()
+def get_storage_location_item_balances(storage_location):
+	"""Return positive stock balances for one exact leaf Storage Location."""
+	from qcmc_logic.utils import check_warehouse_access
+
+	storage_location = str(storage_location or "").strip()
+	if not storage_location:
+		frappe.throw(_("Storage Location is required."))
+	location = frappe.db.get_value(
+		"Storage Location",
+		storage_location,
+		["name", "location_code", "location_name", "custom_warehouse", "is_group", "disabled"],
+		as_dict=True,
+	)
+	if not location or location.disabled:
+		frappe.throw(_("Storage Location {0} does not exist or is disabled.").format(storage_location))
+	if not frappe.has_permission("Storage Location", "read", doc=location.name):
+		frappe.throw(_("You do not have permission to view this Storage Location."), frappe.PermissionError)
+	if location.is_group:
+		frappe.throw(_("Select a leaf Storage Location to view exact item balances."))
+	if not location.custom_warehouse:
+		frappe.throw(_("Storage Location {0} has no Warehouse.").format(location.name))
+	if not check_warehouse_access(frappe.session.user, location.custom_warehouse):
+		frappe.throw(
+			_("You do not have access to Warehouse {0}.").format(location.custom_warehouse),
+			frappe.PermissionError,
+		)
+
+	rows = frappe.db.sql(
+		"""
+		select
+			sle.item_code,
+			coalesce(item.item_name, sle.item_code) as item_name,
+			coalesce(item.stock_uom, '') as uom,
+			coalesce(sle.batch_no, '') as batch_no,
+			sum(sle.actual_qty) as actual_qty,
+			max(concat(sle.posting_date, ' ', sle.posting_time)) as last_movement
+		from `tabStock Ledger Entry` sle
+		left join `tabItem` item on item.name = sle.item_code
+		where sle.is_cancelled = 0
+			and sle.warehouse = %(warehouse)s
+			and sle.location = %(location)s
+		group by sle.item_code, item.item_name, item.stock_uom, coalesce(sle.batch_no, '')
+		having sum(sle.actual_qty) > 0
+		order by item.item_name, sle.item_code, batch_no
+		""",
+		{"warehouse": location.custom_warehouse, "location": location.name},
+		as_dict=True,
+	)
+	for row in rows:
+		row.actual_qty = flt(row.actual_qty)
+
+	return {
+		"storage_location": location.name,
+		"location_code": location.location_code,
+		"location_name": location.location_name,
+		"warehouse": location.custom_warehouse,
+		"item_count": len({row.item_code for row in rows}),
+		"balances": rows,
+	}
+
+
 # ============================================================
 # PUT-AWAY DISTRIBUTION
 # ============================================================

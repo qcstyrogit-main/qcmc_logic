@@ -47,31 +47,8 @@ def _get_warehouse_location(warehouse):
     return frappe.db.get_value("Warehouse", warehouse, "custom_location")
 
 
-def _get_company_dimension_default(fieldname, company):
-    if not company:
-        return None
-
-    dimension = frappe.db.get_value(
-        "Accounting Dimension",
-        {"fieldname": fieldname, "disabled": 0},
-        "name",
-    )
-    if not dimension:
-        return None
-
-    return frappe.db.get_value(
-        "Accounting Dimension Detail",
-        {"parent": dimension, "company": company},
-        "default_dimension",
-    )
-
-
 def _get_location_for_dimension(warehouse, company):
-    location = _get_warehouse_location(warehouse)
-    if location:
-        return location
-
-    return _get_company_dimension_default("location", company)
+    return _get_warehouse_location(warehouse)
 
 
 def _require_location_for_dimension(warehouse, company):
@@ -79,10 +56,27 @@ def _require_location_for_dimension(warehouse, company):
     if not location:
         frappe.throw(
             "Location is required for Warehouse Transfer accounting. "
-            "Set Custom Location on Warehouse {0} or set a default Location "
-            "in Accounting Dimension for company {1}.".format(warehouse, company)
+            "Set Custom Location on Warehouse {0} for company {1}.".format(
+                warehouse,
+                company,
+            )
         )
     return location
+
+
+def _stock_ledger_location_is_storage_location():
+    field = frappe.db.get_value(
+        "Custom Field",
+        {"dt": "Stock Ledger Entry", "fieldname": "location"},
+        ["options"],
+        as_dict=True,
+    )
+    return bool(field and field.options == "Storage Location")
+
+
+def _set_stock_ledger_accounting_location(sle, warehouse, company):
+    if not _stock_ledger_location_is_storage_location():
+        sle.location = _require_location_for_dimension(warehouse, company)
 
 
 def _validate_source_warehouse_access(doc):
@@ -340,7 +334,6 @@ def create_source_stock_entry(docname):
             if qty <= 0:
                 continue
 
-            location = _require_location_for_dimension(doc.source_warehouse, doc.source_company)
             # Build the SLE as a frappe._dict so code that uses row.warehouse works
             sle = frappe._dict({
                 "item_code": item.item_code,
@@ -359,8 +352,12 @@ def create_source_stock_entry(docname):
                 "valuation_rate": 0.0,
                 "stock_value_difference": 0.0,
                 "is_cancelled": 0,
-                "location": location,
             })
+            _set_stock_ledger_accounting_location(
+                sle,
+                doc.source_warehouse,
+                doc.source_company,
+            )
 
             sl_entries.append(sle)
 
@@ -399,7 +396,6 @@ def create_target_stock_entry(docname):
             if qty <= 0:
                 continue
 
-            location = _require_location_for_dimension(doc.target_warehouse, doc.target_company)
             putaway_rule = get_dimension_putaway_for_item(
                 item.item_code,
                 doc.target_company,
@@ -425,8 +421,12 @@ def create_target_stock_entry(docname):
                 "valuation_rate": 0.0,
                 "stock_value_difference": 0.0,
                 "is_cancelled": 0,
-                "location": location,
             })
+            _set_stock_ledger_accounting_location(
+                sle,
+                doc.target_warehouse,
+                doc.target_company,
+            )
             if putaway_rule:
                 sle.update(get_rule_dimension_values(putaway_rule))
 
@@ -768,7 +768,7 @@ def on_cancel(doc, method):
         )
         for sle in sle_entries:
             linked_sle = frappe.get_doc("Stock Ledger Entry", sle)
-            make_sl_entries([{
+            reverse_sle = frappe._dict({
                 "item_code": linked_sle.item_code,
                 "warehouse": linked_sle.warehouse,
                 "posting_date": nowdate(),
@@ -783,12 +783,19 @@ def on_cancel(doc, method):
                 "valuation_rate": linked_sle.valuation_rate,
                 "stock_value_difference": -1 * linked_sle.stock_value_difference,
                 "is_cancelled": 1, #
-                "location": getattr(linked_sle, "location", None)
-                or _require_location_for_dimension(
-                    linked_sle.warehouse,
-                    linked_sle.company,
-                ),
-            }], allow_negative_stock=True)
+            })
+            if _stock_ledger_location_is_storage_location():
+                if linked_sle.get("location"):
+                    reverse_sle.location = linked_sle.location
+            else:
+                reverse_sle.location = (
+                    linked_sle.get("location")
+                    or _require_location_for_dimension(
+                        linked_sle.warehouse,
+                        linked_sle.company,
+                    )
+                )
+            make_sl_entries([reverse_sle], allow_negative_stock=True)
 
         update_material_request_progress(doc.name)
         update_pick_list_progress(doc.name)
