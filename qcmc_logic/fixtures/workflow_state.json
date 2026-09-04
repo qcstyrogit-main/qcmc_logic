@@ -633,7 +633,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.953341",
   "name": "Rework Required",
   "style": "Warning",
   "workflow_state_name": "Rework Required"
@@ -642,7 +641,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.981676",
   "name": "Scrapped",
   "style": "",
   "workflow_state_name": "Scrapped"
@@ -696,7 +694,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:34.082461",
   "name": "To Receive",
   "style": "",
   "workflow_state_name": "To Receive"
@@ -705,7 +702,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:34.094365",
   "name": "To Receive by MC Maintenance",
   "style": "",
   "workflow_state_name": "To Receive by MC Maintenance"
@@ -723,7 +719,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:34.124255",
   "name": "To Received by SMB Maintenance",
   "style": "",
   "workflow_state_name": "To Received by SMB Maintenance"

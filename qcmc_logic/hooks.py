@@ -391,6 +391,11 @@ fixtures = [
     {"doctype": "Downtime Reason"},
     {"doctype": "Job Card Downtime"},
 ]
+before_migrate = [
+    # This custom DocType must exist before fixtures such as Workflows are synced.
+    "qcmc_logic.customs.maintenance_job_order.ensure_maintenance_job_order",
+]
+
 after_migrate = [
     "qcmc_logic.customs.maintenance_job_order.ensure_maintenance_job_order",
     "qcmc_logic.customs.machine_shop_job_request.ensure_msjr_permissions",

@@ -104,13 +104,15 @@ def ensure_maintenance_job_order():
         doctype.set("fields", fields)
         doctype.set("permissions", permissions)
     else:
-        doctype = frappe.get_doc({
-            "doctype": "DocType", "name": DOCTYPE, "module": "Assets", "custom": 1,
+        doctype = frappe.new_doc("DocType")
+        doctype.update({
+            "name": DOCTYPE, "module": "Assets", "custom": 1,
             "autoname": "naming_series:", "naming_rule": 'By "Naming Series" field',
-            "is_submittable": 1, "track_changes": 1, "fields": fields,
-            "permissions": permissions,
+            "is_submittable": 1, "track_changes": 1,
         })
-    doctype.insert(ignore_permissions=True)
+        doctype.set("fields", fields)
+        doctype.set("permissions", permissions)
+    doctype.save(ignore_permissions=True)
 
     _ensure_workflow()
     frappe.clear_cache(doctype=DOCTYPE)
