@@ -3,7 +3,11 @@ from unittest.mock import patch
 
 from frappe import _dict
 
-from qcmc_logic.customs.daily_job_report import _find_scheduled_work, _validate_reported_quantity
+from qcmc_logic.customs.daily_job_report import (
+    _find_scheduled_work,
+    _sync_one_process,
+    _validate_reported_quantity,
+)
 
 
 def schedule_row(**values):
@@ -135,3 +139,29 @@ class TestDailyJobReportScheduleValidation(TestCase):
                 _validate_reported_quantity(doc, _dict(plan_quantity=10))
 
         self.assertIn("exceeds", frappe.throw.call_args.args[0])
+
+
+class TestDailyJobReportProgressSync(TestCase):
+    def test_completed_quantity_marks_process_completed(self):
+        with patch("qcmc_logic.customs.daily_job_report.frappe") as frappe:
+            frappe.db.get_value.return_value = 5
+            frappe.db.sql.return_value = [(5,)]
+            _sync_one_process("PROCESS-1")
+
+        frappe.db.set_value.assert_called_once_with(
+            "Machine Shop Repairs and Project Process",
+            "PROCESS-1",
+            {"done_quantity": 5.0, "status": "Completed"},
+            update_modified=False,
+        )
+
+    def test_deleted_report_can_reopen_process(self):
+        with patch("qcmc_logic.customs.daily_job_report.frappe") as frappe:
+            frappe.db.get_value.return_value = 5
+            frappe.db.sql.return_value = [(3,)]
+            _sync_one_process("PROCESS-1")
+
+        self.assertEqual(
+            frappe.db.set_value.call_args.args[2],
+            {"done_quantity": 3.0, "status": "In Progress"},
+        )

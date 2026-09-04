@@ -5,6 +5,7 @@ from frappe.utils import flt
 
 def validate_scheduled_processes(doc, method=None):
     """Validate newly scheduled processes without breaking historical schedules."""
+    _validate_unique_shift(doc)
     existing_processes = {}
     if not doc.is_new():
         existing_processes = {
@@ -22,6 +23,24 @@ def validate_scheduled_processes(doc, method=None):
         if row.name in existing_processes and existing_processes[row.name] == row.process:
             continue
         _validate_schedule_row(row)
+
+
+def _validate_unique_shift(doc):
+    """Enforce one schedule per date/shift on the server (the client check is advisory)."""
+    if not doc.get("sched_date") or not doc.get("shift"):
+        return
+
+    filters = {"sched_date": doc.sched_date, "shift": doc.shift}
+    if not doc.is_new():
+        filters["name"] = ["!=", doc.name]
+    duplicate = frappe.db.exists("Daily Job Schedule", filters)
+    if duplicate:
+        frappe.throw(
+            _("A {0} shift already exists for {1}: {2}.").format(
+                frappe.bold(doc.shift), frappe.bold(doc.sched_date), frappe.bold(duplicate)
+            ),
+            title=_("Duplicate Daily Job Schedule"),
+        )
 
 
 def _validate_schedule_row(row):

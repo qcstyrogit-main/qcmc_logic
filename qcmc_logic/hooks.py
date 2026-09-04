@@ -145,6 +145,10 @@ doc_events = {
         "autoname": "qcmc_logic.customs.machine_shop_job_request.autoname",
         "validate": "qcmc_logic.customs.machine_shop_job_request.validate",
     },
+    "Maintenance Job Order": {
+        "autoname": "qcmc_logic.customs.maintenance_job_order.autoname",
+        "validate": "qcmc_logic.customs.maintenance_job_order.validate",
+    },
     "Machine Shop Repairs and Project": {
         "validate": "qcmc_logic.customs.machine_shop_repairs_and_project.validate",
     },
@@ -153,9 +157,8 @@ doc_events = {
     },
     "Daily Job Report": {
         "validate": "qcmc_logic.customs.daily_job_report.validate",
-    },
-    "Job Card Downtime": {
-        "validate": "qcmc_logic.customs.job_card_downtime.validate",
+        "on_update": "qcmc_logic.customs.daily_job_report.sync_process_progress",
+        "after_delete": "qcmc_logic.customs.daily_job_report.sync_process_progress",
     },
     "Job Card Downtime": {
         "validate": "qcmc_logic.customs.job_card_downtime.validate",
@@ -184,6 +187,7 @@ doctype_js = {
     "Material Request": "public/js/material_request.js",
     "Pick List": "public/js/pick_list.js",
     "Machine Shop Job Request": "public/js/machine_shop_job_request.js",
+    "Maintenance Job Order": "public/js/maintenance_job_order.js",
     "Payment Entry": "public/js/payment_entry.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
     "Warehouse Allocation": "qcmc_logics/doctype/warehouse_allocation/warehouse_allocation.js",
@@ -384,6 +388,7 @@ fixtures = [
     {"doctype": "Job Card Downtime"},
 ]
 after_migrate = [
+    "qcmc_logic.customs.maintenance_job_order.ensure_maintenance_job_order",
     "qcmc_logic.customs.machine_shop_job_request.ensure_msjr_permissions",
     "qcmc_logic.customs.machine_shop_repairs_and_project.ensure_msrp_permissions",
     "qcmc_logic.customs.daily_job_report.remove_obsolete_schedule_fields",

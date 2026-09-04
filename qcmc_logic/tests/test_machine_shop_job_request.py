@@ -7,6 +7,9 @@ from qcmc_logic.customs.machine_shop_job_request import (
     _validate_completion_output,
     _validate_linked_project_completed,
     _validate_output_item,
+    _validate_fabrication_request_quantities,
+    _validate_quantity_produced_permission,
+    _normalize_non_fabrication_quantity_produced,
 )
 from qcmc_logic.utils import make_completed_output_stock_entry
 
@@ -17,6 +20,7 @@ def output_doc(**values):
         "item_code": None,
         "asset": None,
         "quantity_produced": 1,
+        "quantity_request": 1,
         "not_in_master_file": 0,
         "proposed_output_code": None,
         "output_description": None,
@@ -26,6 +30,88 @@ def output_doc(**values):
 
 
 class TestMachineShopCompletionValidation(TestCase):
+    def test_non_fabrication_quantity_produced_is_normalized_to_zero(self):
+        doc = output_doc(request="REQ-REPAIR", quantity_produced=5)
+        _normalize_non_fabrication_quantity_produced(doc, "REPAIR OF MACHINE")
+        self.assertEqual(doc.quantity_produced, 0)
+
+    def test_non_fabrication_completion_does_not_require_quantity_produced(self):
+        doc = output_doc(request="REQ-REPAIR", asset="ASSET-1", quantity_produced=0)
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.db.get_value.return_value = "REPAIR OF MACHINE"
+            _validate_completion_output(doc)
+
+        frappe.throw.assert_not_called()
+
+    def test_machine_shop_foreman_can_change_quantity_produced(self):
+        doc = output_doc(name="MSJR-1", quantity_produced=3)
+        doc.is_new = lambda: False
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.session.user = "foreman@example.com"
+            frappe.db.get_value.return_value = 1
+            frappe.get_roles.return_value = ["Machine Shop Foreman"]
+            _validate_quantity_produced_permission(doc, "FABRICATION - ITEM")
+
+        frappe.throw.assert_not_called()
+
+    def test_unauthorized_role_cannot_change_quantity_produced(self):
+        doc = output_doc(name="MSJR-1", quantity_produced=3)
+        doc.is_new = lambda: False
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.session.user = "other@example.com"
+            frappe.db.get_value.return_value = 1
+            frappe.get_roles.return_value = ["Stock User"]
+            frappe.throw.side_effect = RuntimeError
+            with self.assertRaises(RuntimeError):
+                _validate_quantity_produced_permission(doc, "FABRICATION - ITEM")
+
+        self.assertIn("modify Quantity Produced", frappe.throw.call_args.args[0])
+
+    def test_item_fabrication_can_be_created_without_item_code(self):
+        doc = output_doc(item_code=None, quantity_request=2)
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.db.get_value.return_value = "FABRICATION - ITEM"
+            _validate_fabrication_request_quantities(doc)
+            _validate_output_item(doc)
+
+        frappe.throw.assert_not_called()
+
+    def test_item_fabrication_requires_request_quantity(self):
+        doc = output_doc(quantity_request=0)
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.db.get_value.return_value = "FABRICATION - MACHINE PART"
+            frappe.throw.side_effect = RuntimeError
+            with self.assertRaises(RuntimeError):
+                _validate_fabrication_request_quantities(doc)
+
+        self.assertIn("Quantity Request", frappe.throw.call_args.args[0])
+
+    def test_asset_fabrication_can_be_created_without_asset(self):
+        doc = output_doc(request="REQ-ASSET", asset=None)
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.db.get_value.return_value = "FABRICATION - MOULD"
+            _validate_fabrication_request_quantities(doc)
+
+        frappe.throw.assert_not_called()
+
+    def test_new_item_fabrication_requires_item_only_at_completion(self):
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.db.get_value.return_value = "FABRICATION - ITEM"
+            frappe.throw.side_effect = RuntimeError
+            with self.assertRaises(RuntimeError):
+                _validate_completion_output(output_doc(item_code=None))
+
+        self.assertIn("Item Code is required", frappe.throw.call_args.args[0])
+
+    def test_new_asset_fabrication_requires_asset_only_at_completion(self):
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.db.get_value.return_value = "FABRICATION - MOULD"
+            frappe.throw.side_effect = RuntimeError
+            with self.assertRaises(RuntimeError):
+                _validate_completion_output(output_doc(request="REQ-ASSET", asset=None))
+
+        self.assertIn("Asset is required", frappe.throw.call_args.args[0])
+
     def _request_and_item_value(self, doctype, name, fieldname):
         if doctype == "Machine Shop Request Code":
             return "PARTS FABRICATION"
@@ -52,23 +138,26 @@ class TestMachineShopCompletionValidation(TestCase):
         self.assertIn("Asset is required", frappe.throw.call_args.args[0])
 
     def test_missing_master_accepts_proposed_code(self):
-        _validate_completion_output(
-            output_doc(
-                quantity_produced=2,
-                not_in_master_file=1,
-                proposed_output_code="PROPOSED-001",
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.db.get_value.return_value = "PARTS FABRICATION"
+            _validate_completion_output(
+                output_doc(
+                    quantity_produced=2,
+                    not_in_master_file=1,
+                    proposed_output_code="PROPOSED-001",
+                )
             )
-        )
+
+        frappe.throw.assert_not_called()
 
     def test_quantity_produced_must_be_positive(self):
-        with patch(
-            "qcmc_logic.customs.machine_shop_job_request.frappe.throw",
-            side_effect=RuntimeError,
-        ) as throw:
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.db.get_value.return_value = "PARTS FABRICATION"
+            frappe.throw.side_effect = RuntimeError
             with self.assertRaises(RuntimeError):
                 _validate_completion_output(output_doc(quantity_produced=0))
 
-        self.assertIn("greater than zero", throw.call_args.args[0])
+        self.assertIn("greater than zero", frappe.throw.call_args.args[0])
 
     def test_parts_item_must_belong_to_cmms(self):
         def get_value(doctype, name, fieldname):
@@ -126,11 +215,14 @@ class TestMachineShopOutputStockEntry(TestCase):
             company="Test Company",
         )
         target = MagicMock()
+        project = _dict(rework_history=[])
 
         with patch("qcmc_logic.utils.frappe") as frappe:
-            frappe.get_doc.return_value = msjr
+            frappe.session.user = "Administrator"
+            frappe.get_doc.side_effect = [msjr, project]
             frappe.new_doc.return_value = target
             frappe.db.sql.return_value = [(3,)]
+            frappe.db.get_value.side_effect = ["MSRP-001", "PROCESS-FINAL", "DJR-FINAL"]
 
             result = make_completed_output_stock_entry("MSJR-001")
 
@@ -139,6 +231,10 @@ class TestMachineShopOutputStockEntry(TestCase):
         self.assertEqual(target.purpose, "Material Receipt")
         self.assertEqual(target.company, "Test Company")
         self.assertEqual(target.msjr_no, "MSJR-001")
+        self.assertEqual(target.custom_msrp_no, "MSRP-001")
+        self.assertEqual(target.custom_final_process, "PROCESS-FINAL")
+        self.assertEqual(target.custom_daily_job_report, "DJR-FINAL")
+        self.assertEqual(target.custom_rework_cycle, 0)
         target.append.assert_called_once_with(
             "items", {"item_code": "ITEM-001", "qty": 7.0}
         )
@@ -153,11 +249,15 @@ class TestMachineShopOutputStockEntry(TestCase):
             company="Test Company",
         )
         target = MagicMock()
+        project = _dict(rework_history=[_dict(cycle_no=1)])
 
         with patch("qcmc_logic.utils.frappe") as frappe:
-            frappe.get_doc.return_value = msjr
+            frappe.session.user = "Administrator"
+            frappe.get_doc.side_effect = [msjr, project]
             frappe.new_doc.return_value = target
-            frappe.db.get_value.return_value = "ITEM-FROM-ASSET"
+            frappe.db.get_value.side_effect = [
+                "ITEM-FROM-ASSET", "MSRP-002", "PROCESS-FINAL", "DJR-FINAL"
+            ]
             frappe.db.sql.return_value = [(0,)]
 
             make_completed_output_stock_entry("MSJR-002")
@@ -165,3 +265,15 @@ class TestMachineShopOutputStockEntry(TestCase):
         target.append.assert_called_once_with(
             "items", {"item_code": "ITEM-FROM-ASSET", "qty": 2.0}
         )
+
+    def test_direct_mapper_rejects_user_without_stockroom_role(self):
+        with patch("qcmc_logic.utils.frappe") as frappe:
+            frappe.session.user = "other@example.com"
+            frappe.get_roles.return_value = ["Stock User"]
+            frappe.throw.side_effect = RuntimeError
+
+            with self.assertRaises(RuntimeError):
+                make_completed_output_stock_entry("MSJR-003")
+
+        self.assertIn("Stockroom_PR_EDSA_lv1", frappe.throw.call_args.args[0])
+        frappe.get_doc.assert_not_called()

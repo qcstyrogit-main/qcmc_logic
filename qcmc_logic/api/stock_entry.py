@@ -17,6 +17,107 @@ SUPPORTED_PURPOSES = {
     "Material Consumption for Manufacture",
     "Manufacture",
 }
+FABRICATED_MSJR_ROLE = "Stockroom_PR_EDSA_lv1"
+FABRICATED_PART_REQUEST_TYPES = {
+    "PARTS FABRICATION",
+    "FABRICATION - ITEM",
+    "FABRICATION - MACHINE PART",
+}
+
+
+def _validate_fabricated_msjr_role():
+    if frappe.session.user == "Administrator":
+        return
+    if FABRICATED_MSJR_ROLE not in frappe.get_roles(frappe.session.user):
+        frappe.throw(
+            _("Only users with role {0} can receive fabricated MSJR output.").format(
+                frappe.bold(FABRICATED_MSJR_ROLE)
+            ),
+            frappe.PermissionError,
+        )
+
+
+@frappe.whitelist()
+def get_fabricated_msjrs_for_stock_entry(txt=None, page_len=20):
+    """Return completed parts-fabrication MSJRs with output still to receive."""
+    _validate_fabricated_msjr_role()
+    frappe.has_permission("Stock Entry", ptype="create", throw=True)
+    filters = {"workflow_state": "Completed", "docstatus": 1}
+    or_filters = None
+    if txt:
+        or_filters = {
+            "name": ["like", f"%{txt}%"],
+            "item_code": ["like", f"%{txt}%"],
+            "asset_name": ["like", f"%{txt}%"],
+        }
+
+    requests = frappe.get_list(
+        "Machine Shop Job Request",
+        filters=filters,
+        or_filters=or_filters,
+        fields=[
+            "name", "request", "item_code", "asset", "asset_name",
+            "quantity_produced", "company", "document_date", "modified",
+        ],
+        order_by="modified desc",
+        limit_page_length=100,
+    )
+
+    rows = []
+    for msjr in requests:
+        request_type = (
+            frappe.db.get_value("Machine Shop Request Code", msjr.request, "description") or ""
+        ).strip().upper()
+        if request_type not in FABRICATED_PART_REQUEST_TYPES:
+            continue
+
+        item_code = msjr.item_code
+        if not item_code and msjr.asset:
+            item_code = frappe.db.get_value("Asset", msjr.asset, "item_code")
+        if not item_code:
+            continue
+
+        received_qty = frappe.db.sql(
+            """
+            SELECT COALESCE(SUM(sed.qty), 0)
+            FROM `tabStock Entry` se
+            INNER JOIN `tabStock Entry Detail` sed ON sed.parent = se.name
+            WHERE se.msjr_no = %s
+              AND se.docstatus < 2
+              AND se.purpose = 'Material Receipt'
+              AND sed.item_code = %s
+            """,
+            (msjr.name, item_code),
+        )[0][0]
+        remaining_qty = max(flt(msjr.quantity_produced) - flt(received_qty), 0)
+        if remaining_qty <= 0:
+            continue
+
+        rows.append({
+            "name": msjr.name,
+            "item_code": item_code,
+            "description": msjr.asset_name or "",
+            "quantity_produced": flt(msjr.quantity_produced),
+            "received_qty": flt(received_qty),
+            "remaining_qty": remaining_qty,
+            "company": msjr.company,
+            "document_date": msjr.document_date,
+        })
+        if len(rows) >= cint(page_len or 20):
+            break
+
+    return rows
+
+
+@frappe.whitelist()
+def make_material_receipt_from_fabricated_msjr(msjr_no):
+    """Reuse the canonical MSJR output mapper from the Stock Entry screen."""
+    from qcmc_logic.utils import make_completed_output_stock_entry
+
+    _validate_fabricated_msjr_role()
+    if not msjr_no:
+        frappe.throw(_("Please select a completed fabricated MSJR."))
+    return make_completed_output_stock_entry(msjr_no).as_dict()
 
 
 def _validate_purpose(purpose):

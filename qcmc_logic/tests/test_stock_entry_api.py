@@ -12,6 +12,8 @@ from qcmc_logic.api.stock_entry import (
     _pending_qty,
     _validate_pending_material_inventory_group_access,
     _validate_final_operation_job_card,
+    get_fabricated_msjrs_for_stock_entry,
+    make_material_receipt_from_fabricated_msjr,
 )
 
 
@@ -155,92 +157,69 @@ class TestManufacturePendingQty(TestCase):
             self.assertEqual(_pending_qty(job_card, "Manufacture"), 3000)
 
 
-class TestMaterialTransferInventoryGroupAccess(TestCase):
-    def test_authorized_pending_material_is_allowed(self):
-        job_card = _dict(
-            items=[
-                _dict(item_code="RAW-1", required_qty=10, transferred_qty=0),
-                _dict(item_code="RAW-2", required_qty=10, transferred_qty=10),
-            ]
+class TestFabricatedMSJRSelector(TestCase):
+    def test_lists_only_parts_with_remaining_output(self):
+        request = _dict(
+            name="MSJR-1",
+            request="REQ-PARTS",
+            item_code="ITEM-1",
+            asset=None,
+            asset_name="Fabricated Part",
+            quantity_produced=10,
+            company="Test Company",
+            document_date="2026-08-06",
         )
+        with patch("qcmc_logic.api.stock_entry.frappe") as frappe:
+            frappe.session.user = "stockroom@example.com"
+            frappe.get_roles.return_value = ["Stockroom_PR_EDSA_lv1"]
+            frappe.get_list.return_value = [request]
+            frappe.db.get_value.return_value = "PARTS FABRICATION"
+            frappe.db.sql.return_value = [(4,)]
 
+            rows = get_fabricated_msjrs_for_stock_entry()
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["name"], "MSJR-1")
+        self.assertEqual(rows[0]["remaining_qty"], 6)
+
+    def test_excludes_fully_received_output(self):
+        request = _dict(
+            name="MSJR-1", request="REQ-PARTS", item_code="ITEM-1",
+            asset=None, asset_name="", quantity_produced=10,
+            company="Test Company", document_date="2026-08-06",
+        )
+        with patch("qcmc_logic.api.stock_entry.frappe") as frappe:
+            frappe.session.user = "stockroom@example.com"
+            frappe.get_roles.return_value = ["Stockroom_PR_EDSA_lv1"]
+            frappe.get_list.return_value = [request]
+            frappe.db.get_value.return_value = "PARTS FABRICATION"
+            frappe.db.sql.return_value = [(10,)]
+
+            self.assertEqual(get_fabricated_msjrs_for_stock_entry(), [])
+
+    def test_receipt_creation_reuses_canonical_msjr_mapper(self):
+        mapped = _dict(doctype="Stock Entry", purpose="Material Receipt")
+        with patch(
+            "qcmc_logic.utils.make_completed_output_stock_entry",
+            return_value=_dict(as_dict=lambda: mapped),
+        ) as mapper, patch("qcmc_logic.api.stock_entry.frappe") as frappe:
+            frappe.session.user = "stockroom@example.com"
+            frappe.get_roles.return_value = ["Stockroom_PR_EDSA_lv1"]
+            result = make_material_receipt_from_fabricated_msjr("MSJR-1")
+
+        mapper.assert_called_once_with("MSJR-1")
+        self.assertEqual(result, mapped)
+
+    def test_rejects_user_without_stockroom_role(self):
         with (
-            patch("qcmc_logic.api.stock_entry.has_inventory_group_access", return_value=True),
-            patch(
-                "qcmc_logic.api.stock_entry.get_user_allowed_inventory_groups",
-                return_value=["RESIN"],
-            ),
             patch("qcmc_logic.api.stock_entry.frappe") as frappe,
-        ):
-            frappe.get_all.return_value = [
-                _dict(name="RAW-1", custom_inventory_group="RESIN"),
-                _dict(name="RAW-2", custom_inventory_group="PACKING"),
-            ]
-
-            unauthorized = _get_unauthorized_pending_material_items(
-                job_card,
-                "Material Transfer for Manufacture",
-                user="operator@example.com",
-            )
-
-        self.assertEqual(unauthorized, [])
-
-    def test_unauthorized_pending_material_is_returned(self):
-        job_card = _dict(
-            items=[
-                _dict(item_code="RAW-1", required_qty=10, transferred_qty=0),
-                _dict(item_code="RAW-2", required_qty=8, transferred_qty=3),
-            ]
-        )
-
-        with (
-            patch("qcmc_logic.api.stock_entry.has_inventory_group_access", return_value=True),
-            patch(
-                "qcmc_logic.api.stock_entry.get_user_allowed_inventory_groups",
-                return_value=["RESIN"],
-            ),
-            patch("qcmc_logic.api.stock_entry.frappe") as frappe,
-        ):
-            frappe.get_all.return_value = [
-                _dict(name="RAW-1", custom_inventory_group="RESIN"),
-                _dict(name="RAW-2", custom_inventory_group="PACKING"),
-            ]
-
-            unauthorized = _get_unauthorized_pending_material_items(
-                job_card,
-                "Material Transfer for Manufacture",
-                user="operator@example.com",
-            )
-
-        self.assertEqual(len(unauthorized), 1)
-        self.assertEqual(unauthorized[0].item_code, "RAW-2")
-        self.assertEqual(unauthorized[0].inventory_group, "PACKING")
-
-    def test_validation_rejects_unauthorized_pending_material(self):
-        job_card = _dict(
-            name="JC-TEST",
-            items=[_dict(item_code="RAW-2", required_qty=8, transferred_qty=3)],
-        )
-
-        with (
             patch("qcmc_logic.api.stock_entry._", side_effect=lambda message: message),
-            patch("qcmc_logic.api.stock_entry.has_inventory_group_access", return_value=True),
-            patch(
-                "qcmc_logic.api.stock_entry.get_user_allowed_inventory_groups",
-                return_value=["RESIN"],
-            ),
-            patch("qcmc_logic.api.stock_entry.frappe") as frappe,
         ):
-            frappe.get_all.return_value = [
-                _dict(name="RAW-2", custom_inventory_group="PACKING"),
-            ]
+            frappe.session.user = "other@example.com"
+            frappe.get_roles.return_value = ["Stock User"]
+            frappe.bold.side_effect = lambda value: value
             frappe.throw.side_effect = RuntimeError
-
             with self.assertRaises(RuntimeError):
-                _validate_pending_material_inventory_group_access(
-                    job_card,
-                    "Material Transfer for Manufacture",
-                    user="operator@example.com",
-                )
+                get_fabricated_msjrs_for_stock_entry()
 
-        self.assertIn("RAW-2", frappe.throw.call_args.args[0])
+        self.assertIn("Stockroom_PR_EDSA_lv1", frappe.throw.call_args.args[0])

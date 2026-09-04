@@ -56,6 +56,12 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "name": "Close Inventory",
+  "workflow_action_name": "Close Inventory"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "name": "Complete",
   "workflow_action_name": "Complete"
  },
@@ -112,12 +118,6 @@
   "doctype": "Workflow Action Master",
   "name": "For RTC Approval",
   "workflow_action_name": "For RTC Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "name": "Close Inventory",
-  "workflow_action_name": "Close Inventory"
  },
  {
   "docstatus": 0,

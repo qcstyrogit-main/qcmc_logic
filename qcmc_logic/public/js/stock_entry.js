@@ -21,6 +21,7 @@ frappe.ui.form.on("Stock Entry", {
         qcmc_logic.stock_entry.apply_manufacturing_warehouse_queries(frm);
         qcmc_logic.stock_entry.apply_job_card_field_rules(frm);
         qcmc_logic.stock_entry.add_job_card_button(frm);
+        qcmc_logic.stock_entry.add_fabricated_msjr_button(frm);
         qcmc_logic.stock_entry.refresh_manufacture_row_locks(frm);
         qcmc_logic.stock_entry.refresh_warehouse_code(frm);
         qcmc_logic.stock_entry.refresh_msjr_warehouse_code(frm);
@@ -38,17 +39,14 @@ frappe.ui.form.on("Stock Entry", {
         qcmc_logic.stock_entry.apply_manufacturing_warehouse_queries(frm);
         qcmc_logic.stock_entry.apply_job_card_field_rules(frm);
         qcmc_logic.stock_entry.add_job_card_button(frm);
+        qcmc_logic.stock_entry.add_fabricated_msjr_button(frm);
         qcmc_logic.stock_entry.refresh_manufacture_row_locks(frm);
         qcmc_logic.stock_entry.refresh_warehouse_code(frm);
     },
 
     stock_entry_type(frm) {
         qcmc_logic.stock_entry.apply_job_card_field_rules(frm);
-        qcmc_logic.stock_entry.refresh_warehouse_code(frm);
-    },
-
-    from_warehouse(frm) {
-        qcmc_logic.stock_entry.refresh_warehouse_code(frm);
+        qcmc_logic.stock_entry.add_fabricated_msjr_button(frm);
     },
 
     to_warehouse(frm) {
@@ -212,6 +210,106 @@ qcmc_logic.stock_entry.add_job_card_button = function(frm) {
 
 qcmc_logic.stock_entry.can_fetch_from_job_card = function(frm) {
     return frm.doc.docstatus === 0 && qcmc_logic.stock_entry.supported_purposes.has(frm.doc.purpose);
+};
+
+qcmc_logic.stock_entry.add_fabricated_msjr_button = function(frm) {
+    if (
+        frm.doc.docstatus !== 0
+        || !(frappe.user_roles || []).includes("Stockroom_PR_EDSA_lv1")
+    ) return;
+    frm.add_custom_button(__("Fabricated MSJR"), () => {
+        qcmc_logic.stock_entry.open_fabricated_msjr_dialog(frm);
+    }, __("Get Items From"));
+};
+
+qcmc_logic.stock_entry.open_fabricated_msjr_dialog = function(frm) {
+    const dialog = new frappe.ui.Dialog({
+        title: __("Select Completed Fabricated MSJR"),
+        size: "extra-large",
+        fields: [
+            {
+                fieldtype: "Data",
+                fieldname: "search",
+                label: __("Search MSJR or Item"),
+                onchange() {
+                    qcmc_logic.stock_entry.load_fabricated_msjrs(dialog);
+                },
+            },
+            { fieldtype: "HTML", fieldname: "msjr_html" },
+        ],
+        primary_action_label: __("Get Items"),
+        primary_action() {
+            const selected = dialog.$wrapper.find("input[name='qcmc_msjr']:checked").val();
+            if (!selected) {
+                frappe.msgprint(__("Please select one fabricated MSJR."));
+                return;
+            }
+            qcmc_logic.stock_entry.create_fabricated_msjr_receipt(frm, dialog, selected);
+        },
+    });
+    dialog.show();
+    qcmc_logic.stock_entry.load_fabricated_msjrs(dialog);
+};
+
+qcmc_logic.stock_entry.load_fabricated_msjrs = function(dialog) {
+    const values = dialog.get_values() || {};
+    frappe.call({
+        method: "qcmc_logic.api.stock_entry.get_fabricated_msjrs_for_stock_entry",
+        args: { txt: values.search || "", page_len: 20 },
+        freeze: true,
+        callback(r) {
+            dialog.fields_dict.msjr_html.$wrapper.html(
+                qcmc_logic.stock_entry.render_fabricated_msjrs(r.message || [])
+            );
+        },
+    });
+};
+
+qcmc_logic.stock_entry.render_fabricated_msjrs = function(rows) {
+    if (!rows.length) {
+        return `<div class="text-muted">${__("No completed fabricated MSJR has remaining output to receive.")}</div>`;
+    }
+    const body = rows.map(row => `
+        <tr>
+            <td><input type="radio" name="qcmc_msjr" value="${frappe.utils.escape_html(row.name)}"></td>
+            <td>${frappe.utils.escape_html(row.name || "")}</td>
+            <td>${frappe.utils.escape_html(row.item_code || "")}</td>
+            <td>${frappe.utils.escape_html(row.description || "")}</td>
+            <td class="text-right">${format_number(row.quantity_produced || 0)}</td>
+            <td class="text-right">${format_number(row.received_qty || 0)}</td>
+            <td class="text-right">${format_number(row.remaining_qty || 0)}</td>
+        </tr>
+    `).join("");
+    return `<table class="table table-bordered table-sm">
+        <thead><tr><th></th><th>${__("MSJR")}</th><th>${__("Item")}</th>
+        <th>${__("Description")}</th><th>${__("Produced")}</th>
+        <th>${__("Received")}</th><th>${__("Remaining")}</th></tr></thead>
+        <tbody>${body}</tbody></table>`;
+};
+
+qcmc_logic.stock_entry.create_fabricated_msjr_receipt = function(frm, dialog, msjr_no) {
+    const create_receipt = () => frappe.call({
+        method: "qcmc_logic.api.stock_entry.make_material_receipt_from_fabricated_msjr",
+        args: { msjr_no },
+        freeze: true,
+        freeze_message: __("Preparing fabricated output receipt..."),
+        callback(r) {
+            if (!r.message) return;
+            dialog.hide();
+            const documents = frappe.model.sync(r.message);
+            const stock_entry = documents.find(doc => doc.doctype === "Stock Entry");
+            if (stock_entry) frappe.set_route("Form", "Stock Entry", stock_entry.name);
+        },
+    });
+
+    if ((frm.doc.items || []).some(row => row.item_code || row.qty)) {
+        frappe.confirm(
+            __("A new Material Receipt will be opened and the current item rows will not be copied. Continue?"),
+            create_receipt
+        );
+        return;
+    }
+    create_receipt();
 };
 
 qcmc_logic.stock_entry.open_job_card_dialog = function(frm) {

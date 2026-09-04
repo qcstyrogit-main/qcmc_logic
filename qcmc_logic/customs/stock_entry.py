@@ -8,8 +8,15 @@ def set_stock_entry_warehouse_code(doc, method=None):
 	if not warehouse_field:
 		return
 
-	warehouses = _get_stock_entry_warehouses(doc, warehouse_field)
-	if not warehouses:
+	_validate_msjr_output_traceability(doc)
+
+	target_warehouses = {
+		row.t_warehouse for row in (doc.get("items") or []) if row.get("t_warehouse")
+	}
+	if doc.get("to_warehouse"):
+		target_warehouses.add(doc.to_warehouse)
+
+	if not target_warehouses:
 		return
 
 	if len(warehouses) > 1:
@@ -34,45 +41,39 @@ def set_stock_entry_warehouse_code(doc, method=None):
 	doc.custom_wh_code = warehouse_code
 
 
-def set_manufacture_actual_weight_uom(doc, method=None):
-	if doc.get("purpose") != "Manufacture" and doc.get("stock_entry_type") != "Manufacture":
-		return
+def _validate_msjr_output_traceability(doc):
+	required = {
+		"custom_msrp_no": _("Machine Shop Project"),
+		"custom_final_process": _("Final Process"),
+		"custom_daily_job_report": _("Final Daily Job Report"),
+	}
+	missing = [label for field, label in required.items() if not doc.get(field)]
+	if missing:
+		frappe.throw(
+			_("MSJR output receipt is missing traceability fields: {0}.").format(", ".join(missing)),
+			title=_("Traceability Required"),
+		)
 
-	default_weight_uom = frappe.db.get_single_value(
-		"Stock Settings", "custom_default_actual_weight_uom"
+	project = frappe.db.get_value(
+		"Machine Shop Repairs and Project", doc.custom_msrp_no,
+		["msjr_no", "workflow_state"], as_dict=True,
 	)
-	if not default_weight_uom:
-		return
+	if not project or project.msjr_no != doc.msjr_no or project.workflow_state != "Completed":
+		frappe.throw(_("Machine Shop Project must be the completed project linked to this MSJR."))
 
-	for row in doc.get("items") or []:
-		if row.get("is_finished_item") and not row.get("custom_actual_weight_uom"):
-			row.custom_actual_weight_uom = default_weight_uom
+	process = frappe.db.get_value(
+		"Machine Shop Repairs and Project Process", doc.custom_final_process,
+		["parent", "process_name", "status"], as_dict=True,
+	)
+	if not process or process.parent != doc.custom_msrp_no or process.process_name != "FINAL INSPECTION" or process.status != "Completed":
+		frappe.throw(_("Final Process must be the completed FINAL INSPECTION for this project."))
 
-
-def _get_stock_entry_wh_code_warehouse_field(doc):
-	source_warehouses = _get_stock_entry_warehouses(doc, "s_warehouse")
-	target_warehouses = _get_stock_entry_warehouses(doc, "t_warehouse")
-
-	if target_warehouses and not source_warehouses:
-		return "t_warehouse"
-	if source_warehouses and not target_warehouses:
-		return "s_warehouse"
-
-	if source_warehouses:
-		return "s_warehouse"
-	if target_warehouses:
-		return "t_warehouse"
-
-	return None
-
-
-def _get_stock_entry_warehouses(doc, warehouse_field):
-	header_field = "to_warehouse" if warehouse_field == "t_warehouse" else "from_warehouse"
-	warehouses = {row.get(warehouse_field) for row in (doc.get("items") or []) if row.get(warehouse_field)}
-	if doc.get(header_field):
-		warehouses.add(doc.get(header_field))
-
-	return warehouses
+	report = frappe.db.get_value(
+		"Daily Job Report", doc.custom_daily_job_report,
+		["project_no", "process_no"], as_dict=True,
+	)
+	if not report or report.project_no != doc.custom_msrp_no or report.process_no != doc.custom_final_process:
+		frappe.throw(_("Final Daily Job Report must belong to the selected FINAL INSPECTION process."))
 
 
 def validate_final_job_card_time_log(doc, method=None):

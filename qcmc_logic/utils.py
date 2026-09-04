@@ -1505,6 +1505,12 @@ def make_material_issuance(source_name, target_doc=None):
 @frappe.whitelist()
 def make_completed_output_stock_entry(source_name, target_doc=None):
     """Create a Material Receipt draft for the unreceived fabricated output."""
+    allowed_role = "Stockroom_PR_EDSA_lv1"
+    if frappe.session.user != "Administrator" and allowed_role not in frappe.get_roles():
+        frappe.throw(
+            f"Only users with role {allowed_role} can receive fabricated MSJR output.",
+            frappe.PermissionError,
+        )
     frappe.has_permission("Stock Entry", ptype="create", throw=True)
 
     msjr = frappe.get_doc("Machine Shop Job Request", source_name)
@@ -1544,6 +1550,34 @@ def make_completed_output_stock_entry(source_name, target_doc=None):
     target.purpose = "Material Receipt"
     target.company = msjr.company
     target.msjr_no = msjr.name
+    project_name = frappe.db.get_value(
+        "Machine Shop Repairs and Project",
+        {"msjr_no": msjr.name, "workflow_state": "Completed", "docstatus": ["!=", 2]},
+        "name",
+    )
+    if not project_name:
+        frappe.throw("A completed Machine Shop Repairs and Project is required for the output receipt.")
+
+    final_process = frappe.db.get_value(
+        "Machine Shop Repairs and Project Process",
+        {"parent": project_name, "parenttype": "Machine Shop Repairs and Project", "process_name": "FINAL INSPECTION"},
+        "name",
+    )
+    if not final_process:
+        frappe.throw("The completed project has no FINAL INSPECTION process.")
+
+    target.custom_msrp_no = project_name
+    target.custom_final_process = final_process
+    target.custom_daily_job_report = frappe.db.get_value(
+        "Daily Job Report",
+        {"project_no": project_name, "process_no": final_process, "docstatus": ["!=", 2]},
+        "name",
+        order_by="date_finished desc, creation desc",
+    )
+    if not target.custom_daily_job_report:
+        frappe.throw("A Daily Job Report for the completed FINAL INSPECTION is required for the output receipt.")
+    project = frappe.get_doc("Machine Shop Repairs and Project", project_name)
+    target.custom_rework_cycle = len(project.get("rework_history") or [])
     target.append("items", {"item_code": item_code, "qty": remaining_qty})
     return target
 
@@ -1686,6 +1720,26 @@ def make_daily_job_report(process_name):
     target.process_no = process_name
     target.process_title = process.process_name
     target.project_no = process.parent
+    schedule_rows = frappe.db.sql(
+        """
+        SELECT js.parent AS schedule, js.name AS row_name, js.employee
+        FROM `tabJob Schedule` js
+        INNER JOIN `tabDaily Job Schedule` djs ON djs.name = js.parent
+        WHERE js.process = %s AND djs.docstatus != 2
+        ORDER BY djs.sched_date DESC, djs.creation DESC, js.idx ASC
+        LIMIT 1
+        """,
+        process_name,
+        as_dict=True,
+    )
+    if not schedule_rows:
+        frappe.throw(
+            f"Schedule process <b>{process.process_name}</b> in a Daily Job Schedule before creating its report."
+        )
+    scheduled = schedule_rows[0]
+    target.daily_job_schedule = scheduled.schedule
+    target.job_schedule_row = scheduled.row_name
+    target.worked_by = scheduled.employee
     target.flags.ignore_permissions = True
 
     return target

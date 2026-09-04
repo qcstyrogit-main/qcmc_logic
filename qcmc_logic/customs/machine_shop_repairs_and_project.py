@@ -10,6 +10,7 @@ WORKFLOW_NAME = "MS Repair & Project"
 DEFAULT_ACCEPTANCE_PERIOD_DAYS = 5
 COMPLETION_ROLES = frozenset(["Machine Shop Foreman", "Machine Shop Supervisor"])
 BACK_JOB_REASON_OPTIONS = "\nIncomplete Work\nQuality Issue\nWrong Specification\nOther"
+REWORK_STATE = "Rework Required"
 
 OWNER_MATCH_CONDITION = (
     'frappe.session.user == frappe.db.get_value('
@@ -82,6 +83,7 @@ def validate(doc, method=None):
 
     # Active -> Awaiting Requestor Confirmation ("Mark as Completed")
     if old_state == "Active" and new_state == "Awaiting Requestor Confirmation":
+        _validate_process_completion(doc)
         if not doc.served_date:
             frappe.throw(
                 "Served Date is required before marking this job as completed.",
@@ -97,8 +99,8 @@ def validate(doc, method=None):
                 title="Unauthorized",
             )
 
-    # Awaiting Requestor Confirmation -> Approved ("File Back Job")
-    if old_state == "Awaiting Requestor Confirmation" and new_state == "Approved":
+    # Awaiting Requestor Confirmation -> Rework Required ("File Back Job")
+    if old_state == "Awaiting Requestor Confirmation" and new_state == REWORK_STATE:
         if not is_admin and user != _get_msjr_owner(doc.msjr_no):
             frappe.throw(
                 "Only the MSJR requestor can file back this job.",
@@ -118,8 +120,8 @@ def validate(doc, method=None):
             "filed_on": now_datetime(),
         })
 
-    # Approved -> Active ("Acknowledge Again")
-    if old_state == "Approved" and new_state == "Active":
+    # Rework Required -> Active ("Acknowledge Again")
+    if old_state == REWORK_STATE and new_state == "Active":
         for row in reversed(doc.rework_history or []):
             if not row.acknowledged_by:
                 row.acknowledged_by = user
@@ -127,6 +129,31 @@ def validate(doc, method=None):
                 break
         doc.served_date = None
         doc.acceptance_due_date = None
+
+
+def _validate_process_completion(doc):
+    processes = frappe.get_all(
+        "Machine Shop Repairs and Project Process",
+        filters={"parent": doc.name, "parenttype": MSRP_DT},
+        fields=["name", "process_name", "status", "plan_quantity", "done_quantity"],
+    )
+    final_inspections = [p for p in processes if (p.process_name or "").strip().upper() == "FINAL INSPECTION"]
+    if not final_inspections:
+        frappe.throw(
+            "Add and complete a FINAL INSPECTION process before serving this project.",
+            title="Final Inspection Required",
+        )
+
+    incomplete = [
+        p for p in processes
+        if p.status != "Completed" or (p.plan_quantity or 0) > (p.done_quantity or 0)
+    ]
+    if incomplete:
+        labels = [f"{p.process_name or p.name} ({p.done_quantity or 0}/{p.plan_quantity or 0})" for p in incomplete]
+        frappe.throw(
+            "Complete every planned process before serving this project: " + ", ".join(labels),
+            title="Processes Incomplete",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -180,7 +207,7 @@ def msrp_has_permission(doc, ptype=None, user=None):
             # The workflow engine sets doc.workflow_state to the *target* state
             # before calling doc.save(), so by the time this runs during a
             # Confirm Completion / File Back Job transition, doc.workflow_state
-            # is already "Completed"/"Approved" rather than the state the user
+            # is already "Completed"/"Rework Required" rather than the state the user
             # acted from. Check the committed DB state instead.
             state = (
                 doc.workflow_state if doc.is_new()
@@ -410,6 +437,7 @@ def _ensure_workflow_action(name):
 
 def _update_msrp_workflow():
     _ensure_workflow_state("Awaiting Requestor Confirmation")
+    _ensure_workflow_state(REWORK_STATE)
     for action in (
         "Tag To Active", "Mark as Completed", "Cancel", "Revert to Draft",
         "Confirm Completion", "File Back Job", "Acknowledge Again",
@@ -422,8 +450,8 @@ def _update_msrp_workflow():
     for s in (
         {"state": "Awaiting Requestor Confirmation", "doc_status": "0", "allow_edit": "All",
          "update_field": "workflow_state", "update_value": "Awaiting Requestor Confirmation"},
-        {"state": "Approved", "doc_status": "0", "allow_edit": "All",
-         "update_field": "workflow_state", "update_value": "Approved"},
+        {"state": REWORK_STATE, "doc_status": "0", "allow_edit": "All",
+         "update_field": "workflow_state", "update_value": REWORK_STATE},
     ):
         if s["state"] not in existing_states:
             wf.append("states", s)
@@ -439,9 +467,9 @@ def _update_msrp_workflow():
          "allowed": "Machine Shop Foreman", "allow_self_approval": 1},
         {"state": "Active", "action": "Mark as Completed", "next_state": "Awaiting Requestor Confirmation",
          "allowed": "Machine Shop Supervisor", "allow_self_approval": 1},
-        {"state": "Approved", "action": "Acknowledge Again", "next_state": "Active",
+        {"state": REWORK_STATE, "action": "Acknowledge Again", "next_state": "Active",
          "allowed": "Machine Shop Foreman", "allow_self_approval": 1},
-        {"state": "Approved", "action": "Acknowledge Again", "next_state": "Active",
+        {"state": REWORK_STATE, "action": "Acknowledge Again", "next_state": "Active",
          "allowed": "Machine Shop Supervisor", "allow_self_approval": 1},
     ]
     for role in REQUESTOR_ROLES:
@@ -452,7 +480,7 @@ def _update_msrp_workflow():
         })
         new_transitions.append({
             "state": "Awaiting Requestor Confirmation", "action": "File Back Job",
-            "next_state": "Approved", "allowed": role, "allow_self_approval": 1,
+            "next_state": REWORK_STATE, "allowed": role, "allow_self_approval": 1,
             "condition": OWNER_MATCH_CONDITION,
         })
 
@@ -509,7 +537,7 @@ def restore_legacy_completed_for_back_job(name):
 
 
 def ensure_msrp_permissions():
-    """Re-apply MSRP field layout, workflow and DocPerm after every migrate."""
+    """Re-apply MSRP layout, Back Job workflow, fields and DocPerm after every migrate."""
     import json as _json
     import os
 
@@ -538,10 +566,13 @@ def ensure_msrp_permissions():
         wf_doc.flags.ignore_validate = True
         wf_doc.save()
 
+    # Workflow fixtures provide the baseline. Always apply the idempotent
+    # completion-confirmation / Back Job extension after fixture import.
     _add_company_setting_field()
     _add_msrp_rework_log_doctype()
     _add_msrp_custom_fields()
     _add_msrp_docperm()
     _add_msrp_field_permlevels()
     _update_msrp_workflow()
+    frappe.db.set_value(MSRP_DT, {"workflow_state": "Approved"}, "workflow_state", REWORK_STATE)
     frappe.clear_cache(doctype=MSRP_DT)
