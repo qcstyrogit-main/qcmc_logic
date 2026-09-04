@@ -1,0 +1,115 @@
+{
+ "actions": [],
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_code",
+  "allocation_id",
+  "source_doctype",
+  "source_document",
+  "source_row",
+  "stock_uom",
+  "original_qty",
+  "suggested_location",
+  "suggested_qty",
+  "actual_location",
+  "actual_qty",
+  "priority",
+  "putaway_rule",
+  "status",
+  "scanner_id",
+  "user",
+  "scan_time"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item",
+   "options": "Item",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {"fieldname":"allocation_id","fieldtype":"Data","label":"Allocation ID","read_only":1,"unique":1,"hidden":1},
+  {"fieldname":"source_doctype","fieldtype":"Link","label":"Source DocType","options":"DocType","read_only":1,"hidden":1},
+  {"fieldname":"source_document","fieldtype":"Dynamic Link","label":"Source Document","options":"source_doctype","read_only":1,"hidden":1},
+  {"fieldname":"source_row","fieldtype":"Data","label":"Source Row","read_only":1,"hidden":1},
+  {"fieldname":"stock_uom","fieldtype":"Link","label":"Stock UOM","options":"UOM","read_only":1,"hidden":1},
+  {"fieldname":"original_qty","fieldtype":"Float","label":"Original Quantity","read_only":1,"hidden":1},
+  {
+   "columns": 2,
+   "fieldname": "suggested_location",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Suggested Location",
+   "options": "Storage Location",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "suggested_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Suggested Qty",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "columns": 2,
+   "fieldname": "actual_location",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Actual Location",
+   "options": "Storage Location"
+  },
+  {
+   "allow_on_submit": 1,
+   "columns": 1,
+   "fieldname": "actual_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Actual Qty"
+  },
+  {"fieldname":"priority","fieldtype":"Int","label":"Priority","read_only":1,"hidden":1},
+  {"fieldname":"putaway_rule","fieldtype":"Link","label":"Putaway Rule","options":"Putaway Rule","read_only":1,"hidden":1},
+  {"fieldname":"status","fieldtype":"Select","label":"Status","options":"PENDING_VERIFICATION\nVERIFIED\nCONFLICTED","default":"PENDING_VERIFICATION","read_only":1,"hidden":1},
+  {
+   "allow_on_submit": 1,
+   "columns": 1,
+   "fieldname": "scanner_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Scanner ID",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "columns": 1,
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "scan_time",
+   "fieldtype": "Datetime",
+   "label": "Scan Time",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "links": [],
+ "module": "QCMC Logics",
+ "name": "Warehouse Allocation Location",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

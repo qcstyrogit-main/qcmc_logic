@@ -28,6 +28,58 @@ def validate(doc, method=None):
     _validate_reported_quantity(doc, process, schedule_row)
 
 
+def sync_process_progress(doc, method=None):
+    """Recalculate MSRP process progress after a DJR is saved or deleted."""
+    process_names = {doc.get("process_no")}
+    previous = doc.get_doc_before_save() if method == "on_update" else None
+    if previous:
+        process_names.add(previous.get("process_no"))
+
+    for process_name in filter(None, process_names):
+        _sync_one_process(process_name)
+
+
+def _sync_one_process(process_name):
+    plan_quantity = frappe.db.get_value(PROCESS_DT, process_name, "plan_quantity")
+    if plan_quantity is None:
+        return
+
+    reported_quantity = flt(frappe.db.sql(
+        """
+        SELECT COALESCE(SUM(quantity), 0)
+        FROM `tabDaily Job Report`
+        WHERE process_no = %s AND docstatus != 2
+        """,
+        process_name,
+    )[0][0])
+    plan_quantity = flt(plan_quantity)
+
+    if reported_quantity <= 0:
+        status = "Not Started"
+    elif plan_quantity > 0 and reported_quantity >= plan_quantity:
+        status = "Completed"
+    else:
+        status = "In Progress"
+
+    frappe.db.set_value(
+        PROCESS_DT,
+        process_name,
+        {"done_quantity": reported_quantity, "status": status},
+        update_modified=False,
+    )
+
+
+def sync_all_reported_process_progress():
+    """Backfill progress only for processes that have at least one existing DJR."""
+    process_names = frappe.get_all(
+        "Daily Job Report",
+        filters={"process_no": ["is", "set"], "docstatus": ["!=", 2]},
+        pluck="process_no",
+    )
+    for process_name in set(process_names):
+        _sync_one_process(process_name)
+
+
 def _validate_dates(doc):
     current = now_datetime()
     started = get_datetime(doc.date_started) if doc.get("date_started") else None

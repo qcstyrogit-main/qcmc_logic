@@ -27,7 +27,10 @@ doc_events = {
         "validate": "qcmc_logic.customs.customer_warehouse_defaults.validate_customer_company_warehouse_defaults",
     },
     "Delivery Note": {
-        "before_validate": "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
+        "before_validate": [
+            "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
+            "qcmc_logic.customs.sales_transaction_territory.populate_mapped_transaction_territory",
+        ],
     },
     "POS Invoice": {
         "before_validate": "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
@@ -50,6 +53,7 @@ doc_events = {
     "Sales Invoice": {
         "before_validate": [
             "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
+            "qcmc_logic.customs.sales_transaction_territory.populate_mapped_transaction_territory",
             "qcmc_logic.overrides.sales_invoice_override.warn_duplicate_invoice_references",
         ],
         "validate": "qcmc_logic.overrides.sales_invoice_override.validate",
@@ -145,6 +149,10 @@ doc_events = {
         "autoname": "qcmc_logic.customs.machine_shop_job_request.autoname",
         "validate": "qcmc_logic.customs.machine_shop_job_request.validate",
     },
+    "Maintenance Job Order": {
+        "autoname": "qcmc_logic.customs.maintenance_job_order.autoname",
+        "validate": "qcmc_logic.customs.maintenance_job_order.validate",
+    },
     "Machine Shop Repairs and Project": {
         "validate": "qcmc_logic.customs.machine_shop_repairs_and_project.validate",
     },
@@ -153,9 +161,8 @@ doc_events = {
     },
     "Daily Job Report": {
         "validate": "qcmc_logic.customs.daily_job_report.validate",
-    },
-    "Job Card Downtime": {
-        "validate": "qcmc_logic.customs.job_card_downtime.validate",
+        "on_update": "qcmc_logic.customs.daily_job_report.sync_process_progress",
+        "after_delete": "qcmc_logic.customs.daily_job_report.sync_process_progress",
     },
     "Job Card Downtime": {
         "validate": "qcmc_logic.customs.job_card_downtime.validate",
@@ -184,8 +191,10 @@ doctype_js = {
     "Material Request": "public/js/material_request.js",
     "Pick List": "public/js/pick_list.js",
     "Machine Shop Job Request": "public/js/machine_shop_job_request.js",
+    "Maintenance Job Order": "public/js/maintenance_job_order.js",
     "Payment Entry": "public/js/payment_entry.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
+    "Warehouse Allocation": "qcmc_logics/doctype/warehouse_allocation/warehouse_allocation.js",
     "Overtime Slip": "public/js/overtime_slip.js",
     "Batch Other Adjustment Entry": "public/js/batch_other_adjustment_entry.js",
     "Payroll Entry": "public/js/payroll_entry.js",
@@ -288,7 +297,7 @@ permission_query_conditions = {
 
 has_permission = {
     "Customer": "qcmc_logic.customs.permissions.territory_document_has_permission",
-    "Delivery Note": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Delivery Note": "qcmc_logic.customs.permissions.sales_transaction_has_permission",
     "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_has_permission",
     "Machine Shop Repairs and Project": "qcmc_logic.customs.machine_shop_repairs_and_project.msrp_has_permission",
     "Material Request": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
@@ -298,8 +307,8 @@ has_permission = {
     "Purchase Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Purchase Order": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Purchase Receipt": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
-    "Sales Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
-    "Sales Order": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Sales Invoice": "qcmc_logic.customs.permissions.sales_transaction_has_permission",
+    "Sales Order": "qcmc_logic.customs.permissions.sales_transaction_has_permission",
     "Salary Structure Assignment": "qcmc_logic.customs.permissions.salary_structure_assignment_has_permission",
     "Salary Structure": "qcmc_logic.customs.permissions.salary_structure_has_permission",
     "Stock Entry": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
@@ -382,7 +391,14 @@ fixtures = [
     {"doctype": "Downtime Reason"},
     {"doctype": "Job Card Downtime"},
 ]
+before_migrate = [
+    # This custom DocType must exist before fixtures such as Workflows are synced.
+    "qcmc_logic.customs.maintenance_job_order.ensure_maintenance_job_order",
+]
+
 after_migrate = [
+    "qcmc_logic.customs.maintenance_job_order.ensure_maintenance_job_order",
+    "qcmc_logic.customs.stock_entry.remove_msjr_stock_entry_integration",
     "qcmc_logic.customs.machine_shop_job_request.ensure_msjr_permissions",
     "qcmc_logic.customs.machine_shop_repairs_and_project.ensure_msrp_permissions",
     "qcmc_logic.customs.daily_job_report.remove_obsolete_schedule_fields",

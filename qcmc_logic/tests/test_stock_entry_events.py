@@ -24,7 +24,10 @@ class TestStockEntryJobCardTimeLog(TestCase):
 	def test_submit_recalculates_job_card_manufactured_qty(self):
 		doc = manufacture_entry(25)
 
-		with patch("qcmc_logic.customs.stock_entry.frappe") as frappe:
+		with (
+			patch("qcmc_logic.customs.stock_entry.frappe") as frappe,
+			patch("qcmc_logic.customs.stock_entry._", side_effect=lambda message: message),
+		):
 			job_card = frappe.get_doc.return_value
 			frappe.get_all.side_effect = [
 				["STE-1"],
@@ -74,12 +77,15 @@ class TestStockEntryWarehouseCode(TestCase):
 			items=[_dict(t_warehouse="Stockroom - Sta Clara")],
 		)
 
-		with patch("qcmc_logic.customs.stock_entry.frappe") as frappe:
+		with (
+			patch("qcmc_logic.customs.stock_entry.frappe") as frappe,
+			patch("qcmc_logic.customs.stock_entry._", side_effect=lambda message: message),
+		):
 			frappe.db.get_value.return_value = "QC-SC-STK"
 			set_stock_entry_warehouse_code(doc)
 
 		self.assertEqual(doc.custom_wh_code, "QC-SC-STK")
-		frappe.db.get_value.assert_called_once_with(
+		frappe.db.get_value.assert_called_with(
 			"Warehouse", "Stockroom - Sta Clara", "custom_wh_code"
 		)
 

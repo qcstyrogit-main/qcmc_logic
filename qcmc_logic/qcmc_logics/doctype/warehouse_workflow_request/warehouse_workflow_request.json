@@ -1,0 +1,16 @@
+{
+ "doctype":"DocType","name":"Warehouse Workflow Request","module":"QCMC Logics",
+ "autoname":"field:request_id","engine":"InnoDB","track_changes":0,
+ "field_order":["request_id","operation","processed_by","processed_at","request_hash","request_json","response_json"],
+ "fields":[
+  {"fieldname":"request_id","label":"Request ID","fieldtype":"Data","reqd":1,"unique":1,"in_list_view":1},
+  {"fieldname":"operation","label":"Operation","fieldtype":"Data","reqd":1,"in_list_view":1},
+  {"fieldname":"processed_by","label":"Processed By","fieldtype":"Link","options":"User","reqd":1},
+  {"fieldname":"processed_at","label":"Processed At","fieldtype":"Datetime","reqd":1},
+  {"fieldname":"request_hash","label":"Request Hash","fieldtype":"Data","reqd":1},
+  {"fieldname":"request_json","label":"Request JSON","fieldtype":"Long Text","reqd":1},
+  {"fieldname":"response_json","label":"Response JSON","fieldtype":"Long Text","reqd":1}
+ ],
+ "permissions":[{"role":"System Manager","read":1,"report":1,"export":1}],
+ "sort_field":"processed_at","sort_order":"DESC"
+}

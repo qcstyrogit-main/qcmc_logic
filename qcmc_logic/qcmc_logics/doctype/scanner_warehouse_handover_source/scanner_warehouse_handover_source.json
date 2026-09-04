@@ -1,0 +1,18 @@
+{
+ "doctype":"DocType","name":"Scanner Warehouse Handover Source","module":"QCMC Logics","istable":1,"engine":"InnoDB",
+ "field_order":["stock_entry","stock_entry_row","job_card","work_order","pull_out_slip","item","item_name","recorded_quantity","verified_quantity","stock_uom","source_modified","verification_modified"],
+ "fields":[
+  {"fieldname":"stock_entry","label":"Stock Entry","fieldtype":"Link","options":"Stock Entry","reqd":1,"in_list_view":1},
+  {"fieldname":"stock_entry_row","label":"Stock Entry Row","fieldtype":"Data","reqd":1},
+  {"fieldname":"job_card","label":"Job Card","fieldtype":"Link","options":"Job Card"},
+  {"fieldname":"work_order","label":"Work Order","fieldtype":"Link","options":"Work Order"},
+  {"fieldname":"pull_out_slip","label":"Pull Out Slip","fieldtype":"Data"},
+  {"fieldname":"item","label":"Item","fieldtype":"Link","options":"Item","reqd":1,"in_list_view":1},
+  {"fieldname":"item_name","label":"Item Name","fieldtype":"Data","read_only":1},
+  {"fieldname":"recorded_quantity","label":"Recorded Quantity","fieldtype":"Float","reqd":1,"in_list_view":1},
+  {"fieldname":"verified_quantity","label":"Verified Quantity","fieldtype":"Float","reqd":1,"in_list_view":1},
+  {"fieldname":"stock_uom","label":"Stock UOM","fieldtype":"Link","options":"UOM","reqd":1},
+  {"fieldname":"source_modified","label":"Source Modified","fieldtype":"Datetime","reqd":1},
+  {"fieldname":"verification_modified","label":"Verified Version","fieldtype":"Datetime"}
+ ],"permissions":[]
+}

@@ -10,9 +10,12 @@ from frappe.utils import flt, get_datetime, now_datetime
 
 from qcmc_logic.api.stock_reconciliation import _authenticate_request_user
 from qcmc_logic.api.stock_entry import (
+	_can_use_job_card_for_purpose,
+	_get_work_order,
+	_make_manufacture_stock_entry_from_job_card,
 	_pending_qty,
-	make_manufacture_stock_entry_from_job_card,
 )
+from qcmc_logic.customs.manufacturing_warehouse_access import user_can_transact_job_card
 from qcmc_logic.overrides.putaway_rule_dimension import (
 	get_dimension_stock_balance,
 	get_ordered_dimension_putaway_rules,
@@ -53,12 +56,13 @@ def _stock_entry_warehouses(doc, fallback_rows=None):
 	return [row.get("s_warehouse") for row in rows] + [row.get("t_warehouse") for row in rows]
 
 
-def _validate_document(stock_entry_id, permission="read"):
+def _validate_document(stock_entry_id, permission="read", check_permission=True):
 	stock_entry_id = _stock_entry_id(stock_entry_id)
 	if not frappe.db.exists("Stock Entry", stock_entry_id):
 		raise ScannerAPIError("STOCK_ENTRY_NOT_FOUND", f"Stock Entry '{stock_entry_id}' was not found.")
 	doc = frappe.get_doc("Stock Entry", stock_entry_id)
-	doc.check_permission(permission)
+	if check_permission:
+		doc.check_permission(permission)
 	if doc.docstatus != 0:
 		raise ScannerAPIError("STOCK_ENTRY_NOT_DRAFT", f"Stock Entry '{doc.name}' is not Draft.")
 	if _purpose(doc) != "Manufacture":
@@ -359,6 +363,62 @@ def _auth(mobile_token):
 	return user
 
 
+def _scanner_employee(user):
+	"""Resolve the active Employee behind a scanner user."""
+	if user == "Administrator":
+		return None
+	employee = frappe.db.get_value(
+		"Employee", {"user_id": user, "status": "Active"}, "name"
+	)
+	if not employee:
+		raise ScannerAPIError(
+			"PERMISSION_DENIED",
+			"You are not authorized to create Manufacture Draft Stock Entries.",
+		)
+	return employee
+
+
+def _audit_manufacture_draft(user, employee, job_card, reference, stock_entry, action, device_id, elevated):
+	frappe.get_doc({
+		"doctype": "Manufacture Receive Draft Audit",
+		"erp_user": user,
+		"employee": employee,
+		"job_card": job_card.name,
+		"work_order": job_card.work_order,
+		"pull_out_slip": reference,
+		"stock_entry": stock_entry,
+		"action": action,
+		"event_timestamp": now_datetime(),
+		"device_id": str(device_id or "").strip(),
+		"controlled_permission_elevation": int(bool(elevated)),
+	}).insert(ignore_permissions=True)
+
+
+def _validate_scanner_created_stock_entry(doc, user):
+	"""Final guard over the ERP-derived document before elevated insertion."""
+	if doc.docstatus != 0 or _purpose(doc) != "Manufacture" or doc.stock_entry_type != "Manufacture":
+		raise ScannerAPIError(
+			"ERP_CONFIGURATION_ERROR",
+			"ERPNext did not construct a Draft Manufacture Stock Entry.",
+		)
+	finished = [row for row in doc.items if row.is_finished_item and row.t_warehouse]
+	if not finished:
+		raise ScannerAPIError("ERP_CONFIGURATION_ERROR", "ERPNext did not provide a finished-item row.")
+	# Handover receiving records the finished quantity and target Warehouse only.
+	# Explicitly override any ERP/company default that would otherwise execute
+	# Putaway Rules during ``insert`` and clear mapped location suggestions.
+	doc.apply_putaway_rule = 0
+	for row in finished:
+		row.putaway_rule = ""
+		for fieldname in (
+			"to_location", "custom_putaway_allocation_id",
+			"custom_recommended_storage_location", "custom_actual_storage_location",
+		):
+			if row.meta.has_field(fieldname):
+				row.set(fieldname, "")
+	ensure_scanner_warehouse_access(user, _stock_entry_warehouses(doc), require_transact=True)
+
+
 @frappe.whitelist(allow_guest=True)
 def get_storage_location_details(inventory_location_id=None, location_id=None, mobile_token=None):
 	"""Resolve a compact Storage Location QR to authoritative ERP details."""
@@ -405,8 +465,18 @@ def get_storage_location_details(inventory_location_id=None, location_id=None, m
 		return _error("ERP_VALIDATION_FAILED", str(exc))
 
 
-def _manufacture_receive_context(doc, finished):
-	allocations = [allocation for row in finished for allocation in _putaway_allocations(doc, row)]
+def _manufacture_receive_context(doc, finished, include_putaway=True):
+	"""Return a receive context.
+
+	Putaway is deliberately opt-in here. Creating a manufacturing receipt Draft
+	must be a recording operation only; allocation is performed later by the
+	Warehouse Allocation workflow. ``get_manufacture_receive_context`` retains
+	the legacy opt-in behavior for older scanner releases.
+	"""
+	allocations = (
+		[allocation for row in finished for allocation in _putaway_allocations(doc, row)]
+		if include_putaway else []
+	)
 	distribution_mode, distribution_parent = _parent_distribution(finished, allocations)
 	return {
 		"success": True,
@@ -421,7 +491,13 @@ def _manufacture_receive_context(doc, finished):
 		"company": doc.company,
 		"docstatus": doc.docstatus,
 		"status": "Draft",
-		"finished_items": [_item_result(row) for row in finished],
+		"finished_items": [
+			{
+				**_item_result(row),
+				"quantity": flt(row.qty),
+			}
+			for row in finished
+		],
 		"putaway_allocations": allocations,
 		"allocation_count": len(allocations),
 		"distribution_mode": distribution_mode,
@@ -451,13 +527,60 @@ def create_manufacture_receive_draft(
 	custom_reference_document,
 	quantity=None,
 	mobile_token=None,
+	device_id=None,
+	request_id=None,
+	submission_id=None,
 ):
-	"""Create the scanner's Manufacture Stock Entry as Draft; never submit it."""
+	"""Create the scanner's Manufacture Stock Entry as Draft; never submit it.
+	
+	Uses request_id as the sole idempotency key. For the same request_id:
+	- Returns the Stock Entry created by the original request.
+	- Does not create a duplicate.
+	- Returns duplicate_request: true.
+	
+	For a new request_id:
+	- Creates a new Draft Manufacture Stock Entry.
+	- This applies even when the Job Card already has another Draft Stock Entry.
+	- Does not reuse an older Draft based on job_card_id alone.
+	"""
 	savepoint_started = False
 	try:
 		user = _auth(mobile_token)
-		job_card_id = _job_card_id(job_card_id)
-		reference = str(custom_reference_document or "").strip()
+		# request_id is required for idempotency; submission_id is legacy fallback
+		request_id = str(request_id or submission_id or "").strip()
+		if not request_id:
+			raise ScannerAPIError("REQUEST_ID_REQUIRED", "request_id is required.")
+		
+		from qcmc_logic.api.warehouse_workflow import begin_request, finish_request, request_uuid
+		# Validate and normalize request_id
+		try:
+			request_id = request_uuid(request_id, fieldname="request_id")
+		except Exception as e:
+			raise ScannerAPIError("ERP_VALIDATION_FAILED", str(e))
+		
+		# Prepare payload for hashing
+		payload = {
+			"job_card_id": _job_card_id(job_card_id),
+			"custom_reference_document": str(custom_reference_document or "").strip(),
+			"quantity": quantity,
+			"device_id": str(device_id or "").strip(),
+		}
+		
+		# Check for existing request (idempotency)
+		request = begin_request(
+			"create_manufacture_receive_draft",
+			request_id,
+			payload,
+			user,
+		)
+		# Replay case: same request_id with same payload
+		if request.replay is not None:
+			return request.replay
+		
+		employee = _scanner_employee(user)
+		job_card_id = payload["job_card_id"]
+		reference = payload["custom_reference_document"]
+		
 		if not job_card_id or not frappe.db.exists("Job Card", job_card_id):
 			raise ScannerAPIError("JOB_CARD_NOT_FOUND", f"Job Card '{job_card_id}' was not found.")
 		if not reference:
@@ -465,36 +588,53 @@ def create_manufacture_receive_draft(
 		if not frappe.get_meta("Stock Entry").has_field("custom_reference_document"):
 			raise ScannerAPIError("ERP_CONFIGURATION_ERROR", "Stock Entry is missing custom_reference_document.")
 
+		job_card = frappe.get_doc("Job Card", job_card_id)
+		if not job_card.work_order or not frappe.db.exists("Work Order", job_card.work_order):
+			raise ScannerAPIError("ERP_VALIDATION_FAILED", "Job Card must belong to a valid Work Order.")
+		if not user_can_transact_job_card(job_card, user=user):
+			raise ScannerAPIError(
+				"PERMISSION_DENIED",
+				"You are not authorized to create Manufacture Draft Stock Entries.",
+			)
+		work_order = _get_work_order(job_card.work_order)
+		if not _can_use_job_card_for_purpose(job_card, work_order, "Manufacture"):
+			raise ScannerAPIError("JOB_CARD_NOT_ELIGIBLE", "Job Card is not eligible for manufacture receiving.")
+		remaining_qty = _pending_qty(job_card, "Manufacture")
+		if remaining_qty <= 0:
+			raise ScannerAPIError("JOB_CARD_NOT_ELIGIBLE", "Job Card has no remaining completed quantity.")
+		
+		# Validate quantity if provided
+		if quantity not in (None, ""):
+			try:
+				requested_qty = float(str(quantity).replace(",", ""))
+			except (TypeError, ValueError):
+				raise ScannerAPIError("INVALID_QUANTITY", "Manufacture quantity must be numeric.")
+			if requested_qty <= 0:
+				raise ScannerAPIError("INVALID_QUANTITY", "Manufacture quantity must be greater than zero.")
+			if requested_qty > remaining_qty:
+				raise ScannerAPIError(
+					"QUANTITY_EXCEEDS_RECEIVABLE",
+					f"Manufacture quantity must not exceed {remaining_qty}.",
+				)
+		else:
+			requested_qty = remaining_qty
+
 		frappe.db.savepoint("create_manufacture_receive_draft")
 		savepoint_started = True
 		frappe.db.sql("select name from `tabJob Card` where name=%s for update", job_card_id)
 
-		# A retry of the Create action reuses the same Draft. A different Pull Out
-		# Slip must not silently take over an already-open manufacturing document.
-		existing = frappe.db.get_value(
-			"Stock Entry",
-			{
-				"docstatus": 0,
-				"purpose": "Manufacture",
-				"custom_final_job_card": job_card_id,
-				"custom_reference_document": reference,
-			},
-			"name",
+		# Create new Draft Stock Entry
+		# NOTE: We NO LONGER reuse existing drafts based on job_card_id + reference.
+		# Idempotency is ONLY based on request_id.
+		# Different request_ids must create separate Draft Stock Entries,
+		# even for the same Job Card and Pull Out Slip.
+		created = _make_manufacture_stock_entry_from_job_card(
+			job_card_id,
+			requested_qty,
+			ignore_permissions=True,
+			before_insert=lambda stock_entry: _validate_scanner_created_stock_entry(stock_entry, user),
+			allow_existing_draft=True,
 		)
-		if existing:
-			doc, finished = _validate_document(existing, "read")
-			ensure_scanner_warehouse_access(
-				user,
-				_stock_entry_warehouses(doc, finished),
-				require_transact=True,
-			)
-			result = _manufacture_receive_context(doc, finished)
-			result["existing_draft"] = True
-			return result
-
-		job_card = frappe.get_doc("Job Card", job_card_id)
-		requested_qty = flt(quantity) if quantity not in (None, "") else _pending_qty(job_card, "Manufacture")
-		created = make_manufacture_stock_entry_from_job_card(job_card_id, requested_qty)
 		doc = frappe.get_doc("Stock Entry", created["name"])
 		ensure_scanner_warehouse_access(
 			user,
@@ -502,13 +642,17 @@ def create_manufacture_receive_draft(
 			require_transact=True,
 		)
 		doc.custom_reference_document = reference
-		doc.save()
+		doc.save(ignore_permissions=True)
 		if doc.docstatus != 0:
 			raise ScannerAPIError("STOCK_ENTRY_NOT_DRAFT", "Scanner-created Stock Entry must remain Draft.")
 		finished = [row for row in doc.items if row.is_finished_item and row.t_warehouse]
-		result = _manufacture_receive_context(doc, finished)
+		result = _manufacture_receive_context(doc, finished, include_putaway=False)
+		# Add required fields for idempotency and audit
 		result["existing_draft"] = False
-		return result
+		result["duplicate_request"] = False
+		result["request_id"] = request_id
+		_audit_manufacture_draft(user, employee, job_card, reference, doc.name, "Created", device_id, True)
+		return finish_request(request, result) if request else result
 	except ScannerAPIError as exc:
 		if savepoint_started:
 			frappe.db.rollback(save_point="create_manufacture_receive_draft")
@@ -516,7 +660,7 @@ def create_manufacture_receive_draft(
 	except frappe.PermissionError:
 		if savepoint_started:
 			frappe.db.rollback(save_point="create_manufacture_receive_draft")
-		return _error("PERMISSION_DENIED", "You do not have permission to create this Draft Stock Entry.", status=403)
+		return _error("PERMISSION_DENIED", "You are not authorized to create Manufacture Draft Stock Entries.", status=403)
 	except Exception as exc:
 		if savepoint_started:
 			frappe.db.rollback(save_point="create_manufacture_receive_draft")
@@ -537,6 +681,122 @@ def get_manufacture_receive_context(stock_entry_id, mobile_token=None):
 		return _error(exc.code, str(exc), exc.details, 403 if exc.code == "PERMISSION_DENIED" else 400)
 	except frappe.PermissionError:
 		return _error("PERMISSION_DENIED", "You do not have permission to read this Stock Entry.", status=403)
+
+
+@frappe.whitelist(allow_guest=True)
+def update_manufacture_receive_draft(
+	batch_id, request_id, rows, device_id=None, mobile_token=None
+):
+	"""Update quantities on Draft Manufacture Stock Entries in a review batch."""
+	savepoint_started = False
+	try:
+		user = _auth(mobile_token)
+		from qcmc_logic.api.warehouse_workflow import (
+			WorkflowError, begin_request, finish_request, request_uuid,
+		)
+
+		try:
+			request_id = request_uuid(request_id, fieldname="request_id")
+		except WorkflowError as exc:
+			raise ScannerAPIError(exc.code, str(exc), exc.details)
+		if isinstance(rows, str):
+			try:
+				rows = json.loads(rows)
+			except (TypeError, ValueError):
+				raise ScannerAPIError("INVALID_ROWS", "rows must contain valid JSON.")
+		if not isinstance(rows, list) or not rows:
+			raise ScannerAPIError("INVALID_ROWS", "At least one quantity row is required.")
+
+		payload = {
+			"batch_id": str(batch_id or "").strip(),
+			"device_id": str(device_id or "").strip(),
+			"rows": rows,
+		}
+		request = begin_request("update_manufacture_receive_draft", request_id, payload, user)
+		if request.replay is not None:
+			return request.replay
+
+		if not payload["batch_id"] or not frappe.db.exists("Scanner Warehouse Handover", payload["batch_id"]):
+			raise ScannerAPIError("INVALID_HANDOVER_QR", "The review batch does not exist.")
+		batch = frappe.get_doc("Scanner Warehouse Handover", payload["batch_id"])
+		if batch.status not in {"OPEN", "PENDING_CHECK"}:
+			raise ScannerAPIError("INVALID_HANDOVER_STATUS", "This review batch can no longer be edited.")
+
+		sources = {
+			(str(source.stock_entry), str(source.stock_entry_row)): source
+			for source in batch.source_stock_entries
+		}
+		documents = {}
+		updates = []
+		for submitted in rows:
+			if not isinstance(submitted, dict):
+				raise ScannerAPIError("INVALID_ROWS", "Each quantity row must be an object.")
+			stock_entry_id = _stock_entry_id(submitted.get("stock_entry_id"))
+			row_name = str(submitted.get("stock_entry_row") or "").strip()
+			source = sources.get((stock_entry_id, row_name))
+			if not source:
+				raise ScannerAPIError("ROW_NOT_IN_BATCH", "The row does not belong to this review batch.")
+			if (stock_entry_id, row_name) in {(item["stock_entry_id"], item["stock_entry_row"]) for item in updates}:
+				raise ScannerAPIError("DUPLICATE_ROW", "The same Stock Entry row was submitted more than once.")
+
+			doc = documents.get(stock_entry_id)
+			if doc is None:
+				doc, finished = _validate_document(stock_entry_id, "read", check_permission=False)
+				ensure_scanner_warehouse_access(user, _stock_entry_warehouses(doc, finished), require_transact=True)
+				documents[stock_entry_id] = doc
+			stock_row = next((item for item in doc.items if item.name == row_name), None)
+			if not stock_row:
+				raise ScannerAPIError("ROW_NOT_IN_STOCK_ENTRY", "The row does not belong to the Draft Stock Entry.")
+			if str(submitted.get("item_code") or "").strip() != str(stock_row.item_code or "").strip():
+				raise ScannerAPIError("ITEM_MISMATCH", "The item code does not match the Draft row.")
+			uom = str(submitted.get("uom") or "").strip()
+			if uom != str(stock_row.uom or "").strip():
+				raise ScannerAPIError("UOM_MISMATCH", "The UOM does not match the Draft row.")
+			try:
+				quantity = float(str(submitted.get("quantity")).replace(",", ""))
+			except (TypeError, ValueError):
+				raise ScannerAPIError("INVALID_QUANTITY", "Quantity must be numeric and non-negative.")
+			if not math.isfinite(quantity) or quantity < 0:
+				raise ScannerAPIError("INVALID_QUANTITY", "Quantity must be numeric and non-negative.")
+			updates.append({
+				"stock_entry_id": stock_entry_id, "stock_entry_row": row_name,
+				"item_code": stock_row.item_code, "quantity": quantity,
+				"recorded_quantity": flt(stock_row.qty),
+				"uom": stock_row.uom, "stock_row": stock_row,
+			})
+
+		frappe.db.savepoint("update_manufacture_receive_draft")
+		savepoint_started = True
+		for update in updates:
+			stock_row = update["stock_row"]
+			factor = flt(stock_row.conversion_factor or 1)
+			stock_row.qty = update["quantity"]
+			stock_row.transfer_qty = update["quantity"] * factor
+		for doc in documents.values():
+			if doc.docstatus != 0:
+				raise ScannerAPIError("STOCK_ENTRY_NOT_DRAFT", f"Stock Entry '{doc.name}' is not Draft.")
+			doc.save(ignore_permissions=True)
+		for update in updates:
+			source = sources[(update["stock_entry_id"], update["stock_entry_row"])]
+			source.verified_quantity = update["quantity"]
+			source.source_modified = documents[update["stock_entry_id"]].modified
+		batch.save(ignore_permissions=True)
+		from qcmc_logic.api.warehouse_handover import _batch_response
+		result = _batch_response(batch, user)
+		result["request_id"] = request_id
+		return finish_request(request, result)
+	except ScannerAPIError as exc:
+		if savepoint_started:
+			frappe.db.rollback(save_point="update_manufacture_receive_draft")
+		return _error(exc.code, str(exc), exc.details, 403 if exc.code == "PERMISSION_DENIED" else 400)
+	except frappe.PermissionError:
+		if savepoint_started:
+			frappe.db.rollback(save_point="update_manufacture_receive_draft")
+		return _error("PERMISSION_DENIED", "You do not have permission to edit this Draft Stock Entry.", status=403)
+	except Exception as exc:
+		if savepoint_started:
+			frappe.db.rollback(save_point="update_manufacture_receive_draft")
+		return _error("ERP_VALIDATION_FAILED", str(exc))
 
 
 def _canonical(stock_entry_id, submission_id, entries, distribution_parent_id=None):

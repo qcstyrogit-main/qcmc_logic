@@ -313,6 +313,34 @@ def _combined_transaction_permission_query(doctype, user):
     return " AND ".join(f"({condition})" for condition in conditions)
 
 
+def _sales_transaction_read_permission_query(doctype, user):
+    conditions = [
+        condition
+        for condition in (
+            _warehouse_transaction_permission_query(doctype, user),
+            _strict_territory_read_permission_query(doctype, user),
+        )
+        if condition
+    ]
+    return " OR ".join(f"({condition})" for condition in conditions)
+
+
+def _strict_territory_read_permission_query(doctype, user):
+    if not has_territory_access(user) or not frappe.get_meta(doctype).has_field("territory"):
+        return ""
+
+    allowed = get_user_allowed_territories(user)
+    if not allowed:
+        return "1=0"
+
+    values = _sql_list(allowed)
+    return (
+        f"`tab{doctype}`.`territory` IS NOT NULL "
+        f"AND `tab{doctype}`.`territory` != '' "
+        f"AND `tab{doctype}`.`territory` IN ({values})"
+    )
+
+
 def warehouse_transaction_permission_query(user):
     doctype = frappe.local.form_dict.get("doctype")
     if not doctype:
@@ -322,7 +350,7 @@ def warehouse_transaction_permission_query(user):
 
 
 def delivery_note_permission_query(user):
-    return _combined_transaction_permission_query("Delivery Note", user)
+    return _sales_transaction_read_permission_query("Delivery Note", user)
 
 
 def material_request_permission_query(user):
@@ -350,11 +378,11 @@ def purchase_receipt_permission_query(user):
 
 
 def sales_invoice_permission_query(user):
-    return _combined_transaction_permission_query("Sales Invoice", user)
+    return _sales_transaction_read_permission_query("Sales Invoice", user)
 
 
 def sales_order_permission_query(user):
-    return _combined_transaction_permission_query("Sales Order", user)
+    return _sales_transaction_read_permission_query("Sales Order", user)
 
 
 def customer_permission_query(user):
@@ -510,6 +538,51 @@ def warehouse_transaction_has_permission(doc, ptype=None, user=None):
         return bool(warehouses.intersection(allowed_warehouses))
 
     return warehouses.issubset(allowed_warehouses)
+
+
+def sales_transaction_has_permission(doc, ptype=None, user=None):
+    if not user:
+        user = frappe.session.user
+    if ptype not in {None, "read", "select"}:
+        return warehouse_transaction_has_permission(doc, ptype=ptype, user=user)
+    if not doc:
+        return None
+
+    warehouse_allowed = _warehouse_read_has_permission(doc, user)
+    territory_allowed = _strict_territory_read_has_permission(doc, user)
+
+    if warehouse_allowed is None and territory_allowed is None:
+        return True
+
+    return bool(warehouse_allowed or territory_allowed)
+
+
+def _warehouse_read_has_permission(doc, user):
+    if not _warehouse_access_applies(user):
+        return None
+
+    allowed_warehouses = set(get_user_allowed_warehouses(user, require_list_view=True))
+    if not allowed_warehouses:
+        return False
+
+    warehouses = set(_iter_doc_warehouse_values(doc))
+    if not warehouses:
+        return False
+
+    return bool(warehouses.intersection(allowed_warehouses))
+
+
+def _strict_territory_read_has_permission(doc, user):
+    if not has_territory_access(user):
+        return None
+    if not doc or not doc.meta.has_field("territory") or not doc.get("territory"):
+        return False
+
+    allowed = set(get_user_allowed_territories(user))
+    if not allowed:
+        return False
+
+    return doc.get("territory") in allowed
 
 
 def territory_document_has_permission(doc, ptype=None, user=None):

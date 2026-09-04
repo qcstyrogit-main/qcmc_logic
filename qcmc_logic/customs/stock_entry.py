@@ -2,13 +2,64 @@ import frappe
 from frappe import _
 
 
+MSJR_STOCK_ENTRY_FIELDS = (
+	"msjr_no",
+	"custom_msrp_no",
+	"custom_final_process",
+	"custom_daily_job_report",
+	"custom_rework_cycle",
+)
+
+
+def remove_msjr_stock_entry_integration():
+	"""Remove obsolete MSJR fields and client behavior from Stock Entry."""
+	for fieldname in MSJR_STOCK_ENTRY_FIELDS:
+		name = f"Stock Entry-{fieldname}"
+		if frappe.db.exists("Custom Field", name):
+			frappe.delete_doc("Custom Field", name, ignore_permissions=True)
+
+	script = "Stock Entry - MSJR No Field"
+	if frappe.db.exists("Client Script", script):
+		frappe.delete_doc("Client Script", script, ignore_permissions=True)
+
+	frappe.clear_cache(doctype="Stock Entry")
+
+
+def set_manufacture_actual_weight_uom(doc, method=None):
+	"""Set default actual weight UOM on finished items in Manufacture stock entries."""
+	if doc.purpose != "Manufacture":
+		return
+	
+	default_uom = frappe.db.get_single_value("Stock Settings", "custom_default_actual_weight_uom")
+	if not default_uom:
+		return
+	
+	for item in (doc.get("items") or []):
+		if item.is_finished_item and not item.custom_actual_weight_uom:
+			item.custom_actual_weight_uom = default_uom
+
+
+def _get_stock_entry_wh_code_warehouse_field(doc):
+	"""Return the item warehouse field used to derive the WH Code."""
+	if doc.get("purpose") in ("Material Issue", "Send to Subcontractor"):
+		return "s_warehouse"
+	if doc.get("purpose") in ("Material Receipt", "Manufacture"):
+		return "t_warehouse"
+	return None
+
+
 def set_stock_entry_warehouse_code(doc, method=None):
 	"""Set WH Code from the warehouse side implied by the selected Stock Entry Type."""
 	warehouse_field = _get_stock_entry_wh_code_warehouse_field(doc)
 	if not warehouse_field:
 		return
 
-	warehouses = _get_stock_entry_warehouses(doc, warehouse_field)
+	warehouses = {
+		row.get(warehouse_field) for row in (doc.get("items") or []) if row.get(warehouse_field)
+	}
+	if warehouse_field == "t_warehouse" and doc.get("to_warehouse"):
+		warehouses.add(doc.to_warehouse)
+
 	if not warehouses:
 		return
 
@@ -32,47 +83,6 @@ def set_stock_entry_warehouse_code(doc, method=None):
 		)
 
 	doc.custom_wh_code = warehouse_code
-
-
-def set_manufacture_actual_weight_uom(doc, method=None):
-	if doc.get("purpose") != "Manufacture" and doc.get("stock_entry_type") != "Manufacture":
-		return
-
-	default_weight_uom = frappe.db.get_single_value(
-		"Stock Settings", "custom_default_actual_weight_uom"
-	)
-	if not default_weight_uom:
-		return
-
-	for row in doc.get("items") or []:
-		if row.get("is_finished_item") and not row.get("custom_actual_weight_uom"):
-			row.custom_actual_weight_uom = default_weight_uom
-
-
-def _get_stock_entry_wh_code_warehouse_field(doc):
-	source_warehouses = _get_stock_entry_warehouses(doc, "s_warehouse")
-	target_warehouses = _get_stock_entry_warehouses(doc, "t_warehouse")
-
-	if target_warehouses and not source_warehouses:
-		return "t_warehouse"
-	if source_warehouses and not target_warehouses:
-		return "s_warehouse"
-
-	if source_warehouses:
-		return "s_warehouse"
-	if target_warehouses:
-		return "t_warehouse"
-
-	return None
-
-
-def _get_stock_entry_warehouses(doc, warehouse_field):
-	header_field = "to_warehouse" if warehouse_field == "t_warehouse" else "from_warehouse"
-	warehouses = {row.get(warehouse_field) for row in (doc.get("items") or []) if row.get(warehouse_field)}
-	if doc.get(header_field):
-		warehouses.add(doc.get(header_field))
-
-	return warehouses
 
 
 def validate_final_job_card_time_log(doc, method=None):

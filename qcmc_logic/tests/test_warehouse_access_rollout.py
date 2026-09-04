@@ -5,11 +5,16 @@ import frappe
 
 from qcmc_logic.customs.permissions import (
     WAREHOUSE_TRANSACTION_DOCTYPES,
+    _sales_transaction_read_permission_query,
     _warehouse_access_applies,
     _warehouse_transaction_permission_query,
+    sales_transaction_has_permission,
     warehouse_transaction_has_permission,
     warehouse_transfer_has_permission,
     warehouse_transfer_permission_query,
+)
+from qcmc_logic.customs.sales_transaction_territory import (
+    populate_mapped_transaction_territory,
 )
 from qcmc_logic.customs.manufacturing_warehouse_access import (
     bom_permission_query,
@@ -78,13 +83,25 @@ class TestWarehouseAccessRollout(TestCase):
         doc = frappe._dict(
             doctype=doctype,
             docstatus=0,
-            meta=frappe._dict(fields=table_fields),
+            meta=frappe._dict(
+                fields=table_fields,
+                has_field=lambda fieldname: fieldname in values,
+            ),
             **values,
         )
         for (fieldname, _child_doctype), child_rows in (rows or {}).items():
             doc[fieldname] = [frappe._dict(row) for row in child_rows]
 
         return doc
+
+    def _sales_doc(self, doctype, territory="South Luzon", warehouse="HO - QC"):
+        child_doctype = f"{doctype} Item"
+        return self._transaction_doc(
+            doctype,
+            rows={("items", child_doctype): [{"warehouse": warehouse}]},
+            territory=territory,
+            set_warehouse=warehouse,
+        )
 
     def test_permission_gate_is_unrestricted_without_access_records(self):
         with (
@@ -490,6 +507,224 @@ class TestWarehouseAccessRollout(TestCase):
         self.assertIn(" OR ", query)
         self.assertNotIn("NOT IN", query)
         self.assertNotIn("NOT EXISTS", query)
+
+    def test_sales_transaction_read_allows_warehouse_without_territory(self):
+        doc = self._sales_doc("Sales Order", territory="North Luzon", warehouse="FG - Sta Clara")
+
+        with (
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
+                return_value=["FG - Sta Clara"],
+            ),
+            patch("qcmc_logic.customs.permissions.has_territory_access", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_territories",
+                return_value=["South Luzon"],
+            ),
+        ):
+            self.assertTrue(sales_transaction_has_permission(doc, "read", "user@example.com"))
+
+    def test_sales_transaction_read_allows_territory_without_warehouse(self):
+        doc = self._sales_doc("Delivery Note", territory="South Luzon", warehouse="HO - QC")
+
+        with (
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
+                return_value=["FG - Sta Clara"],
+            ),
+            patch("qcmc_logic.customs.permissions.has_territory_access", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_territories",
+                return_value=["South Luzon"],
+            ),
+        ):
+            self.assertTrue(sales_transaction_has_permission(doc, "select", "user@example.com"))
+
+    def test_sales_transaction_read_allows_when_both_systems_match(self):
+        doc = self._sales_doc("Sales Invoice", territory="South Luzon", warehouse="FG - Sta Clara")
+
+        with (
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
+                return_value=["FG - Sta Clara"],
+            ),
+            patch("qcmc_logic.customs.permissions.has_territory_access", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_territories",
+                return_value=["South Luzon"],
+            ),
+        ):
+            self.assertTrue(sales_transaction_has_permission(doc, "read", "user@example.com"))
+
+    def test_sales_transaction_read_denies_when_neither_system_matches(self):
+        doc = self._sales_doc("Sales Order", territory="North Luzon", warehouse="HO - QC")
+
+        with (
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
+                return_value=["FG - Sta Clara"],
+            ),
+            patch("qcmc_logic.customs.permissions.has_territory_access", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_territories",
+                return_value=["South Luzon"],
+            ),
+        ):
+            self.assertFalse(sales_transaction_has_permission(doc, "read", "user@example.com"))
+
+    def test_sales_transaction_blank_territory_does_not_bypass_warehouse(self):
+        doc = self._sales_doc("Delivery Note", territory="", warehouse="HO - QC")
+
+        with (
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
+                return_value=["FG - Sta Clara"],
+            ),
+            patch("qcmc_logic.customs.permissions.has_territory_access", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_territories",
+                return_value=["South Luzon"],
+            ),
+        ):
+            self.assertFalse(sales_transaction_has_permission(doc, "read", "user@example.com"))
+
+    def test_sales_transaction_read_allowed_but_write_denied_without_transaction_flag(self):
+        doc = self._sales_doc("Sales Invoice", territory="South Luzon", warehouse="FG - Sta Clara")
+
+        with (
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
+                return_value=["FG - Sta Clara"],
+            ),
+            patch("qcmc_logic.customs.permissions.has_territory_access", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_territories",
+                return_value=["South Luzon"],
+            ),
+            patch(
+                "qcmc_logic.customs.permissions.territory_has_permission",
+                side_effect=[False],
+            ),
+        ):
+            self.assertTrue(sales_transaction_has_permission(doc, "read", "user@example.com"))
+            self.assertFalse(sales_transaction_has_permission(doc, "write", "user@example.com"))
+
+    def test_sales_transaction_territory_transaction_does_not_grant_warehouse_transaction(self):
+        doc = self._sales_doc("Sales Order", territory="South Luzon", warehouse="HO - QC")
+
+        with (
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
+                return_value=["FG - Sta Clara"],
+            ),
+            patch("qcmc_logic.customs.permissions.has_territory_access", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_territories",
+                return_value=["South Luzon"],
+            ),
+        ):
+            self.assertFalse(sales_transaction_has_permission(doc, "submit", "user@example.com"))
+
+    def test_sales_transaction_without_role_profile_territory_keeps_warehouse_behavior(self):
+        doc = self._sales_doc("Sales Order", territory="South Luzon", warehouse="HO - QC")
+
+        with (
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
+                return_value=["FG - Sta Clara"],
+            ),
+            patch("qcmc_logic.customs.permissions.has_territory_access", return_value=False),
+        ):
+            self.assertFalse(sales_transaction_has_permission(doc, "read", "user@example.com"))
+
+    def test_sales_transaction_administrator_remains_unrestricted(self):
+        doc = self._sales_doc("Sales Invoice", territory="", warehouse="HO - QC")
+
+        with (
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=False),
+            patch("qcmc_logic.customs.permissions.has_territory_access", return_value=False),
+        ):
+            self.assertTrue(sales_transaction_has_permission(doc, "read", "Administrator"))
+
+    def test_sales_transaction_list_query_matches_direct_document_or_logic(self):
+        doc = self._sales_doc("Delivery Note", territory="South Luzon", warehouse="HO - QC")
+
+        with (
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
+                return_value=["FG - Sta Clara"],
+            ),
+            patch("qcmc_logic.customs.permissions.has_territory_access", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_territories",
+                return_value=["South Luzon"],
+            ),
+            patch(
+                "qcmc_logic.customs.permissions._warehouse_transaction_permission_query",
+                return_value="warehouse_condition",
+            ),
+            patch(
+                "qcmc_logic.customs.permissions.frappe.get_meta",
+                return_value=frappe._dict(has_field=lambda fieldname: fieldname == "territory"),
+            ),
+        ):
+            query = _sales_transaction_read_permission_query("Delivery Note", "user@example.com")
+            self.assertTrue(sales_transaction_has_permission(doc, "read", "user@example.com"))
+
+        self.assertIn("(warehouse_condition) OR", query)
+        self.assertIn("`tabDelivery Note`.`territory` IS NOT NULL", query)
+
+    def test_unrelated_warehouse_doctype_still_uses_warehouse_only_list_query(self):
+        with (
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch(
+                "qcmc_logic.customs.permissions.get_user_allowed_warehouses",
+                return_value=["FG - Sta Clara"],
+            ),
+            patch("qcmc_logic.customs.permissions._get_transaction_config") as get_config,
+            patch("qcmc_logic.customs.permissions._sql_list", return_value="'FG - Sta Clara'"),
+        ):
+            get_config.return_value = {
+                "fields": ["set_warehouse"],
+                "children": {"Material Request Item": ["warehouse"]},
+            }
+            query = _warehouse_transaction_permission_query(
+                "Material Request",
+                "user@example.com",
+            )
+
+        self.assertIn("`tabMaterial Request`.`set_warehouse` IN", query)
+        self.assertNotIn("territory", query.lower())
+
+    def test_mapped_delivery_note_populates_blank_territory_from_sales_order(self):
+        doc = self._sales_doc("Delivery Note", territory="", warehouse="HO - QC")
+        doc["items"][0].sales_order = "SO-0001"
+
+        with patch("qcmc_logic.customs.sales_transaction_territory.frappe.db.get_value") as get_value:
+            get_value.return_value = "South Luzon"
+            populate_mapped_transaction_territory(doc)
+
+        self.assertEqual(doc.territory, "South Luzon")
+        get_value.assert_called_once_with("Sales Order", "SO-0001", "territory")
+
+    def test_mapped_sales_invoice_keeps_explicit_territory(self):
+        doc = self._sales_doc("Sales Invoice", territory="North Luzon", warehouse="HO - QC")
+        doc["items"][0].delivery_note = "DN-0001"
+
+        with patch("qcmc_logic.customs.sales_transaction_territory.frappe.db.get_value") as get_value:
+            populate_mapped_transaction_territory(doc)
+
+        self.assertEqual(doc.territory, "North Luzon")
+        get_value.assert_not_called()
 
     def test_warehouse_transfer_sender_can_read_and_save_by_source_warehouse(self):
         doc = frappe._dict(

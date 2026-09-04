@@ -1,0 +1,23 @@
+{
+ "doctype": "DocType",
+ "name": "Manufacture Receive Draft Audit",
+ "module": "QCMC Logics",
+ "autoname": "hash",
+ "engine": "InnoDB",
+ "field_order": ["erp_user", "employee", "job_card", "work_order", "pull_out_slip", "stock_entry", "action", "event_timestamp", "device_id", "controlled_permission_elevation"],
+ "fields": [
+  {"fieldname":"erp_user","label":"ERP User","fieldtype":"Link","options":"User","reqd":1,"in_list_view":1},
+  {"fieldname":"employee","label":"Employee","fieldtype":"Link","options":"Employee"},
+  {"fieldname":"job_card","label":"Job Card","fieldtype":"Link","options":"Job Card","reqd":1,"in_list_view":1},
+  {"fieldname":"work_order","label":"Work Order","fieldtype":"Link","options":"Work Order","reqd":1},
+  {"fieldname":"pull_out_slip","label":"Pull Out Slip","fieldtype":"Data","reqd":1},
+  {"fieldname":"stock_entry","label":"Stock Entry","fieldtype":"Link","options":"Stock Entry","reqd":1,"in_list_view":1},
+  {"fieldname":"action","label":"Action","fieldtype":"Select","options":"Created\nReused","reqd":1},
+  {"fieldname":"event_timestamp","label":"Timestamp","fieldtype":"Datetime","reqd":1},
+  {"fieldname":"device_id","label":"Device ID","fieldtype":"Data"},
+  {"fieldname":"controlled_permission_elevation","label":"Controlled Permission Elevation","fieldtype":"Check","default":"0"}
+ ],
+ "permissions": [{"role":"System Manager","read":1,"report":1,"export":1},{"role":"Stock Manager","read":1,"report":1,"export":1}],
+ "sort_field":"event_timestamp",
+ "sort_order":"DESC"
+}

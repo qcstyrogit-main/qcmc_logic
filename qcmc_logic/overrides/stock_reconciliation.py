@@ -121,88 +121,94 @@ class CustomStockReconciliation(StockReconciliation):
             self.append("custom_physical_count_results", values)
 
     def add_missing_location_zero_counts(self):
-        """Infer zero counts only while closing a completed physical count."""
+        """Infer zeros for every uncounted positive balance in this warehouse."""
         results = self.get("custom_physical_count_results") or []
         counted_locations = set()
-        scopes = set()
         automatic_rows = {}
 
         for result in results:
             location = result.get("location") or result.inventory_location
             if not result.item_code or not result.warehouse or not location:
                 continue
-            scope = (result.item_code, result.warehouse, result.uom or "")
-            scopes.add(scope)
             key = (result.item_code, result.warehouse, location)
             if str(result.submission_id or "").startswith("AUTO-ZERO-"):
                 automatic_rows[key] = result
             else:
                 counted_locations.add(key)
 
-        for item_code, warehouse, uom in sorted(scopes):
-            balances = frappe.db.sql(
-                """
-                select location, coalesce(sum(actual_qty), 0) as quantity
-                  from `tabStock Ledger Entry`
-                 where item_code = %(item_code)s
-                   and warehouse = %(warehouse)s
-                   and is_cancelled = 0
-                   and ifnull(location, '') != ''
-                 group by location
-                having coalesce(sum(actual_qty), 0) > 0.000000001
-                """,
-                {"item_code": item_code, "warehouse": warehouse},
-                as_dict=True,
-            )
-            for balance in balances:
-                key = (item_code, warehouse, balance.location)
-                if key in counted_locations:
-                    if key in automatic_rows:
-                        automatic_rows[key].status = "Old Count"
-                        automatic_rows[key].adjustment_status = "Old Count"
-                    continue
+        warehouse = str(self.set_warehouse or "").strip()
+        if not warehouse:
+            frappe.throw(_("Warehouse is required before closing the Physical Count."))
 
-                quantity = flt(balance.quantity)
-                existing = automatic_rows.get(key)
-                if existing:
-                    existing.erp_quantity_before = quantity
-                    existing.physical_count = 0
-                    existing.variance = -quantity
-                    existing.status = "Pending adjustment"
-                    existing.adjustment_status = "Pending"
-                    continue
+        # A completed warehouse count covers the warehouse, not merely the SKUs
+        # that happened to be scanned. Fetch every current positive location
+        # balance so an entirely unscanned SKU is also inferred as zero.
+        balances = frappe.db.sql(
+            """
+            select sle.item_code, sle.warehouse, sle.location,
+                   item.item_name, item.stock_uom,
+                   coalesce(sum(sle.actual_qty), 0) as quantity
+              from `tabStock Ledger Entry` sle
+              join `tabItem` item on item.name = sle.item_code
+             where sle.warehouse = %(warehouse)s
+               and sle.is_cancelled = 0
+               and ifnull(sle.location, '') != ''
+             group by sle.item_code, sle.warehouse, sle.location,
+                      item.item_name, item.stock_uom
+            having coalesce(sum(sle.actual_qty), 0) > 0.000000001
+            """,
+            {"warehouse": warehouse},
+            as_dict=True,
+        )
+        for balance in balances:
+            key = (balance.item_code, balance.warehouse, balance.location)
+            if key in counted_locations:
+                if key in automatic_rows:
+                    automatic_rows[key].status = "Old Count"
+                    automatic_rows[key].adjustment_status = "Old Count"
+                continue
 
-                digest = hashlib.sha256(
-                    f"{self.name}|{item_code}|{warehouse}|{balance.location}".encode()
-                ).hexdigest()[:24]
-                self.append("custom_physical_count_results", {
-                    "submission_id": f"AUTO-ZERO-{digest}",
-                    "item_code": item_code,
-                    "item_name": frappe.get_cached_value("Item", item_code, "item_name") or item_code,
-                    "warehouse": warehouse,
-                    "inventory_location": balance.location,
-                    "inventory_location_id": balance.location,
-                    "location": balance.location,
-                    "location_name": frappe.db.get_value(
-                        "Storage Location", balance.location, "location_name"
-                    ) or balance.location,
-                    "uom": uom or frappe.get_cached_value("Item", item_code, "stock_uom"),
-                    "erp_quantity_before": quantity,
-                    "physical_count": 0,
-                    "variance": -quantity,
-                    "adjustment_status": "Pending",
-                    "scanner_user": frappe.session.user,
-                    "scanner_full_name": "System inferred zero",
-                    "device_id": "ERP Auto-Zero",
-                    "counted_at": now_datetime(),
-                    "submitted_at": now_datetime(),
-                    "transaction_count": 0,
-                    "scan_history_json": json.dumps({
-                        "source": "ERP current location balance",
-                        "reason": "Location absent from completed physical count",
-                    }),
-                    "status": "Pending adjustment",
-                })
+            quantity = flt(balance.quantity)
+            existing = automatic_rows.get(key)
+            if existing:
+                existing.erp_quantity_before = quantity
+                existing.physical_count = 0
+                existing.variance = -quantity
+                existing.status = "Pending adjustment"
+                existing.adjustment_status = "Pending"
+                continue
+
+            digest = hashlib.sha256(
+                f"{self.name}|{balance.item_code}|{balance.warehouse}|{balance.location}".encode()
+            ).hexdigest()[:24]
+            self.append("custom_physical_count_results", {
+                "submission_id": f"AUTO-ZERO-{digest}",
+                "item_code": balance.item_code,
+                "item_name": balance.item_name or balance.item_code,
+                "warehouse": balance.warehouse,
+                "inventory_location": balance.location,
+                "inventory_location_id": balance.location,
+                "location": balance.location,
+                "location_name": frappe.db.get_value(
+                    "Storage Location", balance.location, "location_name"
+                ) or balance.location,
+                "uom": balance.stock_uom,
+                "erp_quantity_before": quantity,
+                "physical_count": 0,
+                "variance": -quantity,
+                "adjustment_status": "Pending",
+                "scanner_user": frappe.session.user,
+                "scanner_full_name": "System inferred zero",
+                "device_id": "ERP Auto-Zero",
+                "counted_at": now_datetime(),
+                "submitted_at": now_datetime(),
+                "transaction_count": 0,
+                "scan_history_json": json.dumps({
+                    "source": "ERP current warehouse location balance",
+                    "reason": "Item and location absent from completed warehouse count",
+                }),
+                "status": "Pending adjustment",
+            })
 
     def rebuild_physical_count_summary(self):
         """Build one effective Item row from the latest count at each location."""

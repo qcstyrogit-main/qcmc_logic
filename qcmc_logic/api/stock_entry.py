@@ -17,8 +17,6 @@ SUPPORTED_PURPOSES = {
     "Material Consumption for Manufacture",
     "Manufacture",
 }
-
-
 def _validate_purpose(purpose):
     if purpose not in SUPPORTED_PURPOSES:
         frappe.throw(_("Purpose {0} is not supported for Job Card fetch.").format(frappe.bold(purpose)))
@@ -421,6 +419,23 @@ def make_manufacture_stock_entry_from_job_card(job_card, qty=None):
     """Create a draft Manufacture entry appropriate for the selected Job Card."""
     frappe.has_permission("Stock Entry", ptype="create", throw=True)
 
+    return _make_manufacture_stock_entry_from_job_card(job_card, qty)
+
+
+def _make_manufacture_stock_entry_from_job_card(
+    job_card,
+    qty=None,
+    *,
+    ignore_permissions=False,
+    before_insert=None,
+    allow_existing_draft=False,
+):
+    """Private implementation; controlled callers may elevate only the insert.
+
+    ``ignore_permissions`` is deliberately unavailable on the whitelisted
+    wrapper above, so clients cannot turn this into a generic permission bypass.
+    """
+
     if not job_card:
         frappe.throw(_("Please select a Job Card."))
 
@@ -463,7 +478,7 @@ def make_manufacture_stock_entry_from_job_card(job_card, qty=None):
         draft_filters["work_order"] = jc.work_order
 
     existing_draft = frappe.db.get_value("Stock Entry", draft_filters, "name")
-    if existing_draft:
+    if existing_draft and not allow_existing_draft:
         frappe.throw(
             _("Draft Manufacture Stock Entry {0} already exists for Job Card {1}.").format(
                 frappe.get_desk_link("Stock Entry", existing_draft),
@@ -474,6 +489,10 @@ def make_manufacture_stock_entry_from_job_card(job_card, qty=None):
     if jc.finished_good:
         if jc.docstatus != 1:
             frappe.throw(_("Job Card {0} must be submitted.").format(frappe.bold(jc.name)))
+        # Semi-finished receipts are not part of the Receive Finished Goods
+        # scanner workflow. Keep their standard permission-controlled path.
+        if ignore_permissions:
+            frappe.throw(_("Receive Finished Goods requires a final-operation Job Card."))
         return jc.make_stock_entry_for_semi_fg_item(auto_submit=False)
 
     from erpnext.manufacturing.doctype.work_order.work_order import make_stock_entry
@@ -496,7 +515,9 @@ def make_manufacture_stock_entry_from_job_card(job_card, qty=None):
     # synchronizes the final Work Order quantity after submit/cancel.
     stock_entry.custom_final_job_card = jc.name
     stock_entry.custom_job_card_time_log = time_log.name
-    stock_entry.insert()
+    if before_insert:
+        before_insert(stock_entry)
+    stock_entry.insert(ignore_permissions=ignore_permissions)
     if stock_entry.work_order != wo.name:
         stock_entry.db_set("work_order", wo.name, update_modified=False)
         stock_entry.work_order = wo.name

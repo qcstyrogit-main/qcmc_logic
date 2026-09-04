@@ -1,0 +1,197 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "naming_series:",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "header_section",
+  "naming_series",
+  "company",
+  "warehouse",
+  "column_break_header",
+  "posting_date",
+  "posting_time",
+  "status",
+  "handover",
+  "transaction_type",
+  "picker",
+  "checker",
+  "device_id",
+  "completed_at",
+  "reference_stock_entries_section",
+  "references",
+  "item_details_section",
+  "items",
+  "location_details_section",
+  "locations"
+ ],
+ "fields": [
+  {
+   "fieldname": "header_section",
+   "fieldtype": "Section Break",
+   "label": "Header"
+  },
+  {
+   "default": "WA-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "WA-.YYYY.-.#####",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_header",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {"fieldname":"posting_time","fieldtype":"Time","label":"Posting Time","hidden":1},
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Draft\nIn Progress\nCompleted\nCancelled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "handover",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Scanner Warehouse Handover",
+   "options": "Scanner Warehouse Handover",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "transaction_type",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Transaction Type",
+   "options": "Stock Entry\nWarehouse Transfer\nWarehouse Receiving Report\nDelivery Note\nSales Invoice",
+   "read_only": 1
+  },
+  {"fieldname":"picker","fieldtype":"Link","label":"Picker","options":"Employee","read_only":1,"hidden":1},
+  {"fieldname":"checker","fieldtype":"Link","label":"Checker","options":"Employee","read_only":1,"hidden":1},
+  {"fieldname":"device_id","fieldtype":"Data","label":"Device ID","read_only":1,"hidden":1},
+  {"fieldname":"completed_at","fieldtype":"Datetime","label":"Completed At","read_only":1,"hidden":1},
+  {
+   "fieldname": "reference_stock_entries_section",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Reference Stock Entries"
+  },
+  {
+   "fieldname": "references",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Reference Stock Entries",
+   "options": "Warehouse Allocation Reference"
+  },
+  {
+   "fieldname": "item_details_section",
+   "fieldtype": "Section Break",
+   "label": "Item Details"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Item Details",
+   "options": "Warehouse Allocation Item"
+  },
+  {
+   "fieldname": "location_details_section",
+   "fieldtype": "Section Break",
+   "label": "Location Details"
+  },
+  {
+   "fieldname": "locations",
+   "fieldtype": "Table",
+   "label": "Location Details",
+   "options": "Warehouse Allocation Location"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "is_submittable": 1,
+ "links": [],
+ "module": "QCMC Logics",
+ "name": "Warehouse Allocation",
+ "naming_rule": "By Naming Series",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock User",
+   "share": 1,
+   "write": 1
+  },
+  {"create":1,"read":1,"write":1,"report":1,"print":1,"role":"Warehouse Picker"},
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

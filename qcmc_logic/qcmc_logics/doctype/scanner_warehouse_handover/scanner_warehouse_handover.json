@@ -1,0 +1,31 @@
+{
+ "doctype":"DocType","name":"Scanner Warehouse Handover","module":"QCMC Logics",
+ "autoname":"naming_series:","engine":"InnoDB","track_changes":1,
+ "field_order":["naming_series","status","company","warehouse_man","checker","checker_employee","verified_by_user","picker","device_id","created_at","checked_at","allocation_created_at","completed_at","checker_verification_id","generated_qr_token","qr_expires_at","source_stock_entries"],
+ "fields":[
+  {"fieldname":"naming_series","label":"Naming Series","fieldtype":"Select","options":"QCMC-HANDOVER-.YYYY.-.#####","default":"QCMC-HANDOVER-.YYYY.-.#####","reqd":1},
+  {"fieldname":"status","label":"Status","fieldtype":"Select","options":"OPEN\nPENDING_CHECK\nCHECKED\nALLOCATION_CREATED\nCOMPLETED\nCANCELLED","default":"OPEN","reqd":1,"read_only":1,"in_list_view":1},
+  {"fieldname":"company","label":"Company","fieldtype":"Link","options":"Company","reqd":1,"in_list_view":1},
+  {"fieldname":"warehouse_man","label":"Warehouse Man","fieldtype":"Link","options":"Employee","reqd":1,"in_list_view":1},
+  {"fieldname":"checker","label":"Verified By","fieldtype":"Link","options":"Assign Checker","read_only":1},
+  {"fieldname":"checker_employee","label":"Checker Employee","fieldtype":"Link","options":"Employee","read_only":1},
+  {"fieldname":"verified_by_user","label":"Verified By User","fieldtype":"Link","options":"User","read_only":1},
+  {"fieldname":"picker","label":"Picker","fieldtype":"Link","options":"Employee","read_only":1},
+  {"fieldname":"device_id","label":"Device ID","fieldtype":"Data"},
+  {"fieldname":"created_at","label":"Created At","fieldtype":"Datetime","read_only":1,"reqd":1},
+  {"fieldname":"checked_at","label":"Checked At","fieldtype":"Datetime","read_only":1},
+  {"fieldname":"allocation_created_at","label":"Allocation Created At","fieldtype":"Datetime","read_only":1},
+  {"fieldname":"completed_at","label":"Completed At","fieldtype":"Datetime","read_only":1},
+  {"fieldname":"checker_verification_id","label":"Checker Verification ID","fieldtype":"Data","read_only":1},
+  {"fieldname":"generated_qr_token","label":"QR Token","fieldtype":"Password","hidden":1,"read_only":1},
+  {"fieldname":"qr_expires_at","label":"QR Expires At","fieldtype":"Datetime","hidden":1,"read_only":1},
+  {"fieldname":"source_stock_entries","label":"Source Stock Entries","fieldtype":"Table","options":"Scanner Warehouse Handover Source","reqd":1}
+ ],
+ "permissions":[
+  {"role":"Stock Manager","read":1,"write":1,"create":1,"report":1,"export":1},
+  {"role":"Stock User","read":1,"write":1,"create":1,"report":1},
+  {"role":"Warehouse Checker","read":1,"write":1,"report":1},
+  {"role":"Warehouse Picker","read":1,"report":1},
+  {"role":"System Manager","read":1,"write":1,"create":1,"delete":1,"report":1,"export":1}
+ ],"sort_field":"modified","sort_order":"DESC"
+}

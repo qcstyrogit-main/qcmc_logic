@@ -1491,7 +1491,6 @@ def make_material_issuance(source_name, target_doc=None):
             "Machine Shop Job Request": {
                 "doctype": "Stock Entry",
                 "field_map": {
-                    "name": "msjr_no",
                     "company": "company",
                 },
             }
@@ -1499,52 +1498,6 @@ def make_material_issuance(source_name, target_doc=None):
         target_doc,
     )
     target.stock_entry_type = "Material Issue"
-    return target
-
-
-@frappe.whitelist()
-def make_completed_output_stock_entry(source_name, target_doc=None):
-    """Create a Material Receipt draft for the unreceived fabricated output."""
-    frappe.has_permission("Stock Entry", ptype="create", throw=True)
-
-    msjr = frappe.get_doc("Machine Shop Job Request", source_name)
-    if msjr.workflow_state != "Completed":
-        frappe.throw("Output Stock Entry can only be created from a completed request.")
-
-    item_code = msjr.get("item_code")
-    if not item_code and msjr.get("asset"):
-        item_code = frappe.db.get_value("Asset", msjr.asset, "item_code")
-    if not item_code:
-        frappe.throw(
-            "Create or link an Item Master record before receiving this fabricated output into stock."
-        )
-
-    received_qty = frappe.db.sql(
-        """
-        SELECT COALESCE(SUM(sed.qty), 0)
-        FROM `tabStock Entry` se
-        INNER JOIN `tabStock Entry Detail` sed ON sed.parent = se.name
-        WHERE se.msjr_no = %s
-          AND se.docstatus < 2
-          AND se.purpose = 'Material Receipt'
-          AND sed.item_code = %s
-        """,
-        (source_name, item_code),
-    )[0][0]
-    remaining_qty = flt(msjr.get("quantity_produced")) - flt(received_qty)
-    if remaining_qty <= 0:
-        frappe.throw("The full Quantity Produced is already covered by an output Stock Entry.")
-
-    target = (
-        frappe.get_doc(frappe.parse_json(target_doc))
-        if target_doc
-        else frappe.new_doc("Stock Entry")
-    )
-    target.stock_entry_type = "Material Receipt"
-    target.purpose = "Material Receipt"
-    target.company = msjr.company
-    target.msjr_no = msjr.name
-    target.append("items", {"item_code": item_code, "qty": remaining_qty})
     return target
 
 
@@ -1567,7 +1520,6 @@ def make_machine_shop_repairs_and_project(source_name, target_doc=None):
     target = frappe.get_doc(frappe.parse_json(target_doc)) if target_doc else frappe.new_doc("Machine Shop Repairs and Project")
     target.naming_series = "MSRP-.YYYY.-"
     target.msjr_no = source_name
-    target.asset = msjr.asset_name
     target.subject = msjr.work_instruction
     target.msjr_document_date = msjr.document_date
     target.date_posted = frappe.utils.today()
@@ -1686,6 +1638,26 @@ def make_daily_job_report(process_name):
     target.process_no = process_name
     target.process_title = process.process_name
     target.project_no = process.parent
+    schedule_rows = frappe.db.sql(
+        """
+        SELECT js.parent AS schedule, js.name AS row_name, js.employee
+        FROM `tabJob Schedule` js
+        INNER JOIN `tabDaily Job Schedule` djs ON djs.name = js.parent
+        WHERE js.process = %s AND djs.docstatus != 2
+        ORDER BY djs.sched_date DESC, djs.creation DESC, js.idx ASC
+        LIMIT 1
+        """,
+        process_name,
+        as_dict=True,
+    )
+    if not schedule_rows:
+        frappe.throw(
+            f"Schedule process <b>{process.process_name}</b> in a Daily Job Schedule before creating its report."
+        )
+    scheduled = schedule_rows[0]
+    target.daily_job_schedule = scheduled.schedule
+    target.job_schedule_row = scheduled.row_name
+    target.worked_by = scheduled.employee
     target.flags.ignore_permissions = True
 
     return target

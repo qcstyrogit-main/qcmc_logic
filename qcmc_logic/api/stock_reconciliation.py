@@ -133,6 +133,18 @@ class PhysicalCountConflict(frappe.ValidationError):
         super().__init__("ERP stock changed after this count was synchronized. Refresh and review.")
 
 
+class PhysicalCountNotOpen(frappe.ValidationError):
+    pass
+
+
+def _ensure_pcount_open_for_scanning(doc):
+    workflow_state = str(doc.get("workflow_state") or "").strip()
+    if doc.docstatus != 0 or workflow_state in {"For Recon", "Close Inventory"}:
+        raise PhysicalCountNotOpen(
+            f"Stock Reconciliation '{doc.name}' is no longer open for scanner activity."
+        )
+
+
 def _current_inventory_quantity(item_code, warehouse, storage_location, batch_no=None, serial_no=None):
     """Single authoritative Physical Count baseline for an exact inventory key."""
     return get_dimension_stock_balance(
@@ -339,7 +351,11 @@ def _resolve_increment_uom(request_uom, stock_uom, row_number):
     request_uom = str(request_uom or "").strip()
     stock_uom = str(stock_uom or "").strip()
     if not request_uom:
-        frappe.throw(f"Entry #{row_number}: UOM is required.")
+        if not stock_uom:
+            frappe.throw(
+                f"Entry #{row_number}: Item Stock UOM is not configured in ERPNext."
+            )
+        return stock_uom
 
     request_key = request_uom.casefold()
     stock_key = stock_uom.casefold()
@@ -610,8 +626,7 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
         # Role Profile Warehouse Access with Allow Transact. Scanner operators
         # do not require Desk-level Stock Reconciliation write permission.
         ensure_scanner_warehouse_access(user, [doc.set_warehouse], require_transact=True)
-        if doc.docstatus != 0:
-            frappe.throw(f"Stock Reconciliation '{reconciliation_id}' is not editable.")
+        _ensure_pcount_open_for_scanning(doc)
         normalized = [
             _validate_adjustment_entry(entry, index, doc)
             for index, entry in enumerate(entries, start=1)
@@ -992,8 +1007,7 @@ def _submit_increment_entries(reconciliation_id, submission_id, entries, user):
         doc = frappe.get_doc("Stock Reconciliation", reconciliation_id)
         # Keep scanner authorization consistent with adjustment submissions.
         ensure_scanner_warehouse_access(user, [doc.set_warehouse], require_transact=True)
-        if doc.docstatus != 0:
-            frappe.throw(f"Stock Reconciliation '{reconciliation_id}' is not editable.")
+        _ensure_pcount_open_for_scanning(doc)
         if not doc.set_warehouse:
             frappe.throw("Default Warehouse is required on the Stock Reconciliation.")
 
@@ -1162,6 +1176,12 @@ def submit_pcount_entries(
     if normalized_operation == "ADJUSTMENT":
         try:
             return _submit_adjustment_entries(reconciliation_id, submission_id, entries, user)
+        except PhysicalCountNotOpen as exc:
+            frappe.local.response["http_status_code"] = 409
+            return {
+                "success": False, "error_code": "PCOUNT_NOT_OPEN",
+                "message": str(exc), "reconciliation_id": reconciliation_id,
+            }
         except PhysicalCountConflict as exc:
             frappe.local.response["http_status_code"] = 409
             return {
@@ -1204,6 +1224,14 @@ def submit_pcount_entries(
             ]
         try:
             return _submit_increment_entries(reconciliation_id, submission_id, entries, user)
+        except PhysicalCountNotOpen as exc:
+            frappe.local.response["http_status_code"] = 409
+            return {
+                "success": False, "operation": "increment",
+                "error_code": "PCOUNT_NOT_OPEN", "message": str(exc),
+                "reconciliation_id": reconciliation_id,
+                "submission_id": submission_id,
+            }
         except frappe.DoesNotExistError:
             frappe.local.response["http_status_code"] = 404
             return {
@@ -1624,3 +1652,116 @@ def get_pcount_state(reconciliation_id, mobile_token=None):
             "batch_no": batch_no, "serial_no": serial_no,
         })
     return {"success": True, "reconciliation_id": reconciliation_id, "entries": entries}
+
+
+@frappe.whitelist()
+def get_pcount_reconciliation_review(reconciliation_id):
+    """Return book-stock exceptions for ERP reviewers, never scanner clients."""
+    reconciliation_id = str(reconciliation_id or "").strip()
+    doc = frappe.get_doc("Stock Reconciliation", reconciliation_id)
+    doc.check_permission("read")
+    if not doc.get("custom_physical_count"):
+        frappe.throw("This Stock Reconciliation is not a Physical Count.")
+    warehouse = str(doc.set_warehouse or "").strip()
+    if not warehouse:
+        frappe.throw("Default Warehouse is required.")
+
+    counted_keys = set()
+    counted_locations = set()
+    scanned_items = set()
+    for result in doc.get("custom_physical_count_results") or []:
+        location = str(result.get("location") or result.inventory_location or "").strip()
+        if (
+            not result.item_code or not location
+            or str(result.submission_id or "").startswith("AUTO-ZERO-")
+        ):
+            continue
+        key = (str(result.item_code).strip(), str(result.warehouse or warehouse).strip(), location)
+        counted_keys.add(key)
+        counted_locations.add(location)
+        scanned_items.add(key[0])
+
+    balances = frappe.db.sql(
+        """
+        select sle.item_code, item.item_name, item.stock_uom,
+               sle.warehouse, sle.location,
+               coalesce(sum(sle.actual_qty), 0) as quantity
+          from `tabStock Ledger Entry` sle
+          join `tabItem` item on item.name = sle.item_code
+         where sle.warehouse = %(warehouse)s
+           and sle.is_cancelled = 0
+           and ifnull(sle.location, '') != ''
+         group by sle.item_code, item.item_name, item.stock_uom,
+                  sle.warehouse, sle.location
+        having coalesce(sum(sle.actual_qty), 0) > 0.000000001
+        """,
+        {"warehouse": warehouse},
+        as_dict=True,
+    )
+    unscanned = []
+    for balance in balances:
+        key = (balance.item_code, balance.warehouse, balance.location)
+        if key in counted_keys:
+            continue
+        unscanned.append({
+            "item_code": balance.item_code,
+            "item_name": balance.item_name or balance.item_code,
+            "warehouse": balance.warehouse,
+            "storage_location": balance.location,
+            "location_name": frappe.db.get_value(
+                "Storage Location", balance.location, "location_name"
+            ) or balance.location,
+            "book_quantity": _safe_float(balance.quantity),
+            "uom": balance.stock_uom,
+            "item_never_scanned": balance.item_code not in scanned_items,
+            "reason": (
+                "Item never scanned" if balance.item_code not in scanned_items
+                else "Item not counted" if balance.location in counted_locations
+                else "Location not counted"
+            ),
+        })
+
+    locations = frappe.get_all(
+        "Storage Location",
+        filters={"custom_warehouse": warehouse, "disabled": 0, "is_group": 0},
+        fields=["name", "location_code", "location_name", "location_type"],
+        order_by="location_name, name",
+    )
+    listed_locations = {row["storage_location"] for row in unscanned}
+    for location in locations:
+        if location.name in counted_locations or location.name in listed_locations:
+            continue
+        unscanned.append({
+            "item_code": "",
+            "item_name": "",
+            "warehouse": warehouse,
+            "storage_location": location.name,
+            "location_code": location.location_code or "",
+            "location_name": location.location_name or location.name,
+            "location_type": location.location_type or "",
+            "book_quantity": 0,
+            "uom": "",
+            "item_never_scanned": False,
+            "reason": "No ERP stock",
+        })
+
+    unscanned.sort(key=lambda row: (
+        str(row.get("location_name") or row.get("storage_location") or "").lower(),
+        str(row.get("item_code") or "").lower(),
+    ))
+    locations_without_counts = {
+        location.name for location in locations if location.name not in counted_locations
+    }
+
+    return {
+        "success": True,
+        "reconciliation_id": doc.name,
+        "warehouse": warehouse,
+        "counted_location_count": len(counted_locations),
+        "unscanned_balance_count": len(unscanned),
+        "location_without_count_count": len(locations_without_counts),
+        "never_scanned_item_count": len({
+            row["item_code"] for row in unscanned if row["item_never_scanned"]
+        }),
+        "unscanned_balances": unscanned,
+    }
