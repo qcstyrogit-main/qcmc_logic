@@ -12,7 +12,14 @@
   "warehouse",
   "column_break_header",
   "posting_date",
+  "posting_time",
   "status",
+  "handover",
+  "transaction_type",
+  "picker",
+  "checker",
+  "device_id",
+  "completed_at",
   "reference_stock_entries_section",
   "references",
   "item_details_section",
@@ -65,6 +72,7 @@
    "label": "Date",
    "reqd": 1
   },
+  {"fieldname":"posting_time","fieldtype":"Time","label":"Posting Time","hidden":1},
   {
    "default": "Draft",
    "fieldname": "status",
@@ -75,6 +83,27 @@
    "options": "Draft\nIn Progress\nCompleted\nCancelled",
    "read_only": 1
   },
+  {
+   "fieldname": "handover",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Scanner Warehouse Handover",
+   "options": "Scanner Warehouse Handover",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "transaction_type",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Transaction Type",
+   "options": "Stock Entry\nWarehouse Transfer\nWarehouse Receiving Report\nDelivery Note\nSales Invoice",
+   "read_only": 1
+  },
+  {"fieldname":"picker","fieldtype":"Link","label":"Picker","options":"Employee","read_only":1,"hidden":1},
+  {"fieldname":"checker","fieldtype":"Link","label":"Checker","options":"Employee","read_only":1,"hidden":1},
+  {"fieldname":"device_id","fieldtype":"Data","label":"Device ID","read_only":1,"hidden":1},
+  {"fieldname":"completed_at","fieldtype":"Datetime","label":"Completed At","read_only":1,"hidden":1},
   {
    "fieldname": "reference_stock_entries_section",
    "fieldtype": "Section Break",
@@ -144,6 +173,7 @@
    "share": 1,
    "write": 1
   },
+  {"create":1,"read":1,"write":1,"report":1,"print":1,"role":"Warehouse Picker"},
   {
    "amend": 1,
    "cancel": 1,

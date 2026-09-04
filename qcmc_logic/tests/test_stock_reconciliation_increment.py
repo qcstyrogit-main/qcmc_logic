@@ -12,8 +12,12 @@ from frappe.utils import nowdate
 from qcmc_logic.api.stock_reconciliation import (
 	_submit_adjustment_entries,
 	_submit_increment_entries,
+	_ensure_pcount_open_for_scanning,
+	_resolve_increment_uom,
 	PhysicalCountConflict,
+	PhysicalCountNotOpen,
 	get_pcount_item_baseline,
+	get_pcount_reconciliation_review,
 	get_pcount_scan_details,
 	get_pcount_state,
 	submit_pcount_entries,
@@ -22,6 +26,15 @@ from qcmc_logic.overrides.stock_reconciliation import CustomStockReconciliation
 
 
 class TestStockReconciliationIncrement(FrappeTestCase):
+	def test_for_recon_and_close_inventory_are_not_open_for_scanning(self):
+		for state in ("For Recon", "Close Inventory"):
+			doc = frappe._dict(name="TEST-PCOUNT", docstatus=0, workflow_state=state)
+			with self.assertRaises(PhysicalCountNotOpen):
+				_ensure_pcount_open_for_scanning(doc)
+		_ensure_pcount_open_for_scanning(
+			frappe._dict(name="TEST-PCOUNT", docstatus=0, workflow_state="Draft")
+		)
+
 	def test_for_recon_does_not_infer_zero_counts(self):
 		doc = CustomStockReconciliation({
 			"doctype": "Stock Reconciliation",
@@ -57,6 +70,76 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 			doc.validate()
 		capture.assert_not_called()
 		infer_zero.assert_called_once_with()
+
+	def test_close_inventory_infers_zero_for_entirely_unscanned_item(self):
+		doc = CustomStockReconciliation({
+			"doctype": "Stock Reconciliation",
+			"name": "TEST-COMPLETE-WAREHOUSE-COUNT",
+			"set_warehouse": "FG - Test",
+			"custom_physical_count": 1,
+			"custom_physical_count_results": [{
+				"submission_id": "SCAN-1",
+				"item_code": "ITEM-SCANNED",
+				"warehouse": "FG - Test",
+				"inventory_location": "LOCATION-1",
+				"location": "LOCATION-1",
+				"uom": "PCS",
+				"physical_count": 10,
+			}],
+		})
+		balances = [frappe._dict(
+			item_code="ITEM-NEVER-SCANNED",
+			item_name="Never Scanned Item",
+			stock_uom="PCS",
+			warehouse="FG - Test",
+			location="LOCATION-2",
+			quantity=25,
+		)]
+		with patch("frappe.db.sql", return_value=balances) as stock_query, patch(
+			"frappe.db.get_value", return_value="Location 2"
+		):
+			doc.add_missing_location_zero_counts()
+
+		stock_query.assert_called_once()
+		self.assertEqual(stock_query.call_args.args[1], {"warehouse": "FG - Test"})
+		inferred = doc.custom_physical_count_results[-1]
+		self.assertEqual(inferred.item_code, "ITEM-NEVER-SCANNED")
+		self.assertEqual(inferred.location, "LOCATION-2")
+		self.assertEqual(inferred.physical_count, 0)
+		self.assertEqual(inferred.variance, -25)
+		self.assertTrue(inferred.submission_id.startswith("AUTO-ZERO-"))
+
+	def test_for_recon_review_lists_unscanned_book_stock(self):
+		doc = frappe._dict(
+			name="TEST-REVIEW",
+			set_warehouse="FG - Test",
+			custom_physical_count=1,
+			custom_physical_count_results=[frappe._dict(
+				submission_id="SCAN-1", item_code="ITEM-A", warehouse="FG - Test",
+				location="LOCATION-1", inventory_location="LOCATION-1",
+			)],
+		)
+		doc.check_permission = lambda permission: None
+		balances = [
+			frappe._dict(item_code="ITEM-A", item_name="Item A", stock_uom="PCS", warehouse="FG - Test", location="LOCATION-1", quantity=10),
+			frappe._dict(item_code="ITEM-B", item_name="Item B", stock_uom="PCS", warehouse="FG - Test", location="LOCATION-2", quantity=25),
+		]
+		with patch("frappe.get_doc", return_value=doc), patch(
+			"frappe.db.sql", return_value=balances
+		), patch("frappe.get_all", return_value=[
+			frappe._dict(name="LOCATION-1", location_code="L1", location_name="Location 1", location_type="Bin"),
+			frappe._dict(name="LOCATION-2", location_code="L2", location_name="Location 2", location_type="Bin"),
+			frappe._dict(name="LOCATION-3", location_code="L3", location_name="Location 3", location_type="Bin"),
+		]), patch("frappe.db.get_value", return_value="Location 2"):
+			review = get_pcount_reconciliation_review("TEST-REVIEW")
+
+		self.assertEqual(review["unscanned_balance_count"], 2)
+		self.assertEqual(review["never_scanned_item_count"], 1)
+		self.assertEqual(review["location_without_count_count"], 2)
+		rows = {row["storage_location"]: row for row in review["unscanned_balances"]}
+		self.assertEqual(rows["LOCATION-2"]["item_code"], "ITEM-B")
+		self.assertEqual(rows["LOCATION-3"]["book_quantity"], 0)
+		self.assertEqual(rows["LOCATION-3"]["reason"], "No ERP stock")
 
 	@classmethod
 	def setUpClass(cls):
@@ -418,6 +501,12 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 		self.assertEqual(result["updated_entries"][0]["uom"], self.uom)
 		self.assertEqual(row.stock_uom, self.uom)
 		self.assertEqual(row.qty, 5)
+
+	def test_blank_legacy_qr_uom_uses_erp_stock_uom(self):
+		self.assertEqual(_resolve_increment_uom("", "PCS", 1), "PCS")
+		self.assertEqual(_resolve_increment_uom(None, "PCS", 1), "PCS")
+		with self.assertRaises(frappe.ValidationError):
+			_resolve_increment_uom("", "", 1)
 
 	def test_invalid_quantity_rolls_back_complete_request(self):
 		reconciliation = self._new_reconciliation()

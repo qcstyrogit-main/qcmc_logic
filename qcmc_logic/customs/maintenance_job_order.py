@@ -110,7 +110,7 @@ def ensure_maintenance_job_order():
             "is_submittable": 1, "track_changes": 1, "fields": fields,
             "permissions": permissions,
         })
-    doctype.save(ignore_permissions=True)
+    doctype.insert(ignore_permissions=True)
 
     _ensure_workflow()
     frappe.clear_cache(doctype=DOCTYPE)

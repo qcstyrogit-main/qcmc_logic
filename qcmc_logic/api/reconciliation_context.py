@@ -19,7 +19,7 @@ def get_reconciliation_context(reconciliation_id=None, mobile_token=None):
     reconciliation = frappe.db.get_value(
         "Stock Reconciliation",
         reconciliation_id,
-        ["name", "docstatus", "set_warehouse", "purpose"],
+        ["name", "docstatus", "workflow_state", "set_warehouse", "purpose"],
         as_dict=True,
     )
     if not reconciliation:
@@ -29,11 +29,28 @@ def get_reconciliation_context(reconciliation_id=None, mobile_token=None):
             "message": f"Stock Reconciliation '{reconciliation_id}' was not found.",
         }
 
+    if reconciliation.workflow_state in {"For Recon", "Close Inventory"}:
+        frappe.local.response["http_status_code"] = 409
+        return {
+            "success": False,
+            "error_code": "PCOUNT_NOT_OPEN",
+            "message": (
+                f"Stock Reconciliation '{reconciliation_id}' is already "
+                f"{reconciliation.workflow_state} and is no longer available for scanning."
+            ),
+            "reconciliation_id": reconciliation.name,
+            "workflow_state": reconciliation.workflow_state,
+            "remove_from_last_activity": True,
+        }
+
     if reconciliation.docstatus != 0:
         frappe.local.response["http_status_code"] = 400
         return {
             "success": False,
+            "error_code": "PCOUNT_NOT_OPEN",
             "message": f"Stock Reconciliation '{reconciliation_id}' is not in Draft status.",
+            "reconciliation_id": reconciliation.name,
+            "remove_from_last_activity": True,
         }
 
     if not reconciliation.set_warehouse:

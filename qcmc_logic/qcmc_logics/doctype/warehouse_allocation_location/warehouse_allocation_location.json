@@ -5,10 +5,19 @@
  "engine": "InnoDB",
  "field_order": [
   "item_code",
+  "allocation_id",
+  "source_doctype",
+  "source_document",
+  "source_row",
+  "stock_uom",
+  "original_qty",
   "suggested_location",
   "suggested_qty",
   "actual_location",
   "actual_qty",
+  "priority",
+  "putaway_rule",
+  "status",
   "scanner_id",
   "user",
   "scan_time"
@@ -24,6 +33,12 @@
    "read_only": 1,
    "reqd": 1
   },
+  {"fieldname":"allocation_id","fieldtype":"Data","label":"Allocation ID","read_only":1,"unique":1,"hidden":1},
+  {"fieldname":"source_doctype","fieldtype":"Link","label":"Source DocType","options":"DocType","read_only":1,"hidden":1},
+  {"fieldname":"source_document","fieldtype":"Dynamic Link","label":"Source Document","options":"source_doctype","read_only":1,"hidden":1},
+  {"fieldname":"source_row","fieldtype":"Data","label":"Source Row","read_only":1,"hidden":1},
+  {"fieldname":"stock_uom","fieldtype":"Link","label":"Stock UOM","options":"UOM","read_only":1,"hidden":1},
+  {"fieldname":"original_qty","fieldtype":"Float","label":"Original Quantity","read_only":1,"hidden":1},
   {
    "columns": 2,
    "fieldname": "suggested_location",
@@ -58,6 +73,9 @@
    "in_list_view": 1,
    "label": "Actual Qty"
   },
+  {"fieldname":"priority","fieldtype":"Int","label":"Priority","read_only":1,"hidden":1},
+  {"fieldname":"putaway_rule","fieldtype":"Link","label":"Putaway Rule","options":"Putaway Rule","read_only":1,"hidden":1},
+  {"fieldname":"status","fieldtype":"Select","label":"Status","options":"PENDING_VERIFICATION\nVERIFIED\nCONFLICTED","default":"PENDING_VERIFICATION","read_only":1,"hidden":1},
   {
    "allow_on_submit": 1,
    "columns": 1,

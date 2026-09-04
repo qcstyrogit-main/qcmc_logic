@@ -14,30 +14,28 @@
 				{{ locations | length }} {{ _("active location(s)") }}
 			</p>
 		</div>
-		<button type="button" class="btn-print" onclick="window.print()">
-			{{ _("Print Selected") }}
-		</button>
+		<div class="print-actions">
+			<label for="qr-size">{{ _("QR Size") }}</label>
+			<select id="qr-size" class="qr-size-select">
+				<option value="small">{{ _("Small") }}</option>
+				<option value="medium" selected>{{ _("Medium") }}</option>
+				<option value="large">{{ _("Large") }}</option>
+			</select>
+			<button type="button" class="btn-print" onclick="window.print()">
+				{{ _("Print Selected") }}
+			</button>
+		</div>
 	</div>
 
 	{% if locations %}
-	<div class="qr-label-grid">
+	<div class="qr-label-grid size-medium">
 		{% for location in locations %}
-		{% if loop.index0 % 12 == 0 %}<section class="qr-label-sheet">{% endif %}
 		<article class="qr-label">
 			<img class="qr-code" src="{{ location.qr_data_uri }}" alt="QR code for {{ location.location_code }}">
 			<div class="label-details">
 				<div class="location-code">{{ location.location_code }}</div>
-				<div class="location-name">{{ location.location_name }}</div>
-				<div class="location-meta">
-					<span class="location-type">{{ location.location_type }}</span>
-					{% if location.custom_warehouse %}<span class="warehouse-name">{{ location.custom_warehouse }}</span>{% endif %}
-				</div>
-				{% if location.full_path %}
-				<div class="location-path">{{ location.full_path }}</div>
-				{% endif %}
 			</div>
 		</article>
-		{% if loop.index % 12 == 0 or loop.last %}</section>{% endif %}
 		{% endfor %}
 	</div>
 	{% else %}
@@ -65,17 +63,25 @@
 	.print-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
 	.print-toolbar h1 { margin: 0 0 4px; font-size: 28px; font-weight: 700; }
 	.print-toolbar p { margin: 0; color: #64748b; }
+	.print-actions { display: flex; align-items: center; gap: 10px; }
+	.print-actions label { margin: 0; font-weight: 600; }
+	.qr-size-select { min-width: 110px; height: 38px; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; }
 	.btn-print { border: 0; border-radius: 8px; padding: 10px 18px; color: #fff; background: #2563eb; font-weight: 600; cursor: pointer; }
 	.qr-label-grid { display: block; }
 	.qr-label-sheet { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
-	.qr-label { box-sizing: border-box; display: flex; align-items: center; min-height: 250px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; break-inside: avoid; page-break-inside: avoid; }
-	.qr-code { width: 230px; height: 230px; flex: 0 0 230px; image-rendering: pixelated; }
-	.label-details { min-width: 0; padding-left: 14px; }
-	.location-code { overflow-wrap: anywhere; font-size: 24px; line-height: 1.1; font-weight: 800; }
-	.location-name { margin-top: 6px; font-size: 16px; font-weight: 600; }
-	.location-meta, .location-path { margin-top: 7px; color: #475569; font-size: 12px; line-height: 1.35; overflow-wrap: anywhere; }
-	.warehouse-name { display: block; margin-top: 5px; font-size: 16px; line-height: 1.2; font-weight: 700; }
-	.location-path { display: none !important; }
+	.qr-label { box-sizing: border-box; display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center; align-items: center; min-height: 250px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; break-inside: avoid; page-break-inside: avoid; }
+	.qr-code { display: block; width: 230px; height: 230px; min-width: 0; min-height: 0; max-width: 100%; max-height: 100%; object-fit: contain; image-rendering: pixelated; }
+	.label-details { min-width: 0; max-width: 100%; padding: 0; margin-top: 8px; text-align: center; }
+	.location-code { overflow-wrap: anywhere; font-size: 24px; line-height: 1.1; font-weight: 800; text-align: center; }
+	.size-small .qr-label { min-height: 180px; }
+	.size-small .qr-code { width: 130px; height: 130px; }
+	.size-small .location-code { font-size: 20px; }
+	.size-medium .qr-label { min-height: 240px; }
+	.size-medium .qr-code { width: 190px; height: 190px; }
+	.size-medium .location-code { font-size: 26px; }
+	.size-large .qr-label { min-height: 300px; }
+	.size-large .qr-code { width: 250px; height: 250px; }
+	.size-large .location-code { font-size: 32px; }
 	.empty-state { padding: 64px 24px; border: 1px dashed #cbd5e1; border-radius: 12px; text-align: center; }
 	.empty-state h2 { margin: 0 0 8px; }
 	.empty-state p { margin: 0; color: #64748b; }
@@ -83,10 +89,11 @@
 	@media (max-width: 767px) {
 		.qr-print-page { padding: 16px; }
 		.print-toolbar { align-items: flex-start; flex-direction: column; }
+		.print-actions { flex-wrap: wrap; }
 		.qr-label-sheet { grid-template-columns: 1fr; }
 	}
 
-	@page { size: A4 portrait; margin: 8mm; }
+	@page { size: A4 portrait; margin: 4mm; }
 	@media print {
 		header, footer, .navbar, .web-footer, .print-toolbar { display: none !important; }
 		html, body {
@@ -114,11 +121,9 @@
 		.qr-label-sheet {
 			display: grid;
 			grid-template-columns: repeat(2, minmax(0, 1fr));
-			grid-template-rows: repeat(6, 58mm);
-			gap: 2mm 3mm;
 			box-sizing: border-box;
 			width: 100%;
-			height: auto;
+			height: 289mm;
 			margin: 0;
 			position: relative;
 			overflow: visible;
@@ -127,14 +132,49 @@
 		}
 		.qr-label-sheet:last-child { break-after: auto; page-break-after: auto; }
 		.qr-label-sheet + .qr-label-sheet { break-before: page; page-break-before: always; }
-		.qr-label { width: 100%; height: 58mm; min-height: 0; padding: .5mm; border-radius: 1.5mm; overflow: hidden; }
-		.qr-code { width: 57mm; height: 57mm; flex: 0 0 57mm; }
-		.label-details { padding-left: 2mm; }
-		.location-code { font-size: 22pt; line-height: 1.05; }
-		.location-name { margin-top: 1.2mm; font-size: 11pt; line-height: 1.15; }
-		.location-meta, .location-path { margin-top: 1mm; font-size: 8pt; line-height: 1.2; }
-		.warehouse-name { margin-top: 1mm; font-size: 14pt; line-height: 1.15; }
-		.location-path { display: none !important; }
+		.qr-label { position: static; display: block; width: 100%; min-height: 0; border-radius: 1.5mm; overflow: hidden; text-align: center; }
+		.qr-label .qr-code { position: static; display: block; max-width: none; max-height: none; margin: 0 auto; transform: none; }
+		.label-details { position: static; padding: 0; margin: .5mm 0 0; text-align: center; }
+		.size-small .qr-label-sheet { grid-template-rows: repeat(8, 34.375mm); gap: 2mm 3mm; }
+		.size-small .qr-label { height: 34.375mm; padding: 1mm; }
+		.size-small .qr-code { width: 26mm; height: 26mm; }
+		.size-small .location-code { font-size: 13pt; }
+		.size-medium .qr-label-sheet { grid-template-rows: repeat(6, 46.5mm); gap: 2mm 3mm; }
+		.size-medium .qr-label { height: 46.5mm; padding: 1mm; }
+		.size-medium .qr-code { width: 36mm; height: 36mm; }
+		.size-medium .location-code { font-size: 18pt; }
+		.size-large .qr-label-sheet { grid-template-rows: repeat(3, 94.333mm); gap: 3mm; }
+		.size-large .qr-label { height: 94.333mm; padding: 1mm; }
+		.size-large .qr-code { width: 82mm; height: 82mm; }
+		.size-large .location-code { font-size: 24pt; }
 	}
 </style>
+
+<script>
+	document.addEventListener("DOMContentLoaded", () => {
+		const grid = document.querySelector(".qr-label-grid");
+		const selector = document.querySelector("#qr-size");
+		if (!grid || !selector) return;
+
+		const labels = Array.from(grid.querySelectorAll(".qr-label"));
+		const perSheet = { small: 16, medium: 12, large: 6 };
+		const savedSize = localStorage.getItem("storage-location-qr-size");
+		if (perSheet[savedSize]) selector.value = savedSize;
+
+		function rebuildSheets(size) {
+			grid.className = `qr-label-grid size-${size}`;
+			grid.innerHTML = "";
+			labels.forEach((label, index) => {
+				if (index % perSheet[size] === 0) {
+					grid.appendChild(document.createElement("section")).className = "qr-label-sheet";
+				}
+				grid.lastElementChild.appendChild(label);
+			});
+			localStorage.setItem("storage-location-qr-size", size);
+		}
+
+		selector.addEventListener("change", () => rebuildSheets(selector.value));
+		rebuildSheets(selector.value);
+	});
+</script>
 {% endblock %}

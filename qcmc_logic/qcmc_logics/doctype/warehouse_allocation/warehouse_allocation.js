@@ -2,9 +2,17 @@ frappe.provide("qcmc_logic.warehouse_allocation");
 
 frappe.ui.form.on("Warehouse Allocation", {
 	refresh(frm) {
+		qcmc_logic.warehouse_allocation.toggle_scanner_fields(frm);
 		qcmc_logic.warehouse_allocation.add_get_items_button(frm);
 	},
 });
+
+qcmc_logic.warehouse_allocation.toggle_scanner_fields = function(frm) {
+	const scanner_handover = Boolean(frm.doc.handover);
+	["handover", "transaction_type", "posting_time", "picker", "checker", "device_id", "completed_at"].forEach(fieldname => {
+		frm.set_df_property(fieldname, "hidden", scanner_handover ? 0 : 1);
+	});
+};
 
 qcmc_logic.warehouse_allocation.source_doctypes = [
 	"Stock Entry",

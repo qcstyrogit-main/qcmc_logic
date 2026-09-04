@@ -1,0 +1,104 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "naming_series:",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "employee",
+  "checker_name",
+  "disabled",
+  "qr_token",
+  "qr_expires_at"
+ ],
+ "fields": [
+  {
+   "default": "ASSIGN-CHECKER-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Series",
+   "options": "ASSIGN-CHECKER-.#####",
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee"
+  },
+  {
+   "description": "Select an Employee to fetch the name, or enter the checker name manually.",
+   "fieldname": "checker_name",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Name",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "qr_token",
+   "fieldtype": "Password",
+   "hidden": 1,
+   "label": "QR Token",
+   "read_only": 1
+  },
+  {
+   "fieldname": "qr_expires_at",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "QR Expires At",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "module": "QCMC Logics",
+ "name": "Assign Checker",
+ "naming_rule": "By \"Naming Series\" field",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "role": "Warehouse Checker"
+  }
+ ],
+ "search_fields": "checker_name,employee",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "checker_name",
+ "track_changes": 1
+}

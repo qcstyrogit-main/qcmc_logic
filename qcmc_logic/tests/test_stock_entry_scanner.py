@@ -25,6 +25,7 @@ from qcmc_logic.api.stock_entry_scanner import (
 	_stock_entry_id,
 	create_manufacture_receive_draft,
 	get_manufacture_receive_context,
+	update_manufacture_receive_draft,
 	submit_manufacture_receive,
 )
 from qcmc_logic.www.storage_location_qr import _make_qr_payload
@@ -76,14 +77,15 @@ class TestStockEntryScannerContract(unittest.TestCase):
 		self.assertEqual(result["error_code"], "PULL_OUT_SLIP_REQUIRED")
 
 	def test_create_draft_remains_draft_and_returns_allocations(self):
-		job_card = frappe._dict(name="PO-JOB00001")
+		job_card = frappe._dict(name="PO-JOB00001", work_order="WO-1")
+		work_order = frappe._dict(name="WO-1")
 		doc = SimpleNamespace(
 			name="STE-1", stock_entry_type="Manufacture", purpose="Manufacture",
 			work_order="WO-1", job_card="", custom_final_job_card="PO-JOB00001",
 			custom_reference_document="POS-1", company="Company", docstatus=0,
 		)
 		doc.items = [frappe._dict(name="FG", is_finished_item=1, t_warehouse="WH")]
-		doc.save = lambda: None
+		doc.save = lambda **kwargs: None
 		doc.get = lambda field: getattr(doc, field, None)
 		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="Administrator"), patch(
 			"frappe.db.exists", return_value=True
@@ -92,19 +94,40 @@ class TestStockEntryScannerContract(unittest.TestCase):
 		), patch("frappe.db.get_value", return_value=None), patch(
 			"frappe.get_doc", side_effect=[job_card, doc]
 		), patch(
+			"qcmc_logic.api.stock_entry_scanner._scanner_employee", return_value=None
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner.user_can_transact_job_card", return_value=True
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._get_work_order", return_value=work_order
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._can_use_job_card_for_purpose", return_value=True
+		), patch(
 			"qcmc_logic.api.stock_entry_scanner._pending_qty", return_value=10
 		), patch(
-			"qcmc_logic.api.stock_entry_scanner.make_manufacture_stock_entry_from_job_card",
+			"qcmc_logic.api.stock_entry_scanner._make_manufacture_stock_entry_from_job_card",
 			return_value={"name": "STE-1"},
 		), patch(
 			"qcmc_logic.api.stock_entry_scanner._manufacture_receive_context",
 			return_value={"success": True, "stock_entry_id": "STE-1", "docstatus": 0, "status": "Draft"},
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._audit_manufacture_draft"
 		):
 			meta.return_value.has_field.return_value = True
 			result = create_manufacture_receive_draft("ITEM;10;PC;WO-1;PO-JOB00001", "POS-1")
 		self.assertTrue(result["success"], result)
 		self.assertEqual((result["docstatus"], result["status"]), (0, "Draft"))
 		self.assertFalse(result["existing_draft"])
+
+	def test_create_draft_rejects_user_without_active_employee(self):
+		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="scanner@example.com"), patch(
+			"frappe.db.get_value", return_value=None
+		):
+			result = create_manufacture_receive_draft("PO-JOB00001", "POS-1")
+		self.assertEqual(result["error_code"], "PERMISSION_DENIED")
+		self.assertEqual(
+			result["message"],
+			"You are not authorized to create Manufacture Draft Stock Entries.",
+		)
 
 	def test_custom_stock_entry_type_uses_underlying_purpose(self):
 		doc = frappe._dict(stock_entry_type="Custom Manufacture", purpose="Material Receipt")
@@ -419,6 +442,373 @@ class TestStockEntryScannerContract(unittest.TestCase):
 				_validate_distribution_parent("parent_location", parent, [{"parent_location_id":"OTHER"}])
 			with self.assertRaises(ScannerAPIError):
 				_validate_distribution_parent("parent_location", parent, [{"parent_location_id":"AISLE"}, {"parent_location_id":"OTHER"}])
+
+	# Tests for request_id-based idempotency (requirement 1)
+	def test_request_id_is_required(self):
+		"""Requirement 1: request_id is required for idempotency."""
+		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="Administrator"), patch(
+			"frappe.db.exists", return_value=True
+		):
+			result = create_manufacture_receive_draft("PO-JOB00001", "POS-1", request_id="")
+		self.assertEqual(result["error_code"], "REQUEST_ID_REQUIRED")
+		self.assertFalse(result["success"])
+
+	def test_first_request_creates_new_draft(self):
+		"""Requirement 1: First request with new request_id creates a new Draft Stock Entry."""
+		job_card = frappe._dict(name="PO-JOB00001", work_order="WO-1")
+		work_order = frappe._dict(name="WO-1")
+		doc = SimpleNamespace(
+			name="MAT-STE-00001", stock_entry_type="Manufacture", purpose="Manufacture",
+			work_order="WO-1", job_card="", custom_final_job_card="PO-JOB00001",
+			custom_reference_document="PULL-OUT-001", company="Company", docstatus=0,
+		)
+		doc.items = [frappe._dict(name="FG", is_finished_item=1, t_warehouse="WH")]
+		doc.save = lambda **kwargs: None
+		doc.get = lambda field: getattr(doc, field, None)
+		
+		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="Administrator"), patch(
+			"frappe.db.exists", return_value=True
+		), patch("frappe.get_meta") as meta, patch(
+			"frappe.db.sql"
+		), patch("frappe.db.get_value", return_value=None), patch(
+			"frappe.get_doc", side_effect=[job_card, doc]
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._scanner_employee", return_value=None
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner.user_can_transact_job_card", return_value=True
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._get_work_order", return_value=work_order
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._can_use_job_card_for_purpose", return_value=True
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._pending_qty", return_value=10000
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._make_manufacture_stock_entry_from_job_card",
+			return_value={"name": "MAT-STE-00001"},
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._manufacture_receive_context",
+			return_value={"success": True, "stock_entry_id": "MAT-STE-00001", "docstatus": 0, "status": "Draft"},
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._audit_manufacture_draft"
+		), patch(
+			"qcmc_logic.api.warehouse_workflow.finish_request", side_effect=lambda req, resp: {**resp, "request_id": "uuid-request-1"}
+		):
+			meta.return_value.has_field.return_value = True
+			result = create_manufacture_receive_draft(
+				"PO-JOB00001", 
+				"PULL-OUT-001",
+				quantity=10000,
+				request_id="550e8400-e29b-41d4-a716-446655440000"
+			)
+		self.assertTrue(result["success"], result)
+		self.assertEqual(result["stock_entry_id"], "MAT-STE-00001")
+		self.assertEqual(result["docstatus"], 0)
+		self.assertEqual(result["status"], "Draft")
+		self.assertFalse(result["duplicate_request"])
+		self.assertFalse(result["existing_draft"])
+
+	def test_retry_same_request_id_returns_same_draft(self):
+		"""Requirement 1: Retrying with same request_id returns same Stock Entry without creating duplicate."""
+		# This is handled by begin_request/finish_request, which stores the response
+		request_id = "550e8400-e29b-41d4-a716-446655440000"
+		cached_response = {
+			"success": True,
+			"stock_entry_id": "MAT-STE-00001",
+			"docstatus": 0,
+			"status": "Draft",
+			"duplicate_request": False,
+			"existing_draft": False,
+			"request_id": request_id,
+		}
+		
+		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="Administrator"), patch(
+			"qcmc_logic.api.warehouse_workflow.begin_request", return_value=frappe._dict(
+				name=request_id,
+				replay={**cached_response, "duplicate_request": True},
+			)
+		):
+			result = create_manufacture_receive_draft(
+				"PO-JOB00001",
+				"PULL-OUT-001",
+				quantity=10000,
+				request_id=request_id
+			)
+		self.assertTrue(result["success"])
+		self.assertEqual(result["stock_entry_id"], "MAT-STE-00001")
+		self.assertTrue(result["duplicate_request"])
+
+	def test_new_request_id_creates_separate_draft_for_same_job_card(self):
+		"""Requirement 1 & 4: New request_id creates separate Draft even for same Job Card."""
+		job_card = frappe._dict(name="PO-JOB00001", work_order="WO-1")
+		work_order = frappe._dict(name="WO-1")
+		# First request creates MAT-STE-00001
+		# Second request should create MAT-STE-00002
+		doc = SimpleNamespace(
+			name="MAT-STE-00002", stock_entry_type="Manufacture", purpose="Manufacture",
+			work_order="WO-1", job_card="", custom_final_job_card="PO-JOB00001",
+			custom_reference_document="PULL-OUT-002", company="Company", docstatus=0,
+		)
+		doc.items = [frappe._dict(name="FG", is_finished_item=1, t_warehouse="WH")]
+		doc.save = lambda **kwargs: None
+		doc.get = lambda field: getattr(doc, field, None)
+		
+		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="Administrator"), patch(
+			"frappe.db.exists", return_value=True
+		), patch("frappe.get_meta") as meta, patch(
+			"frappe.db.sql"
+		), patch("frappe.db.get_value", return_value=None), patch(
+			"frappe.get_doc", side_effect=[job_card, doc]
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._scanner_employee", return_value=None
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner.user_can_transact_job_card", return_value=True
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._get_work_order", return_value=work_order
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._can_use_job_card_for_purpose", return_value=True
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._pending_qty", return_value=15000
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._make_manufacture_stock_entry_from_job_card",
+			return_value={"name": "MAT-STE-00002"},
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._manufacture_receive_context",
+			return_value={"success": True, "stock_entry_id": "MAT-STE-00002", "docstatus": 0, "status": "Draft"},
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._audit_manufacture_draft"
+		), patch(
+			"qcmc_logic.api.warehouse_workflow.finish_request", side_effect=lambda req, resp: {**resp, "request_id": "uuid-request-2"}
+		):
+			meta.return_value.has_field.return_value = True
+			result = create_manufacture_receive_draft(
+				"PO-JOB00001",
+				"PULL-OUT-002",
+				quantity=5000,
+				request_id="650e8400-e29b-41d4-a716-446655440001"
+			)
+		self.assertTrue(result["success"])
+		self.assertEqual(result["stock_entry_id"], "MAT-STE-00002")
+		self.assertFalse(result["duplicate_request"])
+		self.assertFalse(result["existing_draft"])
+
+	def test_quantity_validation_rejects_zero_and_negative(self):
+		"""Requirement 3: Quantity must be greater than zero."""
+		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="Administrator"), patch(
+			"frappe.db.exists", return_value=True
+		):
+			for qty in [0, -1, -100]:
+				result = create_manufacture_receive_draft(
+					"PO-JOB00001",
+					"PULL-OUT-001",
+					quantity=qty,
+					request_id="550e8400-e29b-41d4-a716-446655440000"
+				)
+				self.assertEqual(result["error_code"], "INVALID_QUANTITY")
+
+	def test_quantity_validation_rejects_exceeding_receivable(self):
+		"""Requirement 3: Quantity must not exceed legally receivable quantity."""
+		job_card = frappe._dict(name="PO-JOB00001", work_order="WO-1")
+		work_order = frappe._dict(name="WO-1")
+		
+		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="Administrator"), patch(
+			"frappe.db.exists", return_value=True
+		), patch("frappe.get_meta") as meta, patch(
+			"frappe.db.sql"
+		), patch("frappe.db.get_value", return_value=None), patch(
+			"frappe.get_doc", return_value=job_card
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._scanner_employee", return_value=None
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner.user_can_transact_job_card", return_value=True
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._get_work_order", return_value=work_order
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._can_use_job_card_for_purpose", return_value=True
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._pending_qty", return_value=10000
+		):
+			meta.return_value.has_field.return_value = True
+			result = create_manufacture_receive_draft(
+				"PO-JOB00001",
+				"PULL-OUT-001",
+				quantity=15000,  # exceeds remaining 10000
+				request_id="550e8400-e29b-41d4-a716-446655440000"
+			)
+		self.assertEqual(result["error_code"], "QUANTITY_EXCEEDS_RECEIVABLE")
+
+	def test_request_id_payload_mismatch_rejected(self):
+		"""Requirement 6: Reusing request_id with different payload is rejected."""
+		request_id = "550e8400-e29b-41d4-a716-446655440000"
+		
+		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="Administrator"), patch(
+			"qcmc_logic.api.warehouse_workflow.begin_request", side_effect=frappe.ValidationError("DUPLICATE_TRANSACTION", "This request ID was already used with different content.")
+		):
+			result = create_manufacture_receive_draft(
+				"PO-JOB00001",
+				"PULL-OUT-001",
+				quantity=5000,  # different from first request
+				request_id=request_id
+			)
+		self.assertEqual(result["error_code"], "ERP_VALIDATION_FAILED")
+
+	def test_draft_status_preserved(self):
+		"""Requirement 4: All created Stock Entries must remain Draft."""
+		job_card = frappe._dict(name="PO-JOB00001", work_order="WO-1")
+		work_order = frappe._dict(name="WO-1")
+		doc = SimpleNamespace(
+			name="MAT-STE-00001", stock_entry_type="Manufacture", purpose="Manufacture",
+			work_order="WO-1", job_card="", custom_final_job_card="PO-JOB00001",
+			custom_reference_document="PULL-OUT-001", company="Company", docstatus=0,
+		)
+		doc.items = [frappe._dict(name="FG", is_finished_item=1, t_warehouse="WH")]
+		doc.save = lambda **kwargs: None
+		doc.get = lambda field: getattr(doc, field, None)
+		
+		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="Administrator"), patch(
+			"frappe.db.exists", return_value=True
+		), patch("frappe.get_meta") as meta, patch(
+			"frappe.db.sql"
+		), patch("frappe.db.get_value", return_value=None), patch(
+			"frappe.get_doc", side_effect=[job_card, doc]
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._scanner_employee", return_value=None
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner.user_can_transact_job_card", return_value=True
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._get_work_order", return_value=work_order
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._can_use_job_card_for_purpose", return_value=True
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._pending_qty", return_value=10000
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._make_manufacture_stock_entry_from_job_card",
+			return_value={"name": "MAT-STE-00001"},
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._manufacture_receive_context",
+			return_value={"success": True, "stock_entry_id": "MAT-STE-00001", "docstatus": 0, "status": "Draft"},
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._audit_manufacture_draft"
+		), patch(
+			"qcmc_logic.api.warehouse_workflow.finish_request", side_effect=lambda req, resp: {**resp, "request_id": "uuid-request-1"}
+		):
+			meta.return_value.has_field.return_value = True
+			result = create_manufacture_receive_draft(
+				"PO-JOB00001",
+				"PULL-OUT-001",
+				quantity=10000,
+				request_id="550e8400-e29b-41d4-a716-446655440000"
+			)
+		# Verify that docstatus is 0 and status is Draft
+		self.assertEqual(result["docstatus"], 0)
+		self.assertEqual(result["status"], "Draft")
+
+
+class TestUpdateManufactureReceiveDraft(unittest.TestCase):
+	request_id = "550e8400-e29b-41d4-a716-446655440000"
+
+	def setUp(self):
+		self.row = frappe._dict(
+			name="ROW-1", item_code="FG-001", uom="PCS", qty=10,
+			transfer_qty=10, conversion_factor=1,
+		)
+		self.doc = SimpleNamespace(
+			name="MAT-STE-00001", docstatus=0, modified="2026-09-04 10:00:00",
+			stock_entry_type="Manufacture", purpose="Manufacture", items=[self.row],
+		)
+		self.doc.save = lambda **kwargs: None
+		self.batch = frappe._dict(
+			name="HANDOVER-001", status="PENDING_CHECK",
+			source_stock_entries=[frappe._dict(
+				stock_entry=self.doc.name, stock_entry_row=self.row.name,
+				item=self.row.item_code,
+			)],
+		)
+		self.batch.save = lambda **kwargs: None
+
+	def call(self, row=None, doc=None):
+		row = row or {"stock_entry_id": self.doc.name, "stock_entry_row": self.row.name,
+			"item_code": self.row.item_code, "quantity": 20, "uom": self.row.uom}
+		doc = doc or self.doc
+		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="warehouse@example.com"), patch(
+			"qcmc_logic.api.stock_entry_scanner._validate_document", return_value=(doc, [self.row])
+		), patch("qcmc_logic.api.stock_entry_scanner.ensure_scanner_warehouse_access"), patch("frappe.db.exists", return_value=True), patch(
+			"frappe.get_doc", return_value=self.batch
+		), patch("qcmc_logic.api.warehouse_workflow.begin_request", return_value=frappe._dict(
+			name=self.request_id, operation="update_manufacture_receive_draft", request_hash="hash",
+			request_json="{}", user="warehouse@example.com", replay=None,
+		)), patch("qcmc_logic.api.warehouse_workflow.finish_request", side_effect=lambda request, response: response):
+			return update_manufacture_receive_draft(
+				self.batch.name, self.request_id, [row], device_id="SCANNER-1"
+			)
+
+	def test_successful_update_without_checker_role(self):
+		result = self.call()
+		self.assertTrue(result["success"])
+		self.assertEqual(result["status"], "Draft")
+		self.assertEqual(result["items"][0]["verified_quantity"], 20)
+		self.assertEqual(self.row.qty, 20)
+		self.assertEqual(self.doc.docstatus, 0)
+		self.assertEqual(self.batch.source_stock_entries[0].verified_quantity, 20)
+
+	def test_only_submitted_row_is_updated(self):
+		other_row = frappe._dict(
+			name="ROW-2", item_code="FG-002", uom="PCS", qty=30,
+			transfer_qty=30, conversion_factor=1,
+		)
+		self.doc.items.append(other_row)
+		self.batch.source_stock_entries.append(frappe._dict(
+			stock_entry=self.doc.name, stock_entry_row=other_row.name,
+			item=other_row.item_code, verified_quantity=30,
+		))
+		result = self.call()
+		self.assertTrue(result["success"])
+		self.assertEqual(self.row.qty, 20)
+		self.assertEqual(other_row.qty, 30)
+		self.assertEqual(self.batch.source_stock_entries[1].verified_quantity, 30)
+
+	def test_rejects_submitted_stock_entry(self):
+		self.doc.docstatus = 1
+		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="warehouse@example.com"), patch(
+			"qcmc_logic.api.stock_entry_scanner._validate_document",
+			side_effect=ScannerAPIError("STOCK_ENTRY_NOT_DRAFT", "not Draft"),
+		), patch("qcmc_logic.api.stock_entry_scanner.ensure_scanner_warehouse_access"), patch("frappe.db.exists", return_value=True), patch("frappe.get_doc", return_value=self.batch), patch(
+			"qcmc_logic.api.warehouse_workflow.begin_request", return_value=frappe._dict(replay=None)
+		):
+			result = update_manufacture_receive_draft(self.batch.name, self.request_id, [{
+				"stock_entry_id": self.doc.name, "stock_entry_row": self.row.name,
+				"item_code": self.row.item_code, "quantity": 20, "uom": self.row.uom,
+			}])
+		self.assertEqual(result["error_code"], "STOCK_ENTRY_NOT_DRAFT")
+
+	def test_rejects_row_from_another_stock_entry(self):
+		result = self.call({"stock_entry_id": "OTHER-STE", "stock_entry_row": "ROW-1",
+			"item_code": "FG-001", "quantity": 20, "uom": "PCS"})
+		self.assertEqual(result["error_code"], "ROW_NOT_IN_BATCH")
+
+	def test_rejects_mismatched_item_or_uom(self):
+		for field, value, code in (("item_code", "OTHER", "ITEM_MISMATCH"), ("uom", "KG", "UOM_MISMATCH")):
+			row = {"stock_entry_id": self.doc.name, "stock_entry_row": self.row.name,
+				"item_code": self.row.item_code, "quantity": 20, "uom": self.row.uom}
+			row[field] = value
+			result = self.call(row)
+			self.assertEqual(result["error_code"], code)
+
+	def test_rejects_negative_quantity(self):
+		result = self.call({"stock_entry_id": self.doc.name, "stock_entry_row": self.row.name,
+			"item_code": self.row.item_code, "quantity": -1, "uom": self.row.uom})
+		self.assertEqual(result["error_code"], "INVALID_QUANTITY")
+
+	def test_idempotent_replay_does_not_save_again(self):
+		replay = {"success": True, "status": "Draft", "items": [], "duplicate_request": True}
+		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="warehouse@example.com"), patch(
+			"qcmc_logic.api.warehouse_workflow.begin_request", return_value=frappe._dict(replay=replay)
+		):
+			result = update_manufacture_receive_draft(self.batch.name, self.request_id, [{
+				"stock_entry_id": self.doc.name, "stock_entry_row": self.row.name,
+				"item_code": self.row.item_code, "quantity": 20, "uom": self.row.uom,
+			}])
+		self.assertTrue(result["duplicate_request"])
+		self.assertEqual(self.doc.docstatus, 0)
 
 
 def run_test_suite():
