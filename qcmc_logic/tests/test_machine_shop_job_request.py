@@ -11,7 +11,6 @@ from qcmc_logic.customs.machine_shop_job_request import (
     _validate_quantity_produced_permission,
     _normalize_non_fabrication_quantity_produced,
 )
-from qcmc_logic.utils import make_completed_output_stock_entry
 
 
 def output_doc(**values):
@@ -41,7 +40,6 @@ class TestMachineShopCompletionValidation(TestCase):
             _validate_completion_output(doc)
 
         frappe.throw.assert_not_called()
-
     def test_machine_shop_foreman_can_change_quantity_produced(self):
         doc = output_doc(name="MSJR-1", quantity_produced=3)
         doc.is_new = lambda: False
@@ -201,50 +199,3 @@ class TestMachineShopCompletionValidation(TestCase):
             _validate_linked_project_completed(doc)
 
         frappe.throw.assert_not_called()
-
-
-class TestMachineShopOutputStockEntry(TestCase):
-    def test_maps_remaining_quantity_to_material_receipt(self):
-        msjr = _dict(
-            name="MSJR-001",
-            workflow_state="Completed",
-            item_code="ITEM-001",
-            quantity_produced=10,
-            company="Test Company",
-        )
-        target = MagicMock()
-        project = _dict(rework_history=[])
-
-        with patch("qcmc_logic.utils.frappe") as frappe:
-            frappe.session.user = "Administrator"
-            frappe.get_doc.side_effect = [msjr, project]
-            frappe.new_doc.return_value = target
-            frappe.db.sql.return_value = [(3,)]
-            frappe.db.get_value.side_effect = ["MSRP-001", "PROCESS-FINAL", "DJR-FINAL"]
-
-            result = make_completed_output_stock_entry("MSJR-001")
-
-        self.assertIs(result, target)
-        self.assertEqual(target.stock_entry_type, "Material Receipt")
-        self.assertEqual(target.purpose, "Material Receipt")
-        self.assertEqual(target.company, "Test Company")
-        self.assertEqual(target.msjr_no, "MSJR-001")
-        self.assertEqual(target.custom_msrp_no, "MSRP-001")
-        self.assertEqual(target.custom_final_process, "PROCESS-FINAL")
-        self.assertEqual(target.custom_daily_job_report, "DJR-FINAL")
-        self.assertEqual(target.custom_rework_cycle, 0)
-        target.append.assert_called_once_with(
-            "items", {"item_code": "ITEM-001", "qty": 7.0}
-        )
-
-    def test_direct_mapper_rejects_user_without_stockroom_role(self):
-        with patch("qcmc_logic.utils.frappe") as frappe:
-            frappe.session.user = "other@example.com"
-            frappe.get_roles.return_value = ["Stock User"]
-            frappe.throw.side_effect = RuntimeError
-
-            with self.assertRaises(RuntimeError):
-                make_completed_output_stock_entry("MSJR-003")
-
-        self.assertIn("Stockroom_PR_EDSA_lv1", frappe.throw.call_args.args[0])
-        frappe.get_doc.assert_not_called()

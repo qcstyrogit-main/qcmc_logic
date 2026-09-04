@@ -398,6 +398,7 @@ before_migrate = [
 
 after_migrate = [
     "qcmc_logic.customs.maintenance_job_order.ensure_maintenance_job_order",
+    "qcmc_logic.customs.stock_entry.remove_msjr_stock_entry_integration",
     "qcmc_logic.customs.machine_shop_job_request.ensure_msjr_permissions",
     "qcmc_logic.customs.machine_shop_repairs_and_project.ensure_msrp_permissions",
     "qcmc_logic.customs.daily_job_report.remove_obsolete_schedule_fields",

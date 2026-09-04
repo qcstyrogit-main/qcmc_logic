@@ -10,7 +10,6 @@ frappe.ui.form.on("Machine Shop Job Request", {
     refresh(frm) {
         qcmc_logic.machine_shop_job_request_output.apply_field_rules(frm, false);
         qcmc_logic.machine_shop_job_request_output.apply_quantity_produced_permission(frm);
-        qcmc_logic.machine_shop_job_request_output.add_stock_entry_button(frm);
     },
 
     request(frm) {
@@ -89,22 +88,4 @@ qcmc_logic.machine_shop_job_request_output.validate_fabrication_fields = functio
             frappe.throw(__("Quantity Produced must be greater than zero before completing this fabrication request."));
         }
     });
-};
-
-qcmc_logic.machine_shop_job_request_output.add_stock_entry_button = function(frm) {
-    if (
-        frm.is_new() ||
-        frm.doc.workflow_state !== "Completed" ||
-        !(frappe.user_roles || []).includes("Stockroom_PR_EDSA_lv1") ||
-        !frappe.model.can_create("Stock Entry")
-    ) {
-        return;
-    }
-
-    frm.add_custom_button(__("Output Stock Entry"), () => {
-        frappe.model.open_mapped_doc({
-            method: "qcmc_logic.utils.make_completed_output_stock_entry",
-            frm,
-        });
-    }, __("Create"));
 };

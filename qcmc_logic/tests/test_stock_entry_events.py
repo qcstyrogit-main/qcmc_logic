@@ -72,9 +72,6 @@ class TestStockEntryWarehouseCode(TestCase):
 	def test_material_receipt_uses_target_warehouse_code(self):
 		doc = _dict(
 			purpose="Material Receipt",
-			custom_msrp_no="MSRP-TEST",
-			custom_final_process="PROCESS-FINAL",
-			custom_daily_job_report="DJR-FINAL",
 			to_warehouse=None,
 			custom_wh_code=None,
 			items=[_dict(t_warehouse="Stockroom - Sta Clara")],
@@ -84,13 +81,8 @@ class TestStockEntryWarehouseCode(TestCase):
 			patch("qcmc_logic.customs.stock_entry.frappe") as frappe,
 			patch("qcmc_logic.customs.stock_entry._", side_effect=lambda message: message),
 		):
-			frappe.db.get_value.side_effect = [
-				_dict(msjr_no="MSJR-TEST", workflow_state="Completed"),
-				_dict(parent="MSRP-TEST", process_name="FINAL INSPECTION", status="Completed"),
-				_dict(project_no="MSRP-TEST", process_no="PROCESS-FINAL"),
-				"QC-SC-STK",
-			]
-			set_msjr_receipt_warehouse_code(doc)
+			frappe.db.get_value.return_value = "QC-SC-STK"
+			set_stock_entry_warehouse_code(doc)
 
 		self.assertEqual(doc.custom_wh_code, "QC-SC-STK")
 		frappe.db.get_value.assert_called_with(

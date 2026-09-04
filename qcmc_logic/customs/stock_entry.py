@@ -2,6 +2,29 @@ import frappe
 from frappe import _
 
 
+MSJR_STOCK_ENTRY_FIELDS = (
+	"msjr_no",
+	"custom_msrp_no",
+	"custom_final_process",
+	"custom_daily_job_report",
+	"custom_rework_cycle",
+)
+
+
+def remove_msjr_stock_entry_integration():
+	"""Remove obsolete MSJR fields and client behavior from Stock Entry."""
+	for fieldname in MSJR_STOCK_ENTRY_FIELDS:
+		name = f"Stock Entry-{fieldname}"
+		if frappe.db.exists("Custom Field", name):
+			frappe.delete_doc("Custom Field", name, ignore_permissions=True)
+
+	script = "Stock Entry - MSJR No Field"
+	if frappe.db.exists("Client Script", script):
+		frappe.delete_doc("Client Script", script, ignore_permissions=True)
+
+	frappe.clear_cache(doctype="Stock Entry")
+
+
 def set_manufacture_actual_weight_uom(doc, method=None):
 	"""Set default actual weight UOM on finished items in Manufacture stock entries."""
 	if doc.purpose != "Manufacture":
@@ -30,9 +53,6 @@ def set_stock_entry_warehouse_code(doc, method=None):
 	warehouse_field = _get_stock_entry_wh_code_warehouse_field(doc)
 	if not warehouse_field:
 		return
-
-	if doc.get("purpose") == "Material Receipt":
-		_validate_msjr_output_traceability(doc)
 
 	warehouses = {
 		row.get(warehouse_field) for row in (doc.get("items") or []) if row.get(warehouse_field)
@@ -63,41 +83,6 @@ def set_stock_entry_warehouse_code(doc, method=None):
 		)
 
 	doc.custom_wh_code = warehouse_code
-
-
-def _validate_msjr_output_traceability(doc):
-	required = {
-		"custom_msrp_no": _("Machine Shop Project"),
-		"custom_final_process": _("Final Process"),
-		"custom_daily_job_report": _("Final Daily Job Report"),
-	}
-	missing = [label for field, label in required.items() if not doc.get(field)]
-	if missing:
-		frappe.throw(
-			_("MSJR output receipt is missing traceability fields: {0}.").format(", ".join(missing)),
-			title=_("Traceability Required"),
-		)
-
-	project = frappe.db.get_value(
-		"Machine Shop Repairs and Project", doc.custom_msrp_no,
-		["msjr_no", "workflow_state"], as_dict=True,
-	)
-	if not project or project.msjr_no != doc.msjr_no or project.workflow_state != "Completed":
-		frappe.throw(_("Machine Shop Project must be the completed project linked to this MSJR."))
-
-	process = frappe.db.get_value(
-		"Machine Shop Repairs and Project Process", doc.custom_final_process,
-		["parent", "process_name", "status"], as_dict=True,
-	)
-	if not process or process.parent != doc.custom_msrp_no or process.process_name != "FINAL INSPECTION" or process.status != "Completed":
-		frappe.throw(_("Final Process must be the completed FINAL INSPECTION for this project."))
-
-	report = frappe.db.get_value(
-		"Daily Job Report", doc.custom_daily_job_report,
-		["project_no", "process_no"], as_dict=True,
-	)
-	if not report or report.project_no != doc.custom_msrp_no or report.process_no != doc.custom_final_process:
-		frappe.throw(_("Final Daily Job Report must belong to the selected FINAL INSPECTION process."))
 
 
 def validate_final_job_card_time_log(doc, method=None):

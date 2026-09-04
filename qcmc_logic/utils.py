@@ -1491,7 +1491,6 @@ def make_material_issuance(source_name, target_doc=None):
             "Machine Shop Job Request": {
                 "doctype": "Stock Entry",
                 "field_map": {
-                    "name": "msjr_no",
                     "company": "company",
                 },
             }
@@ -1499,84 +1498,6 @@ def make_material_issuance(source_name, target_doc=None):
         target_doc,
     )
     target.stock_entry_type = "Material Issue"
-    return target
-
-
-@frappe.whitelist()
-def make_completed_output_stock_entry(source_name, target_doc=None):
-    """Create a Material Receipt draft for the unreceived fabricated output."""
-    allowed_role = "Stockroom_PR_EDSA_lv1"
-    if frappe.session.user != "Administrator" and allowed_role not in frappe.get_roles():
-        frappe.throw(
-            f"Only users with role {allowed_role} can receive fabricated MSJR output.",
-            frappe.PermissionError,
-        )
-    frappe.has_permission("Stock Entry", ptype="create", throw=True)
-
-    msjr = frappe.get_doc("Machine Shop Job Request", source_name)
-    if msjr.workflow_state != "Completed":
-        frappe.throw("Output Stock Entry can only be created from a completed request.")
-
-    item_code = msjr.get("item_code")
-    if not item_code:
-        frappe.throw(
-            "Create or link an Item Master record before receiving this fabricated output into stock."
-        )
-
-    received_qty = frappe.db.sql(
-        """
-        SELECT COALESCE(SUM(sed.qty), 0)
-        FROM `tabStock Entry` se
-        INNER JOIN `tabStock Entry Detail` sed ON sed.parent = se.name
-        WHERE se.msjr_no = %s
-          AND se.docstatus < 2
-          AND se.purpose = 'Material Receipt'
-          AND sed.item_code = %s
-        """,
-        (source_name, item_code),
-    )[0][0]
-    remaining_qty = flt(msjr.get("quantity_produced")) - flt(received_qty)
-    if remaining_qty <= 0:
-        frappe.throw("The full Quantity Produced is already covered by an output Stock Entry.")
-
-    target = (
-        frappe.get_doc(frappe.parse_json(target_doc))
-        if target_doc
-        else frappe.new_doc("Stock Entry")
-    )
-    target.stock_entry_type = "Material Receipt"
-    target.purpose = "Material Receipt"
-    target.company = msjr.company
-    target.msjr_no = msjr.name
-    project_name = frappe.db.get_value(
-        "Machine Shop Repairs and Project",
-        {"msjr_no": msjr.name, "workflow_state": "Completed", "docstatus": ["!=", 2]},
-        "name",
-    )
-    if not project_name:
-        frappe.throw("A completed Machine Shop Repairs and Project is required for the output receipt.")
-
-    final_process = frappe.db.get_value(
-        "Machine Shop Repairs and Project Process",
-        {"parent": project_name, "parenttype": "Machine Shop Repairs and Project", "process_name": "FINAL INSPECTION"},
-        "name",
-    )
-    if not final_process:
-        frappe.throw("The completed project has no FINAL INSPECTION process.")
-
-    target.custom_msrp_no = project_name
-    target.custom_final_process = final_process
-    target.custom_daily_job_report = frappe.db.get_value(
-        "Daily Job Report",
-        {"project_no": project_name, "process_no": final_process, "docstatus": ["!=", 2]},
-        "name",
-        order_by="date_finished desc, creation desc",
-    )
-    if not target.custom_daily_job_report:
-        frappe.throw("A Daily Job Report for the completed FINAL INSPECTION is required for the output receipt.")
-    project = frappe.get_doc("Machine Shop Repairs and Project", project_name)
-    target.custom_rework_cycle = len(project.get("rework_history") or [])
-    target.append("items", {"item_code": item_code, "qty": remaining_qty})
     return target
 
 
