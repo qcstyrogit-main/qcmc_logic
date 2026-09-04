@@ -27,7 +27,10 @@ doc_events = {
         "validate": "qcmc_logic.customs.customer_warehouse_defaults.validate_customer_company_warehouse_defaults",
     },
     "Delivery Note": {
-        "before_validate": "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
+        "before_validate": [
+            "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
+            "qcmc_logic.customs.sales_transaction_territory.populate_mapped_transaction_territory",
+        ],
     },
     "POS Invoice": {
         "before_validate": "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
@@ -50,6 +53,7 @@ doc_events = {
     "Sales Invoice": {
         "before_validate": [
             "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
+            "qcmc_logic.customs.sales_transaction_territory.populate_mapped_transaction_territory",
             "qcmc_logic.overrides.sales_invoice_override.warn_duplicate_invoice_references",
         ],
         "validate": "qcmc_logic.overrides.sales_invoice_override.validate",
@@ -293,7 +297,7 @@ permission_query_conditions = {
 
 has_permission = {
     "Customer": "qcmc_logic.customs.permissions.territory_document_has_permission",
-    "Delivery Note": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Delivery Note": "qcmc_logic.customs.permissions.sales_transaction_has_permission",
     "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_has_permission",
     "Machine Shop Repairs and Project": "qcmc_logic.customs.machine_shop_repairs_and_project.msrp_has_permission",
     "Material Request": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
@@ -303,8 +307,8 @@ has_permission = {
     "Purchase Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Purchase Order": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "Purchase Receipt": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
-    "Sales Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
-    "Sales Order": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Sales Invoice": "qcmc_logic.customs.permissions.sales_transaction_has_permission",
+    "Sales Order": "qcmc_logic.customs.permissions.sales_transaction_has_permission",
     "Salary Structure Assignment": "qcmc_logic.customs.permissions.salary_structure_assignment_has_permission",
     "Salary Structure": "qcmc_logic.customs.permissions.salary_structure_has_permission",
     "Stock Entry": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
