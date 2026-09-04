@@ -8,15 +8,15 @@ ITEM_FABRICATION_TYPES = frozenset({
     "FABRICATION - ITEM",
     "FABRICATION - MACHINE PART",
 })
-ASSET_FABRICATION_TYPES = frozenset({
+MOULD_FABRICATION_TYPES = frozenset({
     "FABRICATION - MOULD",
 })
-FABRICATION_REQUEST_TYPES = ITEM_FABRICATION_TYPES | ASSET_FABRICATION_TYPES
+FABRICATION_REQUEST_TYPES = ITEM_FABRICATION_TYPES | MOULD_FABRICATION_TYPES
 QUANTITY_PRODUCED_ROLES = frozenset({
     "Machine Shop User",
     "Machine Shop Foreman",
 })
-PARTS_INVENTORY_GROUP = "CMMS"
+MSJR_INVENTORY_GROUPS = frozenset({"MOULD", "MACHINE", "CMMS"})
 
 LOCATION_SERIES = {
     "Edsa - Motorpool":        "12MTP-.YY.-.####",
@@ -188,10 +188,6 @@ def _is_item_fabrication(doc):
     return _get_request_type(doc) in ITEM_FABRICATION_TYPES
 
 
-def _is_asset_fabrication(doc):
-    return _get_request_type(doc) in ASSET_FABRICATION_TYPES
-
-
 def _validate_fabrication_request_quantities(doc, request_type=None):
     """Enforce the Item/Part request quantity without requiring a master record."""
     request_type = request_type or _get_request_type(doc)
@@ -232,18 +228,15 @@ def _validate_quantity_produced_permission(doc, request_type=None):
 
 
 def _validate_output_item(doc):
-    """Keep a selected parts-fabrication Item inside the CMMS inventory group."""
+    """Only allow Items from the Inventory Groups supported by MSJR."""
     item_code = doc.get("item_code")
     if not item_code:
         return
 
-    if not _is_parts_fabrication(doc):
-        return
-
     inventory_group = frappe.db.get_value("Item", item_code, "custom_inventory_group")
-    if inventory_group != PARTS_INVENTORY_GROUP:
+    if inventory_group not in MSJR_INVENTORY_GROUPS:
         frappe.throw(
-            f"Item Code must belong to Inventory Group {PARTS_INVENTORY_GROUP}.",
+            "Item Code must belong to Inventory Group MOULD, MACHINE, or CMMS.",
             title="Invalid Inventory Group",
         )
 
@@ -266,14 +259,6 @@ def _validate_completion_output(doc):
             )
         return
 
-    if request_type in ASSET_FABRICATION_TYPES:
-        if not doc.get("asset"):
-            frappe.throw(
-                f"Asset is required before completing {request_type}.",
-                title="Asset Required",
-            )
-        return
-
     if doc.get("not_in_master_file"):
         if not (doc.get("proposed_output_code") or doc.get("output_description")):
             frappe.throw(
@@ -282,17 +267,34 @@ def _validate_completion_output(doc):
             )
         return
 
-    if _is_parts_fabrication(doc):
-        if not doc.get("item_code"):
-            frappe.throw(
-                "Item Code is required for PARTS FABRICATION before completing this request.",
-                title="Item Code Required",
-            )
-    elif not doc.get("asset"):
+    if not doc.get("item_code"):
         frappe.throw(
-            "Asset is required before completing this request.",
-            title="Asset Required",
+            "Item Code is required before completing this request.",
+            title="Item Code Required",
         )
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_msjr_item_query(doctype, txt, searchfield, start, page_len, filters):
+    """Return active Items in the three MSJR Inventory Groups."""
+    return frappe.db.sql(
+        f"""
+        SELECT i.name, i.item_name
+        FROM `tabItem` i
+        WHERE i.`{searchfield}` LIKE %(txt)s
+          AND IFNULL(i.disabled, 0) = 0
+          AND i.custom_inventory_group IN %(inventory_groups)s
+        ORDER BY i.name
+        LIMIT %(start)s, %(page_len)s
+        """,
+        {
+            "txt": f"%{txt}%",
+            "inventory_groups": tuple(sorted(MSJR_INVENTORY_GROUPS)),
+            "start": start,
+            "page_len": page_len,
+        },
+    )
 
 
 def _validate_linked_project_completed(doc):
@@ -526,8 +528,8 @@ MSJR_OUTPUT_FIELDS = [
         "label": "Item Code",
         "fieldtype": "Link",
         "options": "Item",
-        "insert_after": "output_details_section",
-        "description": "Item Master record for an Item/Part fabrication request.",
+        "insert_after": "company",
+        "description": "Item in Inventory Group MOULD, MACHINE, or CMMS.",
     },
     {
         "fieldname": "quantity_request",
@@ -550,7 +552,7 @@ MSJR_OUTPUT_FIELDS = [
         "fieldtype": "Check",
         "default": "0",
         "insert_after": "quantity_produced",
-        "description": "Use when the fabricated output has no Item or Asset master record yet.",
+        "description": "Use when the fabricated output has no Item master record yet.",
     },
     {
         "fieldname": "proposed_output_code",
@@ -579,7 +581,7 @@ def _ensure_msjr_output_fields():
         if frappe.db.exists("Custom Field", name):
             updates = {
                 key: field[key]
-                for key in ("default", "non_negative", "reqd")
+                for key in ("default", "description", "insert_after", "non_negative", "reqd")
                 if key in field
             }
             if updates:
@@ -603,6 +605,44 @@ def _ensure_fabrication_request_codes():
         }).insert(ignore_permissions=True)
 
 
+def ensure_msjr_item_layout():
+    """Remove Asset controls and place Item Code in their former layout slot."""
+    import json, os
+
+    app_path = frappe.get_app_path("qcmc_logic")
+    doctype_fixture = os.path.join(app_path, "fixtures", "doctype.json")
+    with open(doctype_fixture) as f:
+        fixture_data = json.load(f)
+    fixture_msjr = next(
+        (d for d in fixture_data if d.get("name") == "Machine Shop Job Request"), None
+    )
+    if fixture_msjr:
+        dt_doc = frappe.get_doc("DocType", "Machine Shop Job Request")
+        dt_doc.set(
+            "fields",
+            [
+                field for field in fixture_msjr["fields"]
+                if field.get("fieldname") not in {"asset", "asset_name"}
+            ],
+        )
+        dt_doc.flags.ignore_permissions = True
+        dt_doc.save()
+
+    item_field = frappe.db.exists("Custom Field", "Machine Shop Job Request-item_code")
+    if item_field:
+        frappe.db.set_value(
+            "Custom Field",
+            item_field,
+            {
+                "insert_after": "company",
+                "description": "Item in Inventory Group MOULD, MACHINE, or CMMS.",
+            },
+            update_modified=False,
+        )
+
+    frappe.clear_cache(doctype="Machine Shop Job Request")
+
+
 def ensure_msjr_permissions():
     """Re-apply field layout, DocPerm, and JRS doctypes after every migrate."""
     import json, os
@@ -614,28 +654,12 @@ def ensure_msjr_permissions():
     ]:
         frappe.reload_doc(module, "doctype", doctype, force=True)
 
-    app_path = frappe.get_app_path("qcmc_logic")
-
-    # 2. Sync MSJR field layout from fixture (migrate doesn't reliably apply it)
-    doctype_fixture = os.path.join(app_path, "fixtures", "doctype.json")
-    with open(doctype_fixture) as f:
-        fixture_data = json.load(f)
-    fixture_msjr = next(
-        (d for d in fixture_data if d.get("name") == "Machine Shop Job Request"), None
-    )
-    if fixture_msjr:
-        dt_doc = frappe.get_doc("DocType", "Machine Shop Job Request")
-        dt_doc.set("fields", fixture_msjr["fields"])
-        asset_field = next((f for f in dt_doc.fields if f.fieldname == "asset"), None)
-        if asset_field:
-            asset_field.reqd = 0
-        dt_doc.flags.ignore_permissions = True
-        dt_doc.save()
-
+    ensure_msjr_item_layout()
     _ensure_msjr_output_fields()
     _ensure_fabrication_request_codes()
 
     # 3. Sync MSJR workflow from fixture
+    app_path = frappe.get_app_path("qcmc_logic")
     workflow_fixture = os.path.join(app_path, "fixtures", "workflow.json")
     with open(workflow_fixture) as f:
         wf_fixture_data = json.load(f)

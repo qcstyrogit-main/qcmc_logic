@@ -35999,7 +35999,7 @@
     "depends_on": null,
     "description": null,
     "documentation_url": null,
-    "fetch_from": "msjr_no.asset_name",
+    "fetch_from": "msjr_no.item_code",
     "fetch_if_empty": 0,
     "fieldname": "asset",
     "fieldtype": "Read Only",

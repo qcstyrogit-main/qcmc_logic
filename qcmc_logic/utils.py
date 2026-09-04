@@ -1518,8 +1518,6 @@ def make_completed_output_stock_entry(source_name, target_doc=None):
         frappe.throw("Output Stock Entry can only be created from a completed request.")
 
     item_code = msjr.get("item_code")
-    if not item_code and msjr.get("asset"):
-        item_code = frappe.db.get_value("Asset", msjr.asset, "item_code")
     if not item_code:
         frappe.throw(
             "Create or link an Item Master record before receiving this fabricated output into stock."
@@ -1601,7 +1599,6 @@ def make_machine_shop_repairs_and_project(source_name, target_doc=None):
     target = frappe.get_doc(frappe.parse_json(target_doc)) if target_doc else frappe.new_doc("Machine Shop Repairs and Project")
     target.naming_series = "MSRP-.YYYY.-"
     target.msjr_no = source_name
-    target.asset = msjr.asset_name
     target.subject = msjr.work_instruction
     target.msjr_document_date = msjr.document_date
     target.date_posted = frappe.utils.today()

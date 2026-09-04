@@ -18,7 +18,6 @@ def output_doc(**values):
     defaults = {
         "request": "REQ-PARTS",
         "item_code": None,
-        "asset": None,
         "quantity_produced": 1,
         "quantity_request": 1,
         "not_in_master_file": 0,
@@ -36,7 +35,7 @@ class TestMachineShopCompletionValidation(TestCase):
         self.assertEqual(doc.quantity_produced, 0)
 
     def test_non_fabrication_completion_does_not_require_quantity_produced(self):
-        doc = output_doc(request="REQ-REPAIR", asset="ASSET-1", quantity_produced=0)
+        doc = output_doc(request="REQ-REPAIR", item_code="MACHINE-1", quantity_produced=0)
         with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
             frappe.db.get_value.return_value = "REPAIR OF MACHINE"
             _validate_completion_output(doc)
@@ -86,8 +85,8 @@ class TestMachineShopCompletionValidation(TestCase):
 
         self.assertIn("Quantity Request", frappe.throw.call_args.args[0])
 
-    def test_asset_fabrication_can_be_created_without_asset(self):
-        doc = output_doc(request="REQ-ASSET", asset=None)
+    def test_mould_fabrication_can_be_created_without_item(self):
+        doc = output_doc(request="REQ-MOULD", item_code=None)
         with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
             frappe.db.get_value.return_value = "FABRICATION - MOULD"
             _validate_fabrication_request_quantities(doc)
@@ -103,14 +102,14 @@ class TestMachineShopCompletionValidation(TestCase):
 
         self.assertIn("Item Code is required", frappe.throw.call_args.args[0])
 
-    def test_new_asset_fabrication_requires_asset_only_at_completion(self):
+    def test_new_mould_fabrication_requires_item_only_at_completion(self):
         with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
             frappe.db.get_value.return_value = "FABRICATION - MOULD"
             frappe.throw.side_effect = RuntimeError
             with self.assertRaises(RuntimeError):
-                _validate_completion_output(output_doc(request="REQ-ASSET", asset=None))
+                _validate_completion_output(output_doc(request="REQ-MOULD", item_code=None))
 
-        self.assertIn("Asset is required", frappe.throw.call_args.args[0])
+        self.assertIn("Item Code is required", frappe.throw.call_args.args[0])
 
     def _request_and_item_value(self, doctype, name, fieldname):
         if doctype == "Machine Shop Request Code":
@@ -128,14 +127,14 @@ class TestMachineShopCompletionValidation(TestCase):
 
         self.assertIn("Item Code is required", frappe.throw.call_args.args[0])
 
-    def test_non_parts_request_requires_asset(self):
+    def test_non_parts_request_requires_item(self):
         with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
             frappe.db.get_value.return_value = "REPAIR OF MACHINE"
             frappe.throw.side_effect = RuntimeError
             with self.assertRaises(RuntimeError):
                 _validate_completion_output(output_doc(request="REQ-REPAIR"))
 
-        self.assertIn("Asset is required", frappe.throw.call_args.args[0])
+        self.assertIn("Item Code is required", frappe.throw.call_args.args[0])
 
     def test_missing_master_accepts_proposed_code(self):
         with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
@@ -159,9 +158,9 @@ class TestMachineShopCompletionValidation(TestCase):
 
         self.assertIn("greater than zero", frappe.throw.call_args.args[0])
 
-    def test_parts_item_must_belong_to_cmms(self):
+    def test_item_must_belong_to_supported_inventory_group(self):
         def get_value(doctype, name, fieldname):
-            return "PARTS FABRICATION" if doctype == "Machine Shop Request Code" else "MACHINE"
+            return "PARTS FABRICATION" if doctype == "Machine Shop Request Code" else "OTHER"
 
         with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
             frappe.db.get_value.side_effect = get_value
@@ -169,7 +168,7 @@ class TestMachineShopCompletionValidation(TestCase):
             with self.assertRaises(RuntimeError):
                 _validate_output_item(output_doc(item_code="ITEM-001"))
 
-        self.assertIn("CMMS", frappe.throw.call_args.args[0])
+        self.assertIn("MOULD, MACHINE, or CMMS", frappe.throw.call_args.args[0])
 
     def test_completion_requires_a_linked_project(self):
         doc = output_doc(name="MSJR-001")
@@ -210,7 +209,6 @@ class TestMachineShopOutputStockEntry(TestCase):
             name="MSJR-001",
             workflow_state="Completed",
             item_code="ITEM-001",
-            asset=None,
             quantity_produced=10,
             company="Test Company",
         )
@@ -237,33 +235,6 @@ class TestMachineShopOutputStockEntry(TestCase):
         self.assertEqual(target.custom_rework_cycle, 0)
         target.append.assert_called_once_with(
             "items", {"item_code": "ITEM-001", "qty": 7.0}
-        )
-
-    def test_asset_request_uses_assets_item_code(self):
-        msjr = _dict(
-            name="MSJR-002",
-            workflow_state="Completed",
-            item_code=None,
-            asset="ASSET-001",
-            quantity_produced=2,
-            company="Test Company",
-        )
-        target = MagicMock()
-        project = _dict(rework_history=[_dict(cycle_no=1)])
-
-        with patch("qcmc_logic.utils.frappe") as frappe:
-            frappe.session.user = "Administrator"
-            frappe.get_doc.side_effect = [msjr, project]
-            frappe.new_doc.return_value = target
-            frappe.db.get_value.side_effect = [
-                "ITEM-FROM-ASSET", "MSRP-002", "PROCESS-FINAL", "DJR-FINAL"
-            ]
-            frappe.db.sql.return_value = [(0,)]
-
-            make_completed_output_stock_entry("MSJR-002")
-
-        target.append.assert_called_once_with(
-            "items", {"item_code": "ITEM-FROM-ASSET", "qty": 2.0}
         )
 
     def test_direct_mapper_rejects_user_without_stockroom_role(self):
