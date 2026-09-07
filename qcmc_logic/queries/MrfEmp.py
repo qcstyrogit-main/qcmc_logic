@@ -49,7 +49,7 @@ def get_employee(doctype, txt, searchfield, start, page_len, filters):
 
             # ✅ If BOTH company & department exist
             if filters.get("department") and filters.get("company"):
-                conditions.append("""
+              conditions.append("""
                     (designation = %(designation)s OR
                     name IN (
                         SELECT employee FROM `tabEmployee Promotion`
@@ -62,6 +62,7 @@ def get_employee(doctype, txt, searchfield, start, page_len, filters):
                         )
                     ))
                 """)
+		            
             else:
                 # ✅ fallback without department/company
                 conditions.append("designation = %(designation)s")

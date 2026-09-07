@@ -1,0 +1,104 @@
+import frappe
+from hrms.hr.doctype.job_requisition.job_requisition import JobRequisition as OriginalJobRequisition
+
+class MRFApproverSetCustomFields(OriginalJobRequisition):
+
+    def before_save(self):
+        """Auto-fill approval fields based on workflow state and user roles."""
+        user_roles = [r.role for r in frappe.db.get_all("Has Role", filters={"parent": frappe.session.user}, fields=["role"])]
+        print("User Roles:", user_roles)  # DEBUG: list of roles
+
+        bcclt_roles = ['Comptroller', 'VP Sales', 'VP Procurement']
+        has_bcclt_role = any(role in bcclt_roles for role in user_roles)
+        # has_corp_ie_role = 'Corporate IE Head' in user_roles
+
+        hr_manager_role = ['HR Manager']
+
+        has_hr_manager = any(role in hr_manager_role for role in user_roles)
+
+        print("Has BCCLT Role?", has_bcclt_role)  # DEBUG: check if user is in BCCLT
+        # print("Has Corporate IE Role?", has_corp_ie_role)  # DEBUG
+
+        # Main logic
+        if self.workflow_state == "Approved":
+            # if has_corp_ie_role:
+            #     self.custom_approved_by_corp_ie = frappe.utils.get_fullname(frappe.session.user)
+            #     self.custom_corp_ie_approve_date = frappe.utils.now_datetime()
+
+            # el
+            #comment muna kay ma'am abe
+            # if has_bcclt_role:
+            #     self.custom_approved_by_bcclt = frappe.utils.get_fullname(frappe.session.user)
+            #     self.custom_bcclt_approve_date = frappe.utils.now_datetime()
+
+            # else:
+            if not self.custom_approved_by_manager:
+                self.custom_approved_by_manager = frappe.utils.get_fullname(frappe.session.user)
+                self.custom_manager_approve_date = frappe.utils.now_datetime()
+
+        # elif self.workflow_state in ["For BCC Approval","For VP Procurement","For VP Sales Approval"]:
+        #     self.custom_approved_by_manager = frappe.utils.get_fullname(frappe.session.user)
+        #     self.custom_manager_approve_date = frappe.utils.now_datetime()
+
+        elif self.workflow_state == "Acknowledged":
+            # HR acknowledgement
+
+            if has_hr_manager:
+                if not self.custom_approved_by_manager:
+                    self.custom_approved_by_manager = frappe.utils.get_fullname(frappe.session.user)
+                    self.custom_manager_approve_date = frappe.utils.now_datetime()
+
+                    self.custom_acknowledged_by = frappe.utils.get_fullname(frappe.session.user)
+                    self.custom_hr_acknowledged_date = frappe.utils.now_datetime()
+            else:
+                if not self.custom_acknowledged_by:
+                    self.custom_acknowledged_by = frappe.utils.get_fullname(frappe.session.user)
+                    self.custom_hr_acknowledged_date = frappe.utils.now_datetime()
+
+    def validate_duplicates(self):
+        # Skip duplicate validation
+        if not self.custom_staffing_plan or not self.designation:
+            return
+
+        if self.status in ("Cancelled", "Filled") or self.workflow_state in ("Cancelled", "Completed"):
+            return
+
+        staffing_plan = self.custom_staffing_plan
+
+        vacancy = frappe.db.get_value(
+            "Staffing Plan Detail",
+            {
+                "parent": staffing_plan,
+                "designation": self.designation
+            },
+            "vacancies",
+        )
+
+        vacancy = int(vacancy)
+
+        existing_count = frappe.db.count(
+            "Job Requisition",
+            {
+                "custom_staffing_plan": staffing_plan,
+                "designation": self.designation,
+                "company": self.company,
+                "status": ["in", ["Pending", "Open & Approved"]],
+                "workflow_state": ["not in", ["Cancelled", "Completed"]],
+                "name": ["!=", self.name],
+            },
+        )
+
+        if existing_count >= vacancy:
+            frappe.throw(
+                (
+                    "Cannot create Job Requisition. Existing open/approved requisitions already reached the vacancy limit ({0}) for designation {1}."
+                ).format(
+                    frappe.bold(vacancy),
+                    frappe.bold(self.designation),
+                ),
+                title = ("Vacancy Limit Reached"),
+            )
+
+
+
+

@@ -2,6 +2,7 @@ import frappe
 from hrms.hr.doctype.job_requisition.job_requisition import JobRequisition as OriginalJobRequisition
 
 class MRFApproverSetCustomFields(OriginalJobRequisition):
+
     def before_save(self):
         """Auto-fill approval fields based on workflow state and user roles."""
         user_roles = [r.role for r in frappe.db.get_all("Has Role", filters={"parent": frappe.session.user}, fields=["role"])]
@@ -59,6 +60,9 @@ class MRFApproverSetCustomFields(OriginalJobRequisition):
         if not self.custom_staffing_plan or not self.designation:
             return
 
+        if self.status in ("Cancelled", "Filled") or self.workflow_state in ("Cancelled", "Completed"):
+            return
+
         staffing_plan = self.custom_staffing_plan
 
         vacancy = frappe.db.get_value(
@@ -79,6 +83,8 @@ class MRFApproverSetCustomFields(OriginalJobRequisition):
                 "designation": self.designation,
                 "company": self.company,
                 "status": ["in", ["Pending", "Open & Approved"]],
+                "workflow_state": ["not in", ["Cancelled", "Completed"]],
+                "name": ["!=", self.name],
             },
         )
 

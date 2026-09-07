@@ -3,16 +3,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-08-20 16:51:37.457015",
-  "name": "To Received",
-  "style": "",
-  "workflow_state_name": "To Received"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2026-09-04 09:21:31.242454",
   "name": "Acknowledge",
   "style": "",
   "workflow_state_name": "Acknowledge"
@@ -21,7 +11,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.279740",
   "name": "Acknowledged",
   "style": "",
   "workflow_state_name": "Acknowledged"
@@ -30,7 +19,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.314017",
   "name": "Active",
   "style": "",
   "workflow_state_name": "Active"
@@ -39,7 +27,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "ok-sign",
-  "modified": "2026-09-04 09:21:31.349578",
   "name": "Approved",
   "style": "Success",
   "workflow_state_name": "Approved"
@@ -48,7 +35,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.380044",
   "name": "Approved by BCC",
   "style": "",
   "workflow_state_name": "Approved by BCC"
@@ -57,7 +43,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.407615",
   "name": "Approved by VP Procurement",
   "style": "",
   "workflow_state_name": "Approved by VP Procurement"
@@ -66,7 +51,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.449714",
   "name": "Approved by VP Sales",
   "style": "",
   "workflow_state_name": "Approved by VP Sales"
@@ -75,7 +59,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.483970",
   "name": "Approved for Posting",
   "style": "Primary",
   "workflow_state_name": "Approved for Posting"
@@ -84,7 +67,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.518934",
   "name": "Awaiting Requestor Confirmation",
   "style": "",
   "workflow_state_name": "Awaiting Requestor Confirmation"
@@ -93,7 +75,14 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.608758",
+  "name": "Cancelled",
+  "style": "",
+  "workflow_state_name": "Cancelled"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "name": "Capitalized",
   "style": "",
   "workflow_state_name": "Capitalized"
@@ -102,7 +91,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.643734",
   "name": "Checked",
   "style": "",
   "workflow_state_name": "Checked"
@@ -111,7 +99,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.684636",
   "name": "Close",
   "style": "",
   "workflow_state_name": "Close"
@@ -120,7 +107,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.714918",
   "name": "Close Inventory",
   "style": "",
   "workflow_state_name": "Close Inventory"
@@ -129,7 +115,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.748173",
   "name": "Completed",
   "style": "Success",
   "workflow_state_name": "Completed"
@@ -138,7 +123,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.792407",
   "name": "Converted",
   "style": "",
   "workflow_state_name": "Converted"
@@ -147,7 +131,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.826899",
   "name": "Disapproved",
   "style": "",
   "workflow_state_name": "Disapproved"
@@ -156,7 +139,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.862665",
   "name": "Disposed",
   "style": "",
   "workflow_state_name": "Disposed"
@@ -165,7 +147,14 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.939183",
+  "name": "Draft",
+  "style": "",
+  "workflow_state_name": "Draft"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "name": "For Approval",
   "style": "",
   "workflow_state_name": "For Approval"
@@ -174,7 +163,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:31.973621",
   "name": "For Approval of Corp IE",
   "style": "",
   "workflow_state_name": "For Approval of Corp IE"
@@ -183,7 +171,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.009102",
   "name": "For Approval(FIN)",
   "style": "",
   "workflow_state_name": "For Approval(FIN)"
@@ -192,7 +179,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.048019",
   "name": "For Approval(PROC)",
   "style": "",
   "workflow_state_name": "For Approval(PROC)"
@@ -201,7 +187,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.073666",
   "name": "For Approval(SAL)",
   "style": "",
   "workflow_state_name": "For Approval(SAL)"
@@ -210,7 +195,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.105597",
   "name": "For BCC Approval",
   "style": "",
   "workflow_state_name": "For BCC Approval"
@@ -219,7 +203,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.137585",
   "name": "For Checking",
   "style": "",
   "workflow_state_name": "For Checking"
@@ -228,7 +211,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.175398",
   "name": "For Corp IE Approval",
   "style": "",
   "workflow_state_name": "For Corp IE Approval"
@@ -237,7 +219,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.212548",
   "name": "For DR Printing",
   "style": "",
   "workflow_state_name": "For DR Printing"
@@ -246,7 +227,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.247277",
   "name": "For Exec Approval",
   "style": "",
   "workflow_state_name": "For Exec Approval"
@@ -255,7 +235,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.285423",
   "name": "For KTC Approval",
   "style": "",
   "workflow_state_name": "For KTC Approval"
@@ -264,7 +243,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.345348",
   "name": "For Machine Shop Acknowledgement",
   "style": "",
   "workflow_state_name": "For Machine Shop Acknowledgement"
@@ -273,7 +251,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.371436",
   "name": "For RTC Approval",
   "style": "",
   "workflow_state_name": "For RTC Approval"
@@ -282,7 +259,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.437106",
   "name": "For Recon",
   "style": "",
   "workflow_state_name": "For Recon"
@@ -291,7 +267,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.488274",
   "name": "For Service Request to EDSA",
   "style": "",
   "workflow_state_name": "For Service Request to EDSA"
@@ -300,7 +275,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.537116",
   "name": "For Stock Confirmation",
   "style": "",
   "workflow_state_name": "For Stock Confirmation"
@@ -309,7 +283,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.574372",
   "name": "For VP Procurement",
   "style": "",
   "workflow_state_name": "For VP Procurement"
@@ -318,7 +291,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.607045",
   "name": "For VP Procurement Approval",
   "style": "",
   "workflow_state_name": "For VP Procurement Approval"
@@ -327,7 +299,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.687911",
   "name": "For VP Sales Approval",
   "style": "",
   "workflow_state_name": "For VP Sales Approval"
@@ -336,7 +307,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.739166",
   "name": "HR Acknowledged",
   "style": "",
   "workflow_state_name": "HR Acknowledged"
@@ -345,7 +315,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.783535",
   "name": "HR Acknowledgement",
   "style": "",
   "workflow_state_name": "HR Acknowledgement"
@@ -354,7 +323,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.818438",
   "name": "Incoming",
   "style": "",
   "workflow_state_name": "Incoming"
@@ -363,7 +331,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.853621",
   "name": "Initiated",
   "style": "",
   "workflow_state_name": "Initiated"
@@ -372,7 +339,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:32.951833",
   "name": "KYC Complete",
   "style": "",
   "workflow_state_name": "KYC Complete"
@@ -381,7 +347,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.004726",
   "name": "KYC Pending",
   "style": "",
   "workflow_state_name": "KYC Pending"
@@ -390,7 +355,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.063090",
   "name": "OS Draft",
   "style": "",
   "workflow_state_name": "OS Draft"
@@ -399,7 +363,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.121862",
   "name": "OT Slip Approved",
   "style": "Success",
   "workflow_state_name": "OT Slip Approved"
@@ -408,7 +371,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.158718",
   "name": "OT Slip Cancelled",
   "style": "Danger",
   "workflow_state_name": "OT Slip Cancelled"
@@ -417,7 +379,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.219774",
   "name": "OT Slip Rejected",
   "style": "Danger",
   "workflow_state_name": "OT Slip Rejected"
@@ -426,7 +387,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.252188",
   "name": "On Hold",
   "style": "Inverse",
   "workflow_state_name": "On Hold"
@@ -435,7 +395,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "question-sign",
-  "modified": "2026-09-04 09:21:33.286121",
   "name": "Pending",
   "style": "",
   "workflow_state_name": "Pending"
@@ -444,7 +403,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.325234",
   "name": "Pending Approval",
   "style": "",
   "workflow_state_name": "Pending Approval"
@@ -453,7 +411,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.375140",
   "name": "Pending Credit Approval",
   "style": "Warning",
   "workflow_state_name": "Pending Credit Approval"
@@ -462,7 +419,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.406958",
   "name": "Pending Initial Approval",
   "style": "",
   "workflow_state_name": "Pending Initial Approval"
@@ -471,7 +427,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.453568",
   "name": "Pending Logistics Manager Approval",
   "style": "",
   "workflow_state_name": "Pending Logistics Manager Approval"
@@ -480,7 +435,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.488595",
   "name": "Pending MC Maintenance",
   "style": "",
   "workflow_state_name": "Pending MC Maintenance"
@@ -489,7 +443,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.522318",
   "name": "Pending MIS Supervisor Approval",
   "style": "",
   "workflow_state_name": "Pending MIS Supervisor Approval"
@@ -498,7 +451,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.572593",
   "name": "Pending Machine Shop",
   "style": "",
   "workflow_state_name": "Pending Machine Shop"
@@ -507,7 +459,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.599416",
   "name": "Pending Machine Shop Supervisor Approval",
   "style": "",
   "workflow_state_name": "Pending Machine Shop Supervisor Approval"
@@ -516,7 +467,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.634518",
   "name": "Pending OT Approval",
   "style": "Warning",
   "workflow_state_name": "Pending OT Approval"
@@ -525,7 +475,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.686710",
   "name": "Pending PM Approval",
   "style": "",
   "workflow_state_name": "Pending PM Approval"
@@ -534,7 +483,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.715495",
   "name": "Pending PPIC Supervisor",
   "style": "",
   "workflow_state_name": "Pending PPIC Supervisor"
@@ -543,7 +491,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.744701",
   "name": "Pending SMB Maintenance",
   "style": "",
   "workflow_state_name": "Pending SMB Maintenance"
@@ -552,7 +499,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.769478",
   "name": "Pending Sta Clara Maintenance",
   "style": "",
   "workflow_state_name": "Pending Sta Clara Maintenance"
@@ -561,7 +507,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.786252",
   "name": "Posted / Active",
   "style": "Success",
   "workflow_state_name": "Posted / Active"
@@ -570,7 +515,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.799059",
   "name": "Pre-Qualification",
   "style": "",
   "workflow_state_name": "Pre-Qualification"
@@ -579,7 +523,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.826105",
   "name": "Pre-Qualified",
   "style": "",
   "workflow_state_name": "Pre-Qualified"
@@ -588,7 +531,14 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.862200",
+  "name": "Processed",
+  "style": "Success",
+  "workflow_state_name": "Processed"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "name": "Qualified",
   "style": "",
   "workflow_state_name": "Qualified"
@@ -597,7 +547,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.880350",
   "name": "Received",
   "style": "",
   "workflow_state_name": "Received"
@@ -606,7 +555,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "remove",
-  "modified": "2026-09-04 09:21:33.893872",
   "name": "Rejected",
   "style": "Danger",
   "workflow_state_name": "Rejected"
@@ -615,7 +563,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.909356",
   "name": "Returned",
   "style": "",
   "workflow_state_name": "Returned"
@@ -624,7 +571,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.936684",
   "name": "Returned for Revision",
   "style": "Warning",
   "workflow_state_name": "Returned for Revision"
@@ -649,7 +595,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:33.997998",
   "name": "Scrubbing",
   "style": "",
   "workflow_state_name": "Scrubbing"
@@ -658,7 +603,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:34.012994",
   "name": "Send to Machine Shop",
   "style": "",
   "workflow_state_name": "Send to Machine Shop"
@@ -667,7 +611,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:34.030524",
   "name": "Sent Back for Modification",
   "style": "Warning",
   "workflow_state_name": "Sent Back for Modification"
@@ -676,7 +619,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:34.047351",
   "name": "Sold",
   "style": "",
   "workflow_state_name": "Sold"
@@ -685,7 +627,14 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:34.077897",
+  "name": "Submitted",
+  "style": "Success",
+  "workflow_state_name": "Submitted"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "name": "To Deliver and Bill",
   "style": "Info",
   "workflow_state_name": "To Deliver and Bill"
@@ -710,10 +659,17 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:34.107553",
   "name": "To Receive by SMB Maintenance",
   "style": "",
   "workflow_state_name": "To Receive by SMB Maintenance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "name": "To Received",
+  "style": "",
+  "workflow_state_name": "To Received"
  },
  {
   "docstatus": 0,
@@ -727,45 +683,8 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2026-09-04 09:21:34.141567",
   "name": "Transferred",
   "style": "",
   "workflow_state_name": "Transferred"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2024-04-15 21:21:38.208963",
-  "name": "Processed",
-  "style": "Success",
-  "workflow_state_name": "Processed"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-02-07 09:07:33.779764",
-  "name": "Submitted",
-  "style": "Success",
-  "workflow_state_name": "Submitted"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-05-14 11:53:38.107266",
-  "name": "Cancelled",
-  "style": "",
-  "workflow_state_name": "Cancelled"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-01-07 09:26:33.936333",
-  "name": "Draft",
-  "style": "",
-  "workflow_state_name": "Draft"
  }
 ]

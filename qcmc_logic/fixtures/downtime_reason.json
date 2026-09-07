@@ -6,7 +6,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "100",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.021796",
   "name": "100",
   "subcategory": "METHOD"
  },
@@ -17,7 +16,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "110",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.043024",
   "name": "110",
   "subcategory": "METHOD"
  },
@@ -28,7 +26,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "111",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.063694",
   "name": "111",
   "subcategory": "METHOD"
  },
@@ -39,7 +36,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "112",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.095052",
   "name": "112",
   "subcategory": "METHOD"
  },
@@ -50,7 +46,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "113",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.128779",
   "name": "113",
   "subcategory": "METHOD"
  },
@@ -61,7 +56,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "114",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.151679",
   "name": "114",
   "subcategory": "METHOD"
  },
@@ -72,7 +66,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "117",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.180320",
   "name": "117",
   "subcategory": "METHOD"
  },
@@ -83,7 +76,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "118",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.234699",
   "name": "118",
   "subcategory": "METHOD"
  },
@@ -94,7 +86,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "122",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.280237",
   "name": "122",
   "subcategory": "METHOD"
  },
@@ -105,7 +96,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "125",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.298955",
   "name": "125",
   "subcategory": "METHOD"
  },
@@ -116,7 +106,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "126",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.341988",
   "name": "126",
   "subcategory": "METHOD"
  },
@@ -127,7 +116,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "127",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.419699",
   "name": "127",
   "subcategory": "METHOD"
  },
@@ -138,7 +126,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "128",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.445441",
   "name": "128",
   "subcategory": "METHOD"
  },
@@ -149,7 +136,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "129",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.489529",
   "name": "129",
   "subcategory": "METHOD"
  },
@@ -160,7 +146,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "131",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.567162",
   "name": "131",
   "subcategory": "MANPOWER"
  },
@@ -171,7 +156,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "132",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.615036",
   "name": "132",
   "subcategory": "MACHINE"
  },
@@ -182,7 +166,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "133",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.633868",
   "name": "133",
   "subcategory": "MACHINE"
  },
@@ -193,7 +176,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "134",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.715348",
   "name": "134",
   "subcategory": "MACHINE"
  },
@@ -204,7 +186,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "135",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.729072",
   "name": "135",
   "subcategory": "MACHINE"
  },
@@ -215,7 +196,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "136",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.747661",
   "name": "136",
   "subcategory": "MACHINE"
  },
@@ -226,7 +206,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "137",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.761975",
   "name": "137",
   "subcategory": "MACHINE"
  },
@@ -237,7 +216,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "139",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.866877",
   "name": "139",
   "subcategory": "MACHINE"
  },
@@ -248,7 +226,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "140",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.880216",
   "name": "140",
   "subcategory": "MACHINE"
  },
@@ -259,7 +236,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "141",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.895216",
   "name": "141",
   "subcategory": "MACHINE"
  },
@@ -270,7 +246,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "142",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.922777",
   "name": "142",
   "subcategory": "MACHINE"
  },
@@ -281,7 +256,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "143",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.937396",
   "name": "143",
   "subcategory": "MACHINE"
  },
@@ -292,7 +266,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "144",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.958788",
   "name": "144",
   "subcategory": "MACHINE"
  },
@@ -303,7 +276,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "145",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.974239",
   "name": "145",
   "subcategory": "MACHINE"
  },
@@ -314,7 +286,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "146",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:35.990552",
   "name": "146",
   "subcategory": "MACHINE"
  },
@@ -325,7 +296,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "15",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.011104",
   "name": "15",
   "subcategory": "MOLD"
  },
@@ -336,7 +306,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "16",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.029088",
   "name": "16",
   "subcategory": "MOLD"
  },
@@ -347,7 +316,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "17",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.063187",
   "name": "17",
   "subcategory": "MOLD"
  },
@@ -358,7 +326,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "18",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.089794",
   "name": "18",
   "subcategory": "MOLD"
  },
@@ -369,7 +336,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "20",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.140126",
   "name": "20",
   "subcategory": "MANPOWER"
  },
@@ -380,7 +346,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "21",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.229948",
   "name": "21",
   "subcategory": "MANPOWER"
  },
@@ -391,7 +356,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "216",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.262107",
   "name": "216",
   "subcategory": "MACHINE"
  },
@@ -402,7 +366,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "217",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.307182",
   "name": "217",
   "subcategory": "MACHINE"
  },
@@ -413,7 +376,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "218",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.341392",
   "name": "218",
   "subcategory": "MACHINE"
  },
@@ -424,7 +386,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "219",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.390580",
   "name": "219",
   "subcategory": "MACHINE"
  },
@@ -435,7 +396,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "22",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.420925",
   "name": "22",
   "subcategory": "MANPOWER"
  },
@@ -446,7 +406,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "220",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.460208",
   "name": "220",
   "subcategory": "MACHINE"
  },
@@ -457,7 +416,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "221",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.491649",
   "name": "221",
   "subcategory": "MACHINE"
  },
@@ -468,7 +426,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "222",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.570496",
   "name": "222",
   "subcategory": "MACHINE"
  },
@@ -479,7 +436,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "223",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.608943",
   "name": "223",
   "subcategory": "MACHINE"
  },
@@ -490,7 +446,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "224",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.637927",
   "name": "224",
   "subcategory": "MACHINE"
  },
@@ -501,7 +456,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "225",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.717528",
   "name": "225",
   "subcategory": "MACHINE"
  },
@@ -512,7 +466,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "226",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.877350",
   "name": "226",
   "subcategory": "MACHINE"
  },
@@ -523,7 +476,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "227",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.912873",
   "name": "227",
   "subcategory": "MACHINE"
  },
@@ -534,7 +486,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "228",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:36.988718",
   "name": "228",
   "subcategory": "MACHINE"
  },
@@ -545,7 +496,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "229",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.013100",
   "name": "229",
   "subcategory": "MACHINE"
  },
@@ -556,7 +506,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "23",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.047877",
   "name": "23",
   "subcategory": "MATERIAL"
  },
@@ -567,7 +516,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "230",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.097904",
   "name": "230",
   "subcategory": "MACHINE"
  },
@@ -578,7 +526,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "231",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.126149",
   "name": "231",
   "subcategory": "MACHINE"
  },
@@ -589,7 +536,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "232",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.154862",
   "name": "232",
   "subcategory": "MACHINE"
  },
@@ -600,7 +546,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "233",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.176117",
   "name": "233",
   "subcategory": "MACHINE"
  },
@@ -611,7 +556,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "234",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.201475",
   "name": "234",
   "subcategory": "MACHINE"
  },
@@ -622,7 +566,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "235",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.218446",
   "name": "235",
   "subcategory": "MACHINE"
  },
@@ -633,7 +576,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "236",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.239246",
   "name": "236",
   "subcategory": "MACHINE"
  },
@@ -644,7 +586,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "237",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.269545",
   "name": "237",
   "subcategory": "MACHINE"
  },
@@ -655,7 +596,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "238",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.283874",
   "name": "238",
   "subcategory": "MACHINE"
  },
@@ -666,7 +606,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "239",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.310276",
   "name": "239",
   "subcategory": "MACHINE"
  },
@@ -677,7 +616,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "24",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.375653",
   "name": "24",
   "subcategory": "MATERIAL"
  },
@@ -688,7 +626,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "240",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.408771",
   "name": "240",
   "subcategory": "MACHINE"
  },
@@ -699,7 +636,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "241",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.446944",
   "name": "241",
   "subcategory": "MACHINE"
  },
@@ -710,7 +646,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "242",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.479394",
   "name": "242",
   "subcategory": "MACHINE"
  },
@@ -721,7 +656,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "243",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.505256",
   "name": "243",
   "subcategory": "MACHINE"
  },
@@ -732,7 +666,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "244",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.541093",
   "name": "244",
   "subcategory": "MACHINE"
  },
@@ -743,7 +676,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "245",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.586350",
   "name": "245",
   "subcategory": "MACHINE"
  },
@@ -754,7 +686,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "246",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.608147",
   "name": "246",
   "subcategory": "MACHINE"
  },
@@ -765,7 +696,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "247",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.631350",
   "name": "247",
   "subcategory": "MACHINE"
  },
@@ -776,7 +706,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "248",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.656180",
   "name": "248",
   "subcategory": "MACHINE"
  },
@@ -787,7 +716,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "249",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.674185",
   "name": "249",
   "subcategory": "MACHINE"
  },
@@ -798,7 +726,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "25",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.789655",
   "name": "25",
   "subcategory": "MATERIAL"
  },
@@ -809,7 +736,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "250",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.813828",
   "name": "250",
   "subcategory": "MACHINE"
  },
@@ -820,7 +746,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "251",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.843889",
   "name": "251",
   "subcategory": "MACHINE"
  },
@@ -831,7 +756,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "252",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.869586",
   "name": "252",
   "subcategory": "MACHINE"
  },
@@ -842,7 +766,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "254",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:37.887489",
   "name": "254",
   "subcategory": "MACHINE"
  },
@@ -853,7 +776,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "256",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.025135",
   "name": "256",
   "subcategory": "MACHINE"
  },
@@ -864,7 +786,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "257",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.045705",
   "name": "257",
   "subcategory": "MACHINE"
  },
@@ -875,7 +796,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "258",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.064724",
   "name": "258",
   "subcategory": "MACHINE"
  },
@@ -886,7 +806,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "259",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.126240",
   "name": "259",
   "subcategory": "MACHINE"
  },
@@ -897,7 +816,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "26",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.152631",
   "name": "26",
   "subcategory": "METHOD"
  },
@@ -908,7 +826,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "260",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.168255",
   "name": "260",
   "subcategory": "MACHINE"
  },
@@ -919,7 +836,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "261",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.189691",
   "name": "261",
   "subcategory": "MACHINE"
  },
@@ -930,7 +846,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "263",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.264551",
   "name": "263",
   "subcategory": "MACHINE"
  },
@@ -941,7 +856,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "265",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.297274",
   "name": "265",
   "subcategory": "MACHINE"
  },
@@ -952,7 +866,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "266",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.319739",
   "name": "266",
   "subcategory": "MACHINE"
  },
@@ -963,7 +876,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "267",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.337720",
   "name": "267",
   "subcategory": "MACHINE"
  },
@@ -974,7 +886,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "268",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.366560",
   "name": "268",
   "subcategory": "MACHINE"
  },
@@ -985,7 +896,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "269",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.393855",
   "name": "269",
   "subcategory": "MACHINE"
  },
@@ -996,7 +906,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "27",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.428417",
   "name": "27",
   "subcategory": "METHOD"
  },
@@ -1007,7 +916,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "270",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.463345",
   "name": "270",
   "subcategory": "MACHINE"
  },
@@ -1018,7 +926,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "271",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.527179",
   "name": "271",
   "subcategory": "MACHINE"
  },
@@ -1029,7 +936,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "272",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.548135",
   "name": "272",
   "subcategory": "MACHINE"
  },
@@ -1040,7 +946,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "273",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.596976",
   "name": "273",
   "subcategory": "MACHINE"
  },
@@ -1051,7 +956,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "274",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.614096",
   "name": "274",
   "subcategory": "MACHINE"
  },
@@ -1062,7 +966,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "275",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.644458",
   "name": "275",
   "subcategory": "MACHINE"
  },
@@ -1073,7 +976,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "276",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.660513",
   "name": "276",
   "subcategory": "MACHINE"
  },
@@ -1084,7 +986,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "277",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.697338",
   "name": "277",
   "subcategory": "MACHINE"
  },
@@ -1095,7 +996,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "278",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.709371",
   "name": "278",
   "subcategory": "MACHINE"
  },
@@ -1106,7 +1006,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "28",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.725644",
   "name": "28",
   "subcategory": "PRODUCTION"
  },
@@ -1117,7 +1016,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "280",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.741705",
   "name": "280",
   "subcategory": "MACHINE"
  },
@@ -1128,7 +1026,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "281",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.753125",
   "name": "281",
   "subcategory": "MACHINE"
  },
@@ -1139,7 +1036,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "282",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.770339",
   "name": "282",
   "subcategory": "MACHINE"
  },
@@ -1150,7 +1046,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "283",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.782873",
   "name": "283",
   "subcategory": "MACHINE"
  },
@@ -1161,7 +1056,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "284",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.795971",
   "name": "284",
   "subcategory": "MACHINE"
  },
@@ -1172,7 +1066,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "285",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.834806",
   "name": "285",
   "subcategory": "COMPRESSOR"
  },
@@ -1183,7 +1076,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "286",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.848730",
   "name": "286",
   "subcategory": "METHOD"
  },
@@ -1194,7 +1086,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "289",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.864812",
   "name": "289",
   "subcategory": "MACHINE"
  },
@@ -1205,7 +1096,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "29",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.877651",
   "name": "29",
   "subcategory": "PRODUCTION"
  },
@@ -1216,7 +1106,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "290",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.892316",
   "name": "290",
   "subcategory": "MACHINE"
  },
@@ -1227,7 +1116,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "291",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.907243",
   "name": "291",
   "subcategory": "MACHINE"
  },
@@ -1238,7 +1126,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "292",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.926555",
   "name": "292",
   "subcategory": "MACHINE"
  },
@@ -1249,7 +1136,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "293",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.944953",
   "name": "293",
   "subcategory": "MACHINE"
  },
@@ -1260,7 +1146,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "294",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.958956",
   "name": "294",
   "subcategory": "MACHINE"
  },
@@ -1271,7 +1156,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "295",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:38.996564",
   "name": "295",
   "subcategory": "MACHINE"
  },
@@ -1282,7 +1166,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "296",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.042082",
   "name": "296",
   "subcategory": "MACHINE"
  },
@@ -1293,7 +1176,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "297",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.064234",
   "name": "297",
   "subcategory": "MACHINE"
  },
@@ -1304,7 +1186,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "298",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.128396",
   "name": "298",
   "subcategory": "MACHINE"
  },
@@ -1315,7 +1196,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "299",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.157939",
   "name": "299",
   "subcategory": "MACHINE"
  },
@@ -1326,7 +1206,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "30",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.184267",
   "name": "30",
   "subcategory": "PRODUCTION"
  },
@@ -1337,7 +1216,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "300",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.266191",
   "name": "300",
   "subcategory": "MACHINE"
  },
@@ -1348,7 +1226,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "301",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.291733",
   "name": "301",
   "subcategory": "MACHINE"
  },
@@ -1359,7 +1236,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "302",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.326710",
   "name": "302",
   "subcategory": "MACHINE"
  },
@@ -1370,7 +1246,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "303",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.389694",
   "name": "303",
   "subcategory": "MACHINE"
  },
@@ -1381,7 +1256,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "304",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.422674",
   "name": "304",
   "subcategory": "MACHINE"
  },
@@ -1392,7 +1266,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "305",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.444635",
   "name": "305",
   "subcategory": "MOULD"
  },
@@ -1403,7 +1276,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "306",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.509199",
   "name": "306",
   "subcategory": "MOULD"
  },
@@ -1414,7 +1286,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "307",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.533255",
   "name": "307",
   "subcategory": "MACHINE"
  },
@@ -1425,7 +1296,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "308",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.565764",
   "name": "308",
   "subcategory": "MACHINE"
  },
@@ -1436,7 +1306,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "309",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.606694",
   "name": "309",
   "subcategory": "MACHINE"
  },
@@ -1447,7 +1316,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "31",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.629553",
   "name": "31",
   "subcategory": "PRODUCTION"
  },
@@ -1458,7 +1326,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "310",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.663940",
   "name": "310",
   "subcategory": "MACHINE"
  },
@@ -1469,7 +1336,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "311",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.703635",
   "name": "311",
   "subcategory": "MACHINE"
  },
@@ -1480,7 +1346,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "312",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.739453",
   "name": "312",
   "subcategory": "MACHINE"
  },
@@ -1491,7 +1356,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "314",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.771789",
   "name": "314",
   "subcategory": "MACHINE"
  },
@@ -1502,7 +1366,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "316",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.859676",
   "name": "316",
   "subcategory": "MACHINE"
  },
@@ -1513,7 +1376,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "317",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.893781",
   "name": "317",
   "subcategory": "MACHINE"
  },
@@ -1524,7 +1386,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "32",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.934110",
   "name": "32",
   "subcategory": "PRODUCTION"
  },
@@ -1535,7 +1396,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "322",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:39.963729",
   "name": "322",
   "subcategory": "MACHINE"
  },
@@ -1546,7 +1406,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "323",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.005998",
   "name": "323",
   "subcategory": "MACHINE"
  },
@@ -1557,7 +1416,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "33",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.032289",
   "name": "33",
   "subcategory": "PURCHASING"
  },
@@ -1568,7 +1426,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "330",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.050885",
   "name": "330",
   "subcategory": "MACHINE"
  },
@@ -1579,7 +1436,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "333",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.077596",
   "name": "333",
   "subcategory": "MACHINE"
  },
@@ -1590,7 +1446,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "334",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.095622",
   "name": "334",
   "subcategory": "MACHINE"
  },
@@ -1601,7 +1456,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "335",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.113151",
   "name": "335",
   "subcategory": "MACHINE"
  },
@@ -1612,7 +1466,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "338",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.133758",
   "name": "338",
   "subcategory": "MACHINE"
  },
@@ -1623,7 +1476,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "339",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.155112",
   "name": "339",
   "subcategory": "MACHINE"
  },
@@ -1634,7 +1486,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "34",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.174939",
   "name": "34",
   "subcategory": "PURCHASING"
  },
@@ -1645,7 +1496,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "340",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.208465",
   "name": "340",
   "subcategory": "MACHINE"
  },
@@ -1656,7 +1506,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "341",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.234730",
   "name": "341",
   "subcategory": "MACHINE"
  },
@@ -1667,7 +1516,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "342",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.257252",
   "name": "342",
   "subcategory": "MACHINE"
  },
@@ -1678,7 +1526,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "343",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.275622",
   "name": "343",
   "subcategory": "MOULD"
  },
@@ -1689,7 +1536,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "345",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.288937",
   "name": "345",
   "subcategory": "METHOD"
  },
@@ -1700,7 +1546,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "346",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.304331",
   "name": "346",
   "subcategory": "MACHINE"
  },
@@ -1711,7 +1556,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "347",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.319470",
   "name": "347",
   "subcategory": "MATERIAL"
  },
@@ -1722,7 +1566,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "348",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.347903",
   "name": "348",
   "subcategory": "METHOD"
  },
@@ -1733,7 +1576,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "349",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.370831",
   "name": "349",
   "subcategory": "MATERIAL"
  },
@@ -1744,7 +1586,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "35",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.386269",
   "name": "35",
   "subcategory": "PURCHASING"
  },
@@ -1755,7 +1596,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "350",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.400134",
   "name": "350",
   "subcategory": "MATERIAL"
  },
@@ -1766,7 +1606,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "351",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.416148",
   "name": "351",
   "subcategory": "MACHINE"
  },
@@ -1777,7 +1616,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "352",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.434005",
   "name": "352",
   "subcategory": "MACHINE"
  },
@@ -1788,7 +1626,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "353",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.450841",
   "name": "353",
   "subcategory": "MATERIAL"
  },
@@ -1799,7 +1636,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "354",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.474226",
   "name": "354",
   "subcategory": "MACHINE"
  },
@@ -1810,7 +1646,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "355",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.489191",
   "name": "355",
   "subcategory": "MACHINE"
  },
@@ -1821,7 +1656,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "356",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.512874",
   "name": "356",
   "subcategory": "MACHINE"
  },
@@ -1832,7 +1666,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "357",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.554462",
   "name": "357",
   "subcategory": "MACHINE"
  },
@@ -1843,7 +1676,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "358",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.577666",
   "name": "358",
   "subcategory": "MACHINE"
  },
@@ -1854,7 +1686,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "359",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.596191",
   "name": "359",
   "subcategory": "MACHINE"
  },
@@ -1865,7 +1696,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "36",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.612479",
   "name": "36",
   "subcategory": "ENGINEERING"
  },
@@ -1876,7 +1706,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "360",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.634035",
   "name": "360",
   "subcategory": "MACHINE"
  },
@@ -1887,7 +1716,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "361",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.647455",
   "name": "361",
   "subcategory": "MACHINE"
  },
@@ -1898,7 +1726,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "362",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.658779",
   "name": "362",
   "subcategory": "MACHINE"
  },
@@ -1909,7 +1736,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "363",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.672982",
   "name": "363",
   "subcategory": "MACHINE"
  },
@@ -1920,7 +1746,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "364",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.685743",
   "name": "364",
   "subcategory": "MATERIAL"
  },
@@ -1931,7 +1756,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "365",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.701296",
   "name": "365",
   "subcategory": "MATERIAL"
  },
@@ -1942,7 +1766,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "366",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.714704",
   "name": "366",
   "subcategory": "MACHINE"
  },
@@ -1953,7 +1776,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "367",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.728542",
   "name": "367",
   "subcategory": "MATERIAL"
  },
@@ -1964,7 +1786,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "368",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.740185",
   "name": "368",
   "subcategory": "MATERIAL"
  },
@@ -1975,7 +1796,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "37",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.761859",
   "name": "37",
   "subcategory": "ENGINEERING"
  },
@@ -1986,7 +1806,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "370",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.775387",
   "name": "370",
   "subcategory": "MACHINE"
  },
@@ -1997,7 +1816,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "371",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.785774",
   "name": "371",
   "subcategory": "MACHINE"
  },
@@ -2008,7 +1826,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "372",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.796107",
   "name": "372",
   "subcategory": "MACHINE"
  },
@@ -2019,7 +1836,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "373",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.808438",
   "name": "373",
   "subcategory": "MACHINE"
  },
@@ -2030,7 +1846,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "374",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.821017",
   "name": "374",
   "subcategory": "MACHINE"
  },
@@ -2041,7 +1856,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "375",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.833127",
   "name": "375",
   "subcategory": "MACHINE"
  },
@@ -2052,7 +1866,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "376",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.850929",
   "name": "376",
   "subcategory": "MACHINE"
  },
@@ -2063,7 +1876,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "378",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.865382",
   "name": "378",
   "subcategory": "METHOD"
  },
@@ -2074,7 +1886,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "379",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.879417",
   "name": "379",
   "subcategory": "MACHINE"
  },
@@ -2085,7 +1896,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "38",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.892855",
   "name": "38",
   "subcategory": "MC PLANT"
  },
@@ -2096,7 +1906,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "380",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.909031",
   "name": "380",
   "subcategory": "MACHINE"
  },
@@ -2107,7 +1916,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "381",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.934548",
   "name": "381",
   "subcategory": "MACHINE"
  },
@@ -2118,7 +1926,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "382",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:40.947115",
   "name": "382",
   "subcategory": "MACHINE"
  },
@@ -2129,7 +1936,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "383",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.017262",
   "name": "383",
   "subcategory": "MACHINE"
  },
@@ -2140,7 +1946,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "384",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.032193",
   "name": "384",
   "subcategory": "MACHINE"
  },
@@ -2151,7 +1956,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "385",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.053441",
   "name": "385",
   "subcategory": "MATERIAL"
  },
@@ -2162,7 +1966,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "387",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.094114",
   "name": "387",
   "subcategory": "MACHINE"
  },
@@ -2173,7 +1976,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "388",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.109156",
   "name": "388",
   "subcategory": "MACHINE"
  },
@@ -2184,7 +1986,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "389",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.133366",
   "name": "389",
   "subcategory": "MACHINE"
  },
@@ -2195,7 +1996,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "39",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.150493",
   "name": "39",
   "subcategory": "MC PLANT"
  },
@@ -2206,7 +2006,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "390",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.168262",
   "name": "390",
   "subcategory": "MACHINE"
  },
@@ -2217,7 +2016,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "391",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.182813",
   "name": "391",
   "subcategory": "MACHINE"
  },
@@ -2228,7 +2026,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "392",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.201178",
   "name": "392",
   "subcategory": "METHOD"
  },
@@ -2239,7 +2036,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "395",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.225169",
   "name": "395",
   "subcategory": "MACHINE"
  },
@@ -2250,7 +2046,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "396",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.254461",
   "name": "396",
   "subcategory": "MACHINE"
  },
@@ -2261,7 +2056,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "397",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.284295",
   "name": "397",
   "subcategory": "MACHINE"
  },
@@ -2272,7 +2066,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "398",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.301233",
   "name": "398",
   "subcategory": "MACHINE"
  },
@@ -2283,7 +2076,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "399",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.315596",
   "name": "399",
   "subcategory": "MACHINE"
  },
@@ -2294,7 +2086,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "40",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.360324",
   "name": "40",
   "subcategory": "PPIC"
  },
@@ -2305,7 +2096,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "400",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.377116",
   "name": "400",
   "subcategory": "MACHINE"
  },
@@ -2316,7 +2106,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "401",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.401534",
   "name": "401",
   "subcategory": "MACHINE"
  },
@@ -2327,7 +2116,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "402",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.414068",
   "name": "402",
   "subcategory": "MACHINE"
  },
@@ -2338,7 +2126,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "403",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.431451",
   "name": "403",
   "subcategory": "MACHINE"
  },
@@ -2349,7 +2136,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "404",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.452021",
   "name": "404",
   "subcategory": "METHOD"
  },
@@ -2360,7 +2146,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "405",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.473255",
   "name": "405",
   "subcategory": "MACHINE"
  },
@@ -2371,7 +2156,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "406",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.850269",
   "name": "406",
   "subcategory": "MACHINE"
  },
@@ -2382,7 +2166,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "407",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.893428",
   "name": "407",
   "subcategory": "MACHINE"
  },
@@ -2393,7 +2176,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "408",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.918009",
   "name": "408",
   "subcategory": "MACHINE"
  },
@@ -2404,7 +2186,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "409",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.958681",
   "name": "409",
   "subcategory": "MACHINE"
  },
@@ -2415,7 +2196,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "41",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:41.987857",
   "name": "41",
   "subcategory": "HR"
  },
@@ -2426,7 +2206,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "410",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.057011",
   "name": "410",
   "subcategory": "MACHINE"
  },
@@ -2437,7 +2216,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "411",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.105523",
   "name": "411",
   "subcategory": "MACHINE"
  },
@@ -2448,7 +2226,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "412",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.172694",
   "name": "412",
   "subcategory": "MACHINE"
  },
@@ -2459,7 +2236,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "413",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.253477",
   "name": "413",
   "subcategory": "METHOD"
  },
@@ -2470,7 +2246,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "415",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.287753",
   "name": "415",
   "subcategory": "MACHINE"
  },
@@ -2481,7 +2256,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "416",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.324453",
   "name": "416",
   "subcategory": "MACHINE"
  },
@@ -2492,7 +2266,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "417",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.360213",
   "name": "417",
   "subcategory": "METHOD"
  },
@@ -2503,7 +2276,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "418",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.387557",
   "name": "418",
   "subcategory": "METHOD"
  },
@@ -2514,7 +2286,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "419",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.414496",
   "name": "419",
   "subcategory": "METHOD"
  },
@@ -2525,7 +2296,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "42",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.440147",
   "name": "42",
   "subcategory": "HR"
  },
@@ -2536,7 +2306,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "420",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.500060",
   "name": "420",
   "subcategory": "METHOD"
  },
@@ -2547,7 +2316,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "421",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.524818",
   "name": "421",
   "subcategory": "METHOD"
  },
@@ -2558,7 +2326,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "422",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.555942",
   "name": "422",
   "subcategory": "METHOD"
  },
@@ -2569,7 +2336,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "423",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.596391",
   "name": "423",
   "subcategory": "METHOD"
  },
@@ -2580,7 +2346,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "424",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.614616",
   "name": "424",
   "subcategory": "METHOD"
  },
@@ -2591,7 +2356,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "425",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.638674",
   "name": "425",
   "subcategory": "METHOD"
  },
@@ -2602,7 +2366,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "426",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.660253",
   "name": "426",
   "subcategory": "METHOD"
  },
@@ -2613,7 +2376,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "427",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.679187",
   "name": "427",
   "subcategory": "METHOD"
  },
@@ -2624,7 +2386,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "428",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.707994",
   "name": "428",
   "subcategory": "METHOD"
  },
@@ -2635,7 +2396,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "429",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.724988",
   "name": "429",
   "subcategory": "MACHINE"
  },
@@ -2646,7 +2406,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "430",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.754480",
   "name": "430",
   "subcategory": "MACHINE"
  },
@@ -2657,7 +2416,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "435",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.860933",
   "name": "435",
   "subcategory": "MOULD"
  },
@@ -2668,7 +2426,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "436",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.885161",
   "name": "436",
   "subcategory": "MACHINE"
  },
@@ -2679,7 +2436,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "437",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.928937",
   "name": "437",
   "subcategory": "METHOD"
  },
@@ -2690,7 +2446,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "438",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:42.972557",
   "name": "438",
   "subcategory": "METHOD"
  },
@@ -2701,7 +2456,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "439",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.010929",
   "name": "439",
   "subcategory": "METHOD"
  },
@@ -2712,7 +2466,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "44",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.049856",
   "name": "44",
   "subcategory": "POWER PLANT"
  },
@@ -2723,7 +2476,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "440",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.095882",
   "name": "440",
   "subcategory": "METHOD"
  },
@@ -2734,7 +2486,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "441",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.133105",
   "name": "441",
   "subcategory": "METHOD"
  },
@@ -2745,7 +2496,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "442",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.167852",
   "name": "442",
   "subcategory": "METHOD"
  },
@@ -2756,7 +2506,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "443",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.240975",
   "name": "443",
   "subcategory": "MACHINE"
  },
@@ -2767,7 +2516,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "444",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.267165",
   "name": "444",
   "subcategory": "MACHINE"
  },
@@ -2778,7 +2526,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "445",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.308215",
   "name": "445",
   "subcategory": "MOULD"
  },
@@ -2789,7 +2536,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "446",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.327030",
   "name": "446",
   "subcategory": "MACHINE"
  },
@@ -2800,7 +2546,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "447",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.342265",
   "name": "447",
   "subcategory": "MACHINE"
  },
@@ -2811,7 +2556,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "448",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.363650",
   "name": "448",
   "subcategory": "MOULD"
  },
@@ -2822,7 +2566,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "449",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.375432",
   "name": "449",
   "subcategory": "METHOD"
  },
@@ -2833,7 +2576,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "450",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.392804",
   "name": "450",
   "subcategory": "METHOD"
  },
@@ -2844,7 +2586,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "451",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.419368",
   "name": "451",
   "subcategory": "METHOD"
  },
@@ -2855,7 +2596,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "452",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.446961",
   "name": "452",
   "subcategory": "METHOD"
  },
@@ -2866,7 +2606,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "453",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.471046",
   "name": "453",
   "subcategory": "METHOD"
  },
@@ -2877,7 +2616,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "47",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.489551",
   "name": "47",
   "subcategory": "POWER PLANT"
  },
@@ -2888,7 +2626,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "48",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.514961",
   "name": "48",
   "subcategory": "EXTERNAL FACTORS"
  },
@@ -2899,7 +2636,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "49",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.540924",
   "name": "49",
   "subcategory": "EXTERNAL FACTORS"
  },
@@ -2910,7 +2646,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "50",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.577364",
   "name": "50",
   "subcategory": "EXTERNAL FACTORS"
  },
@@ -2921,7 +2656,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "51",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.599791",
   "name": "51",
   "subcategory": "EXTERNAL FACTORS"
  },
@@ -2932,7 +2666,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "52",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.614186",
   "name": "52",
   "subcategory": "AUXILIARIES"
  },
@@ -2943,7 +2676,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "53",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.632140",
   "name": "53",
   "subcategory": "PRODUCTION"
  },
@@ -2954,7 +2686,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "54",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.647487",
   "name": "54",
   "subcategory": "PRODUCTION"
  },
@@ -2965,7 +2696,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "55",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.695921",
   "name": "55",
   "subcategory": "BOILER"
  },
@@ -2976,7 +2706,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "56",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.710115",
   "name": "56",
   "subcategory": "AUXILIARIES"
  },
@@ -2987,7 +2716,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "57",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.725278",
   "name": "57",
   "subcategory": "AUXILIARIES"
  },
@@ -2998,7 +2726,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "58",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.767784",
   "name": "58",
   "subcategory": "AUXILIARIES"
  },
@@ -3009,7 +2736,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "59",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.786252",
   "name": "59",
   "subcategory": "AUXILIARIES"
  },
@@ -3020,7 +2746,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "60",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.813263",
   "name": "60",
   "subcategory": "AUXILIARIES"
  },
@@ -3031,7 +2756,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "61",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.830643",
   "name": "61",
   "subcategory": "AUXILIARIES"
  },
@@ -3042,7 +2766,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "62",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.897898",
   "name": "62",
   "subcategory": "AUXILIARIES"
  },
@@ -3053,7 +2776,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "63",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.911189",
   "name": "63",
   "subcategory": "AUXILIARIES"
  },
@@ -3064,7 +2786,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "64",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.930777",
   "name": "64",
   "subcategory": "AUXILIARIES"
  },
@@ -3075,7 +2796,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "65",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.945020",
   "name": "65",
   "subcategory": "AUXILIARIES"
  },
@@ -3086,7 +2806,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "66",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.960908",
   "name": "66",
   "subcategory": "AUXILIARIES"
  },
@@ -3097,7 +2816,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "67",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:43.984311",
   "name": "67",
   "subcategory": "MOULD"
  },
@@ -3108,7 +2826,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "69",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.012755",
   "name": "69",
   "subcategory": "MOULD"
  },
@@ -3119,7 +2836,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "70",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.033730",
   "name": "70",
   "subcategory": "MOULD"
  },
@@ -3130,7 +2846,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "71",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.164187",
   "name": "71",
   "subcategory": "MOULD"
  },
@@ -3141,7 +2856,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "72",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.185205",
   "name": "72",
   "subcategory": "MOULD"
  },
@@ -3152,7 +2866,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "73",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.213487",
   "name": "73",
   "subcategory": "MOULD"
  },
@@ -3163,7 +2876,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "74",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.238271",
   "name": "74",
   "subcategory": "MOULD"
  },
@@ -3174,7 +2886,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "75",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.258135",
   "name": "75",
   "subcategory": "MOULD"
  },
@@ -3185,7 +2896,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "76",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.294420",
   "name": "76",
   "subcategory": "MOULD"
  },
@@ -3196,7 +2906,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "77",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.321060",
   "name": "77",
   "subcategory": "MOULD"
  },
@@ -3207,7 +2916,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "78",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.350436",
   "name": "78",
   "subcategory": "MOULD"
  },
@@ -3218,7 +2926,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "79",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.375726",
   "name": "79",
   "subcategory": "MOULD"
  },
@@ -3229,7 +2936,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "80",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.413610",
   "name": "80",
   "subcategory": "MOULD"
  },
@@ -3240,7 +2946,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "81",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.448714",
   "name": "81",
   "subcategory": "MOULD"
  },
@@ -3251,7 +2956,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "82",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.490698",
   "name": "82",
   "subcategory": "MOULD"
  },
@@ -3262,7 +2966,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "83",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.526547",
   "name": "83",
   "subcategory": "MOULD"
  },
@@ -3273,7 +2976,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "84",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.684327",
   "name": "84",
   "subcategory": "MOULD"
  },
@@ -3284,7 +2986,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "85",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.729393",
   "name": "85",
   "subcategory": "MOULD"
  },
@@ -3295,7 +2996,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "86",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.754385",
   "name": "86",
   "subcategory": "MOULD"
  },
@@ -3306,7 +3006,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "87",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.787811",
   "name": "87",
   "subcategory": "MANPOWER"
  },
@@ -3317,7 +3016,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "89",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.822058",
   "name": "89",
   "subcategory": "MATERIAL"
  },
@@ -3328,7 +3026,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "90",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.887320",
   "name": "90",
   "subcategory": "MATERIAL"
  },
@@ -3339,7 +3036,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "91",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.962628",
   "name": "91",
   "subcategory": "MATERIAL"
  },
@@ -3350,7 +3046,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "92",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:44.986834",
   "name": "92",
   "subcategory": "MATERIAL"
  },
@@ -3361,7 +3056,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "93",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:45.030651",
   "name": "93",
   "subcategory": "MATERIAL"
  },
@@ -3372,7 +3066,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "94",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:45.074815",
   "name": "94",
   "subcategory": "METHOD"
  },
@@ -3383,7 +3076,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "95",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:45.122108",
   "name": "95",
   "subcategory": "METHOD"
  },
@@ -3394,7 +3086,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "96",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:45.158924",
   "name": "96",
   "subcategory": "METHOD"
  },
@@ -3405,7 +3096,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "97",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:45.196619",
   "name": "97",
   "subcategory": "METHOD"
  },
@@ -3416,7 +3106,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "98",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:45.240257",
   "name": "98",
   "subcategory": "METHOD"
  },
@@ -3427,7 +3116,6 @@
   "doctype": "Downtime Reason",
   "dt_code": "99",
   "is_active": 1,
-  "modified": "2026-09-04 09:18:45.305515",
   "name": "99",
   "subcategory": "METHOD"
  }
