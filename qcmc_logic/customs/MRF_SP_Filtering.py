@@ -30,15 +30,25 @@ def staffing_plan_link_query(doctype, txt, searchfield, start, page_len, filters
     #         WHERE spd.parent = {user_parent}
     #     )
     # """)
-    placeholders = ", ".join(["%s"] * len(role_profiles))
-    where.append(f"""
+    if role_profiles:
+        role_placeholders = []
+
+        for i, role_profile in enumerate(role_profiles):
+            key = f"role_profile_{i}"
+            role_placeholders.append(f"%({key})s")
+            params[key] = role_profile
+
+        where.append(f"""
             sp.name IN (
                 SELECT spd.staffing_plan
                 FROM `tabStaffing Plan Role Assignment Details` spd
-                WHERE spd.parent IN ({placeholders})
+                WHERE spd.parent IN ({", ".join(role_placeholders)})
             )
         """)
-    params.extend(role_profiles)
+
+    else:
+        # User has no Role Profile, therefore no Staffing Plans
+        where.append("1 = 0")
 
     if has_exception_roles:
         return frappe.db.sql(
