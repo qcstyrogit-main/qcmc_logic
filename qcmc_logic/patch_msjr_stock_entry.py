@@ -8,7 +8,8 @@ import frappe
 
 def run():
     _add_custom_field()
-    _add_doctype_link()
+    from qcmc_logic.customs.machine_shop_job_request import remove_msjr_stock_entry_reference
+    remove_msjr_stock_entry_reference()
     _update_client_script()
     frappe.db.commit()
     frappe.clear_cache()

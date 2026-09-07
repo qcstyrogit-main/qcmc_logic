@@ -35204,18 +35204,7 @@
   "is_virtual": 0,
   "issingle": 0,
   "istable": 0,
-  "links": [
-   {
-    "custom": 0,
-    "group": "References",
-    "hidden": 0,
-    "is_child_table": 0,
-    "link_doctype": "Stock Entry",
-    "link_fieldname": "msjr_no",
-    "parent_doctype": null,
-    "table_fieldname": null
-   }
-  ],
+  "links": [],
   "make_attachments_public": 0,
   "max_attachments": 0,
   "module": "Assets",
