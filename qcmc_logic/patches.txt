@@ -100,3 +100,4 @@ qcmc_logic.patches.setup_warehouse_handover_roles
 qcmc_logic.patches.add_stock_entry_verified_by
 qcmc_logic.patches.make_mrf_located_at_edsa_optional
 qcmc_logic.patches.make_mrf_located_at_edsa_optional_v2
+qcmc_logic.patches.add_staffing_plan_detail_adjusted_count
