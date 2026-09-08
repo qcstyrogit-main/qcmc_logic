@@ -1,6 +1,7 @@
 import frappe
 from frappe.utils import cint
 
+
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def staffing_plan_link_query(doctype, txt, searchfield, start, page_len, filters):
@@ -72,5 +73,5 @@ def staffing_plan_link_query(doctype, txt, searchfield, start, page_len, filters
         ORDER BY sp.name
         LIMIT %(page_len)s OFFSET %(start)s
         """,
-        params
+        params,
     )

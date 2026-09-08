@@ -184,6 +184,7 @@ after_request = [
 
 doctype_js = {
     "BOM": "public/js/bom.js",
+    "Delivery Note": "public/js/delivery_note.js",
     "Item": "public/js/item.js",
     "Job Card": "public/js/job_card.js",
     "Sales Order": "public/js/sales_order.js",

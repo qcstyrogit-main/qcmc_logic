@@ -2,6 +2,7 @@ import frappe
 
 @frappe.whitelist()
 def get_employee(doctype, txt, searchfield, start, page_len, filters):
+    filters = filters or {}
     conditions = []
     values = {
         "txt": f"%{txt}%",
@@ -12,6 +13,9 @@ def get_employee(doctype, txt, searchfield, start, page_len, filters):
     if filters.get("custom_location") == "EDSA":
 
         # Optional filters
+        if filters.get("company"):
+            conditions.append("company = %(company)s")
+            values["company"] = filters["company"]
 
         if filters.get("designation"):
             conditions.append("(designation = %(designation)s or " \
