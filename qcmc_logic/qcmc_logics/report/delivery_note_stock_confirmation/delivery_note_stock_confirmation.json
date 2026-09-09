@@ -1,0 +1,13 @@
+{
+  "doctype": "Report",
+  "name": "Delivery Note Stock Confirmation",
+  "report_name": "Delivery Note Stock Confirmation",
+  "ref_doctype": "Delivery Note",
+  "module": "QCMC Logics",
+  "report_type": "Script Report",
+  "is_standard": "Yes",
+  "roles": [
+    {"role": "Stock Confirm User"},
+    {"role": "System Manager"}
+  ]
+}
