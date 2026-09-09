@@ -1,6 +1,7 @@
 import frappe
 from frappe.utils import cint
 
+
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def staffing_plan_link_query(doctype, txt, searchfield, start, page_len, filters):
@@ -13,18 +14,43 @@ def staffing_plan_link_query(doctype, txt, searchfield, start, page_len, filters
 
     # Your assumption: Staffing Plan Assignment.name == user (email)
     user_parent = frappe.db.escape(user)
+    role_profiles = frappe.get_all(
+            "User Role Profile",
+            filters={"parent": user},
+            pluck="role_profile"
+        )
 
     where = ["sp.docstatus = 1", "sp.name LIKE %(txt)s"]
     params = {"txt": f"%{txt}%", "start": cint(start), "page_len": cint(page_len)}
 
     # Assigned-to-user filter via child table parent
-    where.append(f"""
-        sp.name IN (
-            SELECT spd.staffing_plan
-            FROM `tabStaffing Plan Assignment Details` spd
-            WHERE spd.parent = {user_parent}
-        )
-    """)
+    # where.append(f"""
+    #     sp.name IN (
+    #         SELECT spd.staffing_plan
+    #          FROM `tabStaffing Plan Assignment Details` spd
+    #         WHERE spd.parent = {user_parent}
+    #     )
+    # """)
+    if role_profiles:
+        role_placeholders = []
+
+        for i, role_profile in enumerate(role_profiles):
+            key = f"role_profile_{i}"
+            role_placeholders.append(f"%({key})s")
+            params[key] = role_profile
+
+        where.append(f"""
+            sp.name IN (
+                SELECT spd.staffing_plan
+                FROM `tabStaffing Plan Role Assignment Details` spd
+                WHERE spd.parent IN ({", ".join(role_placeholders)})
+            )
+        """)
+
+    else:
+        # User has no Role Profile, therefore no Staffing Plans
+        where.append("1 = 0")
+
     if has_exception_roles:
         return frappe.db.sql(
         f"""
@@ -47,5 +73,5 @@ def staffing_plan_link_query(doctype, txt, searchfield, start, page_len, filters
         ORDER BY sp.name
         LIMIT %(page_len)s OFFSET %(start)s
         """,
-        params
+        params,
     )

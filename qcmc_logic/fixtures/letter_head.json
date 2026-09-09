@@ -18,7 +18,6 @@
   "image_width": 0.0,
   "is_default": 0,
   "letter_head_name": "BOA Letterhead",
-  "modified": "2026-09-04 09:18:46.439424",
   "name": "BOA Letterhead",
   "source": "Image"
  },
@@ -41,7 +40,6 @@
   "image_width": 0.0,
   "is_default": 0,
   "letter_head_name": "Company Letterhead",
-  "modified": "2026-09-04 09:18:46.985861",
   "name": "Company Letterhead",
   "source": "HTML"
  },
@@ -64,7 +62,6 @@
   "image_width": 0.0,
   "is_default": 0,
   "letter_head_name": "Company Letterhead - Grey",
-  "modified": "2026-09-04 09:18:47.448551",
   "name": "Company Letterhead - Grey",
   "source": "HTML"
  },
@@ -87,7 +84,6 @@
   "image_width": 48.0,
   "is_default": 0,
   "letter_head_name": "QCMC",
-  "modified": "2026-09-04 09:18:48.364795",
   "name": "QCMC",
   "source": "Image"
  }

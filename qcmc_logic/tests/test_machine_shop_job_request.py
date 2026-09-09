@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 from frappe import _dict
 
 from qcmc_logic.customs.machine_shop_job_request import (
+    get_linked_repairs_projects,
     _validate_completion_output,
     _validate_linked_project_completed,
     _validate_output_item,
@@ -11,6 +12,26 @@ from qcmc_logic.customs.machine_shop_job_request import (
     _validate_quantity_produced_permission,
     _normalize_non_fabrication_quantity_produced,
 )
+
+
+class TestLinkedRepairsProjects(TestCase):
+    def test_monitor_filters_current_request_using_permission_aware_list(self):
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.get_list.return_value = [{"name": "MSRP-1"}]
+            self.assertEqual(get_linked_repairs_projects("MSJR-1"), [{"name": "MSRP-1"}])
+            frappe.get_doc.assert_called_once_with("Machine Shop Job Request", "MSJR-1")
+            frappe.get_doc.return_value.check_permission.assert_called_once_with("read")
+            query = frappe.get_list.call_args.kwargs
+            self.assertEqual(query["filters"], {"msjr_no": "MSJR-1"})
+            self.assertEqual(query["limit_page_length"], 0)
+            frappe.get_all.assert_not_called()
+
+    def test_monitor_denies_unreadable_request_before_listing_projects(self):
+        with patch("qcmc_logic.customs.machine_shop_job_request.frappe") as frappe:
+            frappe.get_doc.return_value.check_permission.side_effect = PermissionError
+            with self.assertRaises(PermissionError):
+                get_linked_repairs_projects("MSJR-OTHER")
+            frappe.get_list.assert_not_called()
 
 
 def output_doc(**values):

@@ -518,6 +518,18 @@ MSJR_PERMISSIONS = [
 
 MSJR_OUTPUT_FIELDS = [
     {
+        "fieldname": "repairs_projects_tab",
+        "label": "Repairs and Projects",
+        "fieldtype": "Tab Break",
+        "insert_after": "amended_from",
+    },
+    {
+        "fieldname": "repairs_projects_html",
+        "label": "Repairs and Projects Monitor",
+        "fieldtype": "HTML",
+        "insert_after": "repairs_projects_tab",
+    },
+    {
         "fieldname": "output_details_section",
         "label": "Fabricated Output",
         "fieldtype": "Section Break",
@@ -532,11 +544,19 @@ MSJR_OUTPUT_FIELDS = [
         "description": "Item in Inventory Group MOULD, MACHINE, or CMMS.",
     },
     {
+        "fieldname": "item_name",
+        "label": "Item Name",
+        "fieldtype": "Data",
+        "insert_after": "item_code",
+        "fetch_from": "item_code.item_name",
+        "read_only": 1,
+    },
+    {
         "fieldname": "quantity_request",
         "label": "Quantity Request",
         "fieldtype": "Float",
         "non_negative": 1,
-        "insert_after": "item_code",
+        "insert_after": "item_name",
     },
     {
         "fieldname": "quantity_produced",
@@ -544,7 +564,7 @@ MSJR_OUTPUT_FIELDS = [
         "fieldtype": "Float",
         "default": "0",
         "non_negative": 1,
-        "insert_after": "item_code",
+        "insert_after": "item_name",
     },
     {
         "fieldname": "not_in_master_file",
@@ -569,6 +589,22 @@ MSJR_OUTPUT_FIELDS = [
         "depends_on": "eval:doc.not_in_master_file",
     },
 ]
+
+
+@frappe.whitelist()
+def get_linked_repairs_projects(msjr_no):
+    """List every linked project visible to the current user, including cancelled jobs."""
+    frappe.get_doc("Machine Shop Job Request", msjr_no).check_permission("read")
+    return frappe.get_list(
+        "Machine Shop Repairs and Project",
+        filters={"msjr_no": msjr_no},
+        fields=[
+            "name", "project_no", "workflow_state", "status", "docstatus",
+            "percentage_completed", "start_date", "commitment_date",
+        ],
+        order_by="creation desc",
+        limit_page_length=0,
+    )
 
 
 def _ensure_msjr_output_fields():
@@ -643,6 +679,38 @@ def ensure_msjr_item_layout():
     frappe.clear_cache(doctype="Machine Shop Job Request")
 
 
+def remove_msjr_stock_entry_reference():
+    """Remove the legacy Stock Entry shortcut from the References dashboard group."""
+    frappe.db.delete("DocType Link", {
+        "parent": "Machine Shop Job Request",
+        "parenttype": "DocType",
+        "link_doctype": "Stock Entry",
+        "group": "References",
+    })
+    frappe.clear_cache(doctype="Machine Shop Job Request")
+
+
+def ensure_msjr_client_script():
+    """Custom DocTypes skip doctype_js hooks; deliver the form code as a Client Script."""
+    from pathlib import Path
+
+    name = "Machine Shop Job Request - Form Enhancements"
+    script = Path(frappe.get_app_path("qcmc_logic", "public", "js", "machine_shop_job_request.js")).read_text()
+    if frappe.db.exists("Client Script", name):
+        doc = frappe.get_doc("Client Script", name)
+    else:
+        doc = frappe.new_doc("Client Script")
+        doc.name = name
+    doc.update({
+        "dt": "Machine Shop Job Request",
+        "view": "Form",
+        "enabled": 1,
+        "script": script,
+    })
+    doc.save(ignore_permissions=True)
+    frappe.clear_cache(doctype="Machine Shop Job Request")
+
+
 def ensure_msjr_permissions():
     """Re-apply field layout, DocPerm, and JRS doctypes after every migrate."""
     import json, os
@@ -656,6 +724,8 @@ def ensure_msjr_permissions():
 
     ensure_msjr_item_layout()
     _ensure_msjr_output_fields()
+    ensure_msjr_client_script()
+    remove_msjr_stock_entry_reference()
     _ensure_fabrication_request_codes()
 
     # 3. Sync MSJR workflow from fixture

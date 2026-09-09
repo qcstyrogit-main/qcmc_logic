@@ -167,6 +167,9 @@ doc_events = {
     "Job Card Downtime": {
         "validate": "qcmc_logic.customs.job_card_downtime.validate",
     },
+    "Job Opening": {
+        "before_validate": "qcmc_logic.customs.job_opening.set_unique_job_opening_route"
+    }
 }
 
 before_request = [
@@ -181,6 +184,7 @@ after_request = [
 
 doctype_js = {
     "BOM": "public/js/bom.js",
+    "Delivery Note": "public/js/delivery_note.js",
     "Item": "public/js/item.js",
     "Job Card": "public/js/job_card.js",
     "Sales Order": "public/js/sales_order.js",

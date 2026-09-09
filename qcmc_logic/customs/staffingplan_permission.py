@@ -12,11 +12,21 @@ def mrf_permission_query_condition(user):
 
     user = frappe.db.escape(user)
 
+    # return f"""
+    #     `tabJob Requisition`.custom_staffing_plan IN (
+    #         SELECT staffing_plan
+    #         FROM `tabStaffing Plan Assignment Details`
+    #         WHERE parent = {user} 
+    #     )
+    # """
     return f"""
         `tabJob Requisition`.custom_staffing_plan IN (
             SELECT staffing_plan
-            FROM `tabStaffing Plan Assignment Details`
-            WHERE parent = {user} 
+            FROM `tabStaffing Plan Role Assignment Details`
+            WHERE parent  IN (
+                      SELECT urp.role_profile
+                      FROM `tabUser Role Profile` urp
+                      WHERE urp.parent = {user} 
+                  ) 
         )
     """
-    

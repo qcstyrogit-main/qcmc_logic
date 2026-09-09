@@ -2,6 +2,7 @@ import frappe
 
 @frappe.whitelist()
 def get_employee(doctype, txt, searchfield, start, page_len, filters):
+    filters = filters or {}
     conditions = []
     values = {
         "txt": f"%{txt}%",
@@ -12,6 +13,9 @@ def get_employee(doctype, txt, searchfield, start, page_len, filters):
     if filters.get("custom_location") == "EDSA":
 
         # Optional filters
+        if filters.get("company"):
+            conditions.append("company = %(company)s")
+            values["company"] = filters["company"]
 
         if filters.get("designation"):
             conditions.append("(designation = %(designation)s or " \
@@ -49,7 +53,7 @@ def get_employee(doctype, txt, searchfield, start, page_len, filters):
 
             # ✅ If BOTH company & department exist
             if filters.get("department") and filters.get("company"):
-                conditions.append("""
+              conditions.append("""
                     (designation = %(designation)s OR
                     name IN (
                         SELECT employee FROM `tabEmployee Promotion`
@@ -62,6 +66,7 @@ def get_employee(doctype, txt, searchfield, start, page_len, filters):
                         )
                     ))
                 """)
+		            
             else:
                 # ✅ fallback without department/company
                 conditions.append("designation = %(designation)s")
