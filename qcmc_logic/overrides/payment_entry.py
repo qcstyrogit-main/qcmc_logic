@@ -777,9 +777,42 @@ def get_affiliate_collection_deduction_defaults(company, affiliate_company):
     }
 
 
+@frappe.whitelist()
+def get_cwt_deduction_defaults(company):
+    if not frappe.db.exists("Company", company):
+        frappe.throw(_("Company {0} does not exist.").format(frappe.bold(company)))
+
+    account = frappe.db.get_value("Company", company, "custom_default_cwt_account")
+    if not account:
+        frappe.throw(
+            _(
+                "No Default Creditable Withholding Tax Account is configured for company {0}. "
+                "Set it in Company accounting defaults first."
+            ).format(frappe.bold(company))
+        )
+    if not frappe.db.exists(
+        "Account",
+        {"name": account, "company": company, "is_group": 0},
+    ):
+        frappe.throw(
+            _(
+                "The Default Creditable Withholding Tax Account for company {0} "
+                "must be a ledger account belonging to that company."
+            ).format(frappe.bold(company))
+        )
+
+    return {
+        "account": account,
+        "cost_center": _get_company_cost_center(company),
+    }
+
+
 def _get_company_cost_center(company):
     cost_center = frappe.db.get_value("Company", company, "cost_center")
-    if cost_center:
+    if cost_center and frappe.db.exists(
+        "Cost Center",
+        {"name": cost_center, "company": company, "is_group": 0},
+    ):
         return cost_center
 
     abbr = _get_company_abbr(company)

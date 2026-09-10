@@ -6,6 +6,50 @@ USER_BACKGROUND_JOBS = {
 	"frappe.core.doctype.user.user.update_gravatar",
 }
 
+LENDING_COLLECTION_OFFSET_FIELDS = (
+	"collection_offset_sequence_for_standard_asset",
+	"collection_offset_sequence_for_sub_standard_asset",
+	"collection_offset_sequence_for_written_off_asset",
+	"collection_offset_sequence_for_settlement_collection",
+)
+
+LENDING_COLLECTION_OFFSET_ORDERS = (
+	"Standard Collection Offset",
+	"Sub Standard Collection Offset",
+	"Written Off Collection Offset",
+	"Settlement Collection Offset",
+)
+
+
+def restore_lending_collection_offset_fields():
+	"""Repair stale cross-app fixtures that restore the pre-Link field schema."""
+	if not frappe.db.exists("DocType", "Loan Demand Offset Order"):
+		return
+
+	for title in LENDING_COLLECTION_OFFSET_ORDERS:
+		if frappe.db.exists("Loan Demand Offset Order", title):
+			continue
+
+		order = frappe.new_doc("Loan Demand Offset Order")
+		order.title = title
+		for demand_type in ("Penalty", "Interest", "Principal"):
+			order.append("components", {"demand_type": demand_type})
+		order.insert(ignore_permissions=True)
+
+	for fieldname in LENDING_COLLECTION_OFFSET_FIELDS:
+		custom_field = f"Company-{fieldname}"
+		if not frappe.db.exists("Custom Field", custom_field):
+			continue
+
+		frappe.db.set_value(
+			"Custom Field",
+			custom_field,
+			{"fieldtype": "Link", "options": "Loan Demand Offset Order"},
+			update_modified=False,
+		)
+
+	frappe.clear_cache(doctype="Company")
+
 
 def run_role_profile_updates_inline():
 	"""Avoid stale Role Profile queue locks while importing fixtures in migrate."""

@@ -344,6 +344,10 @@ fixtures = [
                     "Delivery Note Item-to_room",
                     "Purchase Receipt Item-from_bin",
                     "Purchase Receipt Item-from_room",
+                    "Company-collection_offset_sequence_for_standard_asset",
+                    "Company-collection_offset_sequence_for_sub_standard_asset",
+                    "Company-collection_offset_sequence_for_written_off_asset",
+                    "Company-collection_offset_sequence_for_settlement_collection",
                 ],
             ],
         ],
@@ -402,6 +406,7 @@ before_migrate = [
 ]
 
 after_migrate = [
+    "qcmc_logic.migrate.restore_lending_collection_offset_fields",
     "qcmc_logic.customs.maintenance_job_order.ensure_maintenance_job_order",
     "qcmc_logic.customs.stock_entry.remove_msjr_stock_entry_integration",
     "qcmc_logic.customs.machine_shop_job_request.ensure_msjr_permissions",
