@@ -398,6 +398,7 @@ fixtures = [
 before_migrate = [
     # This custom DocType must exist before fixtures such as Workflows are synced.
     "qcmc_logic.customs.maintenance_job_order.ensure_maintenance_job_order",
+    "qcmc_logic.patches.setup_invoicing_clerk_role.execute",
 ]
 
 after_migrate = [
