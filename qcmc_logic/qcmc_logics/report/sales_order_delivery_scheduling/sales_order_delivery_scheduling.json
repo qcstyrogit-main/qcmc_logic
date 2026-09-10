@@ -1,0 +1,12 @@
+{
+  "doctype": "Report",
+  "name": "Sales Order Delivery Scheduling",
+  "report_name": "Sales Order Delivery Scheduling",
+  "ref_doctype": "Sales Order",
+  "module": "QCMC Logics",
+  "report_type": "Script Report",
+  "is_standard": "Yes",
+  "roles": [
+    {"role": "Sales Coordinator"}
+  ]
+}
