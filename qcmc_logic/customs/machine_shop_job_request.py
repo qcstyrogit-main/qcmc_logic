@@ -106,6 +106,27 @@ def get_user_locations():
     return _get_user_locations()
 
 
+@frappe.whitelist()
+def get_new_request_defaults():
+    """Resolve creation defaults for the signed-in user without choosing an unrelated section."""
+    user = frappe.session.user
+    locations = _get_user_locations(user)
+    section = locations[0] if len(locations) == 1 else None
+    if not section:
+        profile = frappe.db.get_value("User", user, "role_profile_name")
+        mapping = frappe.db.get_value("Job Request Section", {"role_profile": profile}, "name") if profile else None
+        if mapping:
+            sections = frappe.get_all(
+                "Job Request Section Detail", filters={"parent": mapping},
+                pluck="section", order_by="idx asc",
+            )
+            section = next((value for value in sections if value in locations), None)
+    return {
+        "section": section,
+        "company": frappe.defaults.get_user_default("Company", user=user),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Doctype hooks
 # ---------------------------------------------------------------------------
