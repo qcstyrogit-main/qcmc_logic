@@ -11,6 +11,9 @@ from qcmc_logic.utils import (
 )
 
 
+SCHEDULING_ROLES = {"Sales Coordinator"}
+
+
 def execute(filters=None):
 	filters = frappe._dict(filters or {})
 	columns = [
@@ -95,9 +98,11 @@ def _consolidate_rows(rows):
 
 @frappe.whitelist()
 def update_delivery_dates(so_details, delivery_date):
+	_validate_scheduling_role()
 	so_details = frappe.parse_json(so_details)
 	if not so_details or not delivery_date:
 		frappe.throw(_("Items and a new delivery date are required."))
+	_lock_sales_order_items(so_details)
 	before_docs = {}
 	changes = {}
 	for detail in so_details:
@@ -127,7 +132,6 @@ def update_delivery_dates(so_details, delivery_date):
 			frappe.get_doc("Sales Order", sales_order),
 			sales_order_changes,
 		)
-	frappe.db.commit()
 	return _("Delivery dates updated and recorded in Sales Order history. The report has been refreshed.")
 
 
@@ -150,15 +154,15 @@ def _record_delivery_date_history(before_doc, after_doc, changes):
 
 @frappe.whitelist()
 def create_delivery_notes(so_details):
+	_validate_scheduling_role()
 	so_details = list(dict.fromkeys(frappe.parse_json(so_details)))
 	if not so_details:
 		frappe.throw(_("Select at least one Sales Order item."))
+	locked_rows = _lock_sales_order_items(so_details)
 
 	details_by_sales_order = {}
-	for detail in so_details:
-		row = frappe.db.get_value("Sales Order Item", detail, ["parent"], as_dict=True)
-		if not row:
-			frappe.throw(_("Sales Order Item {0} was not found.").format(detail))
+	for row in locked_rows:
+		detail = row.name
 		details_by_sales_order.setdefault(row.parent, []).append(detail)
 
 	created = []
@@ -215,6 +219,34 @@ def _validate_sales_order(so, selected_details):
 
 def _is_sales_coordinator():
 	return "Sales Coordinator" in frappe.get_roles(frappe.session.user)
+
+
+def _validate_scheduling_role():
+	if frappe.session.user == "Administrator":
+		return
+	if not SCHEDULING_ROLES.intersection(frappe.get_roles(frappe.session.user)):
+		frappe.throw(_("You are not allowed to manage Sales Order delivery scheduling."), frappe.PermissionError)
+
+
+def _lock_sales_order_items(so_details):
+	names = sorted(set(so_details))
+	placeholders = ", ".join(["%s"] * len(names))
+	rows = frappe.db.sql(
+		f"""
+		SELECT name, parent
+		FROM `tabSales Order Item`
+		WHERE name IN ({placeholders})
+		ORDER BY name
+		FOR UPDATE
+		""",
+		tuple(names),
+		as_dict=True,
+	)
+	if len(rows) != len(names):
+		found = {row.name for row in rows}
+		missing = [name for name in names if name not in found]
+		frappe.throw(_("Sales Order Item(s) not found: {0}").format(", ".join(missing)))
+	return rows
 
 
 def _apply_sales_coordinator_scope(conditions, values):

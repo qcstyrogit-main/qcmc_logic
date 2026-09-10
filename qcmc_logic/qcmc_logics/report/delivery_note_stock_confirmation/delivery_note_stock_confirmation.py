@@ -56,8 +56,6 @@ def execute(filters=None):
 
 @frappe.whitelist()
 def confirm_delivery_notes(delivery_notes, remarks=None):
-	from frappe.model.workflow import apply_workflow
-
 	names = list(dict.fromkeys(frappe.parse_json(delivery_notes)))
 	if not names:
 		frappe.throw(_("Select at least one Delivery Note."))
@@ -65,7 +63,10 @@ def confirm_delivery_notes(delivery_notes, remarks=None):
 		doc = frappe.get_doc("Delivery Note", name)
 		_validate_delivery_note(doc, require_transact=True)
 		doc.add_comment("Info", _("Stock Confirmation: OK{0}").format(_remarks_suffix(remarks)))
-		apply_workflow(doc.as_dict(), "Submit For DR Printing")
+		doc.workflow_state = "For DR Printing"
+		doc.status = "For DR Printing"
+		doc.save(ignore_permissions=True)
+		doc.add_comment("Workflow", _("For DR Printing"))
 	return _("Moved Delivery Note(s) to For DR Printing: {0}").format(", ".join(names))
 
 
@@ -141,7 +142,7 @@ def _validate_delivery_note(doc, require_transact=False):
 
 def _validate_logistics_role():
 	roles = set(frappe.get_roles(frappe.session.user))
-	if frappe.session.user != "Administrator" and not roles.intersection({"Stock Confirm User", "System Manager"}):
+	if frappe.session.user != "Administrator" and "Stock Confirm User" not in roles:
 		frappe.throw(_("You are not allowed to perform stock confirmation."), frappe.PermissionError)
 
 

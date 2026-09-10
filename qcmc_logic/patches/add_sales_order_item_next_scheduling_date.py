@@ -43,11 +43,13 @@ def _backfill_stock_confirmation_removals():
 				"docname": comment.reference_name,
 				"creation": ["<=", comment.creation],
 			},
-			fields=["data"],
+			fields=["creation", "data"],
 			order_by="creation desc",
 			limit=1,
 		)
 		if not versions:
+			continue
+		if abs(frappe.utils.time_diff_in_seconds(comment.creation, versions[0].creation)) > 60:
 			continue
 		try:
 			removed = json.loads(versions[0].data or "{}").get("removed", [])

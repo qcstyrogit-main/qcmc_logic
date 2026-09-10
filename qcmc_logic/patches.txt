@@ -102,3 +102,4 @@ qcmc_logic.patches.make_mrf_located_at_edsa_optional
 qcmc_logic.patches.make_mrf_located_at_edsa_optional_v2
 qcmc_logic.patches.add_staffing_plan_detail_adjusted_count
 qcmc_logic.patches.add_sales_order_item_next_scheduling_date
+qcmc_logic.patches.setup_invoicing_clerk_role

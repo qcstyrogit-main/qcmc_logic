@@ -7,10 +7,6 @@
   "report_type": "Script Report",
   "is_standard": "Yes",
   "roles": [
-    {"role": "Sales User"},
-    {"role": "Sales Manager"},
-    {"role": "Sales Coordinator"},
-    {"role": "Head Office Sales User"},
-    {"role": "System Manager"}
+    {"role": "Sales Coordinator"}
   ]
 }
