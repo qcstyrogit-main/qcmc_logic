@@ -7,6 +7,24 @@ frappe.ui.form.on("Machine Shop Job Request", {
         }));
     },
 
+    async onload(frm) {
+        if (!frm.is_new() || frm.doc.amended_from) return;
+        const doc = frm.doc;
+        const initial = { section: doc.section, company: doc.company };
+        const response = await frappe.call({
+            method: "qcmc_logic.customs.machine_shop_job_request.get_new_request_defaults",
+        });
+        if (frm.doc !== doc || !frm.is_new()) return;
+        const defaults = response.message || {};
+        const values = {};
+        for (const field of ["section", "company"]) {
+            if (!initial[field] && !frm.doc[field] && defaults[field]) {
+                values[field] = defaults[field];
+            }
+        }
+        if (Object.keys(values).length) await frm.set_value(values);
+    },
+
     refresh(frm) {
         qcmc_logic.machine_shop_job_request_output.apply_field_rules(frm, false);
         qcmc_logic.machine_shop_job_request_output.apply_quantity_produced_permission(frm);

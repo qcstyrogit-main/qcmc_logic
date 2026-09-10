@@ -107,13 +107,13 @@ def recalculate_staffing_plan(staffing_plan):
         if doc.docstatus == 1:
             number_of_positions = d.number_of_positions
             if number_of_positions > current_count:
-                vacancies = ((number_of_positions - current_count)) + additional_count + adjusted_count
+                vacancies = ((number_of_positions - current_count)) + additional_count
                 number_of_positions = vacancies + current_count
                 frappe.db.set_value("Staffing Plan Detail", d.name, "number_of_positions", number_of_positions)
             # else:
             #     vacancies = 0
             elif number_of_positions < (vacancies + additional_count + current_count):
-                 vacancies = (number_of_positions - current_count) + adjusted_count
+                 vacancies = (number_of_positions - current_count)
                  number_of_positions = (vacancies + additional_count + current_count)
                  
                  frappe.db.set_value("Staffing Plan Detail", d.name, "number_of_positions", number_of_positions)
@@ -124,15 +124,19 @@ def recalculate_staffing_plan(staffing_plan):
 
             elif number_of_positions < current_count:
                 number_of_positions = current_count 
-                vacancies = (number_of_positions - current_count) + adjusted_count
+                vacancies = (number_of_positions - current_count)
                 number_of_positions = (vacancies + additional_count + current_count)
                 frappe.db.set_value("Staffing Plan Detail", d.name, "number_of_positions", number_of_positions)
 
 
+            if adjusted_count != 0:
+                vacancies = vacancies + adjusted_count
+                number_of_positions = (vacancies + additional_count + current_count)
+                frappe.db.set_value("Staffing Plan Detail", d.name, "number_of_positions", number_of_positions)
             
             
         else:
-            number_of_positions = vacancies + current_count + adjusted_count
+            number_of_positions = vacancies + current_count 
             frappe.db.set_value("Staffing Plan Detail", d.name, "number_of_positions", number_of_positions)
         
 

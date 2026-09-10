@@ -5,6 +5,7 @@ from frappe import _dict
 
 from qcmc_logic.customs.machine_shop_job_request import (
     get_linked_repairs_projects,
+    get_new_request_defaults,
     _validate_completion_output,
     _validate_linked_project_completed,
     _validate_output_item,
@@ -12,6 +13,34 @@ from qcmc_logic.customs.machine_shop_job_request import (
     _validate_quantity_produced_permission,
     _normalize_non_fabrication_quantity_produced,
 )
+
+
+class TestNewRequestDefaults(TestCase):
+    @patch("qcmc_logic.customs.machine_shop_job_request._get_user_locations")
+    @patch("qcmc_logic.customs.machine_shop_job_request.frappe")
+    def test_single_section_and_user_company(self, frappe, locations):
+        frappe.session.user = "requestor@example.com"
+        locations.return_value = ["MC - Maintenance"]
+        frappe.defaults.get_user_default.return_value = "Company MC"
+        self.assertEqual(get_new_request_defaults(), {
+            "section": "MC - Maintenance", "company": "Company MC",
+        })
+        frappe.defaults.get_user_default.assert_called_once_with("Company", user="requestor@example.com")
+
+    @patch("qcmc_logic.customs.machine_shop_job_request._get_user_locations")
+    @patch("qcmc_logic.customs.machine_shop_job_request.frappe")
+    def test_multiple_sections_use_primary_profile_order(self, frappe, locations):
+        locations.return_value = ["MC - Maintenance", "MC - Production"]
+        frappe.db.get_value.side_effect = ["Primary Profile", "Mapping"]
+        frappe.get_all.return_value = ["Unauthorized", "MC - Production", "MC - Maintenance"]
+        self.assertEqual(get_new_request_defaults()["section"], "MC - Production")
+
+    @patch("qcmc_logic.customs.machine_shop_job_request._get_user_locations")
+    @patch("qcmc_logic.customs.machine_shop_job_request.frappe")
+    def test_no_mapping_does_not_guess_section(self, frappe, locations):
+        locations.return_value = []
+        frappe.db.get_value.return_value = None
+        self.assertIsNone(get_new_request_defaults()["section"])
 
 
 class TestLinkedRepairsProjects(TestCase):
