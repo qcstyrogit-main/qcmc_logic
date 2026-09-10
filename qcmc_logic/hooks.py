@@ -228,6 +228,7 @@ doctype_list_js = {
 
 
 override_whitelisted_methods = {
+    "frappe.model.workflow.apply_workflow": "qcmc_logic.customs.purchase_request_workflow.apply_workflow",
 	"erpnext.stock.doctype.pick_list.pick_list.create_stock_entry": "qcmc_logic.overrides.pick_list.create_stock_entry",
     "frappe_assistant_core.api.fac_endpoint.handle_mcp": "qcmc_logic.overrides.oauth_override.handle_mcp",
     "frappe.desk.printing.get_print_format": "qcmc_logic.overrides.POPrint_Override.get_po_print_format",
@@ -304,7 +305,7 @@ has_permission = {
     "Delivery Note": "qcmc_logic.customs.permissions.sales_transaction_has_permission",
     "Machine Shop Job Request": "qcmc_logic.customs.machine_shop_job_request.msjr_has_permission",
     "Machine Shop Repairs and Project": "qcmc_logic.customs.machine_shop_repairs_and_project.msrp_has_permission",
-    "Material Request": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
+    "Material Request": "qcmc_logic.customs.permissions.material_request_has_permission",
     "Payment Entry": "qcmc_logic.customs.permissions.payment_entry_has_permission",
     "Pick List": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
     "POS Invoice": "qcmc_logic.customs.permissions.warehouse_transaction_has_permission",
@@ -406,7 +407,7 @@ before_migrate = [
 ]
 
 after_migrate = [
-    "qcmc_logic.migrate.restore_lending_collection_offset_fields",
+    "qcmc_logic.patches.restore_daily_job_schedule_navigation.execute",
     "qcmc_logic.customs.maintenance_job_order.ensure_maintenance_job_order",
     "qcmc_logic.customs.stock_entry.remove_msjr_stock_entry_integration",
     "qcmc_logic.customs.machine_shop_job_request.ensure_msjr_permissions",

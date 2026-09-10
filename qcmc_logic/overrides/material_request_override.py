@@ -3,6 +3,12 @@ from erpnext.stock.doctype.material_request.material_request import MaterialRequ
 
 class CustomMaterialRequest(MaterialRequest):
 
+    def validate(self):
+        from qcmc_logic.customs.purchase_request_workflow import validate_decision
+
+        validate_decision(self)
+        super().validate()
+
     def validate_warehouse(self):
         from erpnext.stock.utils import (
             validate_disabled_warehouse,

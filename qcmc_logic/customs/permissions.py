@@ -353,8 +353,59 @@ def delivery_note_permission_query(user):
     return _sales_transaction_read_permission_query("Delivery Note", user)
 
 
-def material_request_permission_query(user):
-    return _warehouse_transaction_permission_query("Material Request", user)
+def _material_request_visible_states(user):
+    from frappe.model.workflow import get_workflow
+
+    roles = set(frappe.get_roles(user))
+    workflow = get_workflow("Material Request")
+    states = {row.state for row in workflow.states if row.allow_edit in roles}
+    # These states belong exclusively to Purchasing, even though the shared
+    # workflow also gives Stock User a Submitted row for non-Purchase requests.
+    purchasing_states = {"To Receive", "Received", "Submitted"}
+    states -= purchasing_states
+    if "Purchase User" in roles:
+        states |= purchasing_states
+    return states
+
+
+def material_request_permission_query(user=None):
+    user = user or frappe.session.user
+    warehouse_condition = _warehouse_transaction_permission_query("Material Request", user)
+    states = _material_request_visible_states(user)
+    table = "`tabMaterial Request`"
+    # Creators retain visibility throughout approval; shared Draft roles do
+    # not grant access to other requesters' drafts.
+    state_conditions = [f"{table}.owner = {frappe.db.escape(user)}"]
+    other_states = sorted(states - {"Draft"})
+    if other_states:
+        state_conditions.append(f"{table}.workflow_state IN ({_sql_list(other_states)})")
+    allowed = " OR ".join(state_conditions) or "1=0"
+    purchase_condition = (
+        f"(COALESCE({table}.material_request_type, '') != 'Purchase' OR ({allowed}))"
+    )
+    if warehouse_condition:
+        return f"({warehouse_condition}) AND {purchase_condition}"
+    return purchase_condition
+
+
+def material_request_has_permission(doc, ptype=None, user=None):
+    user = user or frappe.session.user
+    if doc and doc.get("material_request_type") == "Purchase" and ptype in {
+        "write", "delete", "submit", "cancel", "amend"
+    }:
+        # Workflow saves contain the target state; use the stored state so
+        # an approver can return a request to its creator.
+        state = frappe.db.get_value("Material Request", doc.name, "workflow_state") if doc.get("name") else None
+        if state == "Rejected" or (state == "Draft" and doc.get("owner") != user):
+            return False
+    if doc and doc.get("material_request_type") == "Purchase" and ptype in {
+        None, "read", "select", "print", "email", "export"
+    }:
+        states = _material_request_visible_states(user)
+        state = doc.get("workflow_state") or "Draft"
+        if doc.get("owner") != user and (state == "Draft" or state not in states):
+            return False
+    return warehouse_transaction_has_permission(doc, ptype=ptype, user=user)
 
 
 def pick_list_permission_query(user):

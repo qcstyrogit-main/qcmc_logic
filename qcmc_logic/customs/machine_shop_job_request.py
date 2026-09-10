@@ -298,12 +298,14 @@ def _validate_completion_output(doc):
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_msjr_item_query(doctype, txt, searchfield, start, page_len, filters):
-    """Return active Items in the three MSJR Inventory Groups."""
+    """Search active MSJR Items by code and name, as in the Item master."""
     return frappe.db.sql(
         f"""
         SELECT i.name, i.item_name
         FROM `tabItem` i
-        WHERE i.`{searchfield}` LIKE %(txt)s
+        WHERE (i.`{searchfield}` LIKE %(txt)s
+               OR i.name LIKE %(txt)s
+               OR i.item_name LIKE %(txt)s)
           AND IFNULL(i.disabled, 0) = 0
           AND i.custom_inventory_group IN %(inventory_groups)s
         ORDER BY i.name
