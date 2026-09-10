@@ -410,6 +410,7 @@ after_migrate = [
     "qcmc_logic.customs.issue_kanban.ensure_company_ticket_kanban",
     "qcmc_logic.customs.work_order_print_format.ensure_job_order_print_formats_use_a5",
     "qcmc_logic.patches.add_manufacturing_details_to_delivery_receipt_pr.execute",
+    "qcmc_logic.patches.format_gaisano_customer_on_charge_invoices.execute",
     "qcmc_logic.patches.remove_retired_location_inventory_dimensions.execute",
 ]
 
