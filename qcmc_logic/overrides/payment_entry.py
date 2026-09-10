@@ -807,6 +807,43 @@ def get_cwt_deduction_defaults(company):
     }
 
 
+@frappe.whitelist()
+def get_cwt_calculation_defaults(company, customer=None):
+    if not frappe.db.exists("Company", company):
+        frappe.throw(_("Company {0} does not exist.").format(frappe.bold(company)))
+
+    company_defaults = frappe.db.get_value(
+        "Company",
+        company,
+        ["custom_default_cwt_rate", "custom_default_cwt_vat_rate"],
+        as_dict=True,
+    )
+    company_rate = flt(company_defaults.custom_default_cwt_rate)
+    vat_rate = flt(company_defaults.custom_default_cwt_vat_rate)
+    customer_rate = 0
+
+    if customer:
+        if not frappe.db.exists("Customer", customer):
+            frappe.throw(_("Customer {0} does not exist.").format(frappe.bold(customer)))
+        customer_rate = flt(frappe.db.get_value("Customer", customer, "custom_cwt_rate"))
+
+    cwt_rate = customer_rate or company_rate
+    if cwt_rate <= 0:
+        frappe.throw(
+            _(
+                "No positive CWT Rate is configured for customer {0} or company {1}."
+            ).format(frappe.bold(customer or _("Not Set")), frappe.bold(company))
+        )
+    if vat_rate < 0:
+        frappe.throw(_("The Default CWT VAT Rate for company {0} cannot be negative.").format(frappe.bold(company)))
+
+    return {
+        "cwt_rate": cwt_rate,
+        "vat_rate": vat_rate,
+        "rate_source": "Customer" if customer_rate else "Company",
+    }
+
+
 def _get_company_cost_center(company):
     cost_center = frappe.db.get_value("Company", company, "cost_center")
     if cost_center and frappe.db.exists(

@@ -1,6 +1,40 @@
 frappe.provide("qcmc_logic.material_request");
 
 frappe.ui.form.on("Material Request", {
+    before_workflow_action(frm) {
+        if (frm.doc.material_request_type !== "Purchase" ||
+            !["Reject", "Return for Correction"].includes(frm.selected_workflow_action)) {
+            return;
+        }
+        frappe.dom.unfreeze();
+        return new Promise((resolve, reject) => {
+            let accepted = false;
+            const dialog = new frappe.ui.Dialog({
+                title: __(frm.selected_workflow_action),
+                fields: [{fieldname: "reason", fieldtype: "Small Text", label: __("Reason"), reqd: 1}],
+                primary_action_label: __(frm.selected_workflow_action),
+                primary_action(values) {
+                    if (!values.reason || !values.reason.trim()) {
+                        frappe.msgprint(__("Please enter a reason."));
+                        return;
+                    }
+                    frm.doc._qcmc_workflow_reason = values.reason.trim();
+                    accepted = true;
+                    dialog.hide();
+                    resolve();
+                },
+                onhide() {
+                    if (!accepted) {
+                        delete frm.doc._qcmc_workflow_reason;
+                        frm.selected_workflow_action = null;
+                        reject(new Error("Workflow action cancelled"));
+                    }
+                },
+            });
+            dialog.show();
+        });
+    },
+
     setup(frm) {
         qcmc_logic.material_request.apply_warehouse_access(frm);
     },
@@ -8,6 +42,10 @@ frappe.ui.form.on("Material Request", {
     refresh(frm) {
         qcmc_logic.material_request.apply_warehouse_access(frm);
         qcmc_logic.material_request.replace_material_transfer_button(frm);
+        if (frm.doc.material_request_type === "Purchase" && frm.doc.workflow_state === "Rejected") {
+            frm.set_read_only();
+            frm.disable_save();
+        }
     },
 
     material_request_type(frm) {

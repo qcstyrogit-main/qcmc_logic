@@ -124,30 +124,40 @@ function render_cwt_button(frm) {
 	grid.add_custom_button(label, () => show_cwt_dialog(frm), "top");
 }
 
-function get_cwt_invoice_references(frm) {
+function get_cwt_invoice_references(frm, calculation_defaults) {
 	const by_invoice = {};
 
 	(frm.doc.references || []).forEach((row) => {
 		if (row.reference_doctype !== "Sales Invoice" || !row.reference_name) return;
 
-		const allocated_amount = flt(row.allocated_amount);
-		if (allocated_amount <= 0) return;
+		const outstanding_amount = flt(row.outstanding_amount, 2);
+		const current_allocation = flt(row.allocated_amount, 2);
+		if (outstanding_amount <= 0 && current_allocation <= 0) return;
 
-		by_invoice[row.reference_name] = flt(
-			(by_invoice[row.reference_name] || 0) + allocated_amount,
-			2
-		);
+		const allocated_amount = current_allocation > 0
+			? current_allocation
+			: outstanding_amount;
+
+		by_invoice[row.reference_name] = {
+			invoice: row.reference_name,
+			reference_row_name: row.name,
+			original_amount: flt(row.total_amount, 2),
+			outstanding_amount,
+			allocated_amount,
+			calculated_cwt: calculate_cwt_amount(
+				allocated_amount,
+				calculation_defaults.cwt_rate,
+				calculation_defaults.vat_rate
+			),
+		};
 	});
 
-	return Object.keys(by_invoice).map((invoice) => ({
-		invoice,
-		allocated_amount: by_invoice[invoice],
-		calculated_cwt: calculate_cwt_amount(by_invoice[invoice]),
-	}));
+	return Object.values(by_invoice);
 }
 
-function calculate_cwt_amount(allocated_amount) {
-	return flt((flt(allocated_amount) / 1.12) * 0.01, 2);
+function calculate_cwt_amount(allocated_amount, cwt_rate, vat_rate) {
+	const vat_divisor = 1 + (flt(vat_rate) / 100);
+	return flt((flt(allocated_amount) / vat_divisor) * (flt(cwt_rate) / 100), 2);
 }
 
 function get_existing_cwt_deduction_map(frm) {
@@ -161,6 +171,8 @@ function get_existing_cwt_deduction_map(frm) {
 			row,
 			amount: flt(row.amount),
 			allocated_amount: flt(row.custom_cwt_allocated_amount),
+			cwt_rate: flt(row.custom_cwt_rate),
+			vat_rate: flt(row.custom_cwt_vat_rate),
 		};
 	});
 
@@ -174,37 +186,76 @@ function get_cwt_invoice_from_description(row) {
 	return description.slice(CWT_DEDUCTION_DESCRIPTION_PREFIX.length).trim() || null;
 }
 
-function build_cwt_dialog_rows(frm) {
-	const references = get_cwt_invoice_references(frm);
+function build_cwt_dialog_rows(frm, calculation_defaults) {
+	const references = get_cwt_invoice_references(frm, calculation_defaults);
 	const existing = get_existing_cwt_deduction_map(frm);
 	const preselect_single = references.length === 1;
 
 	return references.map((reference) => {
 		const existing_row = existing[reference.invoice];
-		const allocation_unchanged = existing_row
-			&& flt(existing_row.allocated_amount, 2) === flt(reference.allocated_amount, 2);
+		const calculation_unchanged = existing_row
+			&& flt(existing_row.allocated_amount, 2) === flt(reference.allocated_amount, 2)
+			&& flt(existing_row.cwt_rate, 6) === flt(calculation_defaults.cwt_rate, 6)
+			&& flt(existing_row.vat_rate, 6) === flt(calculation_defaults.vat_rate, 6);
 
 		return {
 			select: preselect_single ? 1 : 0,
 			invoice: reference.invoice,
+			reference_row_name: reference.reference_row_name,
+			original_amount: reference.original_amount,
+			outstanding_amount: reference.outstanding_amount,
 			allocated_amount: reference.allocated_amount,
-			cwt_amount: allocation_unchanged ? existing_row.amount : reference.calculated_cwt,
+			cwt_amount: calculation_unchanged ? existing_row.amount : reference.calculated_cwt,
 		};
 	});
 }
 
 async function show_cwt_dialog(frm) {
-	const rows = build_cwt_dialog_rows(frm);
+	const eligible_references = (frm.doc.references || []).filter((row) => (
+		row.reference_doctype === "Sales Invoice"
+		&& row.reference_name
+		&& (flt(row.outstanding_amount) > 0 || flt(row.allocated_amount) > 0)
+	));
 
-	if (!rows.length) {
-		frappe.msgprint(__("No eligible Sales Invoice references found. Add Sales Invoice references with a positive allocated amount first."));
+	if (!eligible_references.length) {
+		frappe.msgprint(__("No eligible Sales Invoice references with an outstanding balance were found."));
 		return;
 	}
+
+	const calculation_defaults = await frappe.xcall(
+		"qcmc_logic.overrides.payment_entry.get_cwt_calculation_defaults",
+		{
+			company: frm.doc.company,
+			customer: frm.doc.party_type === "Customer" ? frm.doc.party : null,
+		}
+	);
+	const rows = build_cwt_dialog_rows(frm, calculation_defaults);
 
 	const dialog = new frappe.ui.Dialog({
 		title: __("Add CWT"),
 		size: "large",
 		fields: [
+			{
+				fieldtype: "Percent",
+				fieldname: "cwt_rate",
+				label: __("Suggested CWT Rate"),
+				default: calculation_defaults.cwt_rate,
+				read_only: 1,
+			},
+			{
+				fieldtype: "Percent",
+				fieldname: "vat_rate",
+				label: __("VAT Rate"),
+				default: calculation_defaults.vat_rate,
+				read_only: 1,
+			},
+			{
+				fieldtype: "Data",
+				fieldname: "rate_source",
+				label: __("CWT Rate Source"),
+				default: calculation_defaults.rate_source,
+				read_only: 1,
+			},
 			{
 				fieldtype: "Table",
 				fieldname: "cwt_invoices",
@@ -214,6 +265,11 @@ async function show_cwt_dialog(frm) {
 				in_place_edit: true,
 				data: rows,
 				fields: [
+					{
+						fieldtype: "Data",
+						fieldname: "reference_row_name",
+						hidden: 1,
+					},
 					{
 						fieldtype: "Check",
 						fieldname: "select",
@@ -227,22 +283,45 @@ async function show_cwt_dialog(frm) {
 						label: __("Invoice Number"),
 						read_only: 1,
 						in_list_view: 1,
-						columns: 3,
+						columns: 2,
+					},
+					{
+						fieldtype: "Currency",
+						fieldname: "original_amount",
+						label: __("Original Invoice Amount"),
+						read_only: 1,
+						in_list_view: 1,
+						columns: 2,
+					},
+					{
+						fieldtype: "Currency",
+						fieldname: "outstanding_amount",
+						label: __("Balance"),
+						read_only: 1,
+						in_list_view: 1,
+						columns: 2,
 					},
 					{
 						fieldtype: "Currency",
 						fieldname: "allocated_amount",
 						label: __("Allocated Amount"),
-						read_only: 1,
 						in_list_view: 1,
-						columns: 3,
+						columns: 2,
+						onchange() {
+							this.doc.cwt_amount = calculate_cwt_amount(
+								this.value,
+								calculation_defaults.cwt_rate,
+								calculation_defaults.vat_rate
+							);
+							this.grid_row.refresh_field("cwt_amount");
+						},
 					},
 					{
 						fieldtype: "Currency",
 						fieldname: "cwt_amount",
 						label: __("CWT Amount"),
 						in_list_view: 1,
-						columns: 3,
+						columns: 2,
 					},
 				],
 			},
@@ -254,6 +333,15 @@ async function show_cwt_dialog(frm) {
 
 			if (!selected.length) {
 				frappe.msgprint(__("Select at least one Sales Invoice."));
+				return;
+			}
+
+			const invalid_allocation = selected.find((row) => (
+				flt(row.allocated_amount) <= 0
+				|| flt(row.allocated_amount) > flt(row.outstanding_amount)
+			));
+			if (invalid_allocation) {
+				frappe.msgprint(__("Allocated Amount must be positive and cannot exceed the invoice balance."));
 				return;
 			}
 
@@ -272,7 +360,11 @@ async function show_cwt_dialog(frm) {
 				freeze_message: __("Finding CWT account and cost center..."),
 				callback(r) {
 					const defaults = r.message || {};
-					apply_selected_cwt_deductions(frm, selected, defaults);
+					apply_selected_cwt_deductions(
+						frm,
+						selected,
+						{ ...defaults, ...calculation_defaults }
+					);
 					dialog.hide();
 				},
 			});
@@ -284,6 +376,9 @@ async function show_cwt_dialog(frm) {
 
 function apply_selected_cwt_deductions(frm, selected, defaults) {
 	const existing = get_existing_cwt_deduction_map(frm);
+	const references = Object.fromEntries(
+		(frm.doc.references || []).map((row) => [row.name, row])
+	);
 
 	selected.forEach((selected_row) => {
 		const invoice = selected_row.invoice;
@@ -296,14 +391,22 @@ function apply_selected_cwt_deductions(frm, selected, defaults) {
 		row.description = description;
 		row.custom_cwt_sales_invoice = invoice;
 		row.custom_cwt_allocated_amount = flt(selected_row.allocated_amount, 2);
+		row.custom_cwt_rate = flt(defaults.cwt_rate);
+		row.custom_cwt_vat_rate = flt(defaults.vat_rate);
+
+		const reference = references[selected_row.reference_row_name];
+		if (reference) {
+			reference.allocated_amount = flt(selected_row.allocated_amount, 2);
+		}
 	});
 
+	frm.refresh_field("references");
 	frm.refresh_field("deductions");
 	trigger_payment_entry_recalculation(frm);
 }
 
 function trigger_payment_entry_recalculation(frm) {
-	frm.trigger("set_unallocated_amount");
+	frm.trigger("set_total_allocated_amount");
 }
 
 function set_underpayment_breakdown_queries(frm) {

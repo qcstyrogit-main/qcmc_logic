@@ -212,6 +212,12 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "name": "Return for Correction",
+  "workflow_action_name": "Return for Correction"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "name": "Return for Revision",
   "workflow_action_name": "Return for Revision"
  },

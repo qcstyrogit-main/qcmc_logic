@@ -443,6 +443,14 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "name": "Pending MC PM Approval",
+  "style": "",
+  "workflow_state_name": "Pending MC PM Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "name": "Pending MIS Supervisor Approval",
   "style": "",
   "workflow_state_name": "Pending MIS Supervisor Approval"
@@ -486,6 +494,14 @@
   "name": "Pending PPIC Supervisor",
   "style": "",
   "workflow_state_name": "Pending PPIC Supervisor"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "name": "Pending QC PM Approval",
+  "style": "",
+  "workflow_state_name": "Pending QC PM Approval"
  },
  {
   "docstatus": 0,
