@@ -30,8 +30,6 @@ UNCONDITIONAL_DETAIL_ROW = """  <tr>
     </td>
   </tr>
 """
-CUSTOMER_CODE_FIELD = '<div id="delivered_to" class="field">{{ doc.customer }}</div>'
-CUSTOMER_NAME_FIELD = '<div id="delivered_to" class="field">{{ doc.customer_name }}</div>'
 
 
 def get_labeled_item_rows(original_item_cells):
@@ -116,19 +114,6 @@ def execute():
 		target_item_rows = get_target_item_rows(old_item_cells)
 		grouped_item_rows = get_grouped_item_rows(old_item_cells)
 		if grouped_item_rows in normalized_html:
-			updated_html = normalized_html.replace(
-				CUSTOMER_CODE_FIELD,
-				CUSTOMER_NAME_FIELD,
-				1,
-			)
-			if updated_html != normalized_html:
-				frappe.db.set_value(
-					"Print Format",
-					print_format,
-					"html",
-					updated_html,
-					update_modified=False,
-				)
 			continue
 		grouped_item_rows_without_space = get_grouped_item_rows_without_space(old_item_cells)
 		if grouped_item_rows_without_space in normalized_html:
@@ -168,7 +153,6 @@ def execute():
 		updated_html = updated_html.replace(UNCONDITIONAL_DETAIL_ROW, "")
 		interleaved_item_rows = target_item_rows + "\n  </tr>\n  {% endfor %}"
 		updated_html = updated_html.replace(interleaved_item_rows, grouped_item_rows, 1)
-		updated_html = updated_html.replace(CUSTOMER_CODE_FIELD, CUSTOMER_NAME_FIELD, 1)
 		if updated_html == normalized_html:
 			continue
 
