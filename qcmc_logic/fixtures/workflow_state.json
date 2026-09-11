@@ -83,6 +83,14 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "name": "Cancelled Before Submission",
+  "style": "Danger",
+  "workflow_state_name": "Cancelled Before Submission"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "name": "Capitalized",
   "style": "",
   "workflow_state_name": "Capitalized"

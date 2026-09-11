@@ -3,6 +3,14 @@ from erpnext.stock.doctype.material_request.material_request import MaterialRequ
 
 class CustomMaterialRequest(MaterialRequest):
 
+    def before_cancel(self):
+        from qcmc_logic.customs.purchase_request_workflow import validate_decision
+
+        validate_decision(self)
+        parent = getattr(super(), "before_cancel", None)
+        if parent:
+            parent()
+
     def validate(self):
         from qcmc_logic.customs.purchase_request_workflow import validate_decision
 

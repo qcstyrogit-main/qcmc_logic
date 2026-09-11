@@ -396,7 +396,7 @@ def material_request_has_permission(doc, ptype=None, user=None):
         # Workflow saves contain the target state; use the stored state so
         # an approver can return a request to its creator.
         state = frappe.db.get_value("Material Request", doc.name, "workflow_state") if doc.get("name") else None
-        if state == "Rejected" or (state == "Draft" and doc.get("owner") != user):
+        if state in {"Rejected", "Cancelled Before Submission", "Cancelled"} or (state == "Draft" and doc.get("owner") != user):
             return False
     if doc and doc.get("material_request_type") == "Purchase" and ptype in {
         None, "read", "select", "print", "email", "export"

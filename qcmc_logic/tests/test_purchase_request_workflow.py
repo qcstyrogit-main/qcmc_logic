@@ -8,7 +8,7 @@ import frappe
 from qcmc_logic.customs.purchase_request_workflow import (
     APPROVAL_STATES, DECISIONS, apply_workflow, validate_decision,
 )
-from qcmc_logic.patches.add_purchase_request_rejection import extend_workflow
+from qcmc_logic.patches.replace_purchase_reject_with_cancel import update_workflow as extend_workflow
 
 
 class TestPurchaseRequestWorkflow(TestCase):
@@ -29,10 +29,11 @@ class TestPurchaseRequestWorkflow(TestCase):
 
     def test_actions_exist_only_at_approval_states_and_preserve_targets(self):
         decisions = [r for r in self.workflow['transitions'] if r['action'] in DECISIONS]
-        self.assertEqual({r['state'] for r in decisions}, APPROVAL_STATES)
-        self.assertEqual(len(decisions), 14)
+        self.assertEqual({r['state'] for r in decisions}, APPROVAL_STATES | {'To Receive', 'Received', 'Submitted'})
+        self.assertEqual(len(decisions), 10)
+        self.assertFalse(any(r["action"] == "Return for Correction" for r in self.workflow["transitions"]))
         for row in decisions:
-            self.assertEqual(row['next_state'], DECISIONS[row['action']])
+            self.assertEqual(row['next_state'], 'Cancelled' if row['state'] == 'Submitted' else 'Cancelled Before Submission')
         self.assertEqual(extend_workflow(self.workflow), self.workflow)
         self.assertFalse(any(r['state'] == 'Rejected' for r in self.workflow['transitions']))
 
@@ -63,6 +64,7 @@ class TestPurchaseRequestWorkflow(TestCase):
     def test_reason_required_and_audited_as_escaped_text(self):
         current = Mock(name='PR-1', material_request_type='Purchase', workflow_state='Pending QC PM Approval')
         current.name = 'PR-1'
+        current.docstatus = 0
         data = dict(doctype='Material Request', name='PR-1')
         with patch('frappe.get_doc', return_value=current), patch(
             'frappe.model.workflow.apply_workflow'
@@ -70,10 +72,10 @@ class TestPurchaseRequestWorkflow(TestCase):
             for reason in (None, '', '  '):
                 data['_qcmc_workflow_reason'] = reason
                 with self.assertRaises(frappe.ValidationError):
-                    apply_workflow(data, 'Reject')
+                    apply_workflow(data, 'Cancel')
             standard.assert_not_called()
             data['_qcmc_workflow_reason'] = '<script>bad</script>'
-            result = apply_workflow(data, 'Reject')
+            result = apply_workflow(data, 'Cancel')
             self.assertIn('&lt;script&gt;', result.add_comment.call_args.kwargs['text'])
             self.assertIsNone(frappe.flags.qcmc_purchase_decision)
 
