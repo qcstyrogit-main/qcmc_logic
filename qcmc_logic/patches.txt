@@ -110,3 +110,4 @@ qcmc_logic.patches.add_stockroom_qc_purchase_request_workflow
 qcmc_logic.patches.split_purchase_request_pm_approval
 qcmc_logic.patches.restrict_stockroom_mc_approval_route
 qcmc_logic.patches.add_purchase_request_rejection
+qcmc_logic.patches.unhide_warehouse_transfer_material_request
