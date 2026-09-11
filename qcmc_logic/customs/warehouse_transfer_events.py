@@ -5,6 +5,7 @@ from qcmc_logic.utils import (
     get_user_allowed_warehouses,
     _get_material_request_warehouses,
     _get_warehouse_is_province,
+    _is_same_location_provincial_transfer,
 )
 from frappe.utils import nowdate, nowtime, cint, flt, getdate
 from erpnext.stock.stock_ledger import make_sl_entries
@@ -139,6 +140,7 @@ def validate_transfer_type_rules(doc, method=None):
     target_company = doc.target_company
     source_warehouse_type = frappe.db.get_value("Warehouse", doc.source_warehouse, "warehouse_type")
     target_warehouse_type = frappe.db.get_value("Warehouse", doc.target_warehouse, "warehouse_type")
+    source_is_province = _get_warehouse_is_province(doc.source_warehouse)
     target_is_province = _get_warehouse_is_province(doc.target_warehouse)
 
     if doc.transfer_type == "Warehouse Transfer":
@@ -154,8 +156,14 @@ def validate_transfer_type_rules(doc, method=None):
             frappe.throw("Intercompany Warehouse Transfer requires source and target warehouses from different companies.")
         if source_warehouse_type != target_warehouse_type:
             frappe.throw("Intercompany Warehouse Transfer requires source and target warehouses with the same warehouse type.")
-        if target_is_province:
-            frappe.throw("Intercompany Warehouse Transfer cannot use a provincial target warehouse.")
+        if (source_is_province or target_is_province) and not (
+            _is_same_location_provincial_transfer(
+                doc.source_warehouse, doc.target_warehouse
+            )
+        ):
+            frappe.throw(
+                "Intercompany transfers between provincial warehouses require the same Location."
+            )
 
     elif doc.transfer_type == "Provincial Warehouse Transfer":
         if not target_is_province:
