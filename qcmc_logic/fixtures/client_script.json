@@ -875,6 +875,16 @@
   "dt": "Purchase Order",
   "enabled": 1,
   "module": null,
+  "name": "PO Apex Print",
+  "script": "frappe.ui.form.on('Purchase Order', {\r\n    refresh(frm) {\r\n\r\n        if (frm.is_new()) {\r\n            return;\r\n        }\r\n\r\n        frm.add_custom_button(__('Print PO APEX'), function () {\r\n            frappe.utils.print(\r\n                frm.doc.doctype,\r\n                frm.doc.name,\r\n                'PO_APEX'\r\n            );\r\n        });\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Order",
+  "enabled": 1,
+  "module": null,
   "name": "PO RFP Print Button",
   "script": "frappe.ui.form.on('Purchase Order', {\r\n    refresh: function(frm) {\r\n        frm.add_custom_button(__('Print RFP'), function() {\r\n            var dialog = new frappe.ui.Dialog({\r\n                title: __('Print RFP'),\r\n                fields: [\r\n                    {\r\n                        fieldname: 'rfp_extra_remarks',\r\n                        fieldtype: 'Small Text',\r\n                        label: __('Remarks')\r\n                    },\r\n                    {\r\n                        fieldname: 'rfp_extra_operation',\r\n                        fieldtype: 'Select',\r\n                        label: __('Add / Minus'),\r\n                        options: 'Add\\nMinus',\r\n                        default: 'Add'\r\n                    },\r\n                    {\r\n                        fieldname: 'rfp_extra_value',\r\n                        fieldtype: 'Currency',\r\n                        label: __('Value'),\r\n                        default: 0\r\n                    }\r\n                ],\r\n                primary_action_label: __('Print'),\r\n                primary_action: function(values) {\r\n                    var params = {\r\n                        doctype: frm.doc.doctype,\r\n                        name: frm.doc.name,\r\n                        format: 'PO RFP',\r\n                        no_letterhead: 0,\r\n                        rfp_extra_remarks: values.rfp_extra_remarks || '',\r\n                        rfp_extra_operation: values.rfp_extra_operation || 'Add',\r\n                        rfp_extra_value: Math.abs(flt(values.rfp_extra_value || 0))\r\n                    };\r\n\r\n                    var query = Object.keys(params)\r\n                        .map(function(key) {\r\n                            return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);\r\n                        })\r\n                        .join('&');\r\n                    var print_url = frappe.urllib.get_full_url('/printview?' + query);\r\n\r\n                    dialog.hide();\r\n                    window.open(print_url, '_blank');\r\n                }\r\n            });\r\n\r\n            dialog.show();\r\n        });\r\n    }\r\n});",
   "view": "Form"
@@ -893,7 +903,7 @@
   "docstatus": 0,
   "doctype": "Client Script",
   "dt": "Purchase Order",
-  "enabled": 1,
+  "enabled": 0,
   "module": null,
   "name": "PO Setting Default Print Format",
   "script": "frappe.ui.form.on(\"Purchase Order\", {\r\n    refresh(frm) {\r\n        // remove default Print menu\r\n        frm.page.remove_menu_item(\"Print\");\r\n\r\n        // add your own Print\r\n        frm.page.add_menu_item(__(\"Print\"), function() {\r\n            frappe.call({\r\n                method: \"qcmc_logic.overrides.POPrint_Override.get_po_print_format\",\r\n                args: {\r\n                    doctype: frm.doc.doctype,\r\n                    name: frm.doc.name\r\n                },\r\n                callback: function(r) {\r\n                    if (r.message) {\r\n                        let print_format = r.message;\r\n\r\n                        window.open(frappe.urllib.get_full_url(\r\n                            \"/printview?\"\r\n                            + \"doctype=\" + encodeURIComponent(frm.doc.doctype)\r\n                            + \"&name=\" + encodeURIComponent(frm.doc.name)\r\n                            + \"&format=\" + encodeURIComponent(print_format)\r\n                            + \"&no_letterhead=0\"\r\n                            + \"&trigger_print=1\"\r\n                        ));\r\n                    } else {\r\n                        frappe.msgprint(\"No print format returned.\");\r\n                    }\r\n                }\r\n            });\r\n        });\r\n    }\r\n});\r\n",

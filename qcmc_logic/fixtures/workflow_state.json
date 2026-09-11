@@ -683,6 +683,14 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "name": "To Received",
+  "style": "",
+  "workflow_state_name": "To Received"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "name": "To Received by SMB Maintenance",
   "style": "",
   "workflow_state_name": "To Received by SMB Maintenance"
