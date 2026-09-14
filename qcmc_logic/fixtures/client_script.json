@@ -596,7 +596,7 @@
   "enabled": 1,
   "module": null,
   "name": "MRF Print Default",
-  "script": "frappe.ui.form.on('Job Requisition', {\n\tonload(frm) {\n        set_print_format(frm);\n    },\n\n    refresh(frm) {\n        set_print_format(frm);\n    },\n\n    material_request_type(frm) {\n        set_print_format(frm);\n    }\n});\n\nfunction set_print_format(frm) {\n    let print_format = \"\";\n\n    if (frm.doc.custom_staffing_plan && frm.doc.custom_staffing_plan.includes(\"Finance\")) {\n        print_format = \"MRF Finance\";\n    } else if (frm.doc.custom_staffing_plan && frm.doc.custom_staffing_plan.includes(\"Sales\")) {\n        print_format = \"MRF Sales\";\n    } else if (frm.doc.custom_staffing_plan && frm.doc.custom_staffing_plan.includes(\"PROCUREMENT\")) {\n        print_format = \"MRF Procurement\";\n    } else {\n        print_format = \"MRF\";\n    }\n    \n  \n    frm.meta.default_print_format = print_format;\n\n}",
+  "script": "frappe.ui.form.on('Job Requisition', {\n\tonload(frm) {\n        set_print_format(frm);\n    },\n\n    refresh(frm) {\n        set_print_format(frm);\n    },\n\n    material_request_type(frm) {\n        set_print_format(frm);\n    }\n});\n\nfunction set_print_format(frm) {\n    let print_format = \"\";\n\n    if (frm.doc.custom_staffing_plan?.toLowerCase().includes(\"finance\")) {\n        print_format = \"MRF Finance\";\n    } else if (frm.doc.custom_staffing_plan?.toLowerCase().includes(\"sales\")) {\n        print_format = \"MRF Sales\";\n    } else if (frm.doc.custom_staffing_plan?.toLowerCase().includes(\"procurement\")) {\n        print_format = \"MRF Procurement\";\n    } else {\n        print_format = \"MRF\";\n    }\n    \n  \n    frm.meta.default_print_format = print_format;\n\n}",
   "view": "Form"
  },
  {
