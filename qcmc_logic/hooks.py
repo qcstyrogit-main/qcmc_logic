@@ -368,7 +368,10 @@ fixtures = [
     #{"doctype": "Module Profile"},
     {"doctype": "Translation"},  # Added for translations
 
-    {"doctype": "Property Setter"},
+    {
+        "doctype": "Property Setter",
+        "filters": [["name", "!=", "BOM-main-search_fields"]],
+    },
     {
         "doctype": "DocType",
         "filters": [
