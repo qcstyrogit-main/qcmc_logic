@@ -641,6 +641,10 @@ def _is_same_location_provincial_transfer(source_warehouse, target_warehouse):
     )
 
 
+def is_same_location_provincial_transfer(source_warehouse, target_warehouse):
+    return _is_same_location_provincial_transfer(source_warehouse, target_warehouse)
+
+
 def _get_warehouse_values(warehouse, fields):
     if not warehouse:
         return {}

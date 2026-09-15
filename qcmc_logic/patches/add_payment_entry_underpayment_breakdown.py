@@ -30,7 +30,9 @@ def execute():
     create_payment_entry_underpayment_doctype()
     add_payment_entry_underpayment_remarks()
     add_payment_entry_underpayment_table()
+    ensure_underpayment_type_permissions()
     seed_underpayment_types()
+    frappe.clear_cache(doctype="Underpayment Type")
     frappe.clear_cache(doctype="Payment Entry")
 
 
@@ -66,7 +68,7 @@ def create_underpayment_type_doctype():
                     "in_list_view": 1,
                 },
             ],
-            "permissions": [_system_manager_permission()],
+            "permissions": [_underpayment_type_permission(role) for role in UNDERPAYMENT_TYPE_ROLES],
         }
     )
     doc.insert(ignore_permissions=True)
@@ -221,9 +223,29 @@ def seed_underpayment_types():
         doc.insert(ignore_permissions=True)
 
 
-def _system_manager_permission():
+UNDERPAYMENT_TYPE_ROLES = ("System Manager", "AR User", "Accounts User")
+
+
+def ensure_underpayment_type_permissions():
+    if not frappe.db.exists("DocType", "Underpayment Type"):
+        return
+
+    doc = frappe.get_doc("DocType", "Underpayment Type")
+    existing = {row.role: row for row in doc.permissions}
+
+    for role in UNDERPAYMENT_TYPE_ROLES:
+        row = existing.get(role)
+        if not row:
+            row = doc.append("permissions", {})
+        row.update(_underpayment_type_permission(role))
+
+    doc.save(ignore_permissions=True)
+    frappe.clear_cache(doctype="Underpayment Type")
+
+
+def _underpayment_type_permission(role):
     return {
-        "role": "System Manager",
+        "role": role,
         "read": 1,
         "write": 1,
         "create": 1,

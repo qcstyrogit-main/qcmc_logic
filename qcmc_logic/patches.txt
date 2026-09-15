@@ -116,3 +116,4 @@ qcmc_logic.patches.remove_purchase_request_return_for_correction
 qcmc_logic.patches.replace_purchase_reject_with_cancel
 qcmc_logic.patches.set_purchase_cancelled_status
 qcmc_logic.patches.enable_material_request_change_tracking
+qcmc_logic.patches.ensure_underpayment_type_permissions
