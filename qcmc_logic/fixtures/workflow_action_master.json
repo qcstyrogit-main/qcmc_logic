@@ -308,6 +308,12 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "name": "Submit for Asset Approval",
+  "workflow_action_name": "Submit for Asset Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "name": "Submit for Delivery",
   "workflow_action_name": "Submit for Delivery"
  },
@@ -316,6 +322,24 @@
   "doctype": "Workflow Action Master",
   "name": "Submit for Initial Approval",
   "workflow_action_name": "Submit for Initial Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit for Logistics Approval",
+  "workflow_action_name": "Submit for Logistics Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit for MC Approval",
+  "workflow_action_name": "Submit for MC Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit for MIS Approval",
+  "workflow_action_name": "Submit for MIS Approval"
  },
  {
   "docstatus": 0,
@@ -332,6 +356,12 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "name": "Submit for Machine Shop Approval",
+  "workflow_action_name": "Submit for Machine Shop Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "name": "Submit for Machine Shop Supervisor Approval",
   "workflow_action_name": "Submit for Machine Shop Supervisor Approval"
  },
@@ -340,6 +370,12 @@
   "doctype": "Workflow Action Master",
   "name": "Submit for Machine Supervisor Approval",
   "workflow_action_name": "Submit for Machine Supervisor Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "name": "Submit for QC Plant Manager Approval",
+  "workflow_action_name": "Submit for QC Plant Manager Approval"
  },
  {
   "docstatus": 0,

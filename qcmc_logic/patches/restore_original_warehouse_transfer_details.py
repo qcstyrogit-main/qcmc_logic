@@ -78,7 +78,7 @@ def _warehouse_transfer_detail_fields():
             "label": "Material Request",
             "fieldtype": "Link",
             "options": "Material Request",
-            "hidden": 1,
+            "in_list_view": 1,
             "read_only": 1,
             "no_copy": 1,
             "print_hide": 1,

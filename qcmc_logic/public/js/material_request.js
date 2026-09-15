@@ -3,7 +3,7 @@ frappe.provide("qcmc_logic.material_request");
 frappe.ui.form.on("Material Request", {
     before_workflow_action(frm) {
         if (frm.doc.material_request_type !== "Purchase" ||
-            !["Reject", "Return for Correction"].includes(frm.selected_workflow_action)) {
+            frm.selected_workflow_action !== "Cancel") {
             return;
         }
         frappe.dom.unfreeze();
@@ -42,7 +42,7 @@ frappe.ui.form.on("Material Request", {
     refresh(frm) {
         qcmc_logic.material_request.apply_warehouse_access(frm);
         qcmc_logic.material_request.replace_material_transfer_button(frm);
-        if (frm.doc.material_request_type === "Purchase" && frm.doc.workflow_state === "Rejected") {
+        if (frm.doc.material_request_type === "Purchase" && ["Rejected", "Cancelled Before Submission", "Cancelled"].includes(frm.doc.workflow_state)) {
             frm.set_read_only();
             frm.disable_save();
         }

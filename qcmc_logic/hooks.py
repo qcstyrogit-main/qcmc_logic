@@ -368,7 +368,10 @@ fixtures = [
     #{"doctype": "Module Profile"},
     {"doctype": "Translation"},  # Added for translations
 
-    {"doctype": "Property Setter"},
+    {
+        "doctype": "Property Setter",
+        "filters": [["name", "!=", "BOM-main-search_fields"]],
+    },
     {
         "doctype": "DocType",
         "filters": [
@@ -443,6 +446,7 @@ after_migrate = [
 # include js, css files in header of desk.html
 # app_include_css = "/assets/qcmc_logic/css/qcmc_logic.css"
 app_include_js = [
+    "/assets/qcmc_logic/js/purchase_request_status.js",
     "/assets/qcmc_logic/js/hide_print_selection.js",
     "/assets/qcmc_logic/js/warehouse_access.js",
     "/assets/qcmc_logic/js/inventory_group_access.js",

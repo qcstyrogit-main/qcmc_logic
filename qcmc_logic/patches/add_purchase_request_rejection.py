@@ -2,7 +2,9 @@ from copy import deepcopy
 
 import frappe
 
-from qcmc_logic.customs.purchase_request_workflow import APPROVAL_STATES, DECISIONS
+from qcmc_logic.customs.purchase_request_workflow import APPROVAL_STATES
+
+DECISIONS = {'Reject': 'Rejected'}
 
 
 def extend_workflow(data):
