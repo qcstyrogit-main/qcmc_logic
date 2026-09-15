@@ -15,6 +15,7 @@ class CustomPaymentEntry(PaymentEntry):
     def validate(self):
         self.apply_payment_type_role_default()
         super().validate()
+        self.apply_intercompany_collection_party_account()
         self.validate_payment_type_role_access()
         self.validate_customer_territory_access()
         self.validate_intercompany_collection_payment()
@@ -236,6 +237,38 @@ class CustomPaymentEntry(PaymentEntry):
 
     def is_intercompany_collection_payment(self):
         return self.payment_type == "Receive" and "collected by" in (self.mode_of_payment or "").lower()
+
+    def apply_intercompany_collection_party_account(self):
+        if (
+            self.payment_type != "Receive"
+            or self.party_type != "Customer"
+            or not self.is_intercompany_collection_payment()
+            or not self.custom_ref_doc
+            or not frappe.db.exists("Payment Entry", self.custom_ref_doc)
+        ):
+            return
+
+        source_payment = frappe.get_cached_doc("Payment Entry", self.custom_ref_doc)
+        mapped_paid_from = _get_matching_account_for_company(source_payment.paid_from, self.company)
+        if not mapped_paid_from:
+            return
+
+        self.paid_from = mapped_paid_from
+        self.party_account = mapped_paid_from
+        self.party_account_field = "paid_from"
+        self.book_advance_payments_in_separate_party_account = 0
+        self.is_opening = "No"
+
+        account = frappe.db.get_value(
+            "Account",
+            mapped_paid_from,
+            ["account_type", "account_currency"],
+            as_dict=True,
+        )
+        if account:
+            self.paid_from_account_type = account.account_type
+            self.paid_from_account_currency = account.account_currency
+            self.party_account_currency = account.account_currency
 
     def get_collecting_company(self):
         if not self.is_intercompany_collection_payment():
