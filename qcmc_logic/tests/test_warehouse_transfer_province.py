@@ -9,6 +9,7 @@ from qcmc_logic.utils import (
     _get_transfer_type_for_warehouses,
     _is_same_location_provincial_transfer,
     get_target_warehouse_query,
+    is_same_location_provincial_transfer,
 )
 
 
@@ -38,6 +39,14 @@ class TestWarehouseTransferProvince(TestCase):
     def test_provincial_warehouses_with_same_location_are_allowed(self, _values):
         self.assertTrue(
             _is_same_location_provincial_transfer(
+                "FG - Laguna - QC", "FG - Laguna - MC"
+            )
+        )
+
+    @patch("qcmc_logic.utils._get_warehouse_values", side_effect=warehouse_values)
+    def test_public_same_location_helper_import_is_supported(self, _values):
+        self.assertTrue(
+            is_same_location_provincial_transfer(
                 "FG - Laguna - QC", "FG - Laguna - MC"
             )
         )
