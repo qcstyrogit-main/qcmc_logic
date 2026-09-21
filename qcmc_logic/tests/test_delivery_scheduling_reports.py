@@ -14,6 +14,35 @@ from qcmc_logic.qcmc_logics.report.delivery_note_printing import (
 )
 
 
+class _CreateDeliveryNoteContext:
+	def __init__(self, dn, available_qty):
+		self.dn = dn
+		self.available_qty = available_qty
+		self.patches = []
+		self.make_delivery_note = None
+
+	def __enter__(self):
+		self.patches = [
+			patch.object(scheduling, "_validate_scheduling_role"),
+			patch.object(
+				scheduling,
+				"_lock_sales_order_items",
+				return_value=[frappe._dict(name=detail, parent="SO-1") for detail in self.available_qty],
+			),
+			patch.object(scheduling.frappe, "get_doc", return_value=frappe._dict(name="SO-1")),
+			patch.object(scheduling, "_validate_sales_order", return_value=self.available_qty),
+			patch("erpnext.selling.doctype.sales_order.sales_order.make_delivery_note", return_value=self.dn),
+			patch("erpnext.stock.doctype.packed_item.packed_item.make_packing_list"),
+		]
+		started = [patcher.start() for patcher in self.patches]
+		self.make_delivery_note = started[4]
+		return self.make_delivery_note
+
+	def __exit__(self, exc_type, exc_value, traceback):
+		for patcher in reversed(self.patches):
+			patcher.stop()
+
+
 class TestSalesOrderDeliveryScheduling(TestCase):
 	def test_rejects_user_without_sales_coordinator_role(self):
 		with (
@@ -58,24 +87,68 @@ class TestSalesOrderDeliveryScheduling(TestCase):
 		self.assertEqual(result[0].so_details, ["SOI-1", "SOI-2"])
 		self.assertEqual(result[0].delivery_dates, "2026-09-10, 2026-09-11")
 
-	def test_created_dn_uses_ignore_permissions_and_available_qty(self):
-		item = frappe._dict(so_detail="SOI-1", qty=10, rate=2, base_rate=2)
-		dn = MagicMock()
-		dn.name = "DN-1"
-		dn.items = [item]
-		dn.get.return_value = dn.items
-		with (
-			patch.object(scheduling, "_validate_scheduling_role"),
-			patch.object(scheduling, "_lock_sales_order_items", return_value=[frappe._dict(name="SOI-1", parent="SO-1")]),
-			patch.object(scheduling.frappe, "get_doc", return_value=frappe._dict(name="SO-1")),
-			patch.object(scheduling, "_validate_sales_order", return_value={"SOI-1": 4}),
-			patch("erpnext.selling.doctype.sales_order.sales_order.make_delivery_note", return_value=dn),
-			patch("erpnext.stock.doctype.packed_item.packed_item.make_packing_list"),
-		):
+	def test_full_quantity_report_created_dn_retains_sales_order_rates(self):
+		item = frappe._dict(
+			so_detail="SOI-1", qty=10, rate=200, price_list_rate=200, base_rate=200,
+			amount=2000, base_amount=2000, discount_percentage=0, pricing_rules="",
+		)
+		dn = self._mapped_delivery_note([item])
+		with self._create_delivery_note_context(dn, {"SOI-1": 10}):
+			scheduling.create_delivery_notes(["SOI-1"])
+		self.assertEqual(item.rate, 200)
+		self.assertEqual(item.price_list_rate, 200)
+		self.assertEqual(item.base_rate, 200)
+		self.assertEqual(item.amount, 2000)
+		self.assertEqual(item.base_amount, 2000)
+		self.assertEqual(dn.net_total, 2000)
+		self.assertEqual(dn.grand_total, 2000)
+		self.assertEqual(dn.workflow_state, "Draft")
+		dn.insert.assert_called_once_with()
+		dn.db_set.assert_called_once_with("workflow_state", "For Stock Confirmation")
+
+	def test_partial_quantity_report_created_dn_keeps_unit_rate_and_recalculates_amount(self):
+		item = frappe._dict(
+			so_detail="SOI-1", qty=10, rate=145, price_list_rate=150, base_rate=145,
+			amount=1450, base_amount=1450, discount_percentage=3.333333, pricing_rules="PR-1",
+		)
+		dn = self._mapped_delivery_note([item])
+		with self._create_delivery_note_context(dn, {"SOI-1": 4}):
 			scheduling.create_delivery_notes(["SOI-1"])
 		self.assertEqual(item.qty, 4)
-		dn.insert.assert_called_once_with(ignore_permissions=True)
+		self.assertEqual(item.rate, 145)
+		self.assertEqual(item.price_list_rate, 150)
+		self.assertEqual(item.discount_percentage, 3.333333)
+		self.assertEqual(item.pricing_rules, "PR-1")
+		self.assertEqual(item.amount, 580)
+		self.assertEqual(item.base_amount, 580)
+		self.assertEqual(dn.net_total, 580)
+		self.assertEqual(dn.grand_total, 580)
 		dn.db_set.assert_called_once_with("workflow_state", "For Stock Confirmation")
+
+	def test_selected_children_are_passed_to_standard_sales_order_mapper(self):
+		item = frappe._dict(so_detail="SOI-2", qty=5, rate=200, base_rate=200, amount=1000, base_amount=1000)
+		dn = self._mapped_delivery_note([item])
+		with self._create_delivery_note_context(dn, {"SOI-2": 5}) as make_delivery_note:
+			scheduling.create_delivery_notes(["SOI-2"])
+		make_delivery_note.assert_called_once_with("SO-1", kwargs={"filtered_children": ["SOI-2"]})
+
+	def _mapped_delivery_note(self, items):
+		dn = MagicMock()
+		dn.name = "DN-1"
+		dn.items = items
+		dn.get.return_value = dn.items
+
+		def calculate_taxes_and_totals():
+			dn.net_total = sum(item.amount for item in dn.items)
+			dn.grand_total = dn.net_total
+			dn.base_net_total = sum(item.base_amount for item in dn.items)
+			dn.base_grand_total = dn.base_net_total
+
+		dn.run_method.side_effect = lambda method: calculate_taxes_and_totals() if method == "calculate_taxes_and_totals" else None
+		return dn
+
+	def _create_delivery_note_context(self, dn, available_qty):
+		return _CreateDeliveryNoteContext(dn, available_qty)
 
 
 class TestDeliveryNoteStockConfirmation(TestCase):
