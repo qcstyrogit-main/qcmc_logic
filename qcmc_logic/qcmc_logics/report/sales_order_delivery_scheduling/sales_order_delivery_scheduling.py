@@ -174,15 +174,15 @@ def create_delivery_notes(so_details):
 		if not dn or not dn.get("items"):
 			frappe.throw(_("No selected undelivered items are available for Sales Order {0}.").format(name))
 		for item in dn.items:
-			item.qty = available_qty[item.so_detail]
-			item.amount = item.qty * item.rate
-			item.base_amount = item.qty * item.base_rate
+			item.qty = frappe.utils.flt(available_qty[item.so_detail])
+			item.amount = frappe.utils.flt(item.qty) * frappe.utils.flt(item.rate)
+			item.base_amount = frappe.utils.flt(item.qty) * frappe.utils.flt(item.base_rate)
 		dn.run_method("calculate_taxes_and_totals")
 		from erpnext.stock.doctype.packed_item.packed_item import make_packing_list
 		make_packing_list(dn)
 		dn.custom_sales_order = name
 		dn.workflow_state = "Draft"
-		dn.insert(ignore_permissions=True)
+		dn.insert()
 		dn.db_set("workflow_state", "For Stock Confirmation")
 		created.append(dn.name)
 	return _("Created Delivery Note(s): {0}").format(", ".join(created))
