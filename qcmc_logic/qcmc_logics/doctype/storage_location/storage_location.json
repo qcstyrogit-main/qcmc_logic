@@ -11,7 +11,7 @@
  "fields": [
   {"fieldname":"location_code","fieldtype":"Data","in_list_view":1,"in_standard_filter":1,"label":"Location Code","reqd":1,"unique":1},
   {"fieldname":"location_name","fieldtype":"Data","in_list_view":1,"label":"Location Name","reqd":1},
-  {"fieldname":"location_type","fieldtype":"Select","in_list_view":1,"in_standard_filter":1,"label":"Location Type","options":"Building\nFloor\nMezza\nBlock\nLot\nRoom\nAisle\nRack\nRow\nLayer\nColumn\nBin\nOpen Area\nOther","reqd":1},
+  {"fieldname":"location_type","fieldtype":"Select","in_list_view":1,"in_standard_filter":1,"label":"Location Type","options":"Building\nFloor\nMezza\nBlock\nLot\nRoom\nAisle\nRack\nRow\nLayer\nCube\nPallet\nBin\nOpen Area\nOther","reqd":1},
   {"default":"0","fieldname":"disabled","fieldtype":"Check","in_list_view":1,"label":"Disabled"},
   {"fieldname":"tree_section","fieldtype":"Section Break","label":"Hierarchy"},
   {"fieldname":"parent_storage_location","fieldtype":"Link","ignore_user_permissions":1,"label":"Parent Storage Location","options":"Storage Location","search_index":1},

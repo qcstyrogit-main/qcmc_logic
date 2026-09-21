@@ -120,7 +120,7 @@ function apply_operation_times(frm, soph) {
 
 function get_operation_soph(frm, operation, soph) {
 	if (is_packing_operation(operation)) {
-		return flt(frm.doc.custom_pack_soph);
+		return flt(frm.doc.custom_pack_soph) || soph;
 	}
 
 	return soph;

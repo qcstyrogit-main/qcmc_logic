@@ -10,7 +10,7 @@ from frappe.utils import flt
 from weasyprint import HTML
 
 
-QCSC_PACKING_TAG_CUSTOMERS = {"EPE", "EPE1"}
+QCSC_PACKING_TAG_CUSTOMERS = {"DYNAP", "EPE", "EPE1"}
 
 
 @frappe.whitelist()
@@ -20,10 +20,21 @@ def get_packing_label_defaults(job_card):
 	if not frappe.has_permission("Job Card", "read", job_card):
 		frappe.throw(_("You do not have permission to read Job Card {0}.").format(job_card), frappe.PermissionError)
 
-	item_code = frappe.db.get_value("Job Card", job_card, "production_item")
+	doc = frappe.get_doc("Job Card", job_card)
+	item_code = doc.production_item
+	work_order = frappe.get_doc("Work Order", doc.work_order) if doc.work_order else None
+	sales_order = (
+		frappe.get_doc("Sales Order", work_order.sales_order)
+		if work_order and work_order.sales_order
+		else None
+	)
 	return {
 		"qa_code": frappe.db.get_value("EPS QA Code", {"item": item_code}, "qa_code") or "",
 		"supported_customers": sorted(QCSC_PACKING_TAG_CUSTOMERS),
+		"customer": sales_order.customer if sales_order else "",
+		"customer_name": sales_order.customer_name if sales_order else "",
+		"po_client": sales_order.po_no if sales_order else "",
+		"delivery_date": work_order.planned_end_date if work_order else "",
 	}
 
 
@@ -59,7 +70,7 @@ def generate_packing_label_pdf(job_card, pack_type, orientation="Portrait", labe
 	data = frappe.parse_json(label_data) if isinstance(label_data, str) else (label_data or {})
 	customer = (data.get("customer") or "").strip()
 	if customer not in QCSC_PACKING_TAG_CUSTOMERS:
-		frappe.throw(_("QCSC Packing Tag is available only for Customer EPE or EPE1."))
+		frappe.throw(_("Packing Tag is available only for Customer DYNAP, EPE, or EPE1."))
 	customer_name = frappe.db.get_value("Customer", customer, "customer_name")
 	if not customer_name:
 		frappe.throw(_("Customer {0} does not exist.").format(customer))
@@ -75,12 +86,16 @@ def generate_packing_label_pdf(job_card, pack_type, orientation="Portrait", labe
 	qr_src = f"data:image/svg+xml;base64,{qr_encoded}"
 	logo_path = Path(frappe.get_app_path("qcmc_logic")) / "public" / "images" / "QC.webp"
 	logo_src = "data:image/webp;base64," + base64.b64encode(logo_path.read_bytes()).decode()
+	dynapac_logo_path = Path(frappe.get_app_path("qcmc_logic")) / "public" / "images" / "dynapac.png"
+	dynapac_rohs_path = Path(frappe.get_app_path("qcmc_logic")) / "public" / "images" / "dynapac1.png"
+	dynapac_logo_src = "data:image/png;base64," + base64.b64encode(dynapac_logo_path.read_bytes()).decode()
+	dynapac_rohs_src = "data:image/png;base64," + base64.b64encode(dynapac_rohs_path.read_bytes()).decode()
 
 	escape = lambda value: html.escape(str(value or ""))
 	line = lambda label, value: (
 		'<div class="line"><b>' + escape(label) + ':</b><span>' + escape(value) + "</span></div>"
 	)
-	label = f"""
+	qcsc_label = f"""
 	<div class="packing-tag">
 		<div class="top">
 			<div class="logo"><img src="{logo_src}"></div>
@@ -106,12 +121,59 @@ def generate_packing_label_pdf(job_card, pack_type, orientation="Portrait", labe
 		</div>
 	</div>"""
 
+	def date_value(value):
+		return frappe.utils.formatdate(value, "MM/dd/yyyy") if value else ""
+	def dynap_line(label_text, value, underline=False, value_class=""):
+		label_html = escape(label_text)
+		if label_text == "Part Name / Code":
+			label_html = "Part Name /<br>Code"
+		classes = "dynap-value"
+		if underline:
+			classes += " underlined"
+		if value_class:
+			classes += f" {value_class}"
+		return (
+			'<div class="dynap-line"><b>' + label_html + '</b>'
+			+ f'<span class="{classes}">' + escape(value) + "</span></div>"
+		)
+
+	work_order = frappe.get_doc("Work Order", doc.work_order) if doc.work_order else None
+	dynap_label = f"""
+	<div class="packing-tag dynap-tag">
+		<div class="dynap-document-code">PDN-QR-054/rev0/February 06,2023</div>
+		<div class="dynap-header">
+			<div class="dynap-brand"><img class="dynap-logo" src="{dynapac_logo_src}"><small>DYNAPAC AND MALINTA<br>(PHILIPPINES) INC.</small></div>
+			<div class="dynap-title"><span>OUTGOING PACKING</span><span>LABEL</span></div>
+			<div class="dynap-control">FM-QM-SH-010.Rev01 Eff.<br>Date: 01-Feb.2023 Page 1<br>of 1</div>
+		</div>
+		<div class="dynap-body">
+			<div class="dynap-details">
+				{dynap_line('Customer', data.get('label_customer') or customer_name, value_class='strong')}
+				{dynap_line('Part Name / Code', data.get('part_name'), value_class='strong')}
+				{dynap_line('QUANTITY', f'{pack_quantity_prefix}{pack_quantity:g}', value_class='strong')}
+				{dynap_line('LOT NUMBER', data.get('lot_no'), underline=True)}
+				{dynap_line('P.O CLIENT', data.get('po_client'), underline=True)}
+				{dynap_line('DELIVERY DATE', date_value(data.get('delivery_date')), underline=True, value_class='date')}
+				{dynap_line('INSPECTED DATE', date_value(data.get('inspection_date')), underline=True, value_class='date')}
+				{dynap_line('INSPECTED BY', data.get('inspected_by') or data.get('packed_by'), underline=True)}
+				<div class="pack-options"><span>□<small>PALLET</small></span><span>■<small>PACK</small></span><span>□<small>BOX</small></span><span>□<small>BUNDLE</small></span></div>
+			</div>
+			<div class="dynap-code">
+				<div class="dynap-qa">{escape(qa_code)}</div>
+				<img class="dynap-qr" src="{qr_src}">
+				<img class="dynap-rohs" src="{dynapac_rohs_src}">
+			</div>
+		</div>
+	</div>"""
+	is_dynap = customer == "DYNAP"
+	label = dynap_label if is_dynap else qcsc_label
+
 	landscape = (orientation or "").strip() == "Landscape"
-	columns = 3 if landscape else 2
-	label_width = "88mm" if landscape else "90mm"
+	columns = (2 if landscape else 2) if is_dynap else (3 if landscape else 2)
+	label_width = ("135mm" if landscape else "95mm") if is_dynap else ("88mm" if landscape else "90mm")
 	# A4 has room for two 95 mm landscape rows or three 92 mm portrait rows.
 	# The previous 88 mm height clipped the 37 mm QR at the bottom of the tag.
-	label_height = "95mm" if landscape else "92mm"
+	label_height = "97mm" if is_dynap else ("95mm" if landscape else "92mm")
 	page_orientation = "landscape" if landscape else "portrait"
 	styles = f"""
 	@page {{ size: A4 {page_orientation}; margin: 6mm; }}
@@ -119,7 +181,7 @@ def generate_packing_label_pdf(job_card, pack_type, orientation="Portrait", labe
 	body {{ margin: 0; font-family: Arial, sans-serif; color: #222; display: flex;
 		flex-wrap: wrap; gap: 4mm; align-items: flex-start; justify-content: center; }}
 	body.forced-pages {{ display: block; }}
-	.sheet {{ display: flex; flex-wrap: wrap; gap: 4mm; align-items: flex-start; justify-content: center;
+	.sheet {{ display: flex; flex-wrap: wrap; column-gap: 4mm; row-gap: 2mm; align-items: flex-start; justify-content: center;
 		page-break-after: always; break-after: page; }}
 	.sheet:last-child {{ page-break-after: auto; break-after: auto; }}
 	.packing-tag {{ width: {label_width}; height: {label_height}; border: 1mm solid #333; padding: 2mm; break-inside: avoid; overflow: hidden; }}
@@ -135,6 +197,29 @@ def generate_packing_label_pdf(job_card, pack_type, orientation="Portrait", labe
 	.customer span {{ text-align:center; border-bottom:.25mm solid #777; font-size:8pt; font-weight:700; padding-bottom:.4mm; }}
 	.bottom {{ display:grid; grid-template-columns:38mm 1fr; gap:2mm; align-items:start; }}
 	.qr {{ width:37mm; height:37mm; }}
+	.dynap-tag {{ padding: 0; border: .7mm solid #111; }}
+	.dynap-document-code {{ height:5mm; padding:.5mm 1mm 0; text-align:right; font-size:5.7pt; font-weight:700; line-height:1; border-bottom:.5mm solid #111; }}
+	.dynap-header {{ height:16mm; display:grid; grid-template-columns:34mm 1fr 34mm; border-bottom:.7mm solid #111; align-items:stretch; }}
+	.dynap-brand {{ display:flex; flex-direction:column; align-items:center; justify-content:center; }}
+	.dynap-logo {{ width:30mm; max-height:8mm; object-fit:contain; }}
+	.dynap-brand small {{ font-size:4.3pt; line-height:1.05; text-align:center; font-weight:700; margin-top:.5mm; }}
+	.dynap-title {{ border-left:.7mm solid #111; border-right:.7mm solid #111; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-size:10.5pt; font-weight:500; line-height:1.05; }}
+	.dynap-title span {{ display:block; white-space:nowrap; }}
+	.dynap-control {{ text-align:center; font-size:5.6pt; font-weight:700; line-height:1.2; padding:1.2mm .5mm; }}
+	.dynap-body {{ display:grid; grid-template-columns:1fr 40mm; gap:1mm; padding:0 1.5mm 1mm; }}
+	.dynap-details {{ padding-top:0; }}
+	.dynap-line {{ display:grid; grid-template-columns:33mm 1fr; gap:1mm; align-items:end; height:6.8mm; font-size:8.5pt; line-height:1.05; }}
+	.dynap-line b {{ align-self:start; padding-top:.5mm; }}
+	.dynap-value {{ display:block; min-height:4.2mm; padding:.4mm .5mm .3mm; font-size:8.5pt; line-height:1.05; overflow-wrap:anywhere; }}
+	.dynap-value.underlined {{ border-bottom:.35mm solid #111; }}
+	.dynap-value.strong {{ font-weight:800; }}
+	.dynap-value.date {{ text-align:center; font-weight:800; }}
+	.pack-options {{ display:flex; justify-content:center; gap:6mm; margin-top:2mm; font-size:16pt; line-height:1; }}
+	.pack-options span {{ text-align:center; }} .pack-options small {{ display:block; font-size:5pt; margin-top:.7mm; }}
+	.dynap-code {{ position:relative; height:74mm; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; }}
+	.dynap-qa {{ border:1mm solid #111; padding:1.5mm 2mm; margin:17.5mm 0 3mm; font-size:15pt; font-weight:800; white-space:nowrap; }}
+	.dynap-qr {{ width:35mm; height:35mm; object-fit:contain; transform:translateY(-3mm); }}
+	.dynap-rohs {{ position:absolute; right:2.5mm; bottom:0; width:35mm; height:auto; margin:0; }}
 	table {{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:6.5pt; }}
 	th {{ width:17mm; text-align:left; vertical-align:top; padding:1.2mm 1mm 1.2mm 0; line-height:1.35; }}
 	td {{ vertical-align:top; padding:1.2mm .5mm; overflow-wrap:anywhere; line-height:1.35; }}
@@ -157,7 +242,7 @@ def generate_packing_label_pdf(job_card, pack_type, orientation="Portrait", labe
 		).write_pdf()
 
 	if frappe.utils.cint(master_sheet):
-		labels_per_sheet = 6 if landscape else 4
+		labels_per_sheet = (4 if landscape else 6) if is_dynap else (6 if landscape else 4)
 		full_sheet_copies, remaining_labels = divmod(label_count, labels_per_sheet)
 		master_label_count = labels_per_sheet if full_sheet_copies else remaining_labels
 		copies_required = full_sheet_copies or 1

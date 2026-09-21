@@ -103,6 +103,7 @@ qcmc_logic.job_card.open_qr_dialog = async function(frm) {
 		args: { job_card: frm.doc.name },
 	});
 	const qa_code = packing_defaults.message?.qa_code || "";
+	const supported_customers = packing_defaults.message?.supported_customers || [];
 	const standard_pack_quantity = flt(bom.custom_standard_pack);
 	const big_pack_quantity = flt(bom.quantity);
 
@@ -134,8 +135,37 @@ qcmc_logic.job_card.open_qr_dialog = async function(frm) {
 				fieldtype: "Link",
 				label: __("CUSTOMER"),
 				options: "Customer",
+				default: packing_defaults.message?.customer || "",
+			},
+			{
+				fieldname: "label_customer",
+				fieldtype: "Data",
+				label: __("Customer Name on Label"),
+				default: packing_defaults.message?.customer_name || "",
+				depends_on: "eval:doc.customer=='DYNAP'",
 			},
 			{ fieldname: "lot_no", fieldtype: "Data", label: __("LOT No.") },
+			{
+				fieldname: "po_client",
+				fieldtype: "Data",
+				label: __("P.O CLIENT"),
+				default: packing_defaults.message?.po_client || "",
+				depends_on: "eval:doc.customer=='DYNAP'",
+			},
+			{
+				fieldname: "delivery_date",
+				fieldtype: "Date",
+				label: __("DELIVERY DATE"),
+				default: packing_defaults.message?.delivery_date || "",
+				depends_on: "eval:doc.customer=='DYNAP'",
+			},
+			{
+				fieldname: "inspected_by",
+				fieldtype: "Data",
+				label: __("INSPECTED BY"),
+				default: frappe.session.user_fullname,
+				depends_on: "eval:doc.customer=='DYNAP'",
+			},
 			{
 				fieldname: "part_name",
 				fieldtype: "Data",
@@ -153,8 +183,8 @@ qcmc_logic.job_card.open_qr_dialog = async function(frm) {
 		],
 		primary_action_label: __("Generate QR Code"),
 		primary_action: async (values) => {
-			if (!["EPE", "EPE1"].includes(values.customer)) {
-				frappe.msgprint(__("QCSC Packing Tag is available only for Customer EPE or EPE1."));
+			if (!supported_customers.includes(values.customer)) {
+				frappe.msgprint(__("Packing Tag is available only for Customer DYNAP, EPE, or EPE1."));
 				return;
 			}
 			if (!qa_code) {
@@ -226,12 +256,13 @@ qcmc_logic.job_card.show_qr_label = async function(frm, values, payload, item, l
 
 	const escape = (value) => frappe.utils.escape_html(String(value || ""));
 	const displayed_quantity = `${values.pack_type === "Big Pack" ? "Big Pack " : ""}${values.quantity} ${item.stock_uom}`;
+	const is_dynap = values.customer === "DYNAP";
 	const logo = `<img src="/assets/qcmc_logic/images/QC.webp" alt="QCSC Logo" style="max-width:70px;max-height:70px;object-fit:contain">`;
 	const line = (label, value) => `<div style="display:grid;grid-template-columns:105px 1fr;gap:5px;align-items:end;margin:5px 0">
 		<span style="font-size:10px;font-weight:700;color:#555">${escape(label)}:</span>
 		<span style="min-height:15px;border-bottom:1px solid #777;font-size:11px;font-weight:600;padding:0 3px 2px">${escape(value)}</span>
 	</div>`;
-	const label_html = `<div style="font-family:Arial,sans-serif;color:#222;width:430px;border:4px solid #333;padding:10px;box-sizing:border-box;background:#fff">
+	const qcsc_label_html = `<div style="font-family:Arial,sans-serif;color:#222;width:430px;border:4px solid #333;padding:10px;box-sizing:border-box;background:#fff">
 		<div style="display:grid;grid-template-columns:78px 1fr;gap:8px;border-bottom:1px solid #999;padding-bottom:7px">
 			<div style="display:flex;justify-content:center;align-items:center">${logo}</div>
 			<div>
@@ -271,6 +302,41 @@ qcmc_logic.job_card.show_qr_label = async function(frm, values, payload, item, l
 			</div>
 		</div>
 	</div>`;
+	const dynap_date = (value) => {
+		const parts = String(value || "").slice(0, 10).split("-");
+		return parts.length === 3 ? `${parts[1]}/${parts[2]}/${parts[0]}` : value;
+	};
+	const dynap_line = (label, value, underline = false, centered = false) => `<div style="display:grid;grid-template-columns:128px 1fr;gap:4px;align-items:end;height:27px">
+		<span style="font-size:14px;font-weight:700;align-self:start;padding-top:3px">${label === __("Part Name / Code") ? `${escape(__("Part Name /"))}<br>${escape(__("Code"))}` : escape(label)}</span>
+		<span style="min-height:20px;${underline ? "border-bottom:1px solid #111;" : ""}${centered ? "text-align:center;" : ""}font-size:13px;font-weight:700;padding:2px 3px 1px;line-height:1.05;overflow-wrap:anywhere">${escape(value)}</span>
+	</div>`;
+	const dynap_label_html = `<div style="font-family:Arial,sans-serif;color:#111;width:476px;height:342px;border:3px solid #111;box-sizing:border-box;background:#fff">
+		<div style="height:19px;text-align:right;padding:2px 4px 0;font-size:9px;font-weight:700;border-bottom:2px solid #111">PDN-QR-054/rev0/February 06,2023</div>
+		<div style="height:57px;display:grid;grid-template-columns:123px 1fr 123px;border-bottom:3px solid #111">
+			<div style="display:flex;flex-direction:column;align-items:center;justify-content:center"><img src="/assets/qcmc_logic/images/dynapac.png" alt="Dynapac and Malinta" style="width:111px;height:25px;object-fit:contain"><small style="font-size:6px;font-weight:700;line-height:1.05;text-align:center;margin-top:2px">DYNAPAC AND MALINTA<br>(PHILIPPINES) INC.</small></div>
+			<div style="border-left:3px solid #111;border-right:3px solid #111;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:14px;font-weight:500;line-height:1.05"><span style="display:block;white-space:nowrap">OUTGOING PACKING</span><span style="display:block">LABEL</span></div>
+			<div style="text-align:center;font-size:8px;font-weight:700;line-height:1.2;padding:6px 2px">FM-QM-SH-010.Rev01 Eff.<br>Date: 01-Feb.2023 Page 1<br>of 1</div>
+		</div>
+		<div style="display:grid;grid-template-columns:1fr 141px;gap:4px;padding:1px 7px 3px">
+			<div>
+				${dynap_line(__("Customer"), values.label_customer || values.customer_name)}
+				${dynap_line(__("Part Name / Code"), values.part_name)}
+				${dynap_line(__("QUANTITY"), values.quantity)}
+				${dynap_line(__("LOT NUMBER"), values.lot_no, true)}
+				${dynap_line(__("P.O CLIENT"), values.po_client, true)}
+				${dynap_line(__("DELIVERY DATE"), dynap_date(values.delivery_date), true, true)}
+				${dynap_line(__("INSPECTED DATE"), dynap_date(values.inspection_date), true, true)}
+				${dynap_line(__("INSPECTED BY"), values.inspected_by, true)}
+				<div style="display:flex;justify-content:center;gap:20px;margin-top:7px;font-size:23px;line-height:1"><span>□<small style="display:block;font-size:7px;margin-top:3px">PALLET</small></span><span>■<small style="display:block;font-size:7px;margin-top:3px">PACK</small></span><span>□<small style="display:block;font-size:7px;margin-top:3px">BOX</small></span><span>□<small style="display:block;font-size:7px;margin-top:3px">BUNDLE</small></span></div>
+			</div>
+			<div style="position:relative;height:263px;display:flex;flex-direction:column;align-items:center">
+				<div style="border:4px solid #111;padding:6px;margin:62px 0 10px;font-size:20px;font-weight:800">${escape(qa_code)}</div>
+				<img src="${response.message}" alt="Job Card QR" style="width:123px;height:123px;transform:translateY(-10px)">
+				<img src="/assets/qcmc_logic/images/dynapac1.png" alt="ROHS FREE" style="position:absolute;right:9px;bottom:0;width:123px;height:auto">
+			</div>
+		</div>
+	</div>`;
+	const label_html = is_dynap ? dynap_label_html : qcsc_label_html;
 	let remainder_pdf_url = "";
 	const qr_dialog = new frappe.ui.Dialog({
 		title: __("Job Card QR — {0}", [frm.doc.name]),

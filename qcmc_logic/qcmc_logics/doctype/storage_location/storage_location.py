@@ -7,6 +7,7 @@ from frappe.utils import flt
 from frappe.utils.nestedset import NestedSet
 
 from qcmc_logic.overrides.putaway_rule_dimension import (
+	get_location_total_physical_balance,
 	get_ordered_dimension_putaway_rules,
 )
 
@@ -225,6 +226,49 @@ def rename_storage_location(storage_location, location_code, location_name):
 
 
 @frappe.whitelist()
+def update_storage_location_from_tree(
+	storage_location,
+	location_code,
+	location_name,
+	location_type,
+	custom_warehouse,
+	is_group=0,
+):
+	"""Update the editable tree fields while preserving canonical location codes."""
+	from frappe.model.rename_doc import rename_doc
+
+	if not frappe.has_permission("Storage Location", "write", doc=storage_location):
+		frappe.throw(
+			_("You do not have permission to update this Storage Location."),
+			frappe.PermissionError,
+		)
+	if not frappe.db.exists("Storage Location", storage_location):
+		frappe.throw(_("Storage Location {0} does not exist.").format(storage_location))
+
+	new_code = normalize_location_code(location_code)
+	if not new_code:
+		frappe.throw(_("Location Code is required."))
+	if new_code != storage_location:
+		new_code = rename_doc("Storage Location", storage_location, new_code)
+
+	doc = frappe.get_doc("Storage Location", new_code)
+	doc.location_code = new_code
+	doc.location_name = str(location_name or "").strip()
+	doc.location_type = location_type
+	doc.custom_warehouse = custom_warehouse
+	doc.is_group = frappe.sbool(is_group)
+	doc.save()
+	refresh_storage_location_paths()
+	refresh_storage_location_qr_payloads()
+
+	return {
+		"name": doc.name,
+		"location_code": doc.location_code,
+		"location_name": doc.location_name,
+	}
+
+
+@frappe.whitelist()
 def get_storage_location_tree_nodes(doctype=None, parent="", include_disabled=False, **filters):
 	"""Return tree children using natural numeric Location Name ordering."""
 	if not frappe.has_permission("Storage Location", "read"):
@@ -253,7 +297,7 @@ def get_storage_location_tree_nodes(doctype=None, parent="", include_disabled=Fa
 
 @frappe.whitelist()
 def get_storage_location_item_balances(storage_location):
-	"""Return positive stock balances for one exact leaf Storage Location."""
+	"""Return completed Warehouse Allocation balances for one leaf location."""
 	from qcmc_logic.utils import check_warehouse_access
 
 	storage_location = str(storage_location or "").strip()
@@ -262,7 +306,7 @@ def get_storage_location_item_balances(storage_location):
 	location = frappe.db.get_value(
 		"Storage Location",
 		storage_location,
-		["name", "location_code", "location_name", "custom_warehouse", "is_group", "disabled"],
+		_get_storage_location_balance_fields(),
 		as_dict=True,
 	)
 	if not location or location.disabled:
@@ -279,29 +323,28 @@ def get_storage_location_item_balances(storage_location):
 			frappe.PermissionError,
 		)
 
-	rows = frappe.db.sql(
-		"""
-		select
-			sle.item_code,
-			coalesce(item.item_name, sle.item_code) as item_name,
-			coalesce(item.stock_uom, '') as uom,
-			coalesce(sle.batch_no, '') as batch_no,
-			sum(sle.actual_qty) as actual_qty,
-			max(concat(sle.posting_date, ' ', sle.posting_time)) as last_movement
-		from `tabStock Ledger Entry` sle
-		left join `tabItem` item on item.name = sle.item_code
-		where sle.is_cancelled = 0
-			and sle.warehouse = %(warehouse)s
-			and sle.location = %(location)s
-		group by sle.item_code, item.item_name, item.stock_uom, coalesce(sle.batch_no, '')
-		having sum(sle.actual_qty) > 0
-		order by item.item_name, sle.item_code, batch_no
-		""",
-		{"warehouse": location.custom_warehouse, "location": location.name},
-		as_dict=True,
+	rows = _get_warehouse_allocation_location_balances(
+		location.name,
+		location.custom_warehouse,
 	)
+	from qcmc_logic.api.stock_reconciliation import _current_inventory_quantity
+	for row in rows:
+		row.actual_qty = _current_inventory_quantity(
+			row.item_code, location.custom_warehouse, location.name, row.batch_no or None,
+		)
+	rows = [row for row in rows if flt(row.actual_qty) > 0.000000001]
+	details = _get_warehouse_allocation_location_details(
+		location.name,
+		location.custom_warehouse,
+	)
+	movements = _get_location_movement_details(location.name, location.custom_warehouse)
 	for row in rows:
 		row.actual_qty = flt(row.actual_qty)
+	for row in details:
+		row.actual_qty = flt(row.actual_qty)
+	for row in movements:
+		row.quantity = flt(row.quantity)
+	capacity_summary = _get_storage_location_capacity_summary(location, rows)
 
 	return {
 		"storage_location": location.name,
@@ -309,8 +352,292 @@ def get_storage_location_item_balances(storage_location):
 		"location_name": location.location_name,
 		"warehouse": location.custom_warehouse,
 		"item_count": len({row.item_code for row in rows}),
+		"balance_source": "Warehouse Allocation + Location Transfer",
+		"capacity_summary": capacity_summary,
 		"balances": rows,
+		"allocation_details": details,
+		"movement_details": movements,
 	}
+
+
+def _get_storage_location_balance_fields():
+	fields = [
+		"name",
+		"location_code",
+		"location_name",
+		"custom_warehouse",
+		"is_group",
+		"disabled",
+	]
+	meta = frappe.get_meta("Storage Location")
+	for fieldname in ("storage_capacity", "custom_storage_capacity"):
+		if meta.has_field(fieldname):
+			fields.append(fieldname)
+	return fields
+
+
+def _get_storage_location_capacity_summary(location, balances):
+	"""Return configured and free capacity for the item-balance popup."""
+	warehouse = location.custom_warehouse
+	used_capacity = (
+		get_location_total_physical_balance(warehouse, location.name)
+		if warehouse else sum(flt(row.actual_qty) for row in balances)
+	)
+	capacity_uom = _get_single_balance_uom(balances)
+	capacity = None
+	available_capacity = None
+	source = ""
+	source_name = ""
+	no_capacity_restriction = False
+
+	rule = _get_storage_location_capacity_rule(location.name, warehouse)
+	if rule:
+		source = "Putaway Rule"
+		source_name = rule.name
+		capacity_uom = capacity_uom or rule.get("stock_uom") or rule.get("uom") or ""
+		no_capacity_restriction = bool(rule.get("custom_no_capacity_restriction"))
+		if no_capacity_restriction:
+			return {
+				"capacity": None,
+				"used_capacity": flt(used_capacity),
+				"available_capacity": None,
+				"uom": capacity_uom,
+				"source": source,
+				"source_name": source_name,
+				"no_capacity_restriction": 1,
+			}
+		capacity = flt(rule.get("stock_capacity") or rule.get("capacity"))
+
+	if not capacity:
+		for fieldname in ("storage_capacity", "custom_storage_capacity"):
+			if flt(location.get(fieldname)) > 0:
+				capacity = flt(location.get(fieldname))
+				source = "Storage Location"
+				source_name = location.name
+				break
+
+	if capacity:
+		available_capacity = max(flt(capacity) - flt(used_capacity), 0)
+
+	return {
+		"capacity": flt(capacity) if capacity else None,
+		"used_capacity": flt(used_capacity),
+		"available_capacity": flt(available_capacity) if available_capacity is not None else None,
+		"uom": capacity_uom,
+		"source": source,
+		"source_name": source_name,
+		"no_capacity_restriction": 0,
+	}
+
+
+def _get_single_balance_uom(balances):
+	uoms = {
+		str(row.get("uom") or "").strip()
+		for row in balances
+		if str(row.get("uom") or "").strip()
+	}
+	return next(iter(uoms)) if len(uoms) == 1 else ""
+
+
+def _get_storage_location_capacity_rule(storage_location, warehouse):
+	if not warehouse:
+		return None
+
+	meta = frappe.get_meta("Putaway Rule")
+	if not meta.has_field("location"):
+		return None
+
+	fields = ["name", "capacity", "stock_capacity", "priority"]
+	for fieldname in (
+		"custom_no_item_restriction",
+		"custom_no_capacity_restriction",
+		"stock_uom",
+		"uom",
+	):
+		if meta.has_field(fieldname):
+			fields.append(fieldname)
+
+	rules = frappe.get_all(
+		"Putaway Rule",
+		fields=fields,
+		filters={
+			"warehouse": warehouse,
+			"location": storage_location,
+			"disable": 0,
+		},
+		limit_page_length=0,
+	)
+	if not rules:
+		return None
+
+	def sort_key(rule):
+		return (
+			0 if rule.get("custom_no_capacity_restriction") else 1,
+			0 if rule.get("custom_no_item_restriction") else 1,
+			-flt(rule.get("stock_capacity") or rule.get("capacity")),
+			flt(rule.get("priority")),
+			rule.name,
+		)
+
+	return sorted(rules, key=sort_key)[0]
+
+
+def _get_warehouse_allocation_location_balances(storage_location, warehouse):
+	"""Return net physical balance: completed allocations plus location transfers."""
+	return frappe.db.sql(
+		"""
+		select
+			movement.item_code,
+			coalesce(item.item_name, movement.item_code) as item_name,
+			coalesce(nullif(movement.uom, ''), item.stock_uom, '') as uom,
+			'' as batch_no,
+			sum(movement.quantity) as actual_qty,
+			max(movement.movement_time) as last_movement
+		from (
+			select wal.item_code, wal.stock_uom as uom, wal.actual_qty as quantity,
+				coalesce(wa.completed_at, wa.modified) as movement_time
+			from `tabWarehouse Allocation Location` wal
+			inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
+			where wa.docstatus = 1 and wa.status = 'Completed'
+				and wa.warehouse = %(warehouse)s and wal.status = 'VERIFIED'
+				and wal.actual_location = %(storage_location)s
+			union all
+			select item_code, uom, quantity, transferred_at
+			from `tabLocation Transfer`
+			where docstatus = 1 and warehouse = %(warehouse)s
+				and target_location = %(storage_location)s
+			union all
+			select item_code, uom, -quantity, transferred_at
+			from `tabLocation Transfer`
+			where docstatus = 1 and warehouse = %(warehouse)s
+				and source_location = %(storage_location)s
+			union all
+			select pcr.item_code, pcr.uom, pcr.variance, sr.modified
+			from `tabQCMC Physical Count Result` pcr
+			inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
+			where sr.docstatus = 1 and sr.custom_physical_count = 1
+				and coalesce(pcr.status, '') != 'Old Count'
+				and not (coalesce(pcr.physical_count, 0) = 0 and coalesce(pcr.variance, 0) = 0)
+				and pcr.warehouse = %(warehouse)s
+				and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %(storage_location)s
+		) movement
+		left join `tabItem` item on item.name = movement.item_code
+		group by movement.item_code, item.item_name,
+			coalesce(nullif(movement.uom, ''), item.stock_uom, '')
+		having sum(movement.quantity) > 0
+		order by item.item_name, movement.item_code
+		""",
+		{"warehouse": warehouse, "storage_location": storage_location},
+		as_dict=True,
+	)
+
+
+def _get_warehouse_allocation_location_details(storage_location, warehouse):
+	"""Return the completed allocation rows behind a location balance."""
+	return frappe.db.sql(
+		"""
+		select
+			wa.name as warehouse_allocation,
+			wa.transaction_type,
+			wal.item_code,
+			coalesce(item.item_name, wal.item_code) as item_name,
+			wal.source_document,
+			wal.source_row,
+			wal.actual_qty,
+			coalesce(nullif(wal.stock_uom, ''), item.stock_uom, '') as uom,
+			coalesce(nullif(wal.user_full_name, ''), nullif(wal.user, ''), '') as allocated_by,
+			coalesce(nullif(wal.scanner_id, ''), nullif(wa.device_id, ''), '') as scanner_id,
+			wal.scan_time,
+			wa.completed_at
+		from `tabWarehouse Allocation Location` wal
+		inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
+		inner join `tabStock Entry` se
+			on se.name = wal.source_document
+			and wal.source_doctype = 'Stock Entry'
+			and se.docstatus = 1
+		left join `tabItem` item on item.name = wal.item_code
+		where wa.docstatus = 1
+			and wa.status = 'Completed'
+			and wa.warehouse = %(warehouse)s
+			and wal.status = 'VERIFIED'
+			and wal.actual_location = %(storage_location)s
+			and wal.actual_qty > 0
+		order by coalesce(wal.scan_time, wa.completed_at) desc,
+			wa.name desc, wal.idx asc
+		""",
+		{"warehouse": warehouse, "storage_location": storage_location},
+		as_dict=True,
+	)
+
+
+def _get_location_movement_details(storage_location, warehouse):
+	"""Return allocations and transfers as one signed, chronological history."""
+	return frappe.db.sql(
+		"""
+		select * from (
+			select
+				coalesce(wa.completed_at, wa.modified) as movement_time,
+				'Warehouse Allocation' as movement_type,
+				wa.name as reference_name,
+				wal.item_code,
+				coalesce(item.item_name, wal.item_code) as item_name,
+				wal.actual_qty as quantity,
+				coalesce(nullif(wal.stock_uom, ''), item.stock_uom, '') as uom,
+				'' as source_location,
+				wal.actual_location as target_location,
+				coalesce(nullif(wal.user_full_name, ''), nullif(wal.user, ''), '') as performed_by,
+				coalesce(nullif(wal.scanner_id, ''), nullif(wa.device_id, ''), '') as device_id,
+				null as counted_quantity
+			from `tabWarehouse Allocation Location` wal
+			inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
+			left join `tabItem` item on item.name = wal.item_code
+			where wa.docstatus = 1 and wa.status = 'Completed'
+				and wa.warehouse = %(warehouse)s and wal.status = 'VERIFIED'
+				and wal.actual_location = %(storage_location)s
+			union all
+			select
+				lt.transferred_at, 'Location Transfer', lt.name,
+				lt.item_code, coalesce(item.item_name, lt.item_code),
+				-lt.quantity, lt.uom, lt.source_location, lt.target_location,
+				coalesce(nullif(employee.employee_name, ''), lt.erpnext_user), lt.device_id, null
+			from `tabLocation Transfer` lt
+			left join `tabItem` item on item.name = lt.item_code
+			left join `tabEmployee` employee on employee.name = lt.employee
+			where lt.docstatus = 1 and lt.warehouse = %(warehouse)s
+				and lt.source_location = %(storage_location)s
+			union all
+			select
+				lt.transferred_at, 'Location Transfer', lt.name,
+				lt.item_code, coalesce(item.item_name, lt.item_code),
+				lt.quantity, lt.uom, lt.source_location, lt.target_location,
+				coalesce(nullif(employee.employee_name, ''), lt.erpnext_user), lt.device_id, null
+			from `tabLocation Transfer` lt
+			left join `tabItem` item on item.name = lt.item_code
+			left join `tabEmployee` employee on employee.name = lt.employee
+			where lt.docstatus = 1 and lt.warehouse = %(warehouse)s
+				and lt.target_location = %(storage_location)s
+			union all
+			select
+				coalesce(pcr.submitted_at, sr.modified), 'Physical Count', sr.name,
+				pcr.item_code, coalesce(item.item_name, pcr.item_code),
+				pcr.variance, pcr.uom, '',
+				coalesce(nullif(pcr.location, ''), pcr.inventory_location),
+				coalesce(nullif(pcr.scanner_full_name, ''), pcr.scanner_user), pcr.device_id,
+				pcr.physical_count
+			from `tabQCMC Physical Count Result` pcr
+			inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
+			left join `tabItem` item on item.name = pcr.item_code
+			where sr.docstatus = 1 and sr.custom_physical_count = 1
+				and coalesce(pcr.status, '') != 'Old Count'
+				and not (coalesce(pcr.physical_count, 0) = 0 and coalesce(pcr.variance, 0) = 0)
+				and pcr.warehouse = %(warehouse)s
+				and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %(storage_location)s
+		) movements
+		order by movement_time desc, reference_name desc
+		""",
+		{"warehouse": warehouse, "storage_location": storage_location},
+		as_dict=True,
+	)
 
 
 # ============================================================
@@ -524,12 +851,12 @@ def _allocate_using_erpnext_putaway_rules(
 				"putaway_rule": rule.name,
 				"storage_location": rule_location.name,
 				"location_code": rule_location.location_code,
-				"location_name": rule_location.location_name,
-				"location_type": rule_location.location_type,
-				"location_path": rule_location.full_path,
-				"warehouse": rule.warehouse,
-				"item_code": rule.item_code,
-				"capacity": flt(rule.stock_capacity),
+					"location_name": rule_location.location_name,
+					"location_type": rule_location.location_type,
+					"location_path": rule_location.full_path,
+					"warehouse": rule.warehouse,
+					"item_code": item_code,
+					"capacity": flt(rule.stock_capacity),
 				"available_capacity": available_capacity,
 				"quantity": allocation_quantity,
 			}

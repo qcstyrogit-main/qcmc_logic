@@ -137,6 +137,10 @@ def remove_legacy_custom_fields():
 def remove_stale_accounting_dimension_fields():
 	active_fieldnames = get_active_accounting_dimension_fieldnames()
 	target_fieldnames = get_stale_accounting_dimension_fieldnames(active_fieldnames)
+	# A fieldname can belong to an active Inventory Dimension as well. For
+	# example, ``location`` is the Storage Location dimension used by Putaway
+	# Rule and must not be treated as a stale Accounting Dimension field.
+	target_fieldnames -= get_active_inventory_dimension_fieldnames()
 
 	if not target_fieldnames:
 		return 0

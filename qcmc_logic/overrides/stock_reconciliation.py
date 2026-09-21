@@ -122,13 +122,24 @@ class CustomStockReconciliation(StockReconciliation):
 
     def add_missing_location_zero_counts(self):
         """Infer zeros for every uncounted positive balance in this warehouse."""
+        from qcmc_logic.api.stock_reconciliation import (
+            _get_physical_location_balances,
+            _get_unallocated_warehouse_balances,
+        )
+
         results = self.get("custom_physical_count_results") or []
         counted_locations = set()
         automatic_rows = {}
+        unallocated_rows = {}
 
         for result in results:
             location = result.get("location") or result.inventory_location
-            if not result.item_code or not result.warehouse or not location:
+            if not result.item_code or not result.warehouse:
+                continue
+            if str(result.submission_id or "").startswith("AUTO-UNALLOCATED-"):
+                unallocated_rows[(result.item_code, result.warehouse)] = result
+                continue
+            if not location:
                 continue
             key = (result.item_code, result.warehouse, location)
             if str(result.submission_id or "").startswith("AUTO-ZERO-"):
@@ -141,25 +152,10 @@ class CustomStockReconciliation(StockReconciliation):
             frappe.throw(_("Warehouse is required before closing the Physical Count."))
 
         # A completed warehouse count covers the warehouse, not merely the SKUs
-        # that happened to be scanned. Fetch every current positive location
-        # balance so an entirely unscanned SKU is also inferred as zero.
-        balances = frappe.db.sql(
-            """
-            select sle.item_code, sle.warehouse, sle.location,
-                   item.item_name, item.stock_uom,
-                   coalesce(sum(sle.actual_qty), 0) as quantity
-              from `tabStock Ledger Entry` sle
-              join `tabItem` item on item.name = sle.item_code
-             where sle.warehouse = %(warehouse)s
-               and sle.is_cancelled = 0
-               and ifnull(sle.location, '') != ''
-             group by sle.item_code, sle.warehouse, sle.location,
-                      item.item_name, item.stock_uom
-            having coalesce(sum(sle.actual_qty), 0) > 0.000000001
-            """,
-            {"warehouse": warehouse},
-            as_dict=True,
-        )
+        # that happened to be scanned. Physical locations are authoritative in
+        # completed Warehouse Allocations, Location Transfers, and prior counts;
+        # Stock Ledger Entry.location is an accounting dimension in this system.
+        balances = _get_physical_location_balances(warehouse)
         for balance in balances:
             key = (balance.item_code, balance.warehouse, balance.location)
             if key in counted_locations:
@@ -209,6 +205,56 @@ class CustomStockReconciliation(StockReconciliation):
                 }),
                 "status": "Pending adjustment",
             })
+
+        unallocated = _get_unallocated_warehouse_balances(warehouse, balances)
+        active_unallocated = set()
+        for balance in unallocated:
+            key = (balance.item_code, balance.warehouse)
+            active_unallocated.add(key)
+            quantity = flt(balance.quantity)
+            existing = unallocated_rows.get(key)
+            if existing:
+                existing.erp_quantity_before = quantity
+                existing.physical_count = 0
+                existing.variance = -quantity
+                existing.status = "Pending adjustment"
+                existing.adjustment_status = "Pending"
+                continue
+
+            digest = hashlib.sha256(
+                f"{self.name}|{balance.item_code}|{balance.warehouse}|UNALLOCATED".encode()
+            ).hexdigest()[:24]
+            self.append("custom_physical_count_results", {
+                "submission_id": f"AUTO-UNALLOCATED-{digest}",
+                "item_code": balance.item_code,
+                "item_name": balance.item_name or balance.item_code,
+                "warehouse": balance.warehouse,
+                "inventory_location": "",
+                "inventory_location_id": "",
+                "location": "",
+                "location_name": "Unallocated Warehouse Stock",
+                "uom": balance.stock_uom,
+                "erp_quantity_before": quantity,
+                "physical_count": 0,
+                "variance": -quantity,
+                "adjustment_status": "Pending",
+                "scanner_user": frappe.session.user,
+                "scanner_full_name": "System inferred unallocated stock",
+                "device_id": "ERP Auto-Zero",
+                "counted_at": now_datetime(),
+                "submitted_at": now_datetime(),
+                "transaction_count": 0,
+                "scan_history_json": json.dumps({
+                    "source": "ERP warehouse balance reconciliation",
+                    "reason": "Warehouse stock has no current physical Storage Location",
+                }),
+                "status": "Pending adjustment",
+            })
+
+        for key, row in unallocated_rows.items():
+            if key not in active_unallocated:
+                row.status = "Old Count"
+                row.adjustment_status = "Old Count"
 
     def rebuild_physical_count_summary(self):
         """Build one effective Item row from the latest count at each location."""

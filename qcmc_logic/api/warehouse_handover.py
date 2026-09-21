@@ -45,6 +45,23 @@ def _draft_stock_entry(name, user, mutate=False):
 	return doc
 
 
+def _source_stock_entry(name, user, mutate=False, docstatus=None):
+	if not frappe.db.exists("Stock Entry", name):
+		raise WorkflowError("SOURCE_DOCUMENT_NOT_FOUND", f"Stock Entry '{name}' was not found.")
+	doc = frappe.get_doc("Stock Entry", name)
+	if doc.docstatus == 2 or (docstatus is not None and doc.docstatus != docstatus):
+		code = "SOURCE_DOCUMENT_NOT_DRAFT" if docstatus == 0 else "PARTIAL_SUBMISSION_NOT_ALLOWED"
+		raise WorkflowError(code, f"Stock Entry '{name}' has an invalid document status.", {"stock_entry": name})
+	if _purpose(doc) != "Manufacture":
+		raise WorkflowError("INVALID_TRANSACTION_TYPE", f"Stock Entry '{name}' is not a Manufacture entry.")
+	warehouses = [r.t_warehouse for r in doc.items if r.is_finished_item and r.t_warehouse]
+	try:
+		ensure_scanner_warehouse_access(user, warehouses, require_transact=mutate)
+	except frappe.PermissionError:
+		raise WorkflowError("WAREHOUSE_PERMISSION_DENIED", "Warehouse permission denied.", status=403)
+	return doc
+
+
 def _source_rows(doc):
 	rows = []
 	for row in doc.get("items") or []:
@@ -84,7 +101,7 @@ def _get_batch(batch_id, user, token=None, mutate=False):
 			raise WorkflowError("INVALID_HANDOVER_QR", "The handover QR token has expired.")
 	warehouses = []
 	for source in batch.source_stock_entries:
-		doc = _draft_stock_entry(source.stock_entry, user, mutate=mutate)
+		doc = _source_stock_entry(source.stock_entry, user, mutate=mutate)
 		warehouses.extend(row.t_warehouse for row in (doc.get("items") or []) if row.is_finished_item and row.t_warehouse)
 	try:
 		ensure_scanner_warehouse_access(user, warehouses, require_transact=mutate)
@@ -130,6 +147,29 @@ def _job_card_for_source(doc, stock_row, source):
 	return _unambiguous_job_card(doc.get("work_order"))
 
 
+def _validate_reviewed_source(doc, stock_row, source):
+	"""Reject meaningful source changes without treating a harmless save as one."""
+	if not stock_row or not stock_row.is_finished_item or not stock_row.t_warehouse:
+		raise WorkflowError("SOURCE_DOCUMENT_CHANGED", f"The reviewed finished-item row in Stock Entry '{doc.name}' changed.")
+
+	factor = Decimal(str(stock_row.conversion_factor or 1))
+	current_qty = Decimal(str(stock_row.transfer_qty or 0)) or Decimal(str(stock_row.qty or 0)) * factor
+	expected_qty = _decimal(source.verified_quantity, "verified_quantity")
+	checks = (
+		(stock_row.item_code, source.item),
+		(stock_row.stock_uom or "", source.stock_uom or ""),
+		(doc.get("custom_reference_document") or "", source.pull_out_slip or ""),
+		(doc.get("work_order") or "", source.work_order or ""),
+		(_job_card_for_source(doc, stock_row, source), source.job_card or ""),
+	)
+	if current_qty != expected_qty or any(str(current or "").strip() != str(expected or "").strip() for current, expected in checks):
+		raise WorkflowError(
+			"SOURCE_DOCUMENT_CHANGED",
+			f"Protected reviewed data changed in Stock Entry '{doc.name}'. Refresh and review it again.",
+			{"stock_entry": doc.name},
+		)
+
+
 def _batch_response(batch, user=None):
 	"""Return current ERP documents grouped by Stock Entry.
 
@@ -139,7 +179,7 @@ def _batch_response(batch, user=None):
 	grouped = []
 	flat_sources = []
 	for stock_entry_id in dict.fromkeys(row.stock_entry for row in batch.source_stock_entries):
-		doc = _draft_stock_entry(stock_entry_id, user, mutate=False) if user else frappe.get_doc("Stock Entry", stock_entry_id)
+		doc = _source_stock_entry(stock_entry_id, user, mutate=False) if user else frappe.get_doc("Stock Entry", stock_entry_id)
 		source_rows = [row for row in batch.source_stock_entries if row.stock_entry == stock_entry_id]
 		items = []
 		for source in source_rows:
@@ -155,6 +195,7 @@ def _batch_response(batch, user=None):
 				"recorded_quantity": flt(stock_row.qty),
 				"verified_quantity": flt(source.verified_quantity if source.verified_quantity is not None else stock_row.qty),
 				"stock_uom": stock_row.stock_uom or source.stock_uom,
+				"custom_actual_weight_per_item": flt(stock_row.get("custom_actual_weight_per_item")),
 				"modified": str(doc.modified),
 			}
 			items.append(item)
@@ -177,6 +218,7 @@ def _batch_response(batch, user=None):
 			"job_card_id": _job_card_for_source(doc, first_row, first_source),
 			"work_order_id": doc.work_order or first_source.work_order or "",
 			"custom_reference_document": doc.get("custom_reference_document") or first_source.pull_out_slip or "",
+			"custom_actual_weight_per_item": flt(first_row.get("custom_actual_weight_per_item")),
 			"modified": str(doc.modified),
 			"items": items,
 		})
@@ -194,6 +236,8 @@ def _batch_response(batch, user=None):
 		"picker": _employee_name(batch.picker),
 		"picker_id": batch.picker or "",
 		"stock_entry_ids": list(dict.fromkeys(row.stock_entry for row in batch.source_stock_entries)),
+		"stock_entries_submitted": bool(batch.get("stock_entries_submitted")),
+		"submitted_stock_entry_ids": parse_json(batch.get("submitted_stock_entries"), []),
 		"source_stock_entries": grouped,
 		"sources": flat_sources,
 	}
@@ -282,7 +326,7 @@ def generate_handover_qr_payload(batch_id, request_id=None, mobile_token=None):
 		# Allocation creation advances a verified batch from CHECKED to
 		# ALLOCATION_CREATED. Keep QR regeneration available after that normal
 		# transition, while still requiring the persisted checker verification.
-		if batch.status not in VERIFIED_HANDOVER_STATUSES or not batch.checker:
+		if batch.status != "CHECKED" or not batch.checker or not batch.get("stock_entries_submitted"):
 			raise WorkflowError("CHECKER_VERIFICATION_REQUIRED", "Checker Verification is required before generating the Handover QR.")
 		if not frappe.db.exists("Assign Checker", batch.checker):
 			raise WorkflowError("CHECKER_VERIFICATION_REQUIRED", "The verified Assign Checker no longer exists.")
@@ -290,9 +334,9 @@ def generate_handover_qr_payload(batch_id, request_id=None, mobile_token=None):
 		if not stock_entry_ids:
 			raise WorkflowError("ERP_VALIDATION_FAILED", "The handover has no source Stock Entries.")
 		for stock_entry_id in stock_entry_ids:
-			doc = _draft_stock_entry(stock_entry_id, user)
+			doc = _source_stock_entry(stock_entry_id, user, docstatus=1)
 			if doc.get("custom_verified_by") != batch.checker:
-				raise WorkflowError("CHECKER_VERIFICATION_REQUIRED", "All Draft Stock Entries must be verified by the batch Checker before generating the Handover QR.")
+				raise WorkflowError("CHECKER_VERIFICATION_REQUIRED", "All submitted Stock Entries must be verified by the batch Checker before generating the Handover QR.")
 		token = secrets.token_urlsafe(32)
 		batch.generated_qr_token = token
 		batch.qr_expires_at = now_datetime() + timedelta(hours=TOKEN_TTL_HOURS)
@@ -413,10 +457,12 @@ def _resolve_employee_qr(value):
 
 @frappe.whitelist(allow_guest=True)
 def confirm_checker(batch_id, checker_qr, request_id, mobile_token=None, device_id=None):
-	"""Atomically verify every Draft source using an Assign Checker QR."""
+	"""Atomically verify and submit every authoritative Pullout Stock Entry."""
 	savepoint_started = False
 	try:
 		user = authenticated_user(mobile_token)
+		if not all(str(value or "").strip() for value in (batch_id, checker_qr, request_id, device_id)):
+			raise WorkflowError("ERP_VALIDATION_FAILED", "batch_id, complete checker_qr, device_id, and request_id are required.")
 		request = begin_request(
 			"handover.confirm_checker",
 			request_id,
@@ -431,6 +477,17 @@ def confirm_checker(batch_id, checker_qr, request_id, mobile_token=None, device_
 		verified = _resolve_checker_qr(checker_qr, authenticated_checker_user=user)
 		assign_checker = verified.assign_checker
 		checker = verified.employee
+		checker_warehouses = []
+		for source in batch.source_stock_entries:
+			source_doc = _source_stock_entry(source.stock_entry, user, mutate=False)
+			checker_warehouses.extend(row.t_warehouse for row in (source_doc.get("items") or []) if row.is_finished_item and row.t_warehouse)
+		if checker:
+			if not checker.user_id:
+				raise WorkflowError("CHECKER_NOT_AUTHORIZED", "The Checker Employee must have an ERPNext User ID.", status=403)
+			try:
+				ensure_scanner_warehouse_access(checker.user_id, checker_warehouses, require_transact=False)
+			except frappe.PermissionError:
+				raise WorkflowError("CHECKER_NOT_AUTHORIZED", "The Checker is not authorized for this warehouse.", status=403)
 
 		if checker and checker.name == batch.warehouse_man and user != "Administrator":
 			raise WorkflowError(
@@ -442,6 +499,9 @@ def confirm_checker(batch_id, checker_qr, request_id, mobile_token=None, device_
 		if batch.checker:
 			if batch.checker != assign_checker.name:
 				raise WorkflowError("CHECKER_VERIFICATION_CONFLICT", "This handover was already verified by a different Checker.", status=409)
+			ids = list(dict.fromkeys(row.stock_entry for row in batch.source_stock_entries))
+			if not batch.get("stock_entries_submitted") or any(_source_stock_entry(name, user).docstatus != 1 for name in ids):
+				raise WorkflowError("PARTIAL_SUBMISSION_NOT_ALLOWED", "The handover has inconsistent Stock Entry submission state.")
 			response = _batch_response(batch, user)
 			response.update({
 				"status": "CHECKED", "checker": assign_checker.checker_name,
@@ -452,16 +512,12 @@ def confirm_checker(batch_id, checker_qr, request_id, mobile_token=None, device_
 
 		documents = {}
 		for source in batch.source_stock_entries:
-			doc = documents.get(source.stock_entry) or _draft_stock_entry(source.stock_entry, user, mutate=True)
+			doc = documents.get(source.stock_entry) or _source_stock_entry(source.stock_entry, user, mutate=True, docstatus=0)
 			documents[doc.name] = doc
-			if str(doc.modified) != str(source.source_modified):
-				raise WorkflowError(
-					"SOURCE_DOCUMENT_CHANGED",
-					f"Stock Entry '{doc.name}' changed after Checker review.",
-				)
+			if not str(doc.get("custom_reference_document") or source.pull_out_slip or "").strip():
+				raise WorkflowError("PULLOUT_REFERENCE_REQUIRED", f"Stock Entry '{doc.name}' has no Pull Out Slip/reference.", {"stock_entry": doc.name})
 			stock_row = next((row for row in (doc.get("items") or []) if row.name == source.stock_entry_row), None)
-			if not stock_row or not stock_row.is_finished_item or flt(source.verified_quantity) < 0:
-				raise WorkflowError("ERP_VALIDATION_FAILED", f"Handover quantity validation is unresolved for Stock Entry '{doc.name}'.")
+			_validate_reviewed_source(doc, stock_row, source)
 
 		frappe.db.savepoint("confirm_checker")
 		savepoint_started = True
@@ -472,8 +528,14 @@ def confirm_checker(batch_id, checker_qr, request_id, mobile_token=None, device_
 				raise WorkflowError("CHECKER_VERIFICATION_CONFLICT", f"Stock Entry '{doc.name}' was already verified by a different Checker.", status=409)
 			doc.custom_verified_by = assign_checker.name
 			doc.save(ignore_permissions=True)
-			if doc.docstatus != 0:
-				raise WorkflowError("SOURCE_DOCUMENT_NOT_DRAFT", f"Stock Entry '{doc.name}' must remain Draft.")
+			try:
+				# Putaway/location allocation occurs after Checker confirmation when
+				# the Picker creates the Warehouse Allocation. Bypass only that
+				# validation for this controlled submission call.
+				doc.flags.skip_putaway_capacity_for_handover = True
+				doc.submit()
+			except Exception as exc:
+				raise WorkflowError("STOCK_ENTRY_SUBMISSION_FAILED", f"ERPNext rejected Stock Entry '{doc.name}': {exc}", {"stock_entry": doc.name})
 			for source in batch.source_stock_entries:
 				if source.stock_entry == doc.name:
 					source.source_modified = doc.modified
@@ -486,6 +548,9 @@ def confirm_checker(batch_id, checker_qr, request_id, mobile_token=None, device_
 		batch.device_id = str(device_id or "").strip()
 		batch.checker_verification_id = str(uuid.uuid4())
 		batch.status = "CHECKED"
+		batch.stock_entries_submitted = 1
+		batch.submitted_stock_entries = json.dumps(list(documents), separators=(",", ":"))
+		batch.verification_request_id = request.name
 		batch.save(ignore_permissions=True)
 		_audit(
 			"CHECKER_CONFIRMED",
@@ -505,6 +570,7 @@ def confirm_checker(batch_id, checker_qr, request_id, mobile_token=None, device_
 			"status": "CHECKED", "checker": assign_checker.checker_name,
 			"checker_id": assign_checker.name, "verified_at": verified_at.isoformat(),
 			"stock_entry_ids": list(documents),
+			"submitted_stock_entry_ids": list(documents), "stock_entries_submitted": True,
 		})
 		return finish_request(request, response)
 	except WorkflowError as exc:
@@ -525,7 +591,21 @@ def get_picker_context(batch_id, token, mobile_token=None):
 		require_role(user, "Warehouse Picker", "PICKER_NOT_AUTHORIZED")
 		batch = _get_batch(batch_id, user, token=token)
 		response = _batch_response(batch, user)
+		batch_status = batch.status
+		checker_verified = bool(batch.checker and batch_status in VERIFIED_HANDOVER_STATUSES)
+		if not checker_verified or not batch.get("stock_entries_submitted"):
+			raise WorkflowError("CHECKER_VERIFICATION_REQUIRED", "Checker Verification and Stock Entry submission are required.")
+		for stock_entry_id in dict.fromkeys(row.stock_entry for row in batch.source_stock_entries):
+			_source_stock_entry(stock_entry_id, user, docstatus=1)
+		existing_allocation = frappe.db.get_value("Warehouse Allocation", {"handover": batch.name}, "name")
 		response.update({
+			# Scanner v2.06 treats CHECKED as the verification state. Preserve the
+			# actual lifecycle status separately after allocation has been created.
+			"status": "CHECKED" if checker_verified else batch_status,
+			"batch_status": batch_status,
+			"checker_verified": checker_verified,
+			"warehouse_allocation": existing_allocation or "",
+			"warehouse_allocation_id": existing_allocation or "",
 			"transaction_types": ["Stock Entry", "Warehouse Transfer", "Warehouse Receiving Report", "Delivery Note", "Sales Invoice"],
 			"available_transaction_types": ["Stock Entry", "Warehouse Transfer", "Warehouse Receiving Report", "Delivery Note", "Sales Invoice"],
 			"permitted_warehouses": get_user_allowed_warehouses(user, require_transact=True, source="Role Profile"),

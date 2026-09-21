@@ -39,7 +39,7 @@ def apply_operation_times(doc):
 
 def get_operation_soph(doc, operation):
 	if is_packing_operation(operation):
-		return flt(doc.get("custom_pack_soph"))
+		return flt(doc.get("custom_pack_soph")) or flt(doc.get("custom_soph"))
 
 	return flt(doc.get("custom_soph"))
 

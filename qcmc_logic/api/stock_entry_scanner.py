@@ -4,6 +4,7 @@ import json
 import math
 import re
 import uuid
+from decimal import Decimal, InvalidOperation
 
 import frappe
 from frappe.utils import flt, get_datetime, now_datetime
@@ -32,6 +33,22 @@ class ScannerAPIError(frappe.ValidationError):
 def _error(code, message, details=None, status=400):
 	frappe.local.response["http_status_code"] = status
 	return {"success": False, "error_code": code, "message": message, "details": details or {}}
+
+
+def _parse_actual_weight_per_item(value):
+	"""Normalize scanner JSON numbers and comma-formatted numeric strings."""
+	try:
+		if value in (None, "") or isinstance(value, bool):
+			raise ValueError
+		weight = Decimal(str(value).replace(",", "").strip())
+		if not weight.is_finite() or weight <= 0:
+			raise ValueError
+		return weight
+	except (InvalidOperation, TypeError, ValueError):
+		raise ScannerAPIError(
+			"INVALID_ACTUAL_WEIGHT",
+			"Actual Weight per Item must be numeric and greater than zero.",
+		)
 
 
 def _stock_entry_id(value):
@@ -97,7 +114,11 @@ def _resolve_storage_location(identity, require_leaf=False, allow_legacy_code=Fa
 	if not identity:
 		code = "PUTAWAY_LOCATION_NOT_FOUND" if allow_legacy_code else "LOCATION_NOT_FOUND"
 		raise ScannerAPIError(code, "Storage Location is required.")
-	fields = ["name", "location_code", "location_name", "location_type", "parent_storage_location", "is_group", "disabled", "custom_warehouse"]
+	fields = [
+		"name", "location_code", "location_name", "location_type",
+		"parent_storage_location", "is_group", "disabled", "custom_warehouse",
+		"custom_restricted_item", "custom_storage_capacity",
+	]
 	location = frappe.db.get_value("Storage Location", identity, fields, as_dict=True)
 	if not location and allow_legacy_code:
 		matches = frappe.get_all(
@@ -177,8 +198,17 @@ def _validate_distribution_parent(distribution_mode, distribution_parent, entrie
 		raise ScannerAPIError("INVALID_INVENTORY_LOCATION", "The scanned distribution parent does not match the ERPNext allocation parent.")
 
 
-def _putaway_allocations(doc, row):
+def _putaway_allocations(
+	doc, row, reserved_capacity=None, excluded_locations=None,
+	preferred_location=None, shared_reserved_capacity=None,
+):
 	"""Return authoritative priority/capacity allocations for one finished row."""
+	reserved_capacity = reserved_capacity if reserved_capacity is not None else {}
+	shared_reserved_capacity = (
+		shared_reserved_capacity if shared_reserved_capacity is not None else {}
+	)
+	excluded_locations = {str(value or "").strip() for value in (excluded_locations or [])}
+	excluded_locations.discard("")
 	# Once a scanner submission has split a row, retain its authoritative
 	# allocation identity and recommendation. Do not recalculate or reorder it.
 	if row.get("custom_putaway_allocation_id") and row.get("custom_recommended_storage_location"):
@@ -231,6 +261,8 @@ def _putaway_allocations(doc, row):
 		location = _resolve_storage_location(
 			location_identity, require_leaf=True, allow_legacy_code=True
 		)
+		if location.name in excluded_locations or location.inventory_location_id in excluded_locations:
+			continue
 		if _normalize_warehouse(rule.warehouse) != _normalize_warehouse(location.custom_warehouse):
 			raise ScannerAPIError(
 				"PUTAWAY_LOCATION_WAREHOUSE_MISMATCH",
@@ -243,7 +275,22 @@ def _putaway_allocations(doc, row):
 				f"Stock Entry target warehouse '{row.t_warehouse}' does not match Putaway Rule warehouse '{rule.warehouse}'.",
 			)
 		parent = _resolve_storage_location(location.parent_storage_location) if location.parent_storage_location else None
-		stock_qty = min(pending_stock_qty, flt(rule.free_space))
+		# Multiple source rows may be allocated in one request before anything is
+		# posted. Reserve earlier recommendations so later rows cannot reuse the
+		# same apparent free space.
+		unlimited_capacity = bool(rule.get("custom_no_capacity_restriction"))
+		reserved_qty = 0
+		if not unlimited_capacity:
+			if rule.get("custom_no_item_restriction"):
+				reserved_qty = flt(shared_reserved_capacity.get(location.name))
+			else:
+				reserved_qty = flt(reserved_capacity.get(location.name))
+		available = (
+			pending_stock_qty
+			if unlimited_capacity
+			else max(flt(rule.free_space) - reserved_qty, 0)
+		)
+		stock_qty = min(pending_stock_qty, available)
 		if stock_qty <= 0:
 			continue
 		qty = stock_qty / conversion_factor
@@ -270,13 +317,28 @@ def _putaway_allocations(doc, row):
 			"putaway_rule": rule.name,
 			"priority": rule.priority,
 			"allocation_source": "putaway_rule",
-			"unlimited_capacity": False,
+			"unlimited_capacity": unlimited_capacity,
 			"requires_batch": bool(item.get("has_batch_no")),
 			"requires_serial_number": bool(item.get("has_serial_no")),
 		})
+		if rule.get("custom_no_item_restriction"):
+			shared_reserved_capacity[location.name] = (
+				flt(shared_reserved_capacity.get(location.name)) + stock_qty
+			)
+		else:
+			reserved_capacity[location.name] = flt(reserved_capacity.get(location.name)) + stock_qty
 		pending_stock_qty -= stock_qty
 	if pending_stock_qty > 1e-9:
-		fallback = _general_purpose_location(row.t_warehouse, allocations)
+		fallback_exclusions = allocations + [
+			{"inventory_location_id": location} for location in excluded_locations
+		]
+		building_source = preferred_location
+		if not building_source and allocations:
+			building_source = allocations[0].get("inventory_location_id")
+		preferred_building = _location_building_path(building_source) if building_source else ""
+		fallback = _general_purpose_location(
+			row.t_warehouse, fallback_exclusions, preferred_building=preferred_building
+		)
 		if fallback:
 			qty = pending_stock_qty / conversion_factor
 			allocations.append({
@@ -314,13 +376,18 @@ def _putaway_allocations(doc, row):
 	return allocations
 
 
-def _general_purpose_location(target_warehouse, explicit_allocations=None):
-	"""Discover one unrestricted, unlimited posting leaf directly from ERP."""
+def _location_building_path(location_id):
+	full_path = frappe.db.get_value("Storage Location", location_id, "full_path") or ""
+	return str(full_path).split(" / ", 1)[0].strip()
+
+
+def _general_purpose_location(target_warehouse, explicit_allocations=None, preferred_building=None):
+	"""Find an unrestricted, unlimited Open Area in the warehouse/building."""
 	priority_field = "custom_putaway_priority"
 	has_priority = frappe.get_meta("Storage Location").has_field(priority_field)
 	fields = [
 		"name", "location_code", "location_name", "location_type",
-		"parent_storage_location", "is_group", "disabled", "custom_warehouse",
+		"parent_storage_location", "full_path", "is_group", "disabled", "custom_warehouse",
 		"custom_restricted_item", "custom_storage_capacity",
 	]
 	if has_priority:
@@ -335,6 +402,11 @@ def _general_purpose_location(target_warehouse, explicit_allocations=None):
 	):
 		warehouse = str(location.get("custom_warehouse") or "").strip()
 		if not warehouse or _normalize_warehouse(warehouse) != _normalize_warehouse(target_warehouse):
+			continue
+		if location.get("location_type") != "Open Area":
+			continue
+		building = str(location.get("full_path") or "").split(" / ", 1)[0].strip()
+		if preferred_building and building != preferred_building:
 			continue
 		if str(location.get("custom_restricted_item") or "").strip():
 			continue
@@ -364,18 +436,12 @@ def _auth(mobile_token):
 
 
 def _scanner_employee(user):
-	"""Resolve the active Employee behind a scanner user."""
+	"""Resolve the active Employee behind a scanner user for audit metadata."""
 	if user == "Administrator":
 		return None
-	employee = frappe.db.get_value(
+	return frappe.db.get_value(
 		"Employee", {"user_id": user, "status": "Active"}, "name"
 	)
-	if not employee:
-		raise ScannerAPIError(
-			"PERMISSION_DENIED",
-			"You are not authorized to create Manufacture Draft Stock Entries.",
-		)
-	return employee
 
 
 def _audit_manufacture_draft(user, employee, job_card, reference, stock_entry, action, device_id, elevated):
@@ -416,7 +482,22 @@ def _validate_scanner_created_stock_entry(doc, user):
 		):
 			if row.meta.has_field(fieldname):
 				row.set(fieldname, "")
-	ensure_scanner_warehouse_access(user, _stock_entry_warehouses(doc), require_transact=True)
+	ensure_scanner_warehouse_access(user, _finished_target_warehouses(finished), require_transact=True)
+
+
+def _finished_target_warehouses(rows):
+	return [row.get("t_warehouse") for row in rows if row.get("is_finished_item") and row.get("t_warehouse")]
+
+
+def _ensure_manufacture_receive_access(user, job_card, work_order):
+	if user_can_transact_job_card(job_card, user=user):
+		return
+
+	warehouse = (
+		job_card.get("target_warehouse")
+		or work_order.get("fg_warehouse")
+	)
+	ensure_scanner_warehouse_access(user, [warehouse], require_transact=True)
 
 
 @frappe.whitelist(allow_guest=True)
@@ -495,6 +576,7 @@ def _manufacture_receive_context(doc, finished, include_putaway=True):
 			{
 				**_item_result(row),
 				"quantity": flt(row.qty),
+				"custom_actual_weight_per_item": flt(row.get("custom_actual_weight_per_item")),
 			}
 			for row in finished
 		],
@@ -522,10 +604,40 @@ def _job_card_id(value):
 
 
 @frappe.whitelist(allow_guest=True)
+def validate_manufacture_job_card(job_card_id, mobile_token=None):
+	"""Return live ERPNext eligibility and quantities for online FG receiving."""
+	try:
+		user = _auth(mobile_token)
+		job_card_id = _job_card_id(job_card_id)
+		if not job_card_id or not frappe.db.exists("Job Card", job_card_id):
+			raise ScannerAPIError("JOB_CARD_NOT_FOUND", f"Job Card '{job_card_id}' was not found.")
+		job_card = frappe.get_doc("Job Card", job_card_id, ignore_permissions=True)
+		if not user_can_transact_job_card(job_card, user=user):
+			raise ScannerAPIError("PERMISSION_DENIED", "You are not authorized to read this Job Card.")
+		work_order = _get_work_order(job_card.work_order, ignore_permissions=True)
+		available = _pending_qty(job_card, "Manufacture")
+		return {
+			"success": True, "job_card": job_card.name, "work_order": work_order.name,
+			"production_item": work_order.production_item,
+			"required_quantity": flt(job_card.for_quantity),
+			"available_quantity": flt(available),
+			"completed_quantity": flt(job_card.total_completed_qty),
+			"manufactured_quantity": flt(job_card.manufactured_qty),
+			"warehouse": work_order.fg_warehouse,
+			"status": job_card.status, "docstatus": job_card.docstatus,
+		}
+	except ScannerAPIError as exc:
+		return _error(exc.code, str(exc), exc.details, 403 if exc.code == "PERMISSION_DENIED" else 400)
+	except frappe.PermissionError:
+		return _error("PERMISSION_DENIED", "You are not authorized to read this Job Card.", status=403)
+
+
+@frappe.whitelist(allow_guest=True)
 def create_manufacture_receive_draft(
 	job_card_id,
 	custom_reference_document,
 	quantity=None,
+	custom_actual_weight_per_item=None,
 	mobile_token=None,
 	device_id=None,
 	request_id=None,
@@ -557,12 +669,14 @@ def create_manufacture_receive_draft(
 			request_id = request_uuid(request_id, fieldname="request_id")
 		except Exception as e:
 			raise ScannerAPIError("ERP_VALIDATION_FAILED", str(e))
+		actual_weight = _parse_actual_weight_per_item(custom_actual_weight_per_item)
 		
 		# Prepare payload for hashing
 		payload = {
 			"job_card_id": _job_card_id(job_card_id),
 			"custom_reference_document": str(custom_reference_document or "").strip(),
 			"quantity": quantity,
+			"custom_actual_weight_per_item": actual_weight,
 			"device_id": str(device_id or "").strip(),
 		}
 		
@@ -587,16 +701,14 @@ def create_manufacture_receive_draft(
 			raise ScannerAPIError("PULL_OUT_SLIP_REQUIRED", "Pull Out Slip is required.")
 		if not frappe.get_meta("Stock Entry").has_field("custom_reference_document"):
 			raise ScannerAPIError("ERP_CONFIGURATION_ERROR", "Stock Entry is missing custom_reference_document.")
+		if not frappe.get_meta("Stock Entry Detail").has_field("custom_actual_weight_per_item"):
+			raise ScannerAPIError("ERP_CONFIGURATION_ERROR", "Stock Entry Item is missing custom_actual_weight_per_item.")
 
-		job_card = frappe.get_doc("Job Card", job_card_id)
+		job_card = frappe.get_doc("Job Card", job_card_id, ignore_permissions=True)
 		if not job_card.work_order or not frappe.db.exists("Work Order", job_card.work_order):
 			raise ScannerAPIError("ERP_VALIDATION_FAILED", "Job Card must belong to a valid Work Order.")
-		if not user_can_transact_job_card(job_card, user=user):
-			raise ScannerAPIError(
-				"PERMISSION_DENIED",
-				"You are not authorized to create Manufacture Draft Stock Entries.",
-			)
-		work_order = _get_work_order(job_card.work_order)
+		work_order = _get_work_order(job_card.work_order, ignore_permissions=True)
+		_ensure_manufacture_receive_access(user, job_card, work_order)
 		if not _can_use_job_card_for_purpose(job_card, work_order, "Manufacture"):
 			raise ScannerAPIError("JOB_CARD_NOT_ELIGIBLE", "Job Card is not eligible for manufacture receiving.")
 		remaining_qty = _pending_qty(job_card, "Manufacture")
@@ -638,15 +750,22 @@ def create_manufacture_receive_draft(
 		doc = frappe.get_doc("Stock Entry", created["name"])
 		ensure_scanner_warehouse_access(
 			user,
-			_stock_entry_warehouses(doc),
+			_finished_target_warehouses(doc.items),
 			require_transact=True,
 		)
 		doc.custom_reference_document = reference
+		finished = [row for row in doc.items if row.is_finished_item and row.t_warehouse]
+		if len(finished) != 1:
+			raise ScannerAPIError(
+				"FINISHED_ITEM_NOT_FOUND",
+				"Exactly one finished-goods row is required to save Actual Weight per Item.",
+			)
+		finished[0].custom_actual_weight_per_item = actual_weight
 		doc.save(ignore_permissions=True)
 		if doc.docstatus != 0:
 			raise ScannerAPIError("STOCK_ENTRY_NOT_DRAFT", "Scanner-created Stock Entry must remain Draft.")
-		finished = [row for row in doc.items if row.is_finished_item and row.t_warehouse]
 		result = _manufacture_receive_context(doc, finished, include_putaway=False)
+		result["custom_actual_weight_per_item"] = flt(actual_weight)
 		# Add required fields for idempotency and audit
 		result["existing_draft"] = False
 		result["duplicate_request"] = False
@@ -657,10 +776,14 @@ def create_manufacture_receive_draft(
 		if savepoint_started:
 			frappe.db.rollback(save_point="create_manufacture_receive_draft")
 		return _error(exc.code, str(exc), exc.details, 403 if exc.code == "PERMISSION_DENIED" else 400)
-	except frappe.PermissionError:
+	except frappe.PermissionError as exc:
 		if savepoint_started:
 			frappe.db.rollback(save_point="create_manufacture_receive_draft")
-		return _error("PERMISSION_DENIED", "You are not authorized to create Manufacture Draft Stock Entries.", status=403)
+		return _error(
+			"PERMISSION_DENIED",
+			str(exc) or "You are not authorized to create Manufacture Draft Stock Entries.",
+			status=403,
+		)
 	except Exception as exc:
 		if savepoint_started:
 			frappe.db.rollback(save_point="create_manufacture_receive_draft")
@@ -706,6 +829,16 @@ def update_manufacture_receive_draft(
 				raise ScannerAPIError("INVALID_ROWS", "rows must contain valid JSON.")
 		if not isinstance(rows, list) or not rows:
 			raise ScannerAPIError("INVALID_ROWS", "At least one quantity row is required.")
+		normalized_rows = []
+		for submitted in rows:
+			if not isinstance(submitted, dict):
+				raise ScannerAPIError("INVALID_ROWS", "Each quantity row must be an object.")
+			normalized = dict(submitted)
+			normalized["custom_actual_weight_per_item"] = _parse_actual_weight_per_item(
+				submitted.get("custom_actual_weight_per_item")
+			)
+			normalized_rows.append(normalized)
+		rows = normalized_rows
 
 		payload = {
 			"batch_id": str(batch_id or "").strip(),
@@ -742,11 +875,15 @@ def update_manufacture_receive_draft(
 			doc = documents.get(stock_entry_id)
 			if doc is None:
 				doc, finished = _validate_document(stock_entry_id, "read", check_permission=False)
+				if doc.docstatus != 0:
+					raise ScannerAPIError("STOCK_ENTRY_NOT_DRAFT", f"Stock Entry '{doc.name}' is not Draft.")
 				ensure_scanner_warehouse_access(user, _stock_entry_warehouses(doc, finished), require_transact=True)
 				documents[stock_entry_id] = doc
 			stock_row = next((item for item in doc.items if item.name == row_name), None)
 			if not stock_row:
 				raise ScannerAPIError("ROW_NOT_IN_STOCK_ENTRY", "The row does not belong to the Draft Stock Entry.")
+			if not stock_row.is_finished_item:
+				raise ScannerAPIError("FINISHED_ITEM_NOT_FOUND", "Actual Weight can only be updated on a finished-goods row.")
 			if str(submitted.get("item_code") or "").strip() != str(stock_row.item_code or "").strip():
 				raise ScannerAPIError("ITEM_MISMATCH", "The item code does not match the Draft row.")
 			uom = str(submitted.get("uom") or "").strip()
@@ -763,6 +900,7 @@ def update_manufacture_receive_draft(
 				"item_code": stock_row.item_code, "quantity": quantity,
 				"recorded_quantity": flt(stock_row.qty),
 				"uom": stock_row.uom, "stock_row": stock_row,
+				"custom_actual_weight_per_item": submitted["custom_actual_weight_per_item"],
 			})
 
 		frappe.db.savepoint("update_manufacture_receive_draft")
@@ -772,6 +910,7 @@ def update_manufacture_receive_draft(
 			factor = flt(stock_row.conversion_factor or 1)
 			stock_row.qty = update["quantity"]
 			stock_row.transfer_qty = update["quantity"] * factor
+			stock_row.custom_actual_weight_per_item = update["custom_actual_weight_per_item"]
 		for doc in documents.values():
 			if doc.docstatus != 0:
 				raise ScannerAPIError("STOCK_ENTRY_NOT_DRAFT", f"Stock Entry '{doc.name}' is not Draft.")
