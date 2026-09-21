@@ -64,6 +64,15 @@ def get_employee(doctype, txt, searchfield, start, page_len, filters):
                             WHERE fieldname = 'designation'
                             AND current = %(designation)s
                         )
+                    ) OR  name IN (
+                        SELECT employee FROM `tabEmployee Transfer`
+                        WHERE department = %(department)s
+                        AND company = %(company)s
+                        AND name IN (
+                            SELECT parent FROM `tabEmployee Property History`
+                            WHERE fieldname = 'designation'
+                            AND current = %(designation)s
+                        )
                     ))
                 """)
 		            
