@@ -13,6 +13,8 @@ from qcmc_logic.api.stock_reconciliation import (
 	_submit_adjustment_entries,
 	_submit_increment_entries,
 	_ensure_pcount_open_for_scanning,
+	_get_physical_location_balances,
+	_get_unallocated_warehouse_balances,
 	_resolve_increment_uom,
 	PhysicalCountConflict,
 	PhysicalCountNotOpen,
@@ -26,6 +28,27 @@ from qcmc_logic.overrides.stock_reconciliation import CustomStockReconciliation
 
 
 class TestStockReconciliationIncrement(FrappeTestCase):
+	def test_location_balance_uses_only_latest_submitted_count_snapshot(self):
+		with patch("frappe.db.sql", return_value=[]) as sql:
+			_get_physical_location_balances("FG - Test")
+
+		query = sql.call_args.args[0]
+		self.assertIn("row_number() over", query.lower())
+		self.assertIn("where row_rank = 1", query.lower())
+		self.assertNotIn("pcr.variance", query.lower())
+
+	def test_unallocated_balance_is_bin_stock_less_physical_locations(self):
+		physical = [frappe._dict(item_code="ITEM-A", quantity=10)]
+		bin_rows = [frappe._dict(
+			item_code="ITEM-A", item_name="Item A", stock_uom="PCS",
+			warehouse="FG - Test", actual_qty=30,
+		)]
+		with patch("frappe.db.sql", return_value=bin_rows):
+			rows = _get_unallocated_warehouse_balances("FG - Test", physical)
+
+		self.assertEqual(len(rows), 1)
+		self.assertEqual(rows[0].quantity, 20)
+
 	def test_for_recon_and_close_inventory_are_not_open_for_scanning(self):
 		for state in ("For Recon", "Close Inventory"):
 			doc = frappe._dict(name="TEST-PCOUNT", docstatus=0, workflow_state=state)
@@ -95,19 +118,52 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 			location="LOCATION-2",
 			quantity=25,
 		)]
-		with patch("frappe.db.sql", return_value=balances) as stock_query, patch(
-			"frappe.db.get_value", return_value="Location 2"
-		):
+		with patch(
+			"qcmc_logic.api.stock_reconciliation._get_physical_location_balances",
+			return_value=balances,
+		), patch(
+			"qcmc_logic.api.stock_reconciliation._get_unallocated_warehouse_balances",
+			return_value=[],
+		), patch("frappe.db.get_value", return_value="Location 2"):
 			doc.add_missing_location_zero_counts()
 
-		stock_query.assert_called_once()
-		self.assertEqual(stock_query.call_args.args[1], {"warehouse": "FG - Test"})
 		inferred = doc.custom_physical_count_results[-1]
 		self.assertEqual(inferred.item_code, "ITEM-NEVER-SCANNED")
 		self.assertEqual(inferred.location, "LOCATION-2")
 		self.assertEqual(inferred.physical_count, 0)
 		self.assertEqual(inferred.variance, -25)
 		self.assertTrue(inferred.submission_id.startswith("AUTO-ZERO-"))
+
+	def test_close_inventory_creates_unallocated_warehouse_zero(self):
+		doc = CustomStockReconciliation({
+			"doctype": "Stock Reconciliation",
+			"name": "TEST-UNALLOCATED-WAREHOUSE-STOCK",
+			"set_warehouse": "FG - Test",
+			"custom_physical_count": 1,
+			"custom_physical_count_results": [],
+		})
+		unallocated = [frappe._dict(
+			item_code="ITEM-A", item_name="Item A", stock_uom="PCS",
+			warehouse="FG - Test", quantity=20,
+		)]
+		with patch(
+			"qcmc_logic.api.stock_reconciliation._get_physical_location_balances",
+			return_value=[],
+		), patch(
+			"qcmc_logic.api.stock_reconciliation._get_unallocated_warehouse_balances",
+			return_value=unallocated,
+		):
+			doc.add_missing_location_zero_counts()
+			doc.add_missing_location_zero_counts()
+
+		self.assertEqual(len(doc.custom_physical_count_results), 1)
+		inferred = doc.custom_physical_count_results[0]
+		self.assertTrue(inferred.submission_id.startswith("AUTO-UNALLOCATED-"))
+		self.assertEqual(inferred.location, "")
+		self.assertEqual(inferred.location_name, "Unallocated Warehouse Stock")
+		self.assertEqual(inferred.erp_quantity_before, 20)
+		self.assertEqual(inferred.physical_count, 0)
+		self.assertEqual(inferred.variance, -20)
 
 	def test_for_recon_review_lists_unscanned_book_stock(self):
 		doc = frappe._dict(

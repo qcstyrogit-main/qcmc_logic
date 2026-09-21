@@ -191,6 +191,7 @@ doctype_js = {
     "Stock Entry": "public/js/stock_entry.js",
     "Stock Reconciliation": "public/js/stock_reconciliation.js",
     "Storage Location": "public/js/storage_location.js",
+    "Putaway Rule": "public/js/putaway_rule.js",
     "Work Order": "public/js/work_order.js",
     "Material Request": "public/js/material_request.js",
     "Pick List": "public/js/pick_list.js",
@@ -214,6 +215,7 @@ doctype_js = {
 
 doctype_list_js = {
     "Issue": "public/js/issue_list.js",
+    "Warehouse Allocation": "qcmc_logics/doctype/warehouse_allocation/warehouse_allocation_list.js",
 }
 
 # override_doctype_class = {

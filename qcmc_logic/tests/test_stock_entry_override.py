@@ -44,6 +44,17 @@ class TestManufactureDraftPutawayValidation(unittest.TestCase):
 				CustomStockEntry.validate_putaway_capacity(doc)
 			validate.assert_called_once_with(doc)
 
+	def test_checker_handover_submit_defers_putaway_validation(self):
+		doc = SimpleNamespace(
+			purpose="Manufacture",
+			_action="submit",
+			flags=frappe._dict(skip_putaway_capacity_for_handover=True),
+			items=[frappe._dict(is_finished_item=1, t_warehouse="FG", putaway_rule="", to_location="")],
+		)
+		with patch("qcmc_logic.overrides.stock_entry.validate_dimension_putaway_capacity") as validate:
+			CustomStockEntry.validate_putaway_capacity(doc)
+		validate.assert_not_called()
+
 	def test_tracked_final_output_updates_work_order_quantity_and_status(self):
 		work_order = SimpleNamespace(
 			track_semi_finished_goods=1,

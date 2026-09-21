@@ -11,6 +11,9 @@ from erpnext.stock.doctype.inventory_dimension.inventory_dimension import get_in
 from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos
 
 
+UNLIMITED_PUTAWAY_CAPACITY = 999999999999
+
+
 RECEIVING_STOCK_ENTRY_PURPOSES = {
 	"Material Receipt",
 	"Material Transfer",
@@ -79,6 +82,66 @@ def get_dimension_stock_balance(item_code, warehouse, dimensions=None, posting_d
 	return flt(frappe.db.sql(
 		f"select coalesce(sum(actual_qty), 0) from `tabStock Ledger Entry` where {' and '.join(conditions)}",
 		values,
+	)[0][0])
+
+
+def get_dimension_total_stock_balance(warehouse, dimensions=None, posting_date=None, posting_time=None):
+	"""Return total quantity in one dimension combination across all items."""
+	dimensions = dimensions or {}
+	valid_fields = set(get_dimension_fields_for_doctype("Stock Ledger Entry"))
+	conditions = ["warehouse = %(warehouse)s", "is_cancelled = 0"]
+	values = {
+		"warehouse": warehouse,
+		"posting_date": posting_date or nowdate(),
+		"posting_time": posting_time or nowtime(),
+	}
+	conditions.append("(posting_date < %(posting_date)s or (posting_date = %(posting_date)s and posting_time <= %(posting_time)s))")
+	for fieldname, value in dimensions.items():
+		if fieldname not in valid_fields:
+			frappe.throw(f"{fieldname} is not a valid Inventory Dimension fieldname.")
+		conditions.append(f"`{fieldname}` = %({fieldname})s")
+		values[fieldname] = value
+	return flt(frappe.db.sql(
+		f"select coalesce(sum(actual_qty), 0) from `tabStock Ledger Entry` where {' and '.join(conditions)}",
+		values,
+	)[0][0])
+
+
+def get_location_total_physical_balance(warehouse, location):
+	if not location:
+		return 0
+	return flt(frappe.db.sql(
+		"""
+		select coalesce(sum(movement.quantity), 0)
+		from (
+			select wal.actual_qty as quantity
+			from `tabWarehouse Allocation Location` wal
+			inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
+			where wa.docstatus = 1 and wa.status = 'Completed'
+				and wa.warehouse = %(warehouse)s and wal.status = 'VERIFIED'
+				and wal.actual_location = %(location)s
+			union all
+			select quantity
+			from `tabLocation Transfer`
+			where docstatus = 1 and warehouse = %(warehouse)s
+				and target_location = %(location)s
+			union all
+			select -quantity
+			from `tabLocation Transfer`
+			where docstatus = 1 and warehouse = %(warehouse)s
+				and source_location = %(location)s
+			union all
+			select pcr.variance
+			from `tabQCMC Physical Count Result` pcr
+			inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
+			where sr.docstatus = 1 and sr.custom_physical_count = 1
+				and coalesce(pcr.status, '') != 'Old Count'
+				and not (coalesce(pcr.physical_count, 0) = 0 and coalesce(pcr.variance, 0) = 0)
+				and pcr.warehouse = %(warehouse)s
+				and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %(location)s
+		) movement
+		""",
+		{"warehouse": warehouse, "location": location},
 	)[0][0])
 
 
@@ -206,15 +269,27 @@ def get_item_rule_key(doctype, purpose, item_code, source_warehouse, item):
 
 
 def get_ordered_dimension_putaway_rules(item_code, company, source_warehouse=None, item_dimensions=None):
-	filters = {"item_code": item_code, "company": company, "disable": 0}
+	filters = {"company": company, "disable": 0}
 	if source_warehouse:
 		filters.update({"warehouse": ["!=", source_warehouse]})
 
-	fields = ["name", "item_code", "stock_capacity", "priority", "warehouse", *get_rule_dimension_fields()]
+	fields = [
+		"name", "item_code", "stock_capacity", "priority", "warehouse",
+		*get_rule_dimension_fields(),
+	]
+	no_item_field = "custom_no_item_restriction"
+	no_capacity_field = "custom_no_capacity_restriction"
+	has_no_item_field = frappe.get_meta("Putaway Rule").has_field(no_item_field)
+	has_no_capacity_field = frappe.get_meta("Putaway Rule").has_field(no_capacity_field)
+	if has_no_item_field:
+		fields.append(no_item_field)
+	if has_no_capacity_field:
+		fields.append(no_capacity_field)
 	rules = frappe.get_all(
 		"Putaway Rule",
 		fields=fields,
 		filters=filters,
+		or_filters=_get_item_restriction_filters(item_code) if has_no_item_field else {"item_code": item_code},
 		order_by="priority asc, capacity desc",
 	)
 	for rule in rules:
@@ -236,12 +311,11 @@ def get_ordered_dimension_putaway_rules(item_code, company, source_warehouse=Non
 	vacant_rules = []
 	for rule in rules:
 		dimensions = get_rule_dimension_values(rule)
-		balance_qty = get_dimension_stock_balance(
-			rule.item_code,
-			rule.warehouse,
-			dimensions,
-		)
-		free_space = flt(rule.stock_capacity) - flt(balance_qty)
+		if rule.get("custom_no_capacity_restriction"):
+			free_space = UNLIMITED_PUTAWAY_CAPACITY
+		else:
+			balance_qty = get_putaway_rule_balance(rule, item_code=item_code)
+			free_space = flt(rule.stock_capacity) - flt(balance_qty)
 		if free_space > 0:
 			rule["free_space"] = free_space
 			vacant_rules.append(rule)
@@ -249,7 +323,25 @@ def get_ordered_dimension_putaway_rules(item_code, company, source_warehouse=Non
 	if not vacant_rules:
 		return True, None
 
-	return False, sorted(vacant_rules, key=lambda i: (i["priority"], -i["free_space"]))
+	return False, sorted(
+		vacant_rules,
+		key=lambda i: (
+			0 if _rule_matches_item(i, item_code) else 1,
+			i["priority"],
+			-i["free_space"],
+		),
+	)
+
+
+def _get_item_restriction_filters(item_code):
+	return [
+		{"item_code": item_code},
+		{"custom_no_item_restriction": 1},
+	]
+
+
+def _rule_matches_item(rule, item_code):
+	return cstr(rule.get("item_code")).strip() == cstr(item_code).strip()
 
 
 def _normalize_warehouse(value):
@@ -386,7 +478,9 @@ def validate_dimension_putaway_capacity(doc):
 			rule_map[rule_name]["warehouse"] = get_receiving_warehouse(doc, item, rule)
 			rule_map[rule_name]["item"] = item.get("item_code")
 			rule_map[rule_name]["qty_put"] = 0
-			rule_map[rule_name]["capacity"] = get_available_dimension_putaway_capacity(rule)
+			rule_map[rule_name]["capacity"] = get_available_dimension_putaway_capacity(
+				rule, item_code=item.get("item_code")
+			)
 
 		rule_map[rule_name]["qty_put"] += flt(stock_qty)
 
@@ -437,18 +531,36 @@ def get_receiving_warehouse(doc, item, rule):
 	return item.get("warehouse")
 
 
-def get_available_dimension_putaway_capacity(rule):
+def get_available_dimension_putaway_capacity(rule, item_code=None):
 	if isinstance(rule, str):
 		rule = frappe.get_cached_doc("Putaway Rule", rule)
 
-	balance_qty = get_dimension_putaway_balance(rule)
+	if rule.get("custom_no_capacity_restriction"):
+		return UNLIMITED_PUTAWAY_CAPACITY
+
+	balance_qty = get_putaway_rule_balance(rule, item_code=item_code)
 	free_space = flt(rule.stock_capacity) - flt(balance_qty)
 	return free_space if free_space > 0 else 0
 
 
-def get_dimension_putaway_balance(rule):
+def get_putaway_rule_balance(rule, item_code=None):
+	if rule.get("custom_no_item_restriction"):
+		location = get_rule_dimension_values(rule).get("location")
+		if location:
+			return get_location_total_physical_balance(rule.warehouse, location)
+		return get_dimension_total_stock_balance(
+			rule.warehouse,
+			get_rule_dimension_values(rule),
+		)
+	return get_dimension_putaway_balance(rule, item_code=item_code)
+
+
+def get_dimension_putaway_balance(rule, item_code=None):
+	balance_item = item_code or rule.item_code
+	if not balance_item:
+		return 0
 	balance_qty = get_dimension_stock_balance(
-		rule.item_code,
+		balance_item,
 		rule.warehouse,
 		get_rule_dimension_values(rule),
 	)

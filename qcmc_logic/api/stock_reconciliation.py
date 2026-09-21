@@ -146,14 +146,57 @@ def _ensure_pcount_open_for_scanning(doc):
 
 
 def _current_inventory_quantity(item_code, warehouse, storage_location, batch_no=None, serial_no=None):
-    """Single authoritative Physical Count baseline for an exact inventory key."""
-    return get_dimension_stock_balance(
-        str(item_code or "").strip(),
-        str(warehouse or "").strip(),
-        {"location": str(storage_location or "").strip()},
+    """Authoritative physical-location balance from counts, allocations, and transfers."""
+    item_code = str(item_code or "").strip()
+    warehouse = str(warehouse or "").strip()
+    storage_location = str(storage_location or "").strip()
+    latest_count = frappe.db.sql(
+        """
+        select pcr.physical_count, coalesce(pcr.submitted_at, sr.modified) as counted_at
+        from `tabQCMC Physical Count Result` pcr
+        inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
+        where sr.docstatus = 1 and sr.custom_physical_count = 1
+          and pcr.item_code = %s and pcr.warehouse = %s
+          and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %s
+        order by coalesce(pcr.submitted_at, sr.modified) desc, pcr.idx desc
+        limit 1
+        """,
+        (item_code, warehouse, storage_location), as_dict=True,
+    )
+    cutoff = latest_count[0].counted_at if latest_count else None
+    allocation_state = frappe.db.sql(
+        """
+        select coalesce(sum(wal.actual_qty), 0) as quantity, count(*) as row_count
+        from `tabWarehouse Allocation Location` wal
+        inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
+        where wa.docstatus = 1 and wa.status = 'Completed'
+          and wa.warehouse = %s and wal.item_code = %s
+          and wal.status = 'VERIFIED' and wal.actual_location = %s
+          and (%s is null or coalesce(wa.completed_at, wa.modified) > %s)
+        """,
+        (warehouse, item_code, storage_location, cutoff, cutoff), as_dict=True,
+    )[0]
+    allocation = allocation_state.quantity or 0
+    movement = frappe.db.sql(
+        """
+        select coalesce(sum(case when target_location = %s then quantity else 0 end), 0)
+             - coalesce(sum(case when source_location = %s then quantity else 0 end), 0)
+        from `tabLocation Transfer`
+        where docstatus = 1 and warehouse = %s and item_code = %s
+          and (%s is null or transferred_at > %s)
+        """,
+        (storage_location, storage_location, warehouse, item_code, cutoff, cutoff),
+    )[0][0] or 0
+    if latest_count:
+        return _safe_float(latest_count[0].physical_count) + _safe_float(allocation) + _safe_float(movement)
+    if allocation_state.row_count:
+        return _safe_float(allocation) + _safe_float(movement)
+    legacy_balance = get_dimension_stock_balance(
+        item_code, warehouse, {"location": storage_location},
         batch_no=str(batch_no or "").strip() or None,
         serial_no=str(serial_no or "").strip() or None,
     )
+    return _safe_float(legacy_balance) + _safe_float(movement)
 
 
 def _quantities_equal(left, right):
@@ -595,10 +638,13 @@ def _make_pcount_stock_entry(doc, purpose, rows, reconciliation_id):
             values["set_basic_rate_manually"] = 1
         else:
             values["allow_zero_valuation_rate"] = 1
+        # Physical locations are maintained by Warehouse Allocation, Location
+        # Transfer, and the submitted count variance. The Stock Entry adjusts only
+        # the ERP warehouse total so the same variance is not counted twice.
         if purpose == "Material Receipt":
-            values.update({"t_warehouse": entry.warehouse, "to_location": entry.location})
+            values.update({"t_warehouse": entry.warehouse})
         else:
-            values.update({"s_warehouse": entry.warehouse, "location": entry.location})
+            values.update({"s_warehouse": entry.warehouse})
         stock_entry.append("items", values)
     stock_entry.insert(ignore_permissions=True)
     stock_entry.submit()
@@ -821,6 +867,7 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
 
 def post_pending_pcount_adjustments(doc):
     """Post the latest location counts when a Physical Count is activated."""
+    unallocated_cache = {}
     latest = {}
     for result in doc.get("custom_physical_count_results") or []:
         key = (
@@ -842,10 +889,18 @@ def post_pending_pcount_adjustments(doc):
     planned = []
     for result in latest.values():
         location = result.get("location") or result.inventory_location
-        current = _current_inventory_quantity(
-            result.item_code, result.warehouse, location,
-            result.get("batch_no"), result.get("serial_no"),
-        )
+        if str(result.submission_id or "").startswith("AUTO-UNALLOCATED-"):
+            if result.warehouse not in unallocated_cache:
+                unallocated_cache[result.warehouse] = {
+                    row.item_code: _safe_float(row.quantity)
+                    for row in _get_unallocated_warehouse_balances(result.warehouse)
+                }
+            current = unallocated_cache[result.warehouse].get(result.item_code, 0)
+        else:
+            current = _current_inventory_quantity(
+                result.item_code, result.warehouse, location,
+                result.get("batch_no"), result.get("serial_no"),
+            )
         if not _quantities_equal(current, result.erp_quantity_before):
             frappe.throw(
                 "ERP stock changed after this physical count was recorded for "
@@ -1654,6 +1709,131 @@ def get_pcount_state(reconciliation_id, mobile_token=None):
     return {"success": True, "reconciliation_id": reconciliation_id, "entries": entries}
 
 
+def _get_physical_location_balances(warehouse):
+    """Return authoritative positive balances for every physical location."""
+    return frappe.db.sql(
+        """
+        with ranked_counts as (
+            select pcr.item_code,
+                   coalesce(nullif(pcr.location, ''), pcr.inventory_location) as location,
+                   pcr.physical_count,
+                   coalesce(pcr.submitted_at, sr.modified) as counted_at,
+                   row_number() over (
+                       partition by pcr.item_code, pcr.warehouse,
+                           coalesce(nullif(pcr.location, ''), pcr.inventory_location)
+                       order by coalesce(pcr.submitted_at, sr.modified) desc, pcr.idx desc
+                   ) as row_rank
+            from `tabQCMC Physical Count Result` pcr
+            inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
+            where sr.docstatus = 1 and sr.custom_physical_count = 1
+              and pcr.warehouse = %(warehouse)s
+        ),
+        latest_counts as (
+            select item_code, location, physical_count, counted_at
+            from ranked_counts
+            where row_rank = 1
+        ),
+        candidates as (
+            select wal.item_code, wal.actual_location as location
+            from `tabWarehouse Allocation Location` wal
+            inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
+            where wa.docstatus = 1 and wa.status = 'Completed'
+              and wa.warehouse = %(warehouse)s and wal.status = 'VERIFIED'
+            union all
+            select item_code, target_location
+            from `tabLocation Transfer`
+            where docstatus = 1 and warehouse = %(warehouse)s
+            union all
+            select item_code, source_location
+            from `tabLocation Transfer`
+            where docstatus = 1 and warehouse = %(warehouse)s
+            union all
+            select item_code, location from latest_counts
+        ),
+        balance_state as (
+            select distinct candidate.item_code, candidate.location,
+                   coalesce(latest.physical_count, 0)
+                   + coalesce((
+                       select sum(wal.actual_qty)
+                       from `tabWarehouse Allocation Location` wal
+                       inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
+                       where wa.docstatus = 1 and wa.status = 'Completed'
+                         and wa.warehouse = %(warehouse)s
+                         and wal.item_code = candidate.item_code
+                         and wal.status = 'VERIFIED'
+                         and wal.actual_location = candidate.location
+                         and (latest.counted_at is null
+                              or coalesce(wa.completed_at, wa.modified) > latest.counted_at)
+                   ), 0)
+                   + coalesce((
+                       select sum(case
+                           when transfer.target_location = candidate.location then transfer.quantity
+                           when transfer.source_location = candidate.location then -transfer.quantity
+                           else 0 end)
+                       from `tabLocation Transfer` transfer
+                       where transfer.docstatus = 1
+                         and transfer.warehouse = %(warehouse)s
+                         and transfer.item_code = candidate.item_code
+                         and (transfer.source_location = candidate.location
+                              or transfer.target_location = candidate.location)
+                         and (latest.counted_at is null
+                              or transfer.transferred_at > latest.counted_at)
+                   ), 0) as quantity
+            from candidates candidate
+            left join latest_counts latest
+              on latest.item_code = candidate.item_code
+             and latest.location = candidate.location
+            where coalesce(candidate.location, '') != ''
+        )
+        select balance.item_code, item.item_name, item.stock_uom,
+               %(warehouse)s as warehouse, balance.location, balance.quantity
+        from balance_state balance
+        inner join `tabItem` item on item.name = balance.item_code
+        where balance.quantity > 0.000000001
+        order by item.item_name, balance.item_code, balance.location
+        """,
+        {"warehouse": warehouse},
+        as_dict=True,
+    )
+
+
+def _get_unallocated_warehouse_balances(warehouse, physical_balances=None):
+    """Return positive ERP Bin stock not represented by a physical location."""
+    physical_balances = (
+        physical_balances
+        if physical_balances is not None
+        else _get_physical_location_balances(warehouse)
+    )
+    located_by_item = defaultdict(float)
+    for balance in physical_balances:
+        located_by_item[balance.item_code] += _safe_float(balance.quantity)
+
+    bin_rows = frappe.db.sql(
+        """
+        select bin.item_code, coalesce(item.item_name, bin.item_code) as item_name,
+               item.stock_uom, bin.warehouse, bin.actual_qty
+        from `tabBin` bin
+        inner join `tabItem` item on item.name = bin.item_code
+        where bin.warehouse = %(warehouse)s
+          and bin.actual_qty > 0.000000001
+        """,
+        {"warehouse": warehouse},
+        as_dict=True,
+    )
+    unallocated = []
+    for row in bin_rows:
+        quantity = _safe_float(row.actual_qty) - located_by_item[row.item_code]
+        if quantity > 0.000000001:
+            unallocated.append(frappe._dict(
+                item_code=row.item_code,
+                item_name=row.item_name or row.item_code,
+                stock_uom=row.stock_uom,
+                warehouse=row.warehouse,
+                quantity=quantity,
+            ))
+    return unallocated
+
+
 @frappe.whitelist()
 def get_pcount_reconciliation_review(reconciliation_id):
     """Return book-stock exceptions for ERP reviewers, never scanner clients."""
@@ -1681,23 +1861,7 @@ def get_pcount_reconciliation_review(reconciliation_id):
         counted_locations.add(location)
         scanned_items.add(key[0])
 
-    balances = frappe.db.sql(
-        """
-        select sle.item_code, item.item_name, item.stock_uom,
-               sle.warehouse, sle.location,
-               coalesce(sum(sle.actual_qty), 0) as quantity
-          from `tabStock Ledger Entry` sle
-          join `tabItem` item on item.name = sle.item_code
-         where sle.warehouse = %(warehouse)s
-           and sle.is_cancelled = 0
-           and ifnull(sle.location, '') != ''
-         group by sle.item_code, item.item_name, item.stock_uom,
-                  sle.warehouse, sle.location
-        having coalesce(sum(sle.actual_qty), 0) > 0.000000001
-        """,
-        {"warehouse": warehouse},
-        as_dict=True,
-    )
+    balances = _get_physical_location_balances(warehouse)
     unscanned = []
     for balance in balances:
         key = (balance.item_code, balance.warehouse, balance.location)
@@ -1764,4 +1928,146 @@ def get_pcount_reconciliation_review(reconciliation_id):
             row["item_code"] for row in unscanned if row["item_never_scanned"]
         }),
         "unscanned_balances": unscanned,
+    }
+
+
+@frappe.whitelist()
+def check_items_location(reconciliation_id):
+    """Check the latest Physical Count placements against active Putaway Rules."""
+    from qcmc_logic.api.warehouse_allocation import _committed_location_quantities
+
+    doc = frappe.get_doc("Stock Reconciliation", str(reconciliation_id or "").strip())
+    doc.check_permission("read")
+    if not doc.get("custom_physical_count"):
+        frappe.throw("This Stock Reconciliation is not a Physical Count.")
+
+    latest = {}
+    for row in doc.get("custom_physical_count_results") or []:
+        location = str(row.get("location") or row.inventory_location or "").strip()
+        warehouse = str(row.warehouse or doc.set_warehouse or "").strip()
+        if not row.item_code or not location or row.status == "Old Count":
+            continue
+        latest[(row.item_code, warehouse, location)] = row
+
+    results = []
+    occupancy_cache = {}
+    for (item_code, warehouse, location_name), count in latest.items():
+        if _safe_float(count.physical_count) <= 0:
+            continue
+        location = frappe.db.get_value(
+            "Storage Location", location_name,
+            ["location_name", "location_type", "custom_warehouse", "custom_restricted_item", "disabled"],
+            as_dict=True,
+        )
+        has_no_item_rule = frappe.get_meta("Putaway Rule").has_field("custom_no_item_restriction")
+        rule_fields = ["name", "item_code", "priority", "capacity"]
+        if has_no_item_rule:
+            rule_fields.append("custom_no_item_restriction")
+        matching_rules = frappe.get_all(
+            "Putaway Rule",
+            filters={"warehouse": warehouse, "location": location_name, "disable": 0},
+            or_filters=[
+                {"item_code": item_code},
+                {"custom_no_item_restriction": 1},
+            ] if has_no_item_rule else {"item_code": item_code},
+            fields=rule_fields,
+            order_by="priority asc, name asc",
+        )
+        matching_rules = sorted(
+            matching_rules,
+            key=lambda row: (
+                0 if str(row.get("item_code") or "").strip() == str(item_code or "").strip() else 1,
+                row.priority or 0,
+                row.name,
+            ),
+        )
+        rule = matching_rules[0] if matching_rules else None
+        expected_rules = frappe.get_all(
+            "Putaway Rule",
+            filters={"warehouse": warehouse, "disable": 0},
+            or_filters=[
+                {"item_code": item_code},
+                {"custom_no_item_restriction": 1},
+            ] if has_no_item_rule else {"item_code": item_code},
+            fields=["name", "item_code", "location", "priority", "capacity"],
+            order_by="priority asc, name asc",
+            limit_page_length=0,
+        )
+        expected_rules = sorted(
+            expected_rules,
+            key=lambda row: (
+                0 if str(row.get("item_code") or "").strip() == str(item_code or "").strip() else 1,
+                row.priority or 0,
+                row.name,
+            ),
+        )
+        expected_locations = [row.location for row in expected_rules if row.location]
+        occupancy = occupancy_cache.setdefault(
+            (item_code, warehouse), _committed_location_quantities(item_code, warehouse),
+        )
+        available_rules = []
+        for expected_rule in expected_rules:
+            available = max(
+                _safe_float(expected_rule.capacity) - _safe_float(occupancy.get(expected_rule.location, 0)),
+                0,
+            )
+            if available > 1e-9:
+                expected_rule.available_capacity = available
+                available_rules.append(expected_rule)
+        available_locations = [row.location for row in available_rules]
+        if not location or location.disabled or location.custom_warehouse != warehouse:
+            status, message = "INVALID", "Storage Location is disabled or belongs to another Warehouse."
+        elif location.custom_restricted_item and location.custom_restricted_item != item_code:
+            status, message = "ITEM MISMATCH", f"Location is restricted to {location.custom_restricted_item}."
+        elif rule and _safe_float(rule.capacity) > 0 and _safe_float(count.physical_count) > _safe_float(rule.capacity):
+            status, message = "OVER CAPACITY", (
+                f"Counted quantity exceeds Putaway Rule capacity by "
+                f"{_safe_float(count.physical_count) - _safe_float(rule.capacity):,.3f} {count.uom or ''}."
+            )
+        elif rule:
+            status, message = "VALID", f"Allowed by Putaway Rule {rule.name}."
+        elif location.location_type == "Open Area" and not location.custom_restricted_item:
+            status, message = "OPEN AREA", "Allowed as unrestricted Open Area fallback."
+        elif available_locations:
+            status, message = "WRONG LOCATION", (
+                f"Item is stored at {location_name}, but its active Putaway Rule assigns it to "
+                f"{', '.join(available_locations)}."
+            )
+        elif expected_locations:
+            status, message = "WRONG LOCATION", (
+                "All configured Putaway Rule locations are currently full. "
+                "Use an allowed Open Area."
+            )
+        else:
+            status, message = "NO PUTAWAY RULE", "No active Putaway Rule allows this Item at this Location."
+        results.append({
+            "item_code": item_code,
+            "item_name": count.item_name or frappe.db.get_value("Item", item_code, "item_name") or item_code,
+            "warehouse": warehouse,
+            "storage_location": location_name,
+            "location_name": location.location_name if location else location_name,
+            "physical_count": _safe_float(count.physical_count),
+            "uom": count.uom or "",
+            "status": status,
+            "message": message,
+            "putaway_rule": rule.name if rule else ", ".join(row.name for row in available_rules),
+            "priority": rule.priority if rule else available_rules[0].priority if available_rules else None,
+            "capacity": _safe_float(rule.capacity) if rule else None,
+            "expected_locations": expected_locations,
+            "available_locations": [{
+                "location": row.location,
+                "putaway_rule": row.name,
+                "priority": row.priority,
+                "available_capacity": row.available_capacity,
+            } for row in available_rules],
+        })
+    results.sort(key=lambda row: (row["status"] == "VALID", row["status"] == "OPEN AREA", row["storage_location"], row["item_code"]))
+    invalid_statuses = {"INVALID", "ITEM MISMATCH", "WRONG LOCATION", "NO PUTAWAY RULE", "OVER CAPACITY"}
+    return {
+        "success": True,
+        "reconciliation_id": doc.name,
+        "rows": results,
+        "checked_count": len(results),
+        "valid_count": sum(row["status"] in {"VALID", "OPEN AREA"} for row in results),
+        "issue_count": sum(row["status"] in invalid_statuses for row in results),
     }

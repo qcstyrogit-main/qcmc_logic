@@ -53,10 +53,16 @@ class CustomStockEntry(StockEntry):
 		# document, and submits it. Do not compare that unsplit total against only
 		# the first rule while inserting/saving the draft. A direct manual Submit
 		# still runs the normal capacity validation.
-		if self.purpose == "Manufacture" and self._action != "submit":
-			finished_rows = [row for row in self.items if row.is_finished_item and row.t_warehouse]
-			if finished_rows and not any(row.putaway_rule or row.get("to_location") for row in finished_rows):
+		if self.purpose == "Manufacture":
+			# Checker confirmation submits the reviewed Pullout before Putaway is
+			# performed. This in-memory flag is set only by that backend workflow;
+			# ordinary Desk/API submissions must still pass capacity validation.
+			if getattr(self, "flags", None) and self.flags.get("skip_putaway_capacity_for_handover"):
 				return
+			if getattr(self, "_action", None) != "submit":
+				finished_rows = [row for row in self.items if row.is_finished_item and row.t_warehouse]
+				if finished_rows and not any(row.putaway_rule or row.get("to_location") for row in finished_rows):
+					return
 		validate_dimension_putaway_capacity(self)
 
 	def update_work_order(self):

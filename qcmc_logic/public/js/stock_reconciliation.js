@@ -35,12 +35,83 @@ function qcmc_configure_physical_count_grid(frm, for_recon, show_calculation_fie
 	}
 
 	grid.update_docfield_property("physical_count", "read_only", !for_recon);
+	grid.update_docfield_property("location_name", "in_list_view", 1);
+	grid.set_column_disp("location_name", true);
 	grid.set_column_disp("variance", show_calculation_fields);
 	grid.update_docfield_property("variance", "hidden", !show_calculation_fields);
 	grid.cannot_add_rows = true;
 	grid.cannot_delete_rows = true;
 	grid.grid_pagination.page_index = 1;
 	grid.refresh();
+}
+
+async function qcmc_check_items_location(frm) {
+	const response = await frappe.call({
+		method: "qcmc_logic.api.stock_reconciliation.check_items_location",
+		args: { reconciliation_id: frm.doc.name },
+		freeze: true,
+		freeze_message: __("Checking Items Location..."),
+	});
+	const data = response.message || {};
+	const escape = (value) => frappe.utils.escape_html(String(value ?? ""));
+	const issue_statuses = new Set([
+		"INVALID", "ITEM MISMATCH", "WRONG LOCATION", "NO PUTAWAY RULE", "OVER CAPACITY",
+	]);
+	const issues = (data.rows || []).filter((row) => issue_statuses.has(row.status));
+	const rows = issues.map((row) => {
+		return `<tr>
+			<td><strong>${escape(row.item_code)}</strong><br><small>${escape(row.item_name)}</small></td>
+			<td>${escape(row.storage_location)}<br><small>${escape(row.location_name)}</small></td>
+			<td class="text-right">${escape(format_number(row.physical_count, null, 3))} ${escape(row.uom)}</td>
+			<td><span class="indicator-pill red">${escape(row.status)}</span><br><small>${escape(row.message)}</small></td>
+			<td>${escape(row.putaway_rule || "—")}<br><small>${row.priority == null ? "" : escape(__("Priority: {0}", [row.priority]))}</small></td>
+		</tr>`;
+	}).join("") || `<tr><td colspan="5" class="text-muted text-center">${__("No Item Location issues found.")}</td></tr>`;
+	const report_html = `
+		<div class="qcmc-item-location-issues-report">
+			<h3 class="visible-print">${__("Item Location Issues")}</h3>
+			<div class="mb-3 qcmc-report-summary">
+				<b>${__("Stock Reconciliation")}:</b> ${escape(frm.doc.name || "")}<br>
+				<b>${__("Warehouse")}:</b> ${escape(frm.doc.set_warehouse || "")}<br>
+				<b>${__("Checked")}:</b> ${escape(data.checked_count || 0)} &nbsp; | &nbsp;
+				<b class="text-danger">${__("Issues")}:</b> ${escape(issues.length)}
+			</div>
+			<div class="table-responsive"><table class="table table-bordered table-hover">
+				<thead><tr><th>${__("Item")}</th><th>${__("Storage Location")}</th><th class="text-right">${__("Counted Quantity")}</th><th>${__("Issue")}</th><th>${__("Putaway Rule")}</th></tr></thead>
+				<tbody>${rows}</tbody>
+			</table></div>
+		</div>`;
+	const dialog = new frappe.ui.Dialog({
+		title: __("Item Location Issues"),
+		size: "extra-large",
+		fields: [{ fieldtype: "HTML", fieldname: "results", options: report_html }],
+		primary_action_label: __("Print Issues"),
+		primary_action() {
+			const print_window = window.open("", "_blank", "width=1200,height=850");
+			if (!print_window) {
+				frappe.msgprint(__("Please allow pop-ups to print this report."));
+				return;
+			}
+			const printed_at = frappe.datetime.str_to_user(frappe.datetime.now_datetime());
+			print_window.document.write(`<!doctype html><html><head>
+				<title>${escape(__("Item Location Issues — {0}", [frm.doc.name || ""]))}</title>
+				<style>
+					body{font-family:Arial,sans-serif;font-size:10px;color:#111;margin:0}
+					h3{font-size:16px;margin:0 0 10px}.qcmc-report-summary{line-height:1.6;margin-bottom:12px}
+					table{width:100%;border-collapse:collapse;table-layout:fixed}
+					th,td{border:1px solid #888;padding:6px;vertical-align:top;overflow-wrap:anywhere}
+					th{background:#eee;text-align:left}.text-right{text-align:right}
+					.indicator-pill{font-weight:bold;color:#b42318}small{font-size:9px;color:#444}
+					th:nth-child(1){width:18%}th:nth-child(2){width:20%}th:nth-child(3){width:12%}
+					th:nth-child(4){width:32%}th:nth-child(5){width:18%}
+					@page{size:A4 landscape;margin:10mm}
+				</style></head><body>${report_html}
+				<div style="margin-top:12px">${escape(__("Printed"))}: ${escape(printed_at)}</div>
+				<script>window.onload=function(){window.print();}<\/script></body></html>`);
+			print_window.document.close();
+		},
+	});
+	dialog.show();
 }
 
 async function qcmc_load_reconciliation_review(frm) {
@@ -130,6 +201,7 @@ frappe.ui.form.on("Stock Reconciliation", {
 		frm.toggle_display("custom_physical_count_results_section", physical_count);
 		frm.toggle_display("custom_physical_count_results_summary", false);
 		if (!physical_count) return;
+		frm.add_custom_button(__("Check Items Location"), () => qcmc_check_items_location(frm), __("Physical Count"));
 		if (draft_physical_count) {
 			await qcmc_load_reconciliation_review(frm);
 			frm.add_custom_button(__("Show Warehouse Stock With No Counts"), () => {

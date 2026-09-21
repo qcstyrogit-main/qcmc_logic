@@ -1,31 +1,133 @@
 import unittest
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import frappe
 
 from qcmc_logic.api.stock_entry_scanner import _manufacture_receive_context
-from qcmc_logic.api.warehouse_allocation import _decimal as allocation_decimal, _natural_key
+from qcmc_logic.api.warehouse_allocation import (
+	_committed_location_quantities,
+	_decimal as allocation_decimal,
+	_live_location_capacity,
+	_merge_pending_location_rows,
+	_natural_key,
+	_populate_summary_tables,
+	_quantity_state,
+)
 from qcmc_logic.api.warehouse_handover import (
 	_batch_response,
 	_decimal as handover_decimal,
 	_job_card_for_source,
+	_validate_reviewed_source,
 	VERIFIED_HANDOVER_STATUSES,
 )
 from qcmc_logic.api.warehouse_workflow import WorkflowError, canonical_hash, request_uuid
 
 
 class TestWarehouseHandoverContract(unittest.TestCase):
+	def test_every_scanned_putaway_location_uses_live_reserved_capacity(self):
+		doc = frappe._dict(name="WA-1", company="Company", warehouse="FG - Test", locations=[])
+		row = frappe._dict(allocation_id="ROW-1", item_code="ITEM-A", stock_uom="PCS",
+			source_document="STE-1")
+		location = frappe._dict(name="LOC-1", location_type="Cube",
+			custom_restricted_item="", custom_storage_capacity=0)
+		with patch("qcmc_logic.api.warehouse_allocation.frappe.db.get_value", return_value="PUT-1"), patch(
+			"qcmc_logic.api.warehouse_allocation.get_available_dimension_putaway_capacity", return_value=10000
+		), patch(
+			"qcmc_logic.api.warehouse_allocation._committed_location_quantities", return_value={"LOC-1": 10000}
+		):
+			available, rule = _live_location_capacity(doc, row, location)
+
+		self.assertEqual(available, 0)
+		self.assertEqual(rule, "PUT-1")
+
+	def test_only_open_area_without_putaway_rule_is_unlimited(self):
+		doc = frappe._dict(name="WA-1", company="Company", warehouse="FG - Test", locations=[])
+		row = frappe._dict(item_code="ITEM-A", stock_uom="PCS", source_document="STE-1")
+		open_area = frappe._dict(name="OPEN-1", location_type="Open Area",
+			custom_restricted_item="", custom_storage_capacity=0)
+		regular = frappe._dict(name="CUBE-1", location_type="Cube",
+			custom_restricted_item="", custom_storage_capacity=0)
+		with patch("qcmc_logic.api.warehouse_allocation.frappe.db.get_value", return_value=None):
+			self.assertEqual(_live_location_capacity(doc, row, open_area), (None, ""))
+			with self.assertRaises(WorkflowError) as context:
+				_live_location_capacity(doc, row, regular)
+		self.assertEqual(context.exception.code, "LOCATION_NOT_ALLOWED")
+
+	def test_pending_rows_for_same_source_and_location_are_combined(self):
+		rows = [
+			frappe._dict(source_doctype="Stock Entry", source_document="STE-1", source_row="ROW-1",
+				item_code="ITEM-A", stock_uom="PCS", suggested_location="OPEN-1", putaway_rule="",
+				status="PENDING_VERIFICATION", actual_location="", original_qty=20000,
+				suggested_qty=20000, actual_qty=0),
+			frappe._dict(source_doctype="Stock Entry", source_document="STE-1", source_row="ROW-1",
+				item_code="ITEM-A", stock_uom="PCS", suggested_location="OPEN-1", putaway_rule="",
+				status="PENDING_VERIFICATION", actual_location="", original_qty=10000,
+				suggested_qty=10000, actual_qty=0),
+		]
+		doc = SimpleNamespace(locations=rows, remove=lambda row: rows.remove(row))
+
+		self.assertTrue(_merge_pending_location_rows(doc))
+		self.assertEqual(len(rows), 1)
+		self.assertEqual(rows[0].suggested_qty, 30000)
+		self.assertEqual(rows[0].original_qty, 30000)
+
+	def test_capacity_counts_completed_warehouse_allocations(self):
+		queries = []
+
+		def sql(query, *_args, **_kwargs):
+			queries.append(query)
+			if "tabWarehouse Allocation Location" in query:
+				return [frappe._dict(location="LOC-1", qty=10000)]
+			return []
+
+		with patch("qcmc_logic.api.warehouse_allocation.frappe.db.sql", side_effect=sql):
+			reserved = _committed_location_quantities("ITEM-A", "FG - Test")
+
+		self.assertEqual(reserved["LOC-1"], 10000)
+		self.assertIn("wa.docstatus < 2", queries[0])
+		self.assertIn("wa.status != 'Cancelled'", queries[0])
+
+	def test_partial_allocation_uses_exact_source_row_and_preserves_remainder(self):
+		source = SimpleNamespace(items=[
+			frappe._dict(name="ROW-A", item_code="ITEM-A", stock_uom="PCS", transfer_qty=10000,
+				qty=10000, conversion_factor=1),
+			frappe._dict(name="ROW-B", item_code="ITEM-A", stock_uom="PCS", transfer_qty=7000,
+				qty=7000, conversion_factor=1),
+		])
+		doc = frappe._dict(locations=[
+			frappe._dict(source_doctype="Stock Entry", source_document="STE-1", source_row="ROW-A",
+				item_code="ITEM-A", stock_uom="PCS", status="VERIFIED", actual_qty=5000, suggested_qty=10000),
+			frappe._dict(source_doctype="Stock Entry", source_document="STE-1", source_row="ROW-B",
+				item_code="ITEM-A", stock_uom="PCS", status="PENDING_VERIFICATION", actual_qty=0, suggested_qty=7000),
+		])
+		with patch("qcmc_logic.api.warehouse_allocation.frappe.get_doc", return_value=source):
+			required, allocated, remaining = _quantity_state(doc)
+		key_a = ("Stock Entry", "STE-1", "ROW-A", "ITEM-A", "PCS")
+		key_b = ("Stock Entry", "STE-1", "ROW-B", "ITEM-A", "PCS")
+		self.assertEqual((required[key_a], allocated[key_a], remaining[key_a]), (10000, 5000, 5000))
+		self.assertEqual((required[key_b], allocated[key_b], remaining[key_b]), (7000, 7000, 0))
+
 	def test_handover_qr_remains_available_after_allocation_creation(self):
 		self.assertIn("CHECKED", VERIFIED_HANDOVER_STATUSES)
 		self.assertIn("ALLOCATION_CREATED", VERIFIED_HANDOVER_STATUSES)
 		self.assertNotIn("PENDING_CHECK", VERIFIED_HANDOVER_STATUSES)
 
+	def test_allocation_created_is_still_a_verified_picker_state(self):
+		batch_status = "ALLOCATION_CREATED"
+		checker = "ASSIGN-CHECKER-00001"
+		checker_verified = bool(checker and batch_status in VERIFIED_HANDOVER_STATUSES)
+		picker_status = "CHECKED" if checker_verified else batch_status
+		self.assertTrue(checker_verified)
+		self.assertEqual(picker_status, "CHECKED")
+
 	def test_batch_response_returns_authoritative_nested_stock_entries(self):
 		def stock_entry(name, pull_out, qty):
 			row = frappe._dict(name=f"{name}-ROW", is_finished_item=1, item_code="ITEM-A",
-				item_name="Item A", qty=qty, stock_uom="PCS", t_warehouse="FG - Test")
+				item_name="Item A", qty=qty, stock_uom="PCS", t_warehouse="FG - Test",
+				custom_actual_weight_per_item=1.25)
 			doc = frappe._dict(name=name, docstatus=0, status="Draft", work_order="WO-1",
 				custom_final_job_card="PO-JOB00025", custom_reference_document=pull_out,
 				modified=f"2026-09-04 10:00:0{qty}", items=[row])
@@ -43,7 +145,7 @@ class TestWarehouseHandoverContract(unittest.TestCase):
 				frappe._dict(stock_entry="STE-2", stock_entry_row="STE-2-ROW", verified_quantity=19,
 					stock_uom="PCS", job_card="PO-JOB00025", work_order="WO-1", pull_out_slip="PULL-2"),
 			])
-		with patch("qcmc_logic.api.warehouse_handover._draft_stock_entry", side_effect=lambda name, *_args, **_kwargs: docs[name]), patch(
+		with patch("qcmc_logic.api.warehouse_handover._source_stock_entry", side_effect=lambda name, *_args, **_kwargs: docs[name]), patch(
 			"qcmc_logic.api.warehouse_handover._employee_name", side_effect=lambda value: value or ""
 		):
 			result = _batch_response(batch, "user@example.com")
@@ -52,6 +154,9 @@ class TestWarehouseHandoverContract(unittest.TestCase):
 		self.assertEqual(result["source_stock_entries"][0]["job_card_id"], "PO-JOB00025")
 		self.assertEqual(result["source_stock_entries"][0]["custom_reference_document"], "PULL-1")
 		self.assertEqual(result["source_stock_entries"][1]["custom_reference_document"], "PULL-2")
+		self.assertEqual(result["source_stock_entries"][0]["custom_actual_weight_per_item"], 1.25)
+		self.assertEqual(result["source_stock_entries"][0]["items"][0]["custom_actual_weight_per_item"], 1.25)
+		self.assertEqual(result["sources"][0]["custom_actual_weight_per_item"], 1.25)
 		self.assertEqual(result["source_stock_entries"][1]["items"][0]["verified_quantity"], 19)
 		self.assertEqual(result["source_stock_entries"][0]["items"][0]["item_name"], "Item A")
 
@@ -63,6 +168,19 @@ class TestWarehouseHandoverContract(unittest.TestCase):
 			self.assertEqual(_job_card_for_source(doc, row, source), "JC-1")
 		with patch("qcmc_logic.api.warehouse_handover.frappe.get_all", return_value=["JC-1", "JC-2"]):
 			self.assertEqual(_job_card_for_source(doc, row, source), "")
+
+	def test_review_validation_ignores_modified_timestamp_but_rejects_quantity_change(self):
+		doc = frappe._dict(name="STE-1", custom_reference_document="PULL-1", work_order="WO-1", job_card="JC-1")
+		row = frappe._dict(name="ROW-1", is_finished_item=1, t_warehouse="FG - Test",
+			item_code="ITEM-A", stock_uom="PCS", qty=10, transfer_qty=10, conversion_factor=1)
+		source = frappe._dict(item="ITEM-A", stock_uom="PCS", verified_quantity=10,
+			pull_out_slip="PULL-1", work_order="WO-1", job_card="JC-1",
+			source_modified="an older harmless timestamp")
+		_validate_reviewed_source(doc, row, source)
+		row.transfer_qty = 11
+		with self.assertRaises(WorkflowError) as error:
+			_validate_reviewed_source(doc, row, source)
+		self.assertEqual(error.exception.code, "SOURCE_DOCUMENT_CHANGED")
 
 	def test_receiving_context_does_not_run_putaway_when_disabled(self):
 		doc = frappe._dict(name="STE-1", stock_entry_type="Manufacture", purpose="Manufacture",
@@ -96,6 +214,33 @@ class TestWarehouseHandoverContract(unittest.TestCase):
 	def test_location_natural_order(self):
 		values = ["COLUMN 10", "COLUMN 2", "COLUMN 1"]
 		self.assertEqual(sorted(values, key=_natural_key), ["COLUMN 1", "COLUMN 2", "COLUMN 10"])
+
+	def test_scanner_allocation_populates_reference_and_item_summaries(self):
+		class Allocation:
+			def __init__(self):
+				self.locations = [
+					frappe._dict(source_doctype="Stock Entry", source_document="STE-1", source_row="ROW-1",
+						item_code="ITEM-A", stock_uom="PCS", original_qty=10, actual_qty=10,
+						actual_location="LOC-1", status="VERIFIED"),
+					frappe._dict(source_doctype="Stock Entry", source_document="STE-2", source_row="ROW-2",
+						item_code="ITEM-A", stock_uom="PCS", original_qty=20, actual_qty=0,
+						actual_location="", status="PENDING_VERIFICATION"),
+				]
+
+			def set(self, fieldname, value):
+				setattr(self, fieldname, value)
+
+			def append(self, fieldname, value):
+				getattr(self, fieldname).append(frappe._dict(value))
+
+		allocation = Allocation()
+		_populate_summary_tables(allocation)
+
+		self.assertEqual(len(allocation.references), 2)
+		self.assertEqual(len(allocation.items), 1)
+		self.assertEqual(allocation.items[0].qty, 30)
+		self.assertEqual(allocation.items[0].putaway_qty, 10)
+		self.assertEqual(allocation.items[0].remaining_qty, 20)
 
 	# Tests for multiple Stock Entries in handover batch (requirements 7, 8, 9)
 	def test_multiple_drafts_from_same_job_card_allowed_in_handover(self):
@@ -198,9 +343,7 @@ class TestWarehouseHandoverContract(unittest.TestCase):
 			name="ASSIGN-CHECKER-00001", employee=employee,
 			checker_name="Authoritative Checker", disabled=disabled,
 		)
-		payload = json.dumps({
-			"name": "Untrusted Name", "doc_name": record.name,
-		})
+		payload = json.dumps({"name": "Untrusted Name", "doc_name": record.name})
 		return record, payload
 
 	def test_confirm_checker_with_assign_checker_qr(self):
@@ -237,7 +380,6 @@ class TestWarehouseHandoverContract(unittest.TestCase):
 		self.assertEqual(error.exception.code, "INVALID_CHECKER_QR")
 
 	def test_confirm_checker_accepts_manual_assign_checker(self):
-		"""An enabled manual Assign Checker does not require an Employee link."""
 		from qcmc_logic.api.warehouse_handover import _resolve_checker_qr
 		from qcmc_logic.api.warehouse_workflow import WorkflowError
 		
@@ -279,7 +421,8 @@ class TestWarehouseHandoverContract(unittest.TestCase):
 			company="Company",
 			source_stock_entries=[
 				frappe._dict(stock_entry="STE-001", stock_entry_row="ROW-1", verified_quantity=10,
-					source_modified="2026-09-04 10:00:00")
+					source_modified="2026-09-04 10:00:00", item="ITEM-A", stock_uom="PCS",
+					pull_out_slip="PULL-1", work_order="WO-1", job_card="JC-1")
 			]
 		)
 		batch.save = lambda **kwargs: None
@@ -289,10 +432,15 @@ class TestWarehouseHandoverContract(unittest.TestCase):
 			docstatus=0,
 			modified="2026-09-04 10:00:00",
 			custom_verified_by="",
-			items=[frappe._dict(name="ROW-1", is_finished_item=1)]
+			custom_reference_document="PULL-1",
+			work_order="WO-1", job_card="JC-1",
+			items=[frappe._dict(name="ROW-1", is_finished_item=1, t_warehouse="FG - Test",
+				item_code="ITEM-A", stock_uom="PCS", qty=10, transfer_qty=10, conversion_factor=1)]
 		)
 		doc.check_permission = lambda permission: None
 		doc.save = lambda **kwargs: None
+		doc.flags = frappe._dict()
+		doc.submit = lambda: setattr(doc, "docstatus", 1)
 		
 		employee = frappe._dict(
 			name="EMP-00001",
@@ -311,7 +459,7 @@ class TestWarehouseHandoverContract(unittest.TestCase):
 		), patch(
 			"qcmc_logic.api.warehouse_handover.finish_request", side_effect=lambda req, resp: {**resp, "success": True, "request_id": request_id}
 		), patch(
-			"qcmc_logic.api.warehouse_handover._draft_stock_entry", return_value=doc
+			"qcmc_logic.api.warehouse_handover._source_stock_entry", return_value=doc
 		), patch(
 			"qcmc_logic.api.warehouse_handover._batch_response", return_value={"batch_id": batch_id, "status": "CHECKED"}
 		), patch(
@@ -319,12 +467,15 @@ class TestWarehouseHandoverContract(unittest.TestCase):
 		), patch(
 			"qcmc_logic.api.warehouse_handover.require_role"
 		), patch(
+			"qcmc_logic.api.warehouse_handover.ensure_scanner_warehouse_access"
+		), patch(
 			"qcmc_logic.api.warehouse_handover._audit"
 		):
-			result = confirm_checker(batch_id, assign_checker_qr, request_id)
+			result = confirm_checker(batch_id, assign_checker_qr, request_id, device_id="Scanner 1")
 		
 		self.assertTrue(result["success"])
 		self.assertEqual(result["batch_id"], batch_id)
+		self.assertTrue(doc.flags.skip_putaway_capacity_for_handover)
 
 
 def run_test_suite():

@@ -4,8 +4,31 @@ frappe.ui.form.on("Warehouse Allocation", {
 	refresh(frm) {
 		qcmc_logic.warehouse_allocation.toggle_scanner_fields(frm);
 		qcmc_logic.warehouse_allocation.add_get_items_button(frm);
+		qcmc_logic.warehouse_allocation.add_abandon_button(frm);
 	},
 });
+
+qcmc_logic.warehouse_allocation.add_abandon_button = function(frm) {
+	if (frm.is_new() || frm.doc.docstatus !== 0 || !["Draft", "In Progress"].includes(frm.doc.status)) return;
+
+	frm.add_custom_button(__("Abandon Allocation"), () => {
+		frappe.confirm(
+			__("Abandon this Warehouse Allocation? Its location reservations will be released."),
+			() => frappe.call({
+				method: "qcmc_logic.qcmc_logics.doctype.warehouse_allocation.warehouse_allocation.abandon_allocation",
+				args: { name: frm.doc.name },
+				freeze: true,
+				freeze_message: __("Abandoning Warehouse Allocation..."),
+				callback(r) {
+					if (r.message && r.message.success) {
+						frappe.show_alert({ message: __("Warehouse Allocation abandoned."), indicator: "orange" });
+						frm.reload_doc();
+					}
+				},
+			})
+		);
+	}, __("Actions"));
+};
 
 qcmc_logic.warehouse_allocation.toggle_scanner_fields = function(frm) {
 	const scanner_handover = Boolean(frm.doc.handover);

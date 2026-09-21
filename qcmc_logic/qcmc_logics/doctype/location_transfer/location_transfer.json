@@ -1,0 +1,39 @@
+{
+ "doctype": "DocType",
+ "name": "Location Transfer",
+ "module": "QCMC Logics",
+ "autoname": "naming_series:",
+ "engine": "InnoDB",
+ "is_submittable": 1,
+ "track_changes": 1,
+ "field_order": [
+  "naming_series", "request_id", "stock_entry", "company", "warehouse", "item_code", "item_name",
+  "quantity", "uom", "source_location", "target_location", "batch_no", "serial_nos",
+  "employee", "erpnext_user", "device_id", "transferred_at"
+ ],
+ "fields": [
+  {"fieldname":"naming_series","label":"Naming Series","fieldtype":"Select","options":"LT-.YYYY.-.#####","default":"LT-.YYYY.-.#####","reqd":1},
+  {"fieldname":"request_id","label":"Request ID","fieldtype":"Data","reqd":1,"unique":1,"read_only":1},
+  {"fieldname":"stock_entry","label":"Stock Entry","fieldtype":"Link","options":"Stock Entry","read_only":1,"no_copy":1},
+  {"fieldname":"company","label":"Company","fieldtype":"Link","options":"Company","reqd":1,"read_only":1},
+  {"fieldname":"warehouse","label":"Warehouse","fieldtype":"Link","options":"Warehouse","reqd":1,"read_only":1,"in_list_view":1},
+  {"fieldname":"item_code","label":"Item","fieldtype":"Link","options":"Item","reqd":1,"read_only":1,"in_list_view":1},
+  {"fieldname":"item_name","label":"Item Name","fieldtype":"Data","read_only":1},
+  {"fieldname":"quantity","label":"Quantity","fieldtype":"Float","reqd":1,"read_only":1,"in_list_view":1},
+  {"fieldname":"uom","label":"UOM","fieldtype":"Link","options":"UOM","reqd":1,"read_only":1},
+  {"fieldname":"source_location","label":"Source Storage Location","fieldtype":"Link","options":"Storage Location","reqd":1,"read_only":1,"in_list_view":1},
+  {"fieldname":"target_location","label":"Target Storage Location","fieldtype":"Link","options":"Storage Location","reqd":1,"read_only":1,"in_list_view":1},
+  {"fieldname":"batch_no","label":"Batch","fieldtype":"Link","options":"Batch","read_only":1},
+  {"fieldname":"serial_nos","label":"Serial Numbers","fieldtype":"Long Text","read_only":1},
+  {"fieldname":"employee","label":"Employee","fieldtype":"Link","options":"Employee","reqd":1,"read_only":1},
+  {"fieldname":"erpnext_user","label":"ERPNext User","fieldtype":"Link","options":"User","reqd":1,"read_only":1},
+  {"fieldname":"device_id","label":"Device ID","fieldtype":"Data","read_only":1},
+  {"fieldname":"transferred_at","label":"Transferred At","fieldtype":"Datetime","reqd":1,"read_only":1}
+ ],
+ "permissions": [
+  {"role":"Stock Manager","read":1,"report":1,"export":1,"print":1,"submit":1,"cancel":1},
+  {"role":"System Manager","read":1,"report":1,"export":1,"print":1,"submit":1,"cancel":1}
+ ],
+ "sort_field": "transferred_at",
+ "sort_order": "DESC"
+}

@@ -103,6 +103,16 @@ qcmc_logic.stock_entry.refresh_warehouse_code = function(frm) {
 };
 
 qcmc_logic.stock_entry.get_wh_code_warehouse_field = function(frm) {
+    // Match the authoritative server rule. Manufacture receives the finished
+    // item into the target warehouse even though it also consumes materials
+    // from a source warehouse.
+    if (["Material Receipt", "Manufacture"].includes(frm.doc.purpose)) {
+        return "t_warehouse";
+    }
+    if (["Material Issue", "Send to Subcontractor"].includes(frm.doc.purpose)) {
+        return "s_warehouse";
+    }
+
     const source_visible = qcmc_logic.stock_entry.is_warehouse_field_visible(frm, "from_warehouse");
     const target_visible = qcmc_logic.stock_entry.is_warehouse_field_visible(frm, "to_warehouse");
     const source_warehouse = qcmc_logic.stock_entry.get_single_warehouse(frm, "s_warehouse");

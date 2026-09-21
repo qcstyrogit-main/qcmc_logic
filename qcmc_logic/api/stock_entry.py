@@ -22,11 +22,11 @@ def _validate_purpose(purpose):
         frappe.throw(_("Purpose {0} is not supported for Job Card fetch.").format(frappe.bold(purpose)))
 
 
-def _get_work_order(work_order):
+def _get_work_order(work_order, ignore_permissions=False):
     if not work_order:
         frappe.throw(_("Job Card must be linked to a Work Order."))
 
-    wo = frappe.get_doc("Work Order", work_order)
+    wo = frappe.get_doc("Work Order", work_order, ignore_permissions=ignore_permissions)
     if wo.docstatus != 1:
         frappe.throw(_("Work Order {0} must be submitted.").format(frappe.bold(work_order)))
     if wo.status == "Stopped":
@@ -363,7 +363,7 @@ def get_job_card_details_for_stock_entry(job_card, purpose, work_order=None):
             )
         )
 
-    wo = _get_work_order(jc.work_order)
+    wo = _get_work_order(jc.work_order, ignore_permissions=ignore_permissions)
 
     if work_order and work_order != jc.work_order:
         frappe.throw(
@@ -439,7 +439,7 @@ def _make_manufacture_stock_entry_from_job_card(
     if not job_card:
         frappe.throw(_("Please select a Job Card."))
 
-    jc = frappe.get_doc("Job Card", job_card)
+    jc = frappe.get_doc("Job Card", job_card, ignore_permissions=ignore_permissions)
     if not user_can_transact_job_card(jc):
         frappe.throw(
             _("You are not allowed to transact against Job Card {0}.").format(

@@ -13,6 +13,7 @@ from qcmc_logic.api.stock_entry_scanner import (
 	_putaway_allocations,
 	_general_purpose_location,
 	_parent_distribution,
+	_parse_actual_weight_per_item,
 	_resolve_storage_location,
 	_validate_override_location,
 	_normalize_warehouse,
@@ -22,6 +23,8 @@ from qcmc_logic.api.stock_entry_scanner import (
 	_split_finished_rows,
 	_get_idempotent_replay,
 	_job_card_id,
+	_ensure_manufacture_receive_access,
+	_scanner_employee,
 	_stock_entry_id,
 	create_manufacture_receive_draft,
 	get_manufacture_receive_context,
@@ -32,6 +35,32 @@ from qcmc_logic.www.storage_location_qr import _make_qr_payload
 
 
 class TestStockEntryScannerContract(unittest.TestCase):
+	def test_actual_weight_accepts_decimal_and_formatted_numeric_strings(self):
+		self.assertEqual(_parse_actual_weight_per_item(1.25), 1.25)
+		self.assertEqual(_parse_actual_weight_per_item("1.25"), 1.25)
+		self.assertEqual(_parse_actual_weight_per_item("1,234.50"), 1234.50)
+
+	def test_actual_weight_rejects_missing_non_numeric_and_non_positive_values(self):
+		for value in (None, "", "not-a-number", 0, "0", -1, "-1.25"):
+			with self.subTest(value=value), self.assertRaises(ScannerAPIError) as context:
+				_parse_actual_weight_per_item(value)
+			self.assertEqual(context.exception.code, "INVALID_ACTUAL_WEIGHT")
+
+	def test_create_draft_returns_actual_weight_validation_contract(self):
+		invalid_values = (None, "", "abc", 0, -1)
+		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="Administrator"):
+			for index, value in enumerate(invalid_values, start=1):
+				result = create_manufacture_receive_draft(
+					"PO-JOB00001", "PULL-1", quantity=10,
+					custom_actual_weight_per_item=value,
+					request_id=f"00000000-0000-4000-8000-{index:012d}",
+				)
+				self.assertEqual(result["error_code"], "INVALID_ACTUAL_WEIGHT")
+				self.assertEqual(
+					result["message"],
+					"Actual Weight per Item must be numeric and greater than zero.",
+				)
+
 	def location(self, name, parent="AISLE", location_type="Rack", is_group=0, disabled=0, code=None, warehouse="FG-WH"):
 		location = frappe._dict(name=name, location_code=code or name, location_name=name.title(),
 			location_type=location_type, parent_storage_location=parent, is_group=is_group, disabled=disabled,
@@ -118,16 +147,25 @@ class TestStockEntryScannerContract(unittest.TestCase):
 		self.assertEqual((result["docstatus"], result["status"]), (0, "Draft"))
 		self.assertFalse(result["existing_draft"])
 
-	def test_create_draft_rejects_user_without_active_employee(self):
-		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="scanner@example.com"), patch(
+	def test_scanner_employee_is_optional_for_draft_audit(self):
+		with patch(
 			"frappe.db.get_value", return_value=None
 		):
-			result = create_manufacture_receive_draft("PO-JOB00001", "POS-1")
-		self.assertEqual(result["error_code"], "PERMISSION_DENIED")
-		self.assertEqual(
-			result["message"],
-			"You are not authorized to create Manufacture Draft Stock Entries.",
-		)
+			self.assertIsNone(_scanner_employee("scanner@example.com"))
+
+	def test_manufacture_receive_access_falls_back_to_finished_goods_warehouse(self):
+		job_card = frappe._dict(name="JC-1", work_order="WO-1", target_warehouse="")
+		work_order = frappe._dict(name="WO-1", fg_warehouse="FG-WH")
+
+		with patch(
+			"qcmc_logic.api.stock_entry_scanner.user_can_transact_job_card",
+			return_value=False,
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner.ensure_scanner_warehouse_access"
+		) as ensure:
+			_ensure_manufacture_receive_access("scanner@example.com", job_card, work_order)
+
+		ensure.assert_called_once_with("scanner@example.com", ["FG-WH"], require_transact=True)
 
 	def test_custom_stock_entry_type_uses_underlying_purpose(self):
 		doc = frappe._dict(stock_entry_type="Custom Manufacture", purpose="Material Receipt")
@@ -269,8 +307,8 @@ class TestStockEntryScannerContract(unittest.TestCase):
 
 	def test_general_purpose_location_is_discovered_and_sorted_dynamically(self):
 		locations = [
-			frappe._dict(name="R10", location_code="R10", location_name="Rack 10", disabled=0, is_group=0, custom_warehouse="WH-1", custom_restricted_item="", custom_storage_capacity=0),
-			frappe._dict(name="R2", location_code="R2", location_name="Rack 2", disabled=0, is_group=0, custom_warehouse="WH-1", custom_restricted_item="", custom_storage_capacity=None),
+			frappe._dict(name="R10", location_code="R10", location_name="Open 10", location_type="Open Area", full_path="BUILDING 1 / OPEN 10", disabled=0, is_group=0, custom_warehouse="WH-1", custom_restricted_item="", custom_storage_capacity=0),
+			frappe._dict(name="R2", location_code="R2", location_name="Open 2", location_type="Open Area", full_path="BUILDING 1 / OPEN 2", disabled=0, is_group=0, custom_warehouse="WH-1", custom_restricted_item="", custom_storage_capacity=None),
 			frappe._dict(name="OTHER", location_code="OTHER", location_name="Other", disabled=0, is_group=0, custom_warehouse="WH-2", custom_restricted_item="", custom_storage_capacity=0),
 			frappe._dict(name="LIMITED", location_code="LIMITED", location_name="Limited", disabled=0, is_group=0, custom_warehouse="WH-1", custom_restricted_item="", custom_storage_capacity=5),
 			frappe._dict(name="RESTRICTED", location_code="RESTRICTED", location_name="Restricted", disabled=0, is_group=0, custom_warehouse="WH-1", custom_restricted_item="OTHER", custom_storage_capacity=0),
@@ -498,6 +536,7 @@ class TestStockEntryScannerContract(unittest.TestCase):
 				"PO-JOB00001", 
 				"PULL-OUT-001",
 				quantity=10000,
+				custom_actual_weight_per_item="1.25",
 				request_id="550e8400-e29b-41d4-a716-446655440000"
 			)
 		self.assertTrue(result["success"], result)
@@ -506,6 +545,8 @@ class TestStockEntryScannerContract(unittest.TestCase):
 		self.assertEqual(result["status"], "Draft")
 		self.assertFalse(result["duplicate_request"])
 		self.assertFalse(result["existing_draft"])
+		self.assertEqual(result["custom_actual_weight_per_item"], 1.25)
+		self.assertEqual(doc.items[0].custom_actual_weight_per_item, 1.25)
 
 	def test_retry_same_request_id_returns_same_draft(self):
 		"""Requirement 1: Retrying with same request_id returns same Stock Entry without creating duplicate."""
@@ -519,6 +560,7 @@ class TestStockEntryScannerContract(unittest.TestCase):
 			"duplicate_request": False,
 			"existing_draft": False,
 			"request_id": request_id,
+			"custom_actual_weight_per_item": 1.25,
 		}
 		
 		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="Administrator"), patch(
@@ -531,11 +573,13 @@ class TestStockEntryScannerContract(unittest.TestCase):
 				"PO-JOB00001",
 				"PULL-OUT-001",
 				quantity=10000,
+				custom_actual_weight_per_item=1.25,
 				request_id=request_id
 			)
 		self.assertTrue(result["success"])
 		self.assertEqual(result["stock_entry_id"], "MAT-STE-00001")
 		self.assertTrue(result["duplicate_request"])
+		self.assertEqual(result["custom_actual_weight_per_item"], 1.25)
 
 	def test_new_request_id_creates_separate_draft_for_same_job_card(self):
 		"""Requirement 1 & 4: New request_id creates separate Draft even for same Job Card."""
@@ -584,6 +628,7 @@ class TestStockEntryScannerContract(unittest.TestCase):
 				"PO-JOB00001",
 				"PULL-OUT-002",
 				quantity=5000,
+				custom_actual_weight_per_item="1,234.50",
 				request_id="650e8400-e29b-41d4-a716-446655440001"
 			)
 		self.assertTrue(result["success"])
@@ -601,6 +646,7 @@ class TestStockEntryScannerContract(unittest.TestCase):
 					"PO-JOB00001",
 					"PULL-OUT-001",
 					quantity=qty,
+					custom_actual_weight_per_item=1.25,
 					request_id="550e8400-e29b-41d4-a716-446655440000"
 				)
 				self.assertEqual(result["error_code"], "INVALID_QUANTITY")
@@ -632,6 +678,7 @@ class TestStockEntryScannerContract(unittest.TestCase):
 				"PO-JOB00001",
 				"PULL-OUT-001",
 				quantity=15000,  # exceeds remaining 10000
+				custom_actual_weight_per_item=1.25,
 				request_id="550e8400-e29b-41d4-a716-446655440000"
 			)
 		self.assertEqual(result["error_code"], "QUANTITY_EXCEEDS_RECEIVABLE")
@@ -647,6 +694,7 @@ class TestStockEntryScannerContract(unittest.TestCase):
 				"PO-JOB00001",
 				"PULL-OUT-001",
 				quantity=5000,  # different from first request
+				custom_actual_weight_per_item=1.25,
 				request_id=request_id
 			)
 		self.assertEqual(result["error_code"], "ERP_VALIDATION_FAILED")
@@ -696,6 +744,7 @@ class TestStockEntryScannerContract(unittest.TestCase):
 				"PO-JOB00001",
 				"PULL-OUT-001",
 				quantity=10000,
+				custom_actual_weight_per_item=1.25,
 				request_id="550e8400-e29b-41d4-a716-446655440000"
 			)
 		# Verify that docstatus is 0 and status is Draft
@@ -709,7 +758,8 @@ class TestUpdateManufactureReceiveDraft(unittest.TestCase):
 	def setUp(self):
 		self.row = frappe._dict(
 			name="ROW-1", item_code="FG-001", uom="PCS", qty=10,
-			transfer_qty=10, conversion_factor=1,
+			transfer_qty=10, conversion_factor=1, is_finished_item=1,
+			custom_actual_weight_per_item=1.25,
 		)
 		self.doc = SimpleNamespace(
 			name="MAT-STE-00001", docstatus=0, modified="2026-09-04 10:00:00",
@@ -727,12 +777,23 @@ class TestUpdateManufactureReceiveDraft(unittest.TestCase):
 
 	def call(self, row=None, doc=None):
 		row = row or {"stock_entry_id": self.doc.name, "stock_entry_row": self.row.name,
-			"item_code": self.row.item_code, "quantity": 20, "uom": self.row.uom}
+			"item_code": self.row.item_code, "quantity": 20,
+			"custom_actual_weight_per_item": 1.5, "uom": self.row.uom}
 		doc = doc or self.doc
 		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="warehouse@example.com"), patch(
 			"qcmc_logic.api.stock_entry_scanner._validate_document", return_value=(doc, [self.row])
 		), patch("qcmc_logic.api.stock_entry_scanner.ensure_scanner_warehouse_access"), patch("frappe.db.exists", return_value=True), patch(
 			"frappe.get_doc", return_value=self.batch
+		), patch(
+			"qcmc_logic.api.warehouse_handover._batch_response",
+			side_effect=lambda _batch, _user: {
+				"success": True, "status": "Draft",
+				"items": [{
+					"stock_entry_id": self.doc.name, "stock_entry_row": item.name,
+					"item_code": item.item_code, "verified_quantity": item.qty,
+					"custom_actual_weight_per_item": item.custom_actual_weight_per_item,
+				} for item in self.doc.items],
+			},
 		), patch("qcmc_logic.api.warehouse_workflow.begin_request", return_value=frappe._dict(
 			name=self.request_id, operation="update_manufacture_receive_draft", request_hash="hash",
 			request_json="{}", user="warehouse@example.com", replay=None,
@@ -746,14 +807,17 @@ class TestUpdateManufactureReceiveDraft(unittest.TestCase):
 		self.assertTrue(result["success"])
 		self.assertEqual(result["status"], "Draft")
 		self.assertEqual(result["items"][0]["verified_quantity"], 20)
+		self.assertEqual(result["items"][0]["custom_actual_weight_per_item"], 1.5)
 		self.assertEqual(self.row.qty, 20)
+		self.assertEqual(self.row.custom_actual_weight_per_item, 1.5)
 		self.assertEqual(self.doc.docstatus, 0)
 		self.assertEqual(self.batch.source_stock_entries[0].verified_quantity, 20)
 
 	def test_only_submitted_row_is_updated(self):
 		other_row = frappe._dict(
 			name="ROW-2", item_code="FG-002", uom="PCS", qty=30,
-			transfer_qty=30, conversion_factor=1,
+			transfer_qty=30, conversion_factor=1, is_finished_item=1,
+			custom_actual_weight_per_item=2.25,
 		)
 		self.doc.items.append(other_row)
 		self.batch.source_stock_entries.append(frappe._dict(
@@ -764,6 +828,8 @@ class TestUpdateManufactureReceiveDraft(unittest.TestCase):
 		self.assertTrue(result["success"])
 		self.assertEqual(self.row.qty, 20)
 		self.assertEqual(other_row.qty, 30)
+		self.assertEqual(self.row.custom_actual_weight_per_item, 1.5)
+		self.assertEqual(other_row.custom_actual_weight_per_item, 2.25)
 		self.assertEqual(self.batch.source_stock_entries[1].verified_quantity, 30)
 
 	def test_rejects_submitted_stock_entry(self):
@@ -776,26 +842,29 @@ class TestUpdateManufactureReceiveDraft(unittest.TestCase):
 		):
 			result = update_manufacture_receive_draft(self.batch.name, self.request_id, [{
 				"stock_entry_id": self.doc.name, "stock_entry_row": self.row.name,
-				"item_code": self.row.item_code, "quantity": 20, "uom": self.row.uom,
+				"item_code": self.row.item_code, "quantity": 20,
+				"custom_actual_weight_per_item": 1.5, "uom": self.row.uom,
 			}])
 		self.assertEqual(result["error_code"], "STOCK_ENTRY_NOT_DRAFT")
 
 	def test_rejects_row_from_another_stock_entry(self):
 		result = self.call({"stock_entry_id": "OTHER-STE", "stock_entry_row": "ROW-1",
-			"item_code": "FG-001", "quantity": 20, "uom": "PCS"})
+			"item_code": "FG-001", "quantity": 20, "custom_actual_weight_per_item": 1.5, "uom": "PCS"})
 		self.assertEqual(result["error_code"], "ROW_NOT_IN_BATCH")
 
 	def test_rejects_mismatched_item_or_uom(self):
 		for field, value, code in (("item_code", "OTHER", "ITEM_MISMATCH"), ("uom", "KG", "UOM_MISMATCH")):
 			row = {"stock_entry_id": self.doc.name, "stock_entry_row": self.row.name,
-				"item_code": self.row.item_code, "quantity": 20, "uom": self.row.uom}
+				"item_code": self.row.item_code, "quantity": 20,
+				"custom_actual_weight_per_item": 1.5, "uom": self.row.uom}
 			row[field] = value
 			result = self.call(row)
 			self.assertEqual(result["error_code"], code)
 
 	def test_rejects_negative_quantity(self):
 		result = self.call({"stock_entry_id": self.doc.name, "stock_entry_row": self.row.name,
-			"item_code": self.row.item_code, "quantity": -1, "uom": self.row.uom})
+			"item_code": self.row.item_code, "quantity": -1,
+			"custom_actual_weight_per_item": 1.5, "uom": self.row.uom})
 		self.assertEqual(result["error_code"], "INVALID_QUANTITY")
 
 	def test_idempotent_replay_does_not_save_again(self):
@@ -805,7 +874,8 @@ class TestUpdateManufactureReceiveDraft(unittest.TestCase):
 		):
 			result = update_manufacture_receive_draft(self.batch.name, self.request_id, [{
 				"stock_entry_id": self.doc.name, "stock_entry_row": self.row.name,
-				"item_code": self.row.item_code, "quantity": 20, "uom": self.row.uom,
+				"item_code": self.row.item_code, "quantity": 20,
+				"custom_actual_weight_per_item": 1.5, "uom": self.row.uom,
 			}])
 		self.assertTrue(result["duplicate_request"])
 		self.assertEqual(self.doc.docstatus, 0)

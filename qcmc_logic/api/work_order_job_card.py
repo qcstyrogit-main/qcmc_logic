@@ -27,15 +27,20 @@ def create_next_job_card(work_order):
 			frappe.bold(doc.name)
 		), frappe.PermissionError)
 
-	remaining_qty = max(flt(doc.qty) - flt(doc.produced_qty), 0)
-	if not remaining_qty:
-		frappe.throw(_("Work Order {0} has no remaining quantity to manufacture.").format(
-			frappe.bold(doc.name)
-		))
-
 	operation = _get_final_operation(doc)
 	if not operation:
 		frappe.throw(_("Work Order {0} has no operation for a Job Card.").format(
+			frappe.bold(doc.name)
+		))
+
+	# Job Card completion records physical production immediately, while
+	# Work Order.produced_qty increases only after its Manufacture Stock Entry is
+	# submitted. Between those two steps, using produced_qty alone would reserve
+	# the same output twice and the next Job Card would fail quantity validation.
+	accounted_qty = max(flt(doc.produced_qty), flt(operation.completed_qty))
+	remaining_qty = max(flt(doc.qty) - accounted_qty, 0)
+	if not remaining_qty:
+		frappe.throw(_("Work Order {0} has no remaining quantity to manufacture.").format(
 			frappe.bold(doc.name)
 		))
 

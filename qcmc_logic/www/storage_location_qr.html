@@ -21,7 +21,7 @@
 				<option value="medium" selected>{{ _("Medium") }}</option>
 				<option value="large">{{ _("Large") }}</option>
 			</select>
-			<button type="button" class="btn-print" onclick="window.print()">
+			<button type="button" class="btn-print" onclick="printQRLabels()">
 				{{ _("Print Selected") }}
 			</button>
 		</div>
@@ -68,8 +68,11 @@
 	.qr-size-select { min-width: 110px; height: 38px; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; }
 	.btn-print { border: 0; border-radius: 8px; padding: 10px 18px; color: #fff; background: #2563eb; font-weight: 600; cursor: pointer; }
 	.qr-label-grid { display: block; }
-	.qr-label-sheet { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
-	.qr-label { box-sizing: border-box; display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center; align-items: center; min-height: 250px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; break-inside: avoid; page-break-inside: avoid; }
+	.qr-label-sheet { display: grid; gap: 6px; margin-bottom: 6px; }
+	.size-small .qr-label-sheet { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+	.size-medium .qr-label-sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+	.size-large .qr-label-sheet { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+	.qr-label { box-sizing: border-box; display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center; align-items: center; min-height: 250px; padding: 4px; border: 0; border-radius: 0; background: transparent; break-inside: avoid; page-break-inside: avoid; }
 	.qr-code { display: block; width: 230px; height: 230px; min-width: 0; min-height: 0; max-width: 100%; max-height: 100%; object-fit: contain; image-rendering: pixelated; }
 	.label-details { min-width: 0; max-width: 100%; padding: 0; margin-top: 8px; text-align: center; }
 	.location-code { overflow-wrap: anywhere; font-size: 24px; line-height: 1.1; font-weight: 800; text-align: center; }
@@ -97,16 +100,18 @@
 	@media print {
 		header, footer, .navbar, .web-footer, .print-toolbar { display: none !important; }
 		html, body {
+			width: 202mm !important;
+			max-width: 202mm !important;
 			height: auto !important;
 			min-height: 0 !important;
 			overflow: visible !important;
 		}
-		body, main, .container, .page-container, .page-content-wrapper, .web-page-content {
+		body, main, .container, .page-container, .page-content-wrapper, .page_content, .web-page-content {
 			position: static !important;
 			display: block !important;
 			box-sizing: border-box !important;
-			width: 100% !important;
-			max-width: none !important;
+			width: 202mm !important;
+			max-width: 202mm !important;
 			height: auto !important;
 			min-height: 0 !important;
 			max-height: none !important;
@@ -116,13 +121,15 @@
 			overflow: visible !important;
 			transform: none !important;
 		}
-		.qr-print-page { position: static !important; width: 100%; max-width: none; margin: 0; padding: 0; transform: none !important; }
-		.qr-label-grid { display: block; }
+		.page-breadcrumbs, .page-header-wrapper, .page-footer { display: none !important; }
+		.qr-print-page { position: static !important; width: 202mm; max-width: 202mm; margin: 0; padding: 0; transform: none !important; }
+		.qr-label-grid { display: block; width: 202mm; }
 		.qr-label-sheet {
 			display: grid;
-			grid-template-columns: repeat(2, minmax(0, 1fr));
+			align-content: start;
+			gap: 1mm;
 			box-sizing: border-box;
-			width: 100%;
+			width: 202mm;
 			height: 289mm;
 			margin: 0;
 			position: relative;
@@ -131,33 +138,103 @@
 			page-break-after: always;
 		}
 		.qr-label-sheet:last-child { break-after: auto; page-break-after: auto; }
-		.qr-label-sheet + .qr-label-sheet { break-before: page; page-break-before: always; }
-		.qr-label { position: static; display: block; width: 100%; min-height: 0; border-radius: 1.5mm; overflow: hidden; text-align: center; }
-		.qr-label .qr-code { position: static; display: block; max-width: none; max-height: none; margin: 0 auto; transform: none; }
+		.qr-label { position: static; display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center; align-items: center; width: 100%; min-height: 0; padding: 0; border: 0; border-radius: 0; background: transparent; overflow: hidden; text-align: center; }
+		.size-small .qr-label, .size-medium .qr-label, .size-large .qr-label { min-height: 0; }
+		.qr-label .qr-code { position: static; display: block; width: auto; height: 100%; min-height: 0; max-width: 100% !important; max-height: 100% !important; margin: 0 auto; object-fit: contain; transform: none; }
 		.label-details { position: static; padding: 0; margin: .5mm 0 0; text-align: center; }
-		.size-small .qr-label-sheet { grid-template-rows: repeat(8, 34.375mm); gap: 2mm 3mm; }
-		.size-small .qr-label { height: 34.375mm; padding: 1mm; }
-		.size-small .qr-code { width: 26mm; height: 26mm; }
+		.size-small .qr-label-sheet { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(9, 31.222mm); }
 		.size-small .location-code { font-size: 13pt; }
-		.size-medium .qr-label-sheet { grid-template-rows: repeat(6, 46.5mm); gap: 2mm 3mm; }
-		.size-medium .qr-label { height: 46.5mm; padding: 1mm; }
-		.size-medium .qr-code { width: 36mm; height: 36mm; }
+		.size-medium .qr-label-sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(8, 35.25mm); }
 		.size-medium .location-code { font-size: 18pt; }
-		.size-large .qr-label-sheet { grid-template-rows: repeat(3, 94.333mm); gap: 3mm; }
-		.size-large .qr-label { height: 94.333mm; padding: 1mm; }
-		.size-large .qr-code { width: 82mm; height: 82mm; }
+		.size-large .qr-label-sheet { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(6, 47.333mm); }
 		.size-large .location-code { font-size: 24pt; }
 	}
 </style>
 
 <script>
+	function printQRLabels() {
+		const grid = document.querySelector(".qr-label-grid");
+		const selector = document.querySelector("#qr-size");
+		if (!grid || !selector) return;
+
+		const size = selector.value;
+		const printWindow = window.open("", "_blank");
+		if (!printWindow) {
+			window.alert("Please allow pop-ups to print QR labels.");
+			return;
+		}
+
+		printWindow.document.open();
+		printWindow.document.write(`<!doctype html>
+		<html>
+		<head>
+			<meta charset="utf-8">
+			<title>Storage Location QR Labels</title>
+			<style>
+				@page { size: A4 portrait; margin: 4mm; }
+				* { box-sizing: border-box; }
+				html, body { width: 202mm; margin: 0; padding: 0; background: #fff; font-family: Arial, sans-serif; }
+				.standalone-sheet-grid { display: block; width: 202mm; margin: 0; padding: 0; }
+				.qr-label-sheet {
+					display: grid;
+					width: 202mm;
+					height: 289mm;
+					margin: 0;
+					gap: 1mm;
+					break-after: page;
+					page-break-after: always;
+					overflow: hidden;
+				}
+				.qr-label-sheet:last-child { break-after: auto; page-break-after: auto; }
+				.qr-label {
+					display: grid;
+					grid-template-rows: minmax(0, 1fr) auto;
+					justify-items: center;
+					align-items: center;
+					min-width: 0;
+					min-height: 0;
+					overflow: hidden;
+					text-align: center;
+					break-inside: avoid;
+				}
+				.qr-code { display: block; width: auto; height: 100%; min-height: 0; max-width: 100%; max-height: 100%; margin: 0 auto; object-fit: contain; }
+				.label-details { min-width: 0; max-width: 100%; margin: .5mm 0 0; padding: 0; }
+				.location-code { overflow-wrap: anywhere; line-height: 1; font-weight: 800; text-align: center; }
+				.size-small .qr-label-sheet { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(9, 31.222mm); }
+				.size-small .location-code { font-size: 10pt; }
+				.size-medium .qr-label-sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(8, 35.25mm); }
+				.size-medium .location-code { font-size: 12pt; }
+				.size-large .qr-label-sheet { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(6, 47.333mm); }
+				.size-large .location-code { font-size: 18pt; }
+			</style>
+		</head>
+		<body>
+			<main class="standalone-sheet-grid size-${size}">${grid.innerHTML}</main>
+		</body>
+		</html>`);
+		printWindow.document.close();
+
+		const images = Array.from(printWindow.document.images);
+		Promise.all(images.map((img) => img.complete
+			? Promise.resolve()
+			: new Promise((resolve) => {
+				img.onload = resolve;
+				img.onerror = resolve;
+			})
+		)).then(() => {
+			printWindow.addEventListener("afterprint", () => printWindow.close(), { once: true });
+			printWindow.focus();
+			printWindow.print();
+		});
+	}
+
 	document.addEventListener("DOMContentLoaded", () => {
 		const grid = document.querySelector(".qr-label-grid");
 		const selector = document.querySelector("#qr-size");
 		if (!grid || !selector) return;
 
 		const labels = Array.from(grid.querySelectorAll(".qr-label"));
-		const perSheet = { small: 16, medium: 12, large: 6 };
+		const perSheet = { small: 54, medium: 40, large: 24 };
 		const savedSize = localStorage.getItem("storage-location-qr-size");
 		if (perSheet[savedSize]) selector.value = savedSize;
 

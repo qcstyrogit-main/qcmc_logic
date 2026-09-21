@@ -4,11 +4,40 @@ from collections import defaultdict
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt
+from frappe.utils import flt, now_datetime
 
 
 class WarehouseAllocation(Document):
 	pass
+
+
+@frappe.whitelist()
+def abandon_allocation(name):
+	"""Close an unfinished allocation and release its location reservations."""
+	doc = frappe.get_doc("Warehouse Allocation", name)
+	doc.check_permission("write")
+	if doc.docstatus != 0 or doc.status not in {"Draft", "In Progress"}:
+		frappe.throw(_("Only a Draft or In Progress Warehouse Allocation can be abandoned."))
+
+	handover_name = doc.handover
+	doc.status = "Cancelled"
+	# The handover link is unique. Clear it so the checked handover can create a
+	# replacement allocation while this abandoned document remains as history.
+	doc.handover = None
+	doc.add_comment("Info", _("Allocation abandoned by {0} on {1}.").format(
+		frappe.session.user, now_datetime()
+	))
+	doc.save()
+
+	if handover_name and frappe.db.exists("Scanner Warehouse Handover", handover_name):
+		handover = frappe.get_doc("Scanner Warehouse Handover", handover_name)
+		if handover.docstatus == 0 and handover.status == "ALLOCATION_CREATED":
+			handover.status = "CHECKED"
+			handover.picker = ""
+			handover.allocation_created_at = None
+			handover.save(ignore_permissions=True)
+
+	return {"success": True, "warehouse_allocation": doc.name, "status": doc.status}
 
 
 SOURCE_DOCTYPES = (

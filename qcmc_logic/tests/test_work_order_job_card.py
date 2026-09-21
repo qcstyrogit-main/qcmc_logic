@@ -13,6 +13,7 @@ class TestCreateNextJobCard(TestCase):
 			operation="REPACKING",
 			sequence_id=1,
 			idx=1,
+			completed_qty=25000,
 		)
 		self.work_order = _dict(
 			name="WO-TEST",
@@ -37,6 +38,23 @@ class TestCreateNextJobCard(TestCase):
 		self.assertEqual(result["remaining_qty"], 25000)
 		self.assertTrue(result["created"])
 		self.assertEqual(create.call_args.args[1].job_card_qty, 25000)
+
+	@patch("qcmc_logic.api.work_order_job_card.user_can_transact_work_order", return_value=True)
+	@patch("qcmc_logic.api.work_order_job_card.create_job_card")
+	@patch("qcmc_logic.api.work_order_job_card.frappe")
+	def test_uses_job_card_progress_while_latest_stock_entry_is_draft(self, frappe, create, _permission):
+		frappe.db.exists.return_value = True
+		self.work_order.qty = 100000
+		self.work_order.produced_qty = 10000
+		self.operation.completed_qty = 20000
+		frappe.get_doc.return_value = self.work_order
+		frappe.db.get_value.return_value = None
+		create.return_value = _dict(name="JC-NEXT")
+
+		result = create_next_job_card("WO-TEST")
+
+		self.assertEqual(result["remaining_qty"], 80000)
+		self.assertEqual(create.call_args.args[1].job_card_qty, 80000)
 
 	@patch("qcmc_logic.api.work_order_job_card.user_can_transact_work_order", return_value=True)
 	@patch("qcmc_logic.api.work_order_job_card.create_job_card")
