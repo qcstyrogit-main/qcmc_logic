@@ -765,53 +765,141 @@ def update_material_request_progress(docname):
         mr.set_status(update=True)
 
 def on_cancel(doc, method):
-    try:
-        # make reverse_gl_entries automatically fetches and reverses all GL Entries
-        make_reverse_gl_entries("Warehouse Transfer", doc.name, cancel_outstanding_cheques=False)
-        # make reverse stock ledger entries
-        sle_entries = frappe.get_all(
-            "Stock Ledger Entry",
-            filters={"voucher_type": "Warehouse Transfer", "voucher_no": doc.name, "is_cancelled": 0},
-            pluck="name"
-        )
-        for sle in sle_entries:
-            linked_sle = frappe.get_doc("Stock Ledger Entry", sle)
-            reverse_sle = frappe._dict({
-                "item_code": linked_sle.item_code,
-                "warehouse": linked_sle.warehouse,
-                "posting_date": nowdate(),
-                "posting_time": nowtime(),
-                "voucher_type": "Warehouse Transfer",
-                "voucher_no": doc.name,
-                "voucher_detail_no": linked_sle.name,
-                "actual_qty": -1 * linked_sle.actual_qty,
-                "company": linked_sle.company,
-                "stock_uom": linked_sle.stock_uom,
-                "incoming_rate": linked_sle.incoming_rate,
-                "valuation_rate": linked_sle.valuation_rate,
-                "stock_value_difference": -1 * linked_sle.stock_value_difference,
-                "is_cancelled": 1, #
-            })
-            if _stock_ledger_location_is_storage_location():
-                if linked_sle.get("location"):
-                    reverse_sle.location = linked_sle.location
-            else:
-                reverse_sle.location = (
-                    linked_sle.get("location")
-                    or _require_location_for_dimension(
-                        linked_sle.warehouse,
-                        linked_sle.company,
-                    )
-                )
-            make_sl_entries([reverse_sle], allow_negative_stock=True)
+    savepoint = "warehouse_transfer_cancel"
+    doc.ignore_linked_doctypes = _get_cancel_ignore_linked_doctypes()
 
+    try:
+        frappe.db.savepoint(savepoint)
+        _reverse_warehouse_transfer_gl(doc)
+        _reverse_warehouse_transfer_stock(doc)
+        _set_cancelled_transfer_status(doc)
         update_material_request_progress(doc.name)
         update_pick_list_progress(doc.name)
-
-    except Exception as e:
+    except Exception:
+        frappe.db.rollback(save_point=savepoint)
         frappe.log_error(
-            f"Failed to cancel GL Entries for Warehouse Transfer {doc.name}: {str(e)}",
-            "Warehouse Transfer Cancel Cascade"
+            frappe.get_traceback(),
+            f"Warehouse Transfer Cancel Failed: {doc.name}",
+        )
+        raise
+
+
+def _get_cancel_ignore_linked_doctypes():
+    ignored = ["GL Entry", "Stock Ledger Entry"]
+    if frappe.db.exists("DocType", "Serial and Batch Bundle"):
+        ignored.append("Serial and Batch Bundle")
+    return ignored
+
+
+def _reverse_warehouse_transfer_gl(doc):
+    if frappe.db.exists(
+        "GL Entry",
+        {
+            "voucher_type": "Warehouse Transfer",
+            "voucher_no": doc.name,
+            "is_cancelled": 0,
+        },
+    ):
+        make_reverse_gl_entries(
+            voucher_type="Warehouse Transfer",
+            voucher_no=doc.name,
+            update_outstanding="No",
+        )
+
+
+def _reverse_warehouse_transfer_stock(doc):
+    original_sles = frappe.get_all(
+        "Stock Ledger Entry",
+        filters={
+            "voucher_type": "Warehouse Transfer",
+            "voucher_no": doc.name,
+            "is_cancelled": 0,
+        },
+        fields=["name"],
+        order_by="posting_date, posting_time, creation, name",
+    )
+    if not original_sles:
+        return
+
+    transfer_rows = _get_transfer_rows_by_name(doc)
+    sl_entries = []
+
+    for row in original_sles:
+        linked_sle = frappe.get_doc("Stock Ledger Entry", row.get("name"))
+        reverse_sle = frappe._dict({
+            "item_code": linked_sle.item_code,
+            "warehouse": linked_sle.warehouse,
+            "posting_date": nowdate(),
+            "posting_time": nowtime(),
+            "voucher_type": "Warehouse Transfer",
+            "voucher_no": doc.name,
+            "voucher_detail_no": _get_cancel_voucher_detail_no(linked_sle, transfer_rows),
+            "actual_qty": linked_sle.actual_qty,
+            "company": linked_sle.company,
+            "stock_uom": linked_sle.stock_uom,
+            "incoming_rate": linked_sle.incoming_rate,
+            "outgoing_rate": linked_sle.get("outgoing_rate"),
+            "valuation_rate": linked_sle.valuation_rate,
+            "stock_value_difference": linked_sle.stock_value_difference,
+            "is_cancelled": 1,
+        })
+
+        _copy_optional_sle_fields(linked_sle, reverse_sle)
+        sl_entries.append(reverse_sle)
+
+    make_sl_entries(sl_entries, allow_negative_stock=True)
+
+
+def _get_transfer_rows_by_name(doc):
+    return {
+        row.name: row for row in (doc.get("transfer_items") or [])
+        if row.name
+    }
+
+
+def _get_cancel_voucher_detail_no(sle, transfer_rows):
+    if sle.get("voucher_detail_no") in transfer_rows:
+        return sle.voucher_detail_no
+
+    qty_field = "issued_qty" if flt(sle.actual_qty) < 0 else "received_qty"
+    for row in transfer_rows.values():
+        if row.get("item_code") == sle.item_code and flt(row.get(qty_field)) > 0:
+            return row.name
+
+    return sle.get("voucher_detail_no")
+
+
+def _copy_optional_sle_fields(source, target):
+    for fieldname in (
+        "batch_no",
+        "serial_no",
+        "serial_and_batch_bundle",
+        "project",
+        "cost_center",
+        "location",
+    ):
+        if source.meta.has_field(fieldname) and source.get(fieldname):
+            target[fieldname] = source.get(fieldname)
+
+    if (
+        not _stock_ledger_location_is_storage_location()
+        and not target.get("location")
+    ):
+        target.location = _require_location_for_dimension(
+            source.warehouse,
+            source.company,
+        )
+
+
+def _set_cancelled_transfer_status(doc):
+    if doc.get("transfer_status") != "Cancelled":
+        doc.transfer_status = "Cancelled"
+        frappe.db.set_value(
+            doc.doctype,
+            doc.name,
+            "transfer_status",
+            "Cancelled",
+            update_modified=False,
         )
 
 

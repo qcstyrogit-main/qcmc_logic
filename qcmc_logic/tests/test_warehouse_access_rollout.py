@@ -8,6 +8,7 @@ from qcmc_logic.customs.permissions import (
     _sales_transaction_read_permission_query,
     _warehouse_access_applies,
     _warehouse_transaction_permission_query,
+    is_qualifying_fob_customer_delivery_invoice,
     sales_transaction_has_permission,
     warehouse_transaction_has_permission,
     warehouse_transfer_has_permission,
@@ -815,3 +816,154 @@ class TestWarehouseAccessRollout(TestCase):
         self.assertIn("`source_warehouse` IN", query)
         self.assertIn("`target_warehouse` IN", query)
         self.assertIn(" OR ", query)
+
+    def _fob_invoice(self, rows):
+        return self._transaction_doc(
+            "Sales Invoice",
+            rows={("items", "Sales Invoice Item"): rows},
+            territory="South Luzon",
+            set_warehouse="Plant - HO",
+        )
+
+    def _source_chain_get_value(
+        self,
+        doctype,
+        name,
+        fieldname,
+        as_dict=False,
+        so_type="FOB",
+        srf_capable=True,
+        broken_dn=False,
+    ):
+        if doctype == "Delivery Note Item":
+            values = {
+                "parent": "DN-0001" if not broken_dn else "DN-OTHER",
+                "against_sales_order": "SO-0001",
+                "so_detail": "SOI-0001",
+            }
+        elif doctype == "Sales Order Item":
+            values = {
+                "parent": "SO-0001",
+                "warehouse": "Plant - HO",
+            }
+        elif doctype == "Sales Order":
+            values = {"custom_so_type": so_type}
+        elif doctype == "Warehouse":
+            values = {"custom_can_serve_material_requests": 1 if srf_capable else 0}
+        else:
+            values = {}
+
+        if isinstance(fieldname, list):
+            result = frappe._dict({field: values.get(field) for field in fieldname})
+            return result if as_dict else [result.get(field) for field in fieldname]
+
+        return values.get(fieldname)
+
+    def test_fob_srf_capable_source_warehouse_allows_provincial_invoice(self):
+        doc = self._fob_invoice(
+            [
+                {
+                    "delivery_note": "DN-0001",
+                    "dn_detail": "DNI-0001",
+                    "sales_order": "SO-0001",
+                    "so_detail": "SOI-0001",
+                    "warehouse": "Plant - HO",
+                }
+            ]
+        )
+
+        with (
+            patch("qcmc_logic.customs.permissions.frappe.get_roles", return_value=["Provincial Stock User"]),
+            patch("qcmc_logic.customs.permissions._doctype_has_field", return_value=True),
+            patch("qcmc_logic.customs.permissions.frappe.db.get_value", side_effect=self._source_chain_get_value),
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch("qcmc_logic.customs.permissions.get_user_allowed_warehouses", return_value=["Province - FG"]),
+            patch("qcmc_logic.customs.permissions.territory_has_permission", return_value=True),
+        ):
+            self.assertTrue(is_qualifying_fob_customer_delivery_invoice(doc, "prov@example.com"))
+            self.assertTrue(sales_transaction_has_permission(doc, "write", "prov@example.com"))
+            self.assertTrue(sales_transaction_has_permission(doc, "submit", "prov@example.com"))
+
+    def test_fob_non_srf_capable_source_warehouse_denies_provincial_invoice(self):
+        doc = self._fob_invoice(
+            [{"delivery_note": "DN-0001", "dn_detail": "DNI-0001", "sales_order": "SO-0001", "so_detail": "SOI-0001"}]
+        )
+
+        def get_value(*args, **kwargs):
+            return self._source_chain_get_value(*args, **kwargs, srf_capable=False)
+
+        with (
+            patch("qcmc_logic.customs.permissions.frappe.get_roles", return_value=["Provincial Stock User"]),
+            patch("qcmc_logic.customs.permissions._doctype_has_field", return_value=True),
+            patch("qcmc_logic.customs.permissions.frappe.db.get_value", side_effect=get_value),
+        ):
+            self.assertFalse(is_qualifying_fob_customer_delivery_invoice(doc, "prov@example.com"))
+
+    def test_non_fob_srf_capable_source_warehouse_denies_provincial_invoice(self):
+        doc = self._fob_invoice(
+            [{"delivery_note": "DN-0001", "dn_detail": "DNI-0001", "sales_order": "SO-0001", "so_detail": "SOI-0001"}]
+        )
+
+        def get_value(*args, **kwargs):
+            return self._source_chain_get_value(*args, **kwargs, so_type="REGULAR")
+
+        with (
+            patch("qcmc_logic.customs.permissions.frappe.get_roles", return_value=["Provincial Stock User"]),
+            patch("qcmc_logic.customs.permissions._doctype_has_field", return_value=True),
+            patch("qcmc_logic.customs.permissions.frappe.db.get_value", side_effect=get_value),
+        ):
+            self.assertFalse(is_qualifying_fob_customer_delivery_invoice(doc, "prov@example.com"))
+
+    def test_broken_delivery_note_sales_order_links_deny_provincial_invoice(self):
+        doc = self._fob_invoice(
+            [{"delivery_note": "DN-0001", "dn_detail": "DNI-0001", "sales_order": "SO-0001", "so_detail": "SOI-0001"}]
+        )
+
+        def get_value(*args, **kwargs):
+            return self._source_chain_get_value(*args, **kwargs, broken_dn=True)
+
+        with (
+            patch("qcmc_logic.customs.permissions.frappe.get_roles", return_value=["Provincial Stock User"]),
+            patch("qcmc_logic.customs.permissions.frappe.db.get_value", side_effect=get_value),
+        ):
+            self.assertFalse(is_qualifying_fob_customer_delivery_invoice(doc, "prov@example.com"))
+
+    def test_mixed_invoice_items_with_non_qualifying_row_denies_provincial_invoice(self):
+        doc = self._fob_invoice(
+            [
+                {"delivery_note": "DN-0001", "dn_detail": "DNI-0001", "sales_order": "SO-0001", "so_detail": "SOI-0001"},
+                {"delivery_note": "DN-0002", "dn_detail": "DNI-0002", "sales_order": "SO-0002", "so_detail": "SOI-0002"},
+            ]
+        )
+
+        def get_value(doctype, name, fieldname, as_dict=False):
+            if name in {"DNI-0002", "SOI-0002", "SO-0002"} and doctype == "Sales Order":
+                return "REGULAR"
+            return self._source_chain_get_value(doctype, name, fieldname, as_dict=as_dict)
+
+        with (
+            patch("qcmc_logic.customs.permissions.frappe.get_roles", return_value=["Provincial Stock User"]),
+            patch("qcmc_logic.customs.permissions._doctype_has_field", return_value=True),
+            patch("qcmc_logic.customs.permissions.frappe.db.get_value", side_effect=get_value),
+        ):
+            self.assertFalse(is_qualifying_fob_customer_delivery_invoice(doc, "prov@example.com"))
+
+    def test_head_office_user_does_not_use_provincial_fob_exception(self):
+        doc = self._fob_invoice(
+            [{"delivery_note": "DN-0001", "dn_detail": "DNI-0001", "sales_order": "SO-0001", "so_detail": "SOI-0001"}]
+        )
+
+        with patch("qcmc_logic.customs.permissions.frappe.get_roles", return_value=["Stock User"]):
+            self.assertFalse(is_qualifying_fob_customer_delivery_invoice(doc, "ho@example.com"))
+
+    def test_fob_exception_does_not_grant_delivery_note_write_access(self):
+        doc = self._sales_doc("Delivery Note", territory="South Luzon", warehouse="Plant - HO")
+        doc.name = "DN-0001"
+
+        with (
+            patch("qcmc_logic.customs.permissions.frappe.get_roles", return_value=["Provincial Stock User"]),
+            patch("qcmc_logic.customs.permissions._warehouse_access_applies", return_value=True),
+            patch("qcmc_logic.customs.permissions.get_user_allowed_warehouses", return_value=["Province - FG"]),
+            patch("qcmc_logic.customs.permissions.territory_has_permission", return_value=True),
+        ):
+            self.assertFalse(sales_transaction_has_permission(doc, "write", "prov@example.com"))

@@ -5186,7 +5186,7 @@
     "next_action_email_template": null,
     "send_email": 0,
     "state": "Cancelled",
-    "update_field": "amended_from",
+    "update_field": "transfer_status",
     "update_value": "Cancelled",
     "workflow_builder_id": null
    }
