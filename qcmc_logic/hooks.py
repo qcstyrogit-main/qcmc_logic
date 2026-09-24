@@ -412,6 +412,8 @@ before_migrate = [
 ]
 
 after_migrate = [
+    "qcmc_logic.patches.update_purchase_request_attention.execute",
+    "qcmc_logic.patches.ensure_daily_job_schedule_permissions.execute",
     "qcmc_logic.patches.restore_daily_job_schedule_navigation.execute",
     "qcmc_logic.customs.maintenance_job_order.ensure_maintenance_job_order",
     "qcmc_logic.customs.stock_entry.remove_msjr_stock_entry_integration",

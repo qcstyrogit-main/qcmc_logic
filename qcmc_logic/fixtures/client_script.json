@@ -903,10 +903,10 @@
   "docstatus": 0,
   "doctype": "Client Script",
   "dt": "Purchase Order",
-  "enabled": 0,
+  "enabled": 1,
   "module": null,
   "name": "PO Setting Default Print Format",
-  "script": "frappe.ui.form.on(\"Purchase Order\", {\r\n    refresh(frm) {\r\n        // remove default Print menu\r\n        frm.page.remove_menu_item(\"Print\");\r\n\r\n        // add your own Print\r\n        frm.page.add_menu_item(__(\"Print\"), function() {\r\n            frappe.call({\r\n                method: \"qcmc_logic.overrides.POPrint_Override.get_po_print_format\",\r\n                args: {\r\n                    doctype: frm.doc.doctype,\r\n                    name: frm.doc.name\r\n                },\r\n                callback: function(r) {\r\n                    if (r.message) {\r\n                        let print_format = r.message;\r\n\r\n                        window.open(frappe.urllib.get_full_url(\r\n                            \"/printview?\"\r\n                            + \"doctype=\" + encodeURIComponent(frm.doc.doctype)\r\n                            + \"&name=\" + encodeURIComponent(frm.doc.name)\r\n                            + \"&format=\" + encodeURIComponent(print_format)\r\n                            + \"&no_letterhead=0\"\r\n                            + \"&trigger_print=1\"\r\n                        ));\r\n                    } else {\r\n                        frappe.msgprint(\"No print format returned.\");\r\n                    }\r\n                }\r\n            });\r\n        });\r\n    }\r\n});\r\n",
+  "script": "frappe.ui.form.on(\"Purchase Order\", {\r\n    refresh(frm) {\r\n        frm.page.remove_menu_item(\"Print\");\r\n        frm.page.add_menu_item(__(\"Print\"), function() {\r\n            frappe.call({\r\n                method: \"qcmc_logic.overrides.POPrint_Override.get_po_print_format\",\r\n                args: { doctype: frm.doc.doctype, name: frm.doc.name },\r\n                callback(r) {\r\n                    if (!r.message) {\r\n                        frappe.msgprint(\"No print format returned.\");\r\n                        return;\r\n                    }\r\n                    const pdf_url = frappe.urllib.get_full_url(\r\n                        \"/api/method/frappe.utils.print_format.download_pdf?\"\r\n                        + \"doctype=\" + encodeURIComponent(frm.doc.doctype)\r\n                        + \"&name=\" + encodeURIComponent(frm.doc.name)\r\n                        + \"&format=\" + encodeURIComponent(r.message)\r\n                        + \"&no_letterhead=0\"\r\n                    );\r\n                    window.open(pdf_url, \"_blank\");\r\n                }\r\n            });\r\n        });\r\n    }\r\n});\r\n",
   "view": "Form"
  },
  {
@@ -1417,6 +1417,16 @@
   "module": null,
   "name": "ZKTeco Log Downloader",
   "script": "frappe.ui.form.on('ZKTeco Log Downloader', {\r\n    refresh(frm) {\r\n        frm.add_custom_button(__('Download from All Devices'), function() {\r\n        frappe.call({\r\n        method: \"zkteco_integration.zkteco_integration.doctype.zkteco_log_downloader.zkteco_log_downloader.download_all_logs\",\r\n        freeze: true,\r\n        freeze_message: __(\"Downloading logs...\"),\r\n        callback: function(r) {\r\n        frappe.msgprint(r.message || \"Logs downloaded successfully!\");\r\n        }\r\n        });\r\n        });\r\n    }\r\n});\r\n\r\n\r\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Order",
+  "enabled": 1,
+  "module": null,
+  "name": "Purchase Order LX-310 Raw Print",
+  "script": "frappe.ui.form.on(\"Purchase Order\", {\r\n    refresh(frm) {\r\n        if (frm.is_new()) return;\r\n        frm.add_custom_button(__(\"Print LX-310 (Raw)\"), function() {\r\n            frappe.confirm(\r\n                __(\"Send this Purchase Order directly to the local Epson LX-310?\"),\r\n                function() {\r\n                    frappe.call({\r\n                        method: \"qcmc_logic.api.lx310_print.print_purchase_order\",\r\n                        args: { name: frm.doc.name },\r\n                        freeze: true,\r\n                        freeze_message: __(\"Sending to LX-310...\"),\r\n                        callback(r) {\r\n                            if (r.message) frappe.show_alert({ message: r.message.message, indicator: \"green\" });\r\n                        }\r\n                    });\r\n                }\r\n            );\r\n        }, __(\"Print\"));\r\n    }\r\n});\r\n",
   "view": "Form"
  }
 ]
