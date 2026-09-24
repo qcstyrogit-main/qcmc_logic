@@ -273,12 +273,27 @@ def on_update_after_submit(doc, method=None):
     previous_state = previous.transfer_status if previous else None
 
     if new_state == "Received" and previous_state != "Received":
+        ensure_date_received(doc)
         create_source_stock_entry(doc.name)
         create_target_stock_entry(doc.name)
         update_material_request_progress(doc.name)
         update_pick_list_progress(doc.name)
         if doc.source_company != doc.target_company:
             create_intercompany_gl(doc.name, source=False)
+
+
+def ensure_date_received(doc):
+    if doc.get("transfer_status") != "Received" or doc.get("date_received"):
+        return
+
+    doc.date_received = nowdate()
+    frappe.db.set_value(
+        doc.doctype,
+        doc.name,
+        "date_received",
+        doc.date_received,
+        update_modified=False,
+    )
 
 
 def get_in_transit_wh(warehouse):

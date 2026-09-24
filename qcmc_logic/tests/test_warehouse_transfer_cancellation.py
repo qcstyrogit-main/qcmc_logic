@@ -171,3 +171,44 @@ class TestWarehouseTransferCancellation(unittest.TestCase):
         self.assertEqual(cancelled_state["update_field"], "transfer_status")
         self.assertEqual(cancelled_state["update_value"], "Cancelled")
         self.assertNotEqual(cancelled_state["update_field"], "amended_from")
+
+    @patch("qcmc_logic.customs.warehouse_transfer_events.create_intercompany_gl")
+    @patch("qcmc_logic.customs.warehouse_transfer_events.update_pick_list_progress")
+    @patch("qcmc_logic.customs.warehouse_transfer_events.update_material_request_progress")
+    @patch("qcmc_logic.customs.warehouse_transfer_events.create_target_stock_entry")
+    @patch("qcmc_logic.customs.warehouse_transfer_events.create_source_stock_entry")
+    @patch("qcmc_logic.customs.warehouse_transfer_events.validate_update_after_submit")
+    @patch("qcmc_logic.customs.warehouse_transfer_events.frappe.db.set_value")
+    @patch("qcmc_logic.customs.warehouse_transfer_events.nowdate", return_value="2026-09-24")
+    def test_receiving_sets_date_received_before_receive_side_posting(
+        self, _nowdate, set_value, _validate, create_source, create_target,
+        update_mr, update_pick_list, create_gl,
+    ):
+        previous = frappe._dict(transfer_status="Transferred")
+        doc = frappe._dict(
+            doctype="Warehouse Transfer",
+            name="WT-TEST-0002",
+            transfer_status="Received",
+            date_received=None,
+            source_company="QC",
+            target_company="MC",
+        )
+        doc.get_doc_before_save = lambda: previous
+        calls = []
+        create_target.side_effect = lambda _name: calls.append(("target", doc.date_received))
+        create_gl.side_effect = lambda _name, source: calls.append(("gl", doc.date_received, source))
+
+        wt_events.on_update_after_submit(doc, None)
+
+        self.assertEqual(doc.date_received, "2026-09-24")
+        set_value.assert_called_once_with(
+            "Warehouse Transfer",
+            "WT-TEST-0002",
+            "date_received",
+            "2026-09-24",
+            update_modified=False,
+        )
+        create_source.assert_called_once_with("WT-TEST-0002")
+        update_mr.assert_called_once_with("WT-TEST-0002")
+        update_pick_list.assert_called_once_with("WT-TEST-0002")
+        self.assertEqual(calls, [("target", "2026-09-24"), ("gl", "2026-09-24", False)])

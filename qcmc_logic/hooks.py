@@ -508,6 +508,7 @@ page_js = {
 jinja = {
     "methods": [
         "qcmc_logic.api.hmo_print.get_hmo_plan_year_history",
+        "qcmc_logic.customs.sales_order_print.get_sales_order_slip_items",
     ],
 }
 
