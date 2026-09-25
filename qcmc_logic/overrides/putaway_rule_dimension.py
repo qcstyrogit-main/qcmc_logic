@@ -136,7 +136,10 @@ def get_location_total_physical_balance(warehouse, location):
 			inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
 			where sr.docstatus = 1 and sr.custom_physical_count = 1
 				and coalesce(pcr.status, '') != 'Old Count'
-				and not (coalesce(pcr.physical_count, 0) = 0 and coalesce(pcr.variance, 0) = 0)
+				and not (
+					coalesce(cast(nullif(nullif(pcr.cost_acct_cnt, ''), '0.000000000') as decimal(21,9)), pcr.physical_count, 0) = 0
+					and coalesce(pcr.variance, 0) = 0
+				)
 				and pcr.warehouse = %(warehouse)s
 				and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %(location)s
 		) movement

@@ -288,7 +288,14 @@ def _putaway_allocations(
 		available = (
 			pending_stock_qty
 			if unlimited_capacity
-			else max(flt(rule.free_space) - reserved_qty, 0)
+			else max(
+				(
+					flt(rule.free_space)
+					if rule.get("custom_no_item_restriction")
+					else flt(rule.stock_capacity)
+				) - reserved_qty,
+				0,
+			)
 		)
 		stock_qty = min(pending_stock_qty, available)
 		if stock_qty <= 0:

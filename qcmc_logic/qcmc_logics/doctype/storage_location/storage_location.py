@@ -623,7 +623,10 @@ def _get_location_movement_details(storage_location, warehouse):
 				pcr.variance, pcr.uom, '',
 				coalesce(nullif(pcr.location, ''), pcr.inventory_location),
 				coalesce(nullif(pcr.scanner_full_name, ''), pcr.scanner_user), pcr.device_id,
-				pcr.physical_count
+				coalesce(
+					cast(nullif(nullif(trim(pcr.cost_acct_cnt), ''), '0.000000000') as decimal(21,9)),
+					pcr.physical_count
+				)
 			from `tabQCMC Physical Count Result` pcr
 			inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
 			left join `tabItem` item on item.name = pcr.item_code

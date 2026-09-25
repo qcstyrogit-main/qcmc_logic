@@ -1,3 +1,4 @@
+import unittest
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -5,10 +6,33 @@ from qcmc_logic.qcmc_logics.doctype.storage_location.storage_location import (
 	_relative_path_segment,
 	_get_warehouse_allocation_location_balances,
 	_get_warehouse_allocation_location_details,
+	_get_location_movement_details,
 	natural_location_sort_key,
 	normalize_location_code,
 	update_storage_location_from_tree,
 )
+
+
+def run_storage_location_history_tests():
+	suite = unittest.TestSuite([TestStorageLocationPaths(
+		"test_physical_count_history_uses_cost_accounting_count_when_entered"
+	)])
+	result = unittest.TextTestRunner(verbosity=1).run(suite)
+	if not result.wasSuccessful():
+		raise AssertionError("Storage Location history test failed")
+	return {"tests_run": result.testsRun, "successful": True}
+
+
+def run_storage_location_path_tests():
+	suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestStorageLocationPaths)
+	result = unittest.TextTestRunner(verbosity=1).run(suite)
+	if not result.wasSuccessful():
+		raise AssertionError(
+			f"Storage Location tests failed: {len(result.failures)} failures, "
+			f"{len(result.errors)} errors"
+		)
+	return {"tests_run": result.testsRun, "successful": True}
+
 
 
 class TestStorageLocationPaths(TestCase):
@@ -42,6 +66,15 @@ class TestStorageLocationPaths(TestCase):
 		self.assertIn("wa.status = 'Completed'", query)
 		self.assertIn("wal.status = 'VERIFIED'", query)
 		self.assertEqual(parameters["storage_location"], "LOC-1")
+
+	@patch("frappe.db.sql", return_value=[])
+	def test_physical_count_history_uses_cost_accounting_count_when_entered(self, sql):
+		_get_location_movement_details("LOC-1", "FG - Guyong")
+		query = sql.call_args.args[0]
+
+		self.assertIn("pcr.cost_acct_cnt", query)
+		self.assertIn("pcr.physical_count", query)
+
 
 	def test_location_code_is_normalized_for_rename(self):
 		self.assertEqual(normalize_location_code(" sdw1 staging "), "SDW1-STAGING")

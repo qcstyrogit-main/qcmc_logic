@@ -16,9 +16,10 @@ def execute():
 
     if frappe.db.exists("Client Script", CLIENT_SCRIPT):
         doc = frappe.get_doc("Client Script", CLIENT_SCRIPT)
-        doc.update(script_data)
     else:
-        doc = frappe.get_doc(script_data)
+        doc = frappe.new_doc("Client Script")
+        doc.name = CLIENT_SCRIPT
 
+    doc.update(script_data)
     doc.save(ignore_permissions=True)
     frappe.clear_cache(doctype="Client Script")

@@ -47,7 +47,7 @@ def physical_count_summary_key(result):
 
 def cost_accounting_count_value(result):
     value = result.get("cost_acct_cnt")
-    if value is None or str(value).strip() in {"", "0.000000000"}:
+    if value is None or str(value).strip() == "":
         return None
     try:
         count = float(str(value).replace(",", ""))
@@ -70,6 +70,8 @@ class CustomStockReconciliation(StockReconciliation):
             self.purpose = "Stock Reconciliation"
             self.prepare_for_recon_manual_rows()
             self.validate_cost_accounting_adjustments()
+            if self.workflow_state == "Close Inventory":
+                self.add_missing_location_zero_counts()
             self.rebuild_physical_count_summary()
         super().validate()
         if self.get("custom_physical_count"):
@@ -334,17 +336,13 @@ class CustomStockReconciliation(StockReconciliation):
             self.get("custom_physical_count_results") or []
         )
         effective_totals = {}
-        variance_totals = {}
         for result in latest_by_location.values():
             key = physical_count_summary_key(result)
             effective_totals[key] = flt(effective_totals.get(key)) + effective_physical_count(result)
-            variance_totals[key] = flt(variance_totals.get(key)) + (
-                effective_physical_count(result) - flt(result.erp_quantity_before)
-            )
 
         # Preserve manually entered/unrelated reconciliation rows. For keys covered
-        # by Physical Count, retain one row and apply counted-location variance
-        # to the current warehouse balance, leaving uncounted locations untouched.
+        # by Physical Count, retain one row and replace its quantity with the latest
+        # effective total across distinct Storage Locations.
         existing_by_key = {}
         unrelated_rows = []
         for row in self.items or []:
@@ -361,8 +359,7 @@ class CustomStockReconciliation(StockReconciliation):
                 unrelated_rows.append(row.as_dict())
 
         rebuilt_rows = unrelated_rows
-        for key in sorted(effective_totals):
-            item_code, warehouse, batch_no, serial_no, uom = key
+        for (item_code, warehouse, batch_no, serial_no, uom), quantity in sorted(effective_totals.items()):
             bin_balance = frappe.db.get_value(
                 "Bin",
                 {"item_code": item_code, "warehouse": warehouse},
@@ -375,7 +372,7 @@ class CustomStockReconciliation(StockReconciliation):
             values.update({
                 "item_code": item_code,
                 "warehouse": warehouse,
-                "qty": flt(bin_balance.get("actual_qty")) + variance_totals[key],
+                "qty": effective_totals[(item_code, warehouse, batch_no, serial_no, uom)],
                 "current_qty": flt(bin_balance.get("actual_qty")),
                 "valuation_rate": valuation_rate,
                 "current_valuation_rate": valuation_rate,

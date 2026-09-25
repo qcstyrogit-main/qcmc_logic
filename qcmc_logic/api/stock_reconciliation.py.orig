@@ -20,7 +20,7 @@ def _safe_float(value, default=0.0):
 
 def _effective_physical_count(row):
     recount = row.get("cost_acct_cnt")
-    if recount is None or str(recount).strip() in {"", "0.000000000"}:
+    if recount is None or str(recount).strip() == "":
         return _safe_float(row.physical_count)
     return _safe_float(recount)
 
@@ -159,7 +159,7 @@ def _current_inventory_quantity(item_code, warehouse, storage_location, batch_no
     storage_location = str(storage_location or "").strip()
     latest_count = frappe.db.sql(
         """
-        select coalesce(cast(nullif(nullif(pcr.cost_acct_cnt, ''), '0.000000000') as decimal(21,9)), pcr.physical_count) as physical_count,
+        select coalesce(pcr.cost_acct_cnt, pcr.physical_count) as physical_count,
                coalesce(pcr.submitted_at, sr.modified) as counted_at
         from `tabQCMC Physical Count Result` pcr
         inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
@@ -1853,7 +1853,7 @@ def _get_physical_location_balances(warehouse):
         with ranked_counts as (
             select pcr.item_code,
                    coalesce(nullif(pcr.location, ''), pcr.inventory_location) as location,
-                   coalesce(cast(nullif(nullif(pcr.cost_acct_cnt, ''), '0.000000000') as decimal(21,9)), pcr.physical_count) as physical_count,
+                   pcr.physical_count + coalesce(pcr.cost_acct_cnt, 0) as physical_count,
                    coalesce(pcr.submitted_at, sr.modified) as counted_at,
                    row_number() over (
                        partition by pcr.item_code, pcr.warehouse,
