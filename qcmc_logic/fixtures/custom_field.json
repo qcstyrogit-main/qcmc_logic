@@ -45413,4 +45413,24 @@
   "unique": 0,
   "width": null
  }
+,
+ {
+  "doctype": "Custom Field",
+  "dt": "Delivery Note Item",
+  "fieldname": "custom_logistics_reason",
+  "fieldtype": "Select",
+  "label": "Logistics Reason",
+  "name": "Delivery Note Item-custom_logistics_reason",
+  "options": "TO\nCR\nSA\nOR\nND\nSE",
+  "insert_after": "custom_quantity"
+ },
+ {
+  "doctype": "Custom Field",
+  "dt": "Delivery Note Item",
+  "fieldname": "custom_logistics_remarks",
+  "fieldtype": "Small Text",
+  "label": "Logistics Remarks",
+  "name": "Delivery Note Item-custom_logistics_remarks",
+  "insert_after": "custom_logistics_reason"
+ }
 ]

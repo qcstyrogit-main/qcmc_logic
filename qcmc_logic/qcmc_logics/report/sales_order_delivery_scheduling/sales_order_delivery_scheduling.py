@@ -68,10 +68,9 @@ def execute(filters=None):
 			AND {conditions}
 		ORDER BY available_from, so.name, soi.idx
 	""".format(conditions=" AND ".join(conditions)), values, as_dict=True)
-	rows = _consolidate_rows(rows)
 	return columns, rows, _("{0} eligible item(s) found.").format(len(rows)), None, [
 		{"value": len({row.sales_order for row in rows}), "indicator": "Blue", "label": _("Sales Orders"), "datatype": "Int"},
-		{"value": len(rows), "indicator": "Green", "label": _("Items"), "datatype": "Int"},
+		{"value": len(rows), "indicator": "Green", "label": _("Schedules"), "datatype": "Int"},
 	]
 
 
@@ -94,6 +93,67 @@ def _consolidate_rows(rows):
 	for row in consolidated.values():
 		row.delivery_dates = ", ".join(sorted(row.delivery_dates))
 	return list(consolidated.values())
+
+
+@frappe.whitelist()
+def adjust_scheduled_quantity(source_so_detail, target_so_detail, new_qty, remarks=None):
+	_validate_scheduling_role()
+	if source_so_detail == target_so_detail:
+		frappe.throw(_("Select two different schedule rows."))
+	if not remarks or not str(remarks).strip():
+		frappe.throw(_("Remarks are required for a quantity adjustment."))
+
+	details = _lock_sales_order_items([source_so_detail, target_so_detail])
+	if len({row.parent for row in details}) != 1:
+		frappe.throw(_("Both schedules must belong to the same Sales Order."))
+
+	so = frappe.get_doc("Sales Order", details[0].parent)
+	if so.docstatus != 1 or so.status != "To Deliver and Bill":
+		frappe.throw(_("Sales Order {0} is not eligible for scheduling.").format(so.name))
+	items = {item.name: item for item in so.items}
+	source = items.get(source_so_detail)
+	target = items.get(target_so_detail)
+	if not source or not target:
+		frappe.throw(_("Both selected schedules must belong to the Sales Order."))
+	if (source.item_code, source.warehouse) != (target.item_code, target.warehouse):
+		frappe.throw(_("Quantity can only be moved between schedules for the same item and warehouse."))
+	_validate_sales_coordinator_access(so, source, require_transact=True)
+	_validate_sales_coordinator_access(so, target, require_transact=True)
+
+	new_qty = frappe.utils.flt(new_qty)
+	old_qty = frappe.utils.flt(source.qty)
+	delta = new_qty - old_qty
+	if new_qty <= 0:
+		frappe.throw(_("The adjusted quantity must be greater than zero."))
+	if not delta:
+		frappe.throw(_("The adjusted quantity must be different from the current quantity."))
+	if delta > 0 and frappe.utils.flt(target.qty) < delta:
+		frappe.throw(_("The selected schedule does not have enough quantity to deduct."))
+	if delta < 0 and frappe.utils.flt(source.delivered_qty) > new_qty:
+		frappe.throw(_("The adjusted quantity cannot be less than the delivered quantity."))
+
+	before_doc = frappe.get_doc("Sales Order", so.name)
+	new_target_qty = frappe.utils.flt(target.qty) - delta
+	if new_target_qty <= 0:
+		frappe.throw(_("The destination schedule must retain a positive quantity."))
+	frappe.db.set_value("Sales Order Item", source.name, "qty", new_qty)
+	frappe.db.set_value("Sales Order Item", target.name, "qty", new_target_qty)
+	source.qty = new_qty
+	target.qty = new_target_qty
+	after_doc = frappe.get_doc("Sales Order", so.name)
+	_record_quantity_adjustment_history(before_doc, after_doc, source, target, old_qty, delta, remarks)
+	return _("Schedule quantity updated and recorded in Sales Order history.")
+
+
+def _record_quantity_adjustment_history(before_doc, after_doc, source, target, old_qty, delta, remarks):
+	version = frappe.new_doc("Version")
+	if version.update_version_info(before_doc, after_doc):
+		version.insert(ignore_permissions=True)
+	direction = _("increased") if delta > 0 else _("decreased")
+	message = _(
+		"Delivery schedule quantity {0}: {1} from {2} to {3}; moved {4} to schedule {5}. Remarks: {6}"
+	).format(direction, frappe.bold(source.item_code), old_qty, source.qty, abs(delta), target.delivery_date, frappe.utils.escape_html(remarks))
+	after_doc.add_comment("Edit", message)
 
 
 @frappe.whitelist()
