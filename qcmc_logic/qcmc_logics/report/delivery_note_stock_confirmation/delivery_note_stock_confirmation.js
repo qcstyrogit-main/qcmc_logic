@@ -27,8 +27,11 @@ function logistics_selected_rows(report) {
 function confirm_delivery_notes(report) {
 	const delivery_notes = [...new Set(logistics_selected_rows(report).map(row => row.delivery_note))];
 	if (!delivery_notes.length) return frappe.msgprint(__("Select at least one Delivery Note row."));
-	frappe.prompt({fieldname: "remarks", label: __("Stock Confirmation Remarks"), fieldtype: "Small Text"}, values => {
-		frappe.call({method: "qcmc_logic.qcmc_logics.report.delivery_note_stock_confirmation.delivery_note_stock_confirmation.confirm_delivery_notes", args: {delivery_notes, remarks: values.remarks}, freeze: true, freeze_message: __("Updating workflow..."), callback: r => { if (!r.exc) { frappe.msgprint(r.message); report.refresh(); } }});
+	frappe.prompt([
+		{fieldname: "reason_code", label: __("Logistics Reason"), fieldtype: "Select", options: "TO\nCR\nSA\nOR\nND\nSE", reqd: 1},
+		{fieldname: "remarks", label: __("Stock Confirmation Remarks"), fieldtype: "Small Text", reqd: 1}
+	], values => {
+		frappe.call({method: "qcmc_logic.qcmc_logics.report.delivery_note_stock_confirmation.delivery_note_stock_confirmation.confirm_delivery_notes", args: {delivery_notes, reason_code: values.reason_code, remarks: values.remarks}, freeze: true, freeze_message: __("Updating workflow..."), callback: r => { if (!r.exc) { frappe.msgprint(r.message); report.refresh(); } }});
 	}, __("Confirm Stock"), __("Submit For DR Printing"));
 }
 
@@ -48,7 +51,7 @@ function remove_items(report) {
 	const rows = logistics_selected_rows(report);
 	if (!rows.length) return frappe.msgprint(__("Select at least one unavailable item row."));
 	frappe.prompt([
-		{fieldname: "reason_code", label: __("Reason"), fieldtype: "Select", options: "SA\nND", default: "SA", reqd: 1},
+		{fieldname: "reason_code", label: __("Reason"), fieldtype: "Select", options: "TO\nCR\nSA\nOR\nND\nSE", default: "SA", reqd: 1},
 		{fieldname: "remarks", label: __("Remarks"), fieldtype: "Small Text", reqd: 1}
 	], values => {
 		frappe.call({method: "qcmc_logic.qcmc_logics.report.delivery_note_stock_confirmation.delivery_note_stock_confirmation.remove_items", args: {dn_details: rows.map(row => row.dn_detail), scheduling_date: report.get_filter_value("delivery_date"), reason_code: values.reason_code, remarks: values.remarks}, freeze: true, freeze_message: __("Removing unavailable items..."), callback: r => { if (!r.exc) { frappe.msgprint(r.message); report.refresh(); } }});

@@ -1,0 +1,210 @@
+<style>
+  .print-format {
+    padding: 0 !important;
+  }
+
+  .so-slip {
+    font-family: "Arial Narrow", Arial, sans-serif;
+    font-size: 9pt;
+    color: #000;
+    position: relative;
+    padding: 20px 60px 0;
+  }
+
+  .so-slip .title,
+  .so-slip .subtitle {
+    text-align: center;
+    font-weight: 700;
+  }
+
+  .so-slip .title { margin-top: 0; }
+  .so-slip .subtitle { margin-top: 4px; margin-bottom: 36px; }
+
+  .print-stamp {
+    position: absolute;
+    top: 20px;
+    right: 60px;
+    width: 160px;
+    white-space: nowrap;
+    text-align: right;
+    line-height: 18px;
+  }
+
+  .meta-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .meta-table td {
+    padding: 0 0 6px 0;
+    vertical-align: top;
+  }
+
+  .left-meta { width: 52%; padding-right: 28px !important; }
+  .right-meta { width: 48%; }
+
+  .meta-row {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    margin-bottom: 6px;
+  }
+
+  .meta-label,
+  .meta-value {
+    display: table-cell;
+    vertical-align: top;
+  }
+
+  .meta-label {
+    width: 100px;
+    white-space: nowrap;
+  }
+
+  .right-meta .meta-label { width: 130px; }
+
+  .meta-value {
+    overflow-wrap: anywhere;
+    word-break: normal;
+    line-height: 12pt;
+  }
+
+  .address-value {
+    min-height: 28px;
+  }
+
+  #items_table {
+    width: 100%;
+    margin-top: 24px;
+    font-size: 8.5pt;
+    font-family: "Arial Narrow", Arial, sans-serif;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  #items_table thead th {
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #000;
+    padding: 4px 2px;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  #items_table td {
+    padding: 4px 2px;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+  }
+
+  #items_table th:nth-child(1),
+  #items_table td:nth-child(1),
+  #items_table th:nth-child(5),
+  #items_table td:nth-child(5),
+  #items_table th:nth-child(6),
+  #items_table td:nth-child(6),
+  #items_table th:nth-child(7),
+  #items_table td:nth-child(7) {
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+
+  #items_table tr {
+    min-height: 24px;
+  }
+
+  #items_table tfoot td {
+    padding-top: 6px;
+    font-size: 10pt;
+  }
+
+  #items_table .summary-row td {
+    border-top: 1px solid #d8d8d8;
+    font-weight: 700;
+  }
+</style>
+
+{% set payment_terms = doc.payment_terms_template or doc.payment_terms or '' %}
+{% set status_label = "APPROVED" if doc.docstatus == 1 else (doc.workflow_state or "DRAFT") %}
+{% set billing_address = frappe.get_doc("Address", doc.customer_address) if doc.customer_address else None %}
+{% set shipping_address = frappe.get_doc("Address", doc.shipping_address_name) if doc.shipping_address_name else None %}
+{% set customer_display = (doc.customer_name or '') ~ ((' (' ~ doc.customer ~ ')') if doc.customer else '') %}
+{% set slip_items = get_sales_order_slip_items(doc) %}
+
+<div class="so-slip">
+  <div class="print-stamp">
+    <div>{{ frappe.utils.get_datetime(frappe.utils.now()).strftime('%m/%d/%Y') }}</div>
+    <div>{{ frappe.utils.get_datetime(frappe.utils.now()).strftime('%I:%M:%S %p') }}</div>
+  </div>
+
+  <div class="title">SALES ORDER SLIP</div>
+  <div class="subtitle">{{ status_label }}</div>
+
+  <table class="meta-table">
+    <tr>
+      <td class="left-meta">
+        <div class="meta-row"><span class="meta-label">S.O. # :</span><span class="meta-value">{{ doc.name }}</span></div>
+        <div class="meta-row"><span class="meta-label">Date Ordered :</span><span class="meta-value">{{ doc.transaction_date }}</span></div>
+        <div class="meta-row"><span class="meta-label">Customer :</span><span class="meta-value">{{ customer_display }}</span></div>
+        <div class="meta-row"><span class="meta-label">Address :</span><span class="meta-value address-value">{{ billing_address.address_line1 if billing_address else '' }}</span></div>
+        <div class="meta-row">
+          <span class="meta-label">Salesman :</span>
+          <span class="meta-value">
+            {% if doc.custom_account_manager %}
+              {{ doc.custom_account_manager }}
+            {% elif doc.sales_team and doc.sales_team|length > 0 %}
+              {{ doc.sales_team[0].sales_person }}
+            {% else %}
+              {{ doc.owner }}
+            {% endif %}
+          </span>
+        </div>
+      </td>
+      <td class="right-meta">
+        <div class="meta-row"><span class="meta-label">Reference PO :</span><span class="meta-value">{{ doc.po_no or '' }}</span></div>
+        <div class="meta-row"><span class="meta-label">Delivery Address :</span><span class="meta-value address-value">{{ shipping_address.address_line1 if shipping_address else '' }}</span></div>
+        <div class="meta-row"><span class="meta-label">Payment Terms :</span><span class="meta-value">{{ payment_terms }}</span></div>
+        <div class="meta-row"><span class="meta-label">Delivery Date :</span><span class="meta-value">{{ doc.delivery_date or '' }}</span></div>
+      </td>
+    </tr>
+  </table>
+
+  <table id="items_table">
+    <thead>
+      <tr>
+        <th style="width: 10%; text-align:right;">Quantity</th>
+        <th style="width: 7%;">Unit</th>
+        <th style="width: 15%;">Product Code</th>
+        <th style="width: 31%;">Product Description</th>
+        <th style="width: 12%;">Delivery Date</th>
+        <th style="width: 12%; text-align:right;">Price</th>
+        <th style="width: 13%; text-align:right;">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in slip_items %}
+      <tr class="{{ 'summary-row' if item.is_summary else '' }}">
+        <td style="text-align:right;">{{ "{:,.2f}".format(item.qty or 0).rstrip("0").rstrip(".") }}</td>
+        <td>{{ item.uom }}</td>
+        <td>{{ item.item_code }}</td>
+        <td>{{ item.item_name }}</td>
+        <td>{{ item.delivery_date or "" }}</td>
+        <td style="text-align:right;">{{ "" if item.is_summary else "{:,.2f}".format(item.rate or 0).rstrip("0").rstrip(".") }}</td>
+        <td style="text-align:right;">{{ "{:,.2f}".format(item.amount or 0).rstrip("0").rstrip(".") }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td style="border-top: 1px solid #000; text-align:right; font-weight: 700;">
+          {{ "{:,.2f}".format(doc.total_qty or 0).rstrip("0").rstrip(".") }}
+        </td>
+        <td colspan="4" style="border-top: 1px solid #000;"></td>
+        <td style="border-top: 1px solid #000; text-align:right; font-weight: 700;">Total:</td>
+        <td style="border-top: 1px solid #000; text-align:right; font-weight: 700;">
+          {{ "{:,.2f}".format(doc.grand_total or doc.total or 0).rstrip("0").rstrip(".") }}
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+</div>

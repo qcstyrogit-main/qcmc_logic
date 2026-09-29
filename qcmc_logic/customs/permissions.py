@@ -318,6 +318,7 @@ def _sales_transaction_read_permission_query(doctype, user):
         condition
         for condition in (
             _warehouse_transaction_permission_query(doctype, user),
+            _fob_customer_delivery_permission_query(doctype, user),
             _strict_territory_read_permission_query(doctype, user),
         )
         if condition
@@ -585,6 +586,13 @@ def warehouse_transaction_has_permission(doc, ptype=None, user=None):
     if not warehouses:
         return False
 
+    if (
+        doc.doctype == "Sales Invoice"
+        and ptype in {"write", "submit"}
+        and is_qualifying_fob_customer_delivery_invoice(doc, user)
+    ):
+        return True
+
     if ptype in {None, "read", "select"}:
         return bool(warehouses.intersection(allowed_warehouses))
 
@@ -600,12 +608,21 @@ def sales_transaction_has_permission(doc, ptype=None, user=None):
         return None
 
     warehouse_allowed = _warehouse_read_has_permission(doc, user)
+    fob_customer_delivery_allowed = (
+        _fob_customer_delivery_read_has_permission(doc, user)
+        if _warehouse_access_applies(user)
+        else None
+    )
     territory_allowed = _strict_territory_read_has_permission(doc, user)
 
-    if warehouse_allowed is None and territory_allowed is None:
+    if (
+        warehouse_allowed is None
+        and fob_customer_delivery_allowed is None
+        and territory_allowed is None
+    ):
         return True
 
-    return bool(warehouse_allowed or territory_allowed)
+    return bool(warehouse_allowed or fob_customer_delivery_allowed or territory_allowed)
 
 
 def _warehouse_read_has_permission(doc, user):
@@ -634,6 +651,192 @@ def _strict_territory_read_has_permission(doc, user):
         return False
 
     return doc.get("territory") in allowed
+
+
+def _is_provincial_stock_user(user):
+    return "Provincial Stock User" in frappe.get_roles(user)
+
+
+def _warehouse_can_serve_srf(warehouse):
+    if not warehouse or not _doctype_has_field("Warehouse", "custom_can_serve_material_requests"):
+        return False
+
+    return bool(
+        frappe.utils.cint(
+            frappe.db.get_value(
+                "Warehouse",
+                warehouse,
+                "custom_can_serve_material_requests",
+            )
+        )
+    )
+
+
+def _get_invoice_items(doc):
+    return list(doc.get("items") or [])
+
+
+def _get_sales_order_item_context(row):
+    dn_detail = row.get("dn_detail")
+    delivery_note = row.get("delivery_note")
+    sales_order = row.get("sales_order")
+    so_detail = row.get("so_detail")
+
+    if dn_detail:
+        dn_item = frappe.db.get_value(
+            "Delivery Note Item",
+            dn_detail,
+            ["parent", "against_sales_order", "so_detail"],
+            as_dict=True,
+        )
+        if not dn_item:
+            return None
+        if delivery_note and dn_item.parent != delivery_note:
+            return None
+        if sales_order and dn_item.against_sales_order and dn_item.against_sales_order != sales_order:
+            return None
+        if so_detail and dn_item.so_detail and dn_item.so_detail != so_detail:
+            return None
+        delivery_note = delivery_note or dn_item.parent
+        sales_order = sales_order or dn_item.against_sales_order
+        so_detail = so_detail or dn_item.so_detail
+    elif delivery_note:
+        return None
+
+    if not sales_order or not so_detail:
+        return None
+
+    so_item = frappe.db.get_value(
+        "Sales Order Item",
+        so_detail,
+        ["parent", "warehouse"],
+        as_dict=True,
+    )
+    if not so_item or so_item.parent != sales_order:
+        return None
+
+    so_type = frappe.db.get_value("Sales Order", sales_order, "custom_so_type")
+    return frappe._dict(
+        delivery_note=delivery_note,
+        sales_order=sales_order,
+        so_detail=so_detail,
+        warehouse=so_item.warehouse,
+        so_type=so_type,
+    )
+
+
+def is_qualifying_fob_customer_delivery_invoice(doc, user=None):
+    user = user or frappe.session.user
+    if not doc or doc.doctype != "Sales Invoice" or not _is_provincial_stock_user(user):
+        return False
+
+    items = _get_invoice_items(doc)
+    if not items:
+        return False
+
+    for row in items:
+        context = _get_sales_order_item_context(row)
+        if (
+            not context
+            or context.so_type != "FOB"
+            or not _warehouse_can_serve_srf(context.warehouse)
+        ):
+            return False
+
+    return True
+
+
+def _fob_customer_delivery_read_has_permission(doc, user):
+    if not _is_provincial_stock_user(user):
+        return None
+    if doc.doctype == "Sales Invoice":
+        return is_qualifying_fob_customer_delivery_invoice(doc, user)
+    if doc.doctype != "Delivery Note":
+        return None
+
+    dn_name = doc.get("name")
+    if not dn_name:
+        return False
+
+    return frappe.db.exists(
+        "Delivery Note Item",
+        {
+            "parent": dn_name,
+            "so_detail": ["is", "set"],
+        },
+    ) and _delivery_note_has_qualifying_fob_customer_delivery(dn_name)
+
+
+def _delivery_note_has_qualifying_fob_customer_delivery(delivery_note):
+    return bool(
+        frappe.db.sql(
+            """
+            SELECT dni.name
+            FROM `tabDelivery Note Item` dni
+            INNER JOIN `tabSales Order Item` soi ON soi.name = dni.so_detail
+            INNER JOIN `tabSales Order` so ON so.name = soi.parent
+            INNER JOIN `tabWarehouse` wh ON wh.name = soi.warehouse
+            WHERE dni.parent = %s
+                AND so.custom_so_type = 'FOB'
+                AND IFNULL(wh.custom_can_serve_material_requests, 0) = 1
+            LIMIT 1
+            """,
+            delivery_note,
+        )
+    )
+
+
+def _fob_customer_delivery_permission_query(doctype, user):
+    if not _is_provincial_stock_user(user):
+        return ""
+
+    if doctype == "Delivery Note":
+        return (
+            "EXISTS ("
+            "SELECT 1 FROM `tabDelivery Note Item` dni "
+            "INNER JOIN `tabSales Order Item` soi ON soi.name = dni.so_detail "
+            "INNER JOIN `tabSales Order` so ON so.name = soi.parent "
+            "INNER JOIN `tabWarehouse` wh ON wh.name = soi.warehouse "
+            "WHERE dni.parent = `tabDelivery Note`.name "
+            "AND so.custom_so_type = 'FOB' "
+            "AND IFNULL(wh.custom_can_serve_material_requests, 0) = 1"
+            ")"
+        )
+
+    if doctype == "Sales Invoice":
+        return (
+            "EXISTS ("
+            "SELECT 1 FROM `tabSales Invoice Item` sii "
+            "LEFT JOIN `tabDelivery Note Item` dni ON dni.name = sii.dn_detail "
+            "INNER JOIN `tabSales Order Item` soi ON soi.name = COALESCE(dni.so_detail, sii.so_detail) "
+            "INNER JOIN `tabSales Order` so ON so.name = soi.parent "
+            "INNER JOIN `tabWarehouse` wh ON wh.name = soi.warehouse "
+            "WHERE sii.parent = `tabSales Invoice`.name "
+            "AND (sii.delivery_note IS NULL OR sii.delivery_note = '' OR dni.parent = sii.delivery_note) "
+            "AND (sii.sales_order IS NULL OR sii.sales_order = '' OR sii.sales_order = so.name) "
+            "AND so.custom_so_type = 'FOB' "
+            "AND IFNULL(wh.custom_can_serve_material_requests, 0) = 1"
+            ") "
+            "AND NOT EXISTS ("
+            "SELECT 1 FROM `tabSales Invoice Item` bad_sii "
+            "LEFT JOIN `tabDelivery Note Item` bad_dni ON bad_dni.name = bad_sii.dn_detail "
+            "LEFT JOIN `tabSales Order Item` bad_soi ON bad_soi.name = COALESCE(bad_dni.so_detail, bad_sii.so_detail) "
+            "LEFT JOIN `tabSales Order` bad_so ON bad_so.name = bad_soi.parent "
+            "LEFT JOIN `tabWarehouse` bad_wh ON bad_wh.name = bad_soi.warehouse "
+            "WHERE bad_sii.parent = `tabSales Invoice`.name "
+            "AND ("
+            "bad_so.name IS NULL "
+            "OR bad_so.custom_so_type != 'FOB' "
+            "OR IFNULL(bad_wh.custom_can_serve_material_requests, 0) != 1 "
+            "OR (bad_sii.delivery_note IS NOT NULL AND bad_sii.delivery_note != '' "
+            "AND (bad_dni.name IS NULL OR bad_dni.parent != bad_sii.delivery_note)) "
+            "OR (bad_sii.sales_order IS NOT NULL AND bad_sii.sales_order != '' "
+            "AND bad_sii.sales_order != bad_so.name)"
+            ")"
+            ")"
+        )
+
+    return ""
 
 
 def territory_document_has_permission(doc, ptype=None, user=None):

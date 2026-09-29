@@ -2118,6 +2118,9 @@
   "roles": [
    {
     "role": "Stock Confirm User"
+   },
+   {
+    "role": "Sales Coordinator"
    }
   ],
   "timeout": 0

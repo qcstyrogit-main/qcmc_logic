@@ -34,6 +34,37 @@ from qcmc_logic.api.stock_entry_scanner import (
 from qcmc_logic.www.storage_location_qr import _make_qr_payload
 
 
+def run_stock_entry_scanner_tests():
+	suite = unittest.TestSuite([
+		unittest.defaultTestLoader.loadTestsFromTestCase(TestStockEntryScannerContract),
+		unittest.defaultTestLoader.loadTestsFromTestCase(TestUpdateManufactureReceiveDraft),
+	])
+	result = unittest.TextTestRunner(verbosity=1).run(suite)
+	if not result.wasSuccessful():
+		raise AssertionError(
+			f"Stock Entry Scanner tests failed: {len(result.failures)} failures, "
+			f"{len(result.errors)} errors"
+		)
+	return {"tests_run": result.testsRun, "successful": True}
+
+
+def run_putaway_capacity_tests():
+	names = (
+		"test_finished_quantity_is_distributed_by_priority_and_capacity",
+		"test_putaway_allocation_uses_location_document_name_not_display_code",
+		"test_explicit_rules_precede_one_unlimited_fallback",
+		"test_putaway_rule_and_location_warehouse_must_match",
+	)
+	suite = unittest.TestSuite(TestStockEntryScannerContract(name) for name in names)
+	result = unittest.TextTestRunner(verbosity=1).run(suite)
+	if not result.wasSuccessful():
+		raise AssertionError(
+			f"Putaway capacity tests failed: {len(result.failures)} failures, "
+			f"{len(result.errors)} errors"
+		)
+	return {"tests_run": result.testsRun, "successful": True}
+
+
 class TestStockEntryScannerContract(unittest.TestCase):
 	def test_actual_weight_accepts_decimal_and_formatted_numeric_strings(self):
 		self.assertEqual(_parse_actual_weight_per_item(1.25), 1.25)
@@ -217,9 +248,9 @@ class TestStockEntryScannerContract(unittest.TestCase):
 		doc = frappe._dict(company="Company")
 		row = frappe._dict(name="ROW", item_code="FG", item_name="Finished", s_warehouse="WIP", t_warehouse="FG-WH", qty=30, transfer_qty=30, conversion_factor=1, uom="PC", stock_uom="PC")
 		rules = [
-			frappe._dict(name="P1", warehouse="FG-WH", location="R1", free_space=10, priority=1),
-			frappe._dict(name="P2", warehouse="FG-WH", location="R2", free_space=10, priority=2),
-			frappe._dict(name="P3", warehouse="FG-WH", location="R3", free_space=10, priority=3),
+			frappe._dict(name="P1", warehouse="FG-WH", location="R1", free_space=10, stock_capacity=10, priority=1),
+			frappe._dict(name="P2", warehouse="FG-WH", location="R2", free_space=10, stock_capacity=10, priority=2),
+			frappe._dict(name="P3", warehouse="FG-WH", location="R3", free_space=10, stock_capacity=10, priority=3),
 		]
 		def resolve(identity, require_leaf=False, **kwargs):
 			if identity == "AISLE": return self.location("AISLE", "", "Aisle", 1)
@@ -233,7 +264,7 @@ class TestStockEntryScannerContract(unittest.TestCase):
 	def test_putaway_allocation_uses_location_document_name_not_display_code(self):
 		doc = frappe._dict(company="Company")
 		row = frappe._dict(name="ROW", item_code="FG", item_name="Finished", s_warehouse="WIP", t_warehouse="FG-WH", qty=10, transfer_qty=10, conversion_factor=1, uom="PC", stock_uom="PC")
-		rule = frappe._dict(name="P1", warehouse="FG-WH", location="QR-RACK-2", free_space=10, priority=1)
+		rule = frappe._dict(name="P1", warehouse="FG-WH", location="QR-RACK-2", free_space=10, stock_capacity=10, priority=1)
 		resolved = self.location("STORAGE-LOCATION-DOC-2", code="QR-RACK-2", warehouse="FG-WH")
 		with patch("qcmc_logic.api.stock_entry_scanner.get_ordered_dimension_putaway_rules", return_value=(False, [rule])), patch(
 			"qcmc_logic.api.stock_entry_scanner._resolve_storage_location", return_value=resolved
@@ -323,7 +354,7 @@ class TestStockEntryScannerContract(unittest.TestCase):
 	def test_explicit_rules_precede_one_unlimited_fallback(self):
 		doc = frappe._dict(company="Company")
 		row = frappe._dict(name="ROW", item_code="FG", item_name="Finished", s_warehouse="WIP", t_warehouse="FG-WH", qty=25, transfer_qty=25, conversion_factor=1, uom="PC", stock_uom="PC")
-		rule = frappe._dict(name="P1", warehouse="FG-WH", location="R1", free_space=10, priority=1)
+		rule = frappe._dict(name="P1", warehouse="FG-WH", location="R1", free_space=10, stock_capacity=10, priority=1)
 		fallback = self.location("GENERAL", warehouse="FG-WH")
 		fallback.putaway_priority = 1000
 		with patch("qcmc_logic.api.stock_entry_scanner.get_ordered_dimension_putaway_rules", return_value=(False, [rule])), patch(

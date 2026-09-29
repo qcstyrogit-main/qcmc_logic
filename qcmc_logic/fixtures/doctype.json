@@ -19539,7 +19539,15 @@
   "name": "Daily Job Schedule",
   "naming_rule": "By \"Naming Series\" field",
   "nsm_parent_field": null,
-  "permissions": [],
+  "permissions": [
+   {
+    "role": "Machine Shop Foreman",
+    "read": 1,
+    "write": 1,
+    "create": 1,
+    "delete": 1
+   }
+  ],
   "protect_attached_files": 0,
   "queue_in_background": 0,
   "quick_entry": 0,

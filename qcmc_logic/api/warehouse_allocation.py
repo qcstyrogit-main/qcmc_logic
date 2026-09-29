@@ -256,12 +256,23 @@ def _live_location_capacity(doc, row, location):
 			f"Storage Location '{location.name}' has no active Putaway Rule for {row.item_code}.",
 		)
 
-	available = Decimal(str(get_available_dimension_putaway_capacity(rule_name, item_code=row.item_code)))
-	reserved = _committed_location_quantities(
-		row.item_code, doc.warehouse, exclude_allocation=doc.name,
-		exclude_stock_entry=row.source_document,
-	)
-	available -= _decimal(reserved.get(location.name, 0))
+	rule = frappe.get_cached_doc("Putaway Rule", rule_name)
+	if rule.get("custom_no_capacity_restriction"):
+		return None, rule_name
+	if rule.get("custom_no_item_restriction"):
+		# Shared rules already derive free space from authoritative occupancy
+		# across every item at the location.
+		available = Decimal(str(
+			get_available_dimension_putaway_capacity(rule, item_code=row.item_code)
+		))
+	else:
+		# Item-specific Stock Ledger dimensions may be absent or negative because
+		# Warehouse Allocation is the authoritative physical-location ledger.
+		reserved = _committed_location_quantities(
+			row.item_code, doc.warehouse, exclude_allocation=doc.name,
+			exclude_stock_entry=row.source_document,
+		)
+		available = _decimal(rule.stock_capacity) - _decimal(reserved.get(location.name, 0))
 	for other in doc.locations:
 		if other.allocation_id == row.allocation_id or other.item_code != row.item_code:
 			continue
@@ -360,15 +371,26 @@ def _reallocate_remainder(doc, changed_row, exclude_changed_location=True):
 	return _quantity_state(doc)[2][key]
 
 
+def _pending_suggestion_identity(row):
+	"""Fields that define one pending recommendation independently of its UUID."""
+	return (
+		row.source_doctype, row.source_document, row.source_row,
+		row.item_code, row.stock_uom, row.suggested_location,
+		row.putaway_rule or "", _decimal(row.original_qty),
+		_decimal(row.suggested_qty), row.priority or 0,
+	)
+
+
 def _refresh_stale_pending_suggestions(doc):
-	"""Replace pending recommendations whose live capacity is no longer sufficient."""
-	changed = False
-	for row in list(doc.locations):
-		if row.status == "VERIFIED" or not row.putaway_rule or not row.suggested_location:
+	"""Rebuild pending recommendations while retaining IDs for unchanged rows."""
+	original_ids = {}
+	for row in doc.locations:
+		if row.status == "VERIFIED" or row.source_doctype != "Stock Entry":
 			continue
-		location = _resolve_storage_location(row.suggested_location, require_leaf=True, allow_legacy_code=True)
-		available = _live_rule_capacity(doc, row, location)
-		if available is None or _allocated_quantity(row) <= available:
+		original_ids.setdefault(_pending_suggestion_identity(row), []).append(row.allocation_id)
+
+	for row in list(doc.locations):
+		if row.status == "VERIFIED" or row.source_doctype != "Stock Entry":
 			continue
 
 		row.suggested_qty = 0
@@ -377,14 +399,28 @@ def _refresh_stale_pending_suggestions(doc):
 		row.status = "PENDING_VERIFICATION"
 		_reallocate_remainder(doc, row, exclude_changed_location=False)
 		doc.remove(row)
-		changed = True
 
-	changed = _merge_pending_location_rows(doc) or changed
-	if changed:
-		doc.locations.sort(key=lambda row: (row.priority, _natural_key(row.suggested_location)))
-		_refresh_item_progress(doc)
-		doc.save(ignore_permissions=True)
-	return changed
+	_merge_pending_location_rows(doc)
+	doc.locations.sort(key=lambda row: (row.priority, _natural_key(row.suggested_location)))
+
+	matched_rows = 0
+	pending_rows = 0
+	for row in doc.locations:
+		if row.status == "VERIFIED" or row.source_doctype != "Stock Entry":
+			continue
+		pending_rows += 1
+		matching_ids = original_ids.get(_pending_suggestion_identity(row))
+		if matching_ids:
+			row.allocation_id = matching_ids.pop(0)
+			matched_rows += 1
+
+	unchanged = pending_rows == matched_rows and not any(original_ids.values())
+	if unchanged:
+		return False
+
+	_refresh_item_progress(doc)
+	doc.save(ignore_permissions=True)
+	return True
 
 
 def _merge_pending_location_rows(doc):

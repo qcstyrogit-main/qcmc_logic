@@ -236,6 +236,6 @@ frappe.ui.form.on("QCMC Physical Count Result", {
 		const row = frappe.get_doc(cdt, cdn);
 		frappe.model.set_value(cdt, cdn, "warehouse", frm.doc.set_warehouse);
 		frappe.model.set_value(cdt, cdn, "device_id", "ERP Manual");
-		row.cost_acct_cnt = null;
+		row.cost_acct_cnt = 0;
 	},
 });

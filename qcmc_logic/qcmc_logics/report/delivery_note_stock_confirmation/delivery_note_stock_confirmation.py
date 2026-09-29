@@ -21,6 +21,8 @@ def execute(filters=None):
 		{"label": _("Delivered Qty"), "fieldname": "delivered_qty", "fieldtype": "Float", "width": 110},
 		{"label": _("Warehouse Stock"), "fieldname": "actual_qty", "fieldtype": "Float", "width": 120},
 		{"label": _("Scheduled Date"), "fieldname": "delivery_date", "fieldtype": "Date", "width": 125},
+		{"label": _("Logistics Reason"), "fieldname": "logistics_reason", "fieldtype": "Data", "width": 180},
+		{"label": _("Logistics Remarks"), "fieldname": "logistics_remarks", "fieldtype": "Data", "width": 220},
 	]
 	if not filters.get("company") or not filters.get("delivery_date"):
 		return columns, [], _("Select a company and delivery date."), None, []
@@ -37,7 +39,8 @@ def execute(filters=None):
 			dni.against_sales_order AS sales_order, dn.customer_name,
 			dni.item_code, dni.item_name, dni.warehouse, dni.qty,
 			soi.qty AS so_qty, soi.delivered_qty, IFNULL(bin.actual_qty, 0) AS actual_qty,
-			soi.delivery_date
+			soi.delivery_date, dni.custom_logistics_reason AS logistics_reason,
+			dni.custom_logistics_remarks AS logistics_remarks
 		FROM `tabDelivery Note` dn
 		JOIN `tabDelivery Note Item` dni ON dni.parent = dn.name
 		JOIN `tabSales Order Item` soi ON soi.name = dni.so_detail
@@ -55,13 +58,20 @@ def execute(filters=None):
 
 
 @frappe.whitelist()
-def confirm_delivery_notes(delivery_notes, remarks=None):
+def confirm_delivery_notes(delivery_notes, reason_code=None, remarks=None):
+	if reason_code and reason_code not in {"TO", "CR", "SA", "OR", "ND", "SE"} and remarks is None:
+		remarks, reason_code = reason_code, None
 	names = list(dict.fromkeys(frappe.parse_json(delivery_notes)))
 	if not names:
 		frappe.throw(_("Select at least one Delivery Note."))
 	for name in names:
 		doc = frappe.get_doc("Delivery Note", name)
 		_validate_delivery_note(doc, require_transact=True)
+		if reason_code:
+			_validate_reason_code(reason_code)
+			for item in doc.items:
+				item.custom_logistics_reason = reason_code
+				item.custom_logistics_remarks = remarks or ""
 		doc.add_comment("Info", _("Stock Confirmation: OK{0}").format(_remarks_suffix(remarks)))
 		doc.workflow_state = "For DR Printing"
 		doc.status = "For DR Printing"
@@ -83,6 +93,8 @@ def adjust_item_quantity(dn_detail, qty, scheduling_date, remarks=None):
 		frappe.throw(_("New quantity must be greater than zero and less than the current DR quantity."))
 	old_qty = item.qty
 	item.qty = new_qty
+	item.custom_logistics_reason = "SA"
+	item.custom_logistics_remarks = remarks or ""
 	item.amount = new_qty * item.rate
 	item.base_amount = new_qty * item.base_rate
 	doc.save(ignore_permissions=True)
@@ -102,6 +114,7 @@ def remove_items(dn_details, scheduling_date, reason_code="SA", remarks=None):
 	if not details:
 		frappe.throw(_("Select at least one Delivery Note item."))
 	grouped = {}
+	_validate_reason_code(reason_code)
 	for detail in details:
 		parent = frappe.db.get_value("Delivery Note Item", detail, "parent")
 		if not parent:
@@ -174,6 +187,11 @@ def _validate_warehouse_access(warehouse, require_transact=False):
 
 def _remarks_suffix(remarks):
 	return " - " + frappe.utils.escape_html(remarks) if remarks else ""
+
+
+def _validate_reason_code(reason_code):
+	if reason_code not in {"TO", "CR", "SA", "OR", "ND", "SE"}:
+		frappe.throw(_("Invalid logistics reason code: {0}").format(reason_code))
 
 
 def _set_next_scheduling_date(items, scheduling_date, delivery_note, reason_code):

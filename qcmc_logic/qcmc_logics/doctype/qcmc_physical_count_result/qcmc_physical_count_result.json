@@ -9,7 +9,7 @@
  "field_order": [
   "submission_id", "item_code", "item_name", "warehouse", "inventory_location",
   "inventory_location_id", "uom", "batch_no", "serial_no", "erp_quantity_before",
-  "expected_previous_count", "quantity_delta", "physical_count", "variance", "adjustment_document_type", "adjustment_document",
+  "expected_previous_count", "quantity_delta", "physical_count", "cost_acct_cnt", "variance", "adjustment_document_type", "adjustment_document",
   "adjustment_status", "scanner_user", "scanner_full_name", "employee", "device_id", "counted_at",
   "submitted_at", "transaction_count", "scan_history_json", "status"
  ],
@@ -27,6 +27,7 @@
   {"fieldname":"expected_previous_count","fieldtype":"Float","label":"Expected Previous Count","read_only":1},
   {"fieldname":"quantity_delta","fieldtype":"Float","label":"Quantity Delta","read_only":1},
   {"fieldname":"physical_count","fieldtype":"Float","label":"Physical Count","read_only":1,"in_list_view":1},
+  {"fieldname":"cost_acct_cnt","fieldtype":"Data","label":"Cost Acct Cnt","in_list_view":1},
   {"fieldname":"variance","fieldtype":"Float","label":"Variance","read_only":1,"in_list_view":1},
   {"fieldname":"adjustment_document_type","fieldtype":"Data","label":"Adjustment Document Type","read_only":1},
   {"fieldname":"adjustment_document","fieldtype":"Dynamic Link","label":"Adjustment Stock Entry","options":"adjustment_document_type","read_only":1,"in_list_view":1},

@@ -247,9 +247,6 @@ def _batch_response(batch, user=None):
 		"submitted_stock_entry_ids": parse_json(batch.get("submitted_stock_entries"), []),
 		"source_stock_entries": grouped,
 		"sources": flat_sources,
-		"items": flat_sources,
-		"rows": flat_sources,
-		"stock_entries": grouped,
 	}
 
 

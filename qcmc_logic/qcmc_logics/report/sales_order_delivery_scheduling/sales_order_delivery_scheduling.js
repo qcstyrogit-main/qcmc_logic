@@ -12,6 +12,7 @@ frappe.query_reports["Sales Order Delivery Scheduling"] = {
 	],
 	onload(report) {
 		report.page.add_inner_button(__("Update Delivery Dates"), () => update_delivery_dates(report));
+		report.page.add_inner_button(__("Adjust Quantity"), () => adjust_quantity(report));
 		report.page.add_inner_button(__("Create DR for Confirmation"), () => create_delivery_notes(report));
 	},
 	formatter(value, row, column, data, default_formatter) {
@@ -33,12 +34,27 @@ function update_delivery_dates(report) {
 	const rows = selected_rows(report);
 	if (!rows.length) return frappe.msgprint(__("Select at least one item row."));
 	frappe.prompt({fieldname: "delivery_date", label: __("New Delivery Date"), fieldtype: "Date", reqd: 1}, values => {
-		frappe.call({method: "qcmc_logic.qcmc_logics.report.sales_order_delivery_scheduling.sales_order_delivery_scheduling.update_delivery_dates", args: {so_details: rows.flatMap(row => row.so_details || [row.so_detail]), delivery_date: values.delivery_date}, callback: r => { if (!r.exc) { frappe.msgprint(r.message); report.refresh(); } }});
+		frappe.call({method: "qcmc_logic.qcmc_logics.report.sales_order_delivery_scheduling.sales_order_delivery_scheduling.update_delivery_dates", args: {so_details: rows.map(row => row.so_detail), delivery_date: values.delivery_date}, callback: r => { if (!r.exc) { frappe.msgprint(r.message); report.refresh(); } }});
 	}, __("Update"), __("Apply"));
 }
 
+function adjust_quantity(report) {
+	const rows = selected_rows(report);
+	if (rows.length !== 2) return frappe.msgprint(__("Select exactly two schedule rows."));
+	const [first, second] = rows;
+	frappe.prompt([
+		{fieldname: "source_so_detail", label: __("Schedule to Adjust"), fieldtype: "Select", options: `${first.delivery_date}\n${second.delivery_date}`, reqd: 1},
+		{fieldname: "new_qty", label: __("New Quantity"), fieldtype: "Float", reqd: 1},
+		{fieldname: "remarks", label: __("Remarks"), fieldtype: "Small Text", reqd: 1}
+	], values => {
+		const source = values.source_so_detail === String(first.delivery_date) ? first : second;
+		const target = source === first ? second : first;
+		frappe.call({method: "qcmc_logic.qcmc_logics.report.sales_order_delivery_scheduling.sales_order_delivery_scheduling.adjust_scheduled_quantity", args: {source_so_detail: source.so_detail, target_so_detail: target.so_detail, new_qty: values.new_qty, remarks: values.remarks}, freeze: true, freeze_message: __("Updating schedule quantities..."), callback: r => { if (!r.exc) { frappe.msgprint(r.message); report.refresh(); } }});
+	}, __("Adjust Quantity"), __("Apply"));
+}
+
 function create_delivery_notes(report) {
-	const so_details = [...new Set(selected_rows(report).flatMap(row => row.so_details || [row.so_detail]))];
+	const so_details = [...new Set(selected_rows(report).map(row => row.so_detail))];
 	if (!so_details.length) return frappe.msgprint(__("Select at least one Sales Order item."));
 	frappe.confirm(__("Create one Delivery Note per selected Sales Order and submit for Stock Confirmation?"), () => {
 		frappe.call({method: "qcmc_logic.qcmc_logics.report.sales_order_delivery_scheduling.sales_order_delivery_scheduling.create_delivery_notes", args: {so_details}, freeze: true, freeze_message: __("Creating Delivery Notes..."), callback: r => { if (!r.exc) { frappe.msgprint(r.message); report.refresh(); } }});

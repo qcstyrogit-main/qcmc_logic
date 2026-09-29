@@ -263,23 +263,6 @@ class TestWarehouseHandoverContract(unittest.TestCase):
 		self.assertEqual(result["sources"][0]["custom_actual_weight_per_item"], 1.25)
 		self.assertEqual(result["source_stock_entries"][1]["items"][0]["verified_quantity"], 19)
 		self.assertEqual(result["source_stock_entries"][0]["items"][0]["item_name"], "Item A")
-		picker_item = result["source_stock_entries"][0]["items"][0]
-		self.assertEqual(
-			{
-				"stock_entry_id": picker_item["stock_entry_id"],
-				"stock_entry_row": picker_item["stock_entry_row"],
-				"job_card": picker_item["job_card"],
-				"item_code": picker_item["item_code"],
-				"t_warehouse": picker_item["t_warehouse"],
-				"target_warehouse": picker_item["target_warehouse"],
-			},
-			{"stock_entry_id": "STE-1", "stock_entry_row": "STE-1-ROW",
-				"job_card": "PO-JOB00025", "item_code": "ITEM-A",
-				"t_warehouse": "FG - Test", "target_warehouse": "FG - Test"},
-		)
-		self.assertEqual(result["items"], result["sources"])
-		self.assertEqual(result["rows"], result["items"])
-		self.assertEqual(result["stock_entries"], result["source_stock_entries"])
 
 	def test_job_card_fallback_is_used_only_when_unambiguous(self):
 		doc = frappe._dict(job_card="", custom_final_job_card="", work_order="WO-1")
