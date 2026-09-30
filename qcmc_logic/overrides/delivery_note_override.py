@@ -1,5 +1,18 @@
 import frappe
 from frappe.model.mapper import get_mapped_doc
+from erpnext.stock.doctype.delivery_note.delivery_note import (
+    make_sales_invoice as erpnext_make_sales_invoice,
+)
+
+from qcmc_logic.api.delivery_note import apply_sales_order_pricing_to_invoice
+
+
+@frappe.whitelist()
+def make_sales_invoice(source_name, target_doc=None, args=None):
+    sales_invoice = erpnext_make_sales_invoice(source_name, target_doc=target_doc, args=args)
+    apply_sales_order_pricing_to_invoice(sales_invoice)
+    return sales_invoice
+
 
 @frappe.whitelist()
 def make_delivery_trip(source_name, target_doc=None, kwargs=None):

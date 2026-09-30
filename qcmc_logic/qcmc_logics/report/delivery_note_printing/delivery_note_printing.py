@@ -12,6 +12,7 @@ def execute(filters=None):
 	columns = [
 		{"label": _("Delivery Note"), "fieldname": "delivery_note", "fieldtype": "Link", "options": "Delivery Note", "width": 160},
 		{"label": _("DR Number"), "fieldname": "dr_number", "fieldtype": "Data", "width": 120},
+		{"label": _("Invoice Number"), "fieldname": "invoice_number", "fieldtype": "Link", "options": "Sales Invoice", "width": 140},
 		{"label": _("Sales Order"), "fieldname": "sales_order", "fieldtype": "Link", "options": "Sales Order", "width": 150},
 		{"label": _("Customer"), "fieldname": "customer_name", "fieldtype": "Data", "width": 210},
 		{"label": _("Item Code"), "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 150},
@@ -33,7 +34,8 @@ def execute(filters=None):
 
 	rows = frappe.db.sql("""
 		SELECT dni.name AS dn_detail, dn.name AS delivery_note,
-			dn.custom_dr_number AS dr_number, dni.against_sales_order AS sales_order,
+			dn.custom_dr_number AS dr_number, si.name AS invoice_number,
+			dni.against_sales_order AS sales_order,
 			dn.customer_name, dni.item_code, dni.item_name, dni.warehouse, dni.qty,
 			IFNULL(bin.actual_qty, 0) AS actual_qty, soi.delivery_date
 		FROM `tabDelivery Note` dn
@@ -41,12 +43,16 @@ def execute(filters=None):
 		JOIN `tabSales Order Item` soi ON soi.name = dni.so_detail
 		JOIN `tabWarehouse` wh ON wh.name = dni.warehouse
 		LEFT JOIN `tabBin` bin ON bin.item_code = dni.item_code AND bin.warehouse = dni.warehouse
+		LEFT JOIN `tabSales Invoice Item` sii ON sii.dn_detail = dni.name AND sii.docstatus < 2
+		LEFT JOIN `tabSales Invoice` si ON si.name = sii.parent
 		WHERE dn.docstatus = 0
 			AND dn.workflow_state = 'For DR Printing'
 			AND IFNULL(wh.custom_is_province, 0) = 0
 			AND {conditions}
 		ORDER BY soi.delivery_date, dn.name, dni.idx
-	""".format(conditions=" AND ".join(conditions)), values, as_dict=True)
+	""".format(
+		conditions=" AND ".join(conditions),
+	), values, as_dict=True)
 
 	return columns, rows, _("{0} item(s) ready for DR printing.").format(len(rows)), None, [
 		{"value": len({row.delivery_note for row in rows}), "indicator": "Orange", "label": _("Delivery Notes"), "datatype": "Int"},
@@ -103,6 +109,29 @@ def submit_for_delivery(delivery_notes):
 		doc.add_comment("Workflow", _("Submit for Delivery"))
 
 	return _("Submitted Delivery Note(s) for delivery: {0}").format(", ".join(names))
+
+
+@frappe.whitelist()
+def create_sales_invoices(delivery_notes):
+	_validate_invoicing_role()
+	names = list(dict.fromkeys(frappe.parse_json(delivery_notes)))
+	if not names:
+		frappe.throw(_("Select at least one Delivery Note."))
+	created = []
+	from qcmc_logic.api.delivery_note import create_sales_invoice_from_draft_dn
+	for name in names:
+		doc = _get_locked_delivery_note(name)
+		_validate_delivery_note(doc, require_transact=True)
+		existing = frappe.db.get_value(
+			"Sales Invoice Item", {"dn_detail": ["in", [item.name for item in doc.items]], "docstatus": ["<", 2]}, "parent"
+		)
+		if existing:
+			created.append(existing)
+			continue
+		invoice = create_sales_invoice_from_draft_dn(name)
+		invoice.insert(ignore_permissions=True)
+		created.append(invoice.name)
+	return _("Sales Invoice(s) created: {0}").format(", ".join(created))
 
 
 def _get_locked_delivery_note(name):

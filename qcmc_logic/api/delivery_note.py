@@ -6,6 +6,17 @@ from frappe.utils import cint, today
 
 from erpnext.accounts.party import get_due_date
 
+SALES_ORDER_PRICING_FIELDS = (
+	"rate",
+	"base_rate",
+	"price_list_rate",
+	"base_price_list_rate",
+	"discount_percentage",
+	"discount_amount",
+	"margin_type",
+	"margin_rate_or_amount",
+)
+
 
 @frappe.whitelist()
 def create_sales_invoice_from_draft_dn(dn_name):
@@ -29,6 +40,7 @@ def create_sales_invoice_from_draft_dn(dn_name):
 	def update_item(source, target, source_parent):
 		target.qty = source.qty
 		target._old_name = source.name
+		apply_sales_order_item_pricing(source, target)
 
 	sales_invoice = get_mapped_doc(
 		"Delivery Note",
@@ -71,6 +83,26 @@ def create_sales_invoice_from_draft_dn(dn_name):
 		_set_payment_terms_from_sales_order(sales_invoice)
 
 	return sales_invoice
+
+
+def apply_sales_order_item_pricing(source_doc, target_doc):
+	so_detail = source_doc.get("so_detail")
+	if not so_detail:
+		return
+
+	sales_order_item = frappe.get_doc("Sales Order Item", so_detail)
+	for fieldname in SALES_ORDER_PRICING_FIELDS:
+		set_value = getattr(target_doc, "set", None)
+		if callable(set_value):
+			set_value(fieldname, sales_order_item.get(fieldname))
+		else:
+			target_doc[fieldname] = sales_order_item.get(fieldname)
+
+
+def apply_sales_order_pricing_to_invoice(sales_invoice):
+	for item in sales_invoice.get("items") or []:
+		apply_sales_order_item_pricing(item, item)
+	sales_invoice.run_method("calculate_taxes_and_totals")
 
 
 def _set_payment_terms_from_sales_order(sales_invoice):

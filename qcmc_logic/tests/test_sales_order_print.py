@@ -49,7 +49,7 @@ class TestSalesOrderPrint(TestCase):
 
         rows = get_sales_order_slip_items(doc)
 
-        self.assertEqual(len(rows), 5)
+        self.assertEqual(len(rows), 4)
         self.assertEqual(rows[0].item_code, "ITEM-1")
         self.assertEqual(rows[0].qty, 10)
         self.assertEqual(rows[0].delivery_date, "2026-10-01")
@@ -64,8 +64,7 @@ class TestSalesOrderPrint(TestCase):
         self.assertEqual(rows[2].delivery_date, "")
         self.assertTrue(rows[2].is_summary)
         self.assertEqual(rows[3].item_code, "ITEM-2")
-        self.assertEqual(rows[4].item_code, "ITEM-2")
-        self.assertTrue(rows[4].is_summary)
+        self.assertFalse(rows[3].is_summary)
 
     def test_sales_order_slip_items_keeps_different_rates_separate(self):
         doc = frappe._dict(
@@ -77,5 +76,34 @@ class TestSalesOrderPrint(TestCase):
 
         rows = get_sales_order_slip_items(doc)
 
-        self.assertEqual([row.rate for row in rows], [25, 25, 30, 30])
-        self.assertEqual([row.is_summary for row in rows], [0, 1, 0, 1])
+        self.assertEqual([row.rate for row in rows], [25, 30])
+        self.assertEqual([row.is_summary for row in rows], [0, 0])
+
+    def test_sales_order_slip_items_does_not_summarize_items_with_one_delivery_date(self):
+        doc = frappe._dict(
+            items=[
+                frappe._dict(
+                    item_code="ITEM-1",
+                    item_name="EPS Board",
+                    uom="PCS",
+                    qty=10,
+                    rate=25,
+                    amount=250,
+                    delivery_date="2026-10-01",
+                ),
+                frappe._dict(
+                    item_code="ITEM-1",
+                    item_name="EPS Board",
+                    uom="PCS",
+                    qty=15,
+                    rate=25,
+                    amount=375,
+                    delivery_date="2026-10-01",
+                ),
+            ]
+        )
+
+        rows = get_sales_order_slip_items(doc)
+
+        self.assertEqual(len(rows), 2)
+        self.assertEqual([row.is_summary for row in rows], [0, 0])

@@ -6,6 +6,7 @@ frappe.query_reports["Delivery Note Printing"] = {
 	],
 	onload(report) {
 		report.page.add_inner_button(__("Print DR"), () => assign_and_print(report));
+		report.page.add_inner_button(__("Create Invoice"), () => create_invoices(report));
 		report.page.add_inner_button(__("Submit for Delivery"), () => submit_for_delivery(report));
 	},
 	formatter(value, row, column, data, default_formatter) {
@@ -65,4 +66,14 @@ function submit_for_delivery(report) {
 			callback: response => { if (!response.exc) { frappe.msgprint(response.message); report.refresh(); } }
 		})
 	);
+}
+
+function create_invoices(report) {
+	const delivery_notes = [...new Set(invoicing_selected_rows(report).map(row => row.delivery_note))];
+	if (!delivery_notes.length) return frappe.msgprint(__("Select at least one Delivery Note row."));
+	frappe.confirm(__("Create draft Sales Invoice(s) for the selected Delivery Note(s)?"), () => frappe.call({
+		method: "qcmc_logic.qcmc_logics.report.delivery_note_printing.delivery_note_printing.create_sales_invoices",
+		args: {delivery_notes}, freeze: true, freeze_message: __("Creating Sales Invoice(s)..."),
+		callback: response => { if (!response.exc) { frappe.msgprint(response.message); report.refresh(); } }
+	}));
 }

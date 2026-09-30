@@ -40,17 +40,44 @@ function update_delivery_dates(report) {
 
 function adjust_quantity(report) {
 	const rows = selected_rows(report);
-	if (rows.length !== 2) return frappe.msgprint(__("Select exactly two schedule rows."));
-	const [first, second] = rows;
-	frappe.prompt([
-		{fieldname: "source_so_detail", label: __("Schedule to Adjust"), fieldtype: "Select", options: `${first.delivery_date}\n${second.delivery_date}`, reqd: 1},
-		{fieldname: "new_qty", label: __("New Quantity"), fieldtype: "Float", reqd: 1},
-		{fieldname: "remarks", label: __("Remarks"), fieldtype: "Small Text", reqd: 1}
-	], values => {
-		const source = values.source_so_detail === String(first.delivery_date) ? first : second;
-		const target = source === first ? second : first;
-		frappe.call({method: "qcmc_logic.qcmc_logics.report.sales_order_delivery_scheduling.sales_order_delivery_scheduling.adjust_scheduled_quantity", args: {source_so_detail: source.so_detail, target_so_detail: target.so_detail, new_qty: values.new_qty, remarks: values.remarks}, freeze: true, freeze_message: __("Updating schedule quantities..."), callback: r => { if (!r.exc) { frappe.msgprint(r.message); report.refresh(); } }});
-	}, __("Adjust Quantity"), __("Apply"));
+	if (rows.length !== 1) return frappe.msgprint(__("Select exactly one schedule row."));
+	const row = rows[0];
+	frappe.call({
+		method: "qcmc_logic.qcmc_logics.report.sales_order_delivery_scheduling.sales_order_delivery_scheduling.get_related_schedules",
+		args: {source_so_detail: row.so_detail},
+		callback: r => {
+			const schedules = r.message || [];
+			if (!schedules.length) return frappe.msgprint(__("No other delivery schedules were found for this item."));
+			const schedule_options = schedules.map(schedule => `${schedule.delivery_date} - Qty ${format_number(schedule.qty)} / Available ${format_number(schedule.available_qty)}`);
+			const schedules_by_label = {};
+			schedules.forEach((schedule, index) => {
+				schedules_by_label[schedule_options[index]] = schedule.name;
+			});
+			frappe.prompt([
+				{
+					fieldname: "instruction",
+					fieldtype: "HTML",
+					options: `<p class="text-muted">${__("This does not change delivery dates. It only moves quantity between existing schedules for the same item. Use Update Delivery Dates if you need to move the whole schedule row to another date.")}</p>`
+				},
+				{fieldname: "new_qty", label: __("New Quantity for {0}").replace("{0}", row.delivery_date), fieldtype: "Float", reqd: 1, default: row.qty},
+				{fieldname: "target_schedule", label: __("Schedule to receive/supply the quantity difference"), fieldtype: "Select", options: schedule_options.join("\n"), reqd: 1},
+				{fieldname: "remarks", label: __("Remarks"), fieldtype: "Small Text", reqd: 1}
+			], values => {
+				frappe.call({
+					method: "qcmc_logic.qcmc_logics.report.sales_order_delivery_scheduling.sales_order_delivery_scheduling.adjust_scheduled_quantity",
+					args: {
+						source_so_detail: row.so_detail,
+						target_so_detail: schedules_by_label[values.target_schedule],
+						new_qty: values.new_qty,
+						remarks: values.remarks
+					},
+					freeze: true,
+					freeze_message: __("Rebalancing quantities between existing schedules..."),
+					callback: r => { if (!r.exc) { frappe.msgprint(r.message); report.refresh(); } }
+				});
+			}, __("Rebalance Scheduled Quantity"), __("Apply"));
+		}
+	});
 }
 
 function create_delivery_notes(report) {
