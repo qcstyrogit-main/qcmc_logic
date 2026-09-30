@@ -45421,7 +45421,7 @@
   "fieldtype": "Select",
   "label": "Logistics Reason",
   "name": "Delivery Note Item-custom_logistics_reason",
-  "options": "TO\nCR\nSA\nOR\nND\nSE",
+  "options": "\nOK\nTO\nCR\nSA\nOR\nND\nSE",
   "insert_after": "custom_quantity"
  },
  {
@@ -45432,5 +45432,23 @@
   "label": "Logistics Remarks",
   "name": "Delivery Note Item-custom_logistics_remarks",
   "insert_after": "custom_logistics_reason"
+ },
+ {
+  "doctype": "Custom Field",
+  "dt": "Delivery Note Item",
+  "fieldname": "custom_logistics_proposed_qty",
+  "fieldtype": "Float",
+  "label": "Logistics Proposed Qty",
+  "name": "Delivery Note Item-custom_logistics_proposed_qty",
+  "insert_after": "custom_logistics_remarks"
+ },
+ {
+  "doctype": "Custom Field",
+  "dt": "Delivery Note Item",
+  "fieldname": "custom_logistics_proposed_date",
+  "fieldtype": "Date",
+  "label": "Logistics Proposed Date",
+  "name": "Delivery Note Item-custom_logistics_proposed_date",
+  "insert_after": "custom_logistics_proposed_qty"
  }
 ]

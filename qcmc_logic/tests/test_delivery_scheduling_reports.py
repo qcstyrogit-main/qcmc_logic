@@ -167,29 +167,48 @@ class TestDeliveryNoteStockConfirmation(TestCase):
 		):
 			logistics._validate_logistics_role()
 
-	def test_quantity_adjustment_saves_dn_with_controlled_permission_bypass(self):
-		item = frappe._dict(name="DNI-1", item_code="ITEM-1", qty=10, rate=2, base_rate=2)
+	def test_logistics_saves_recommendations_without_changing_delivery_note(self):
+		item = frappe._dict(name="DNI-1", item_code="ITEM-1", item_name="Item 1", qty=10, rate=2, base_rate=2)
 		doc = MagicMock(items=[item])
+		doc.name = "DN-1"
+		doc.docstatus = 0
+		doc.workflow_state = "For Stock Confirmation"
 		with (
-			patch.object(logistics.frappe.db, "get_value", return_value="DN-1"),
 			patch.object(logistics.frappe, "get_doc", return_value=doc),
 			patch.object(logistics, "_validate_delivery_note"),
-			patch.object(logistics, "_set_next_scheduling_date"),
+			patch.object(logistics, "_validate_reason_code"),
+			patch.object(logistics.frappe.db, "has_column", return_value=True),
 		):
-			logistics.adjust_item_quantity("DNI-1", 6, "2026-09-10", "Partial stock")
-		self.assertEqual(item.qty, 6)
+			logistics.save_logistics_remarks("DN-1", [{
+				"dn_detail": "DNI-1",
+				"logistics_reason": "SA",
+				"logistics_remarks": "Partial stock",
+				"logistics_proposed_qty": 6,
+				"logistics_proposed_date": "2026-09-12",
+			}])
+		self.assertEqual(item.qty, 10)
+		self.assertEqual(doc.workflow_state, "For Stock Confirmation")
+		self.assertEqual(item.custom_logistics_reason, "SA")
+		self.assertEqual(item.custom_logistics_proposed_qty, 6)
+		self.assertEqual(item.custom_logistics_proposed_date, "2026-09-12")
 		doc.save.assert_called_once_with(ignore_permissions=True)
 
-	def test_confirmation_does_not_require_delivery_note_write_permission(self):
+	def test_confirmation_does_not_advance_delivery_note(self):
 		doc = MagicMock()
+		doc.workflow_state = "For Stock Confirmation"
 		with (
 			patch.object(logistics.frappe, "get_doc", return_value=doc),
 			patch.object(logistics, "_validate_delivery_note"),
 		):
 			logistics.confirm_delivery_notes(["DN-1"], "Available")
-		self.assertEqual(doc.workflow_state, "For DR Printing")
-		self.assertEqual(doc.status, "For DR Printing")
-		doc.save.assert_called_once_with(ignore_permissions=True)
+		self.assertEqual(doc.workflow_state, "For Stock Confirmation")
+		doc.save.assert_not_called()
+
+	def test_logistics_reason_options_start_blank_not_to(self):
+		with patch.object(logistics.frappe.db, "table_exists", return_value=False):
+			options = logistics.get_logistics_reason_options()["options"]
+		self.assertTrue(options.startswith("\nOK"))
+		self.assertFalse(options.startswith("TO"))
 
 
 class TestDeliveryNotePrinting(TestCase):
@@ -241,4 +260,53 @@ class TestDeliveryNotePrinting(TestCase):
 			printing.submit_for_delivery(["DN-1"])
 		self.assertEqual(doc.workflow_state, "To Deliver and Bill")
 		self.assertEqual(doc.status, "To Deliver and Bill")
+		doc.save.assert_called_once_with(ignore_permissions=True)
+
+	def test_sales_approval_applies_approved_quantity_and_date(self):
+		item = frappe._dict(
+			name="DNI-1", item_code="ITEM-1", item_name="Item 1", qty=10, rate=2, base_rate=2,
+			net_rate=2, base_net_rate=2, conversion_factor=1, so_detail="SOI-1",
+			against_sales_order="SO-1", warehouse="WH-1",
+		)
+		doc = MagicMock(items=[item])
+		doc.name = "DN-1"
+		doc.docstatus = 0
+		doc.workflow_state = "For Stock Confirmation"
+		with (
+			patch.object(logistics, "_validate_sales_approval_role"),
+			patch.object(logistics, "_get_locked_delivery_note", return_value=doc),
+			patch.object(logistics, "_validate_warehouse_access"),
+			patch.object(logistics, "_move_deferred_sales_order_qty") as move_deferred,
+		):
+			logistics.proceed_to_dr_printing("DN-1", [{
+				"dn_detail": "DNI-1",
+				"approved_qty": 6,
+				"approved_date": "2026-09-12",
+			}])
+		self.assertEqual(item.qty, 6)
+		self.assertEqual(item.amount, 12)
+		self.assertEqual(doc.workflow_state, "For DR Printing")
+		move_deferred.assert_called_once_with(item, 6, "2026-09-12", "DN-1")
+		doc.save.assert_called_once_with(ignore_permissions=True)
+
+	def test_sales_rejection_leaves_original_delivery_note_quantity(self):
+		item = frappe._dict(
+			name="DNI-1", item_code="ITEM-1", item_name="Item 1", qty=10, rate=2, base_rate=2,
+			net_rate=2, base_net_rate=2, conversion_factor=1, so_detail="SOI-1",
+			against_sales_order="SO-1", warehouse="WH-1",
+		)
+		doc = MagicMock(items=[item])
+		doc.name = "DN-1"
+		doc.docstatus = 0
+		doc.workflow_state = "For Stock Confirmation"
+		with (
+			patch.object(logistics, "_validate_sales_approval_role"),
+			patch.object(logistics, "_get_locked_delivery_note", return_value=doc),
+			patch.object(logistics, "_validate_warehouse_access"),
+			patch.object(logistics, "_move_deferred_sales_order_qty") as move_deferred,
+		):
+			logistics.proceed_to_dr_printing("DN-1", [{"dn_detail": "DNI-1", "approved_qty": 10}])
+		self.assertEqual(item.qty, 10)
+		self.assertEqual(doc.workflow_state, "For DR Printing")
+		move_deferred.assert_not_called()
 		doc.save.assert_called_once_with(ignore_permissions=True)

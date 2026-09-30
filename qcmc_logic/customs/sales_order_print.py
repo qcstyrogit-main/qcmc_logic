@@ -48,17 +48,19 @@ def get_sales_order_slip_items(doc):
     rows = []
     for group in groups.values():
         rows.extend(group.lines)
-        rows.append(
-            frappe._dict(
-                qty=group.qty,
-                uom=group.uom,
-                item_code=group.item_code,
-                item_name=group.item_name,
-                rate=group.rate,
-                amount=group.amount,
-                delivery_date="",
-                is_summary=1,
+        delivery_dates = {line.delivery_date for line in group.lines}
+        if len(delivery_dates) > 1:
+            rows.append(
+                frappe._dict(
+                    qty=group.qty,
+                    uom=group.uom,
+                    item_code=group.item_code,
+                    item_name=group.item_name,
+                    rate=group.rate,
+                    amount=group.amount,
+                    delivery_date="",
+                    is_summary=1,
+                )
             )
-        )
 
     return rows

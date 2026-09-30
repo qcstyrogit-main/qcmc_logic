@@ -1,5 +1,5 @@
 import frappe
-from frappe import _
+from frappe import _, _dict
 from frappe.utils import flt, fmt_money
 
 def validate(doc, method=None):
@@ -20,9 +20,9 @@ def warn_duplicate_invoice_references(doc, method=None):
         return
 
     frappe.msgprint(
+        _duplicate_invoice_warning_message(doc, matches),
         title=_("Possible Duplicate Billing"),
         indicator="orange",
-        message=_duplicate_invoice_warning_message(doc, matches),
     )
 
 
@@ -44,7 +44,7 @@ def _get_item_references(doc):
 
             seen.add(key)
             references.append(
-                frappe._dict(
+                _dict(
                     ref_doctype=ref_doctype,
                     detail_field=detail_field,
                     ref_name=ref_name,
@@ -102,7 +102,7 @@ def _get_duplicate_invoice_reference_matches(doc, references):
     for row in rows:
         invoice = invoices.setdefault(
             row.name,
-            frappe._dict(
+            _dict(
                 name=row.name,
                 docstatus=row.docstatus,
                 currency=row.currency,

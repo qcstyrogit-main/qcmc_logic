@@ -123,6 +123,31 @@ class TestSalesInvoiceDuplicateWarning(TestCase):
         frappe.db.sql.assert_not_called()
         frappe.msgprint.assert_not_called()
 
+    def test_duplicate_warning_uses_positional_msgprint_message(self):
+        doc = invoice_doc(
+            items=[_dict(delivery_note="DN-1", dn_detail="DNI-1")],
+        )
+
+        with patch("qcmc_logic.overrides.sales_invoice_override.frappe") as frappe:
+            frappe.db.sql.return_value = [
+                _dict(
+                    name="SINV-DRAFT",
+                    docstatus=0,
+                    currency="PHP",
+                    grand_total=50,
+                    sales_order=None,
+                    delivery_note="DN-1",
+                )
+            ]
+
+            warn_duplicate_invoice_references(doc)
+
+        call = frappe.msgprint.call_args
+        self.assertTrue(call.args)
+        self.assertNotIn("message", call.kwargs)
+        self.assertEqual(call.kwargs["title"], "Possible Duplicate Billing")
+        self.assertEqual(call.kwargs["indicator"], "orange")
+
     def test_editing_same_invoice_does_not_self_warn(self):
         doc = invoice_doc(
             name="SINV-CURRENT",
