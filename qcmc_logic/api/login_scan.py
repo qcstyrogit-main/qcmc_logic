@@ -1,16 +1,23 @@
 import math
 import json
-import hashlib
-import secrets
 import frappe
 import requests
 from frappe.auth import LoginManager
+from frappe.sessions import delete_session
 from frappe.utils import now_datetime
 from frappe.utils import cint
 from frappe.utils import today
-
-MOBILE_TOKEN_TTL = 60 * 60 * 24 * 30
-
+from qcmc_logic.api.mobile_auth import (
+    MobileAuthError,
+    enforce_rate_limit,
+    extract_mobile_token,
+    issue_device_token,
+    hash_mobile_token,
+    revalidate_device_family,
+    revoke_all_user_families,
+    revoke_device_family,
+    validate_device_token,
+)
 
 GEOFENCE_EXEMPT_DESIGNATIONS = {
     "account manager",
@@ -110,52 +117,50 @@ def _radius_from_geolocation(geojson_value):
     return None
 
 
-def _mobile_token_cache_key(token):
-    digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
-    return f"qcmc_scanner_mobile_token:{digest}"
-
-
-def _issue_mobile_token(user_id):
-    token = secrets.token_urlsafe(32)
-    frappe.cache.set_value(_mobile_token_cache_key(token), user_id, expires_in_sec=MOBILE_TOKEN_TTL)
-    return token
-
-
-def _resolve_mobile_token_user(token):
-    if not token:
-        return None
-    user_id = frappe.cache.get_value(_mobile_token_cache_key(token))
-    return user_id or None
-
-
 def _get_mobile_token_arg(mobile_token=None):
-    token = str(mobile_token or '').strip()
-    if token:
-        return token
+    return extract_mobile_token(mobile_token)
 
-    form_token = str(frappe.form_dict.get('mobile_token') or '').strip()
-    if form_token:
-        return form_token
 
-    request = getattr(frappe.local, 'request', None)
-    if request:
-        try:
-            payload = request.get_json(silent=True) or {}
-        except Exception:
-            payload = {}
+def _user_details(user_id):
+    user_doc = frappe.db.get_value(
+        "User", user_id, ["name", "email", "full_name"], as_dict=True
+    ) or {}
+    emp = frappe.db.get_value(
+        "Employee",
+        {"user_id": user_id},
+        ["name", "employee_name", "company", "custom_location", "department", "designation"],
+        as_dict=True,
+    ) or {}
+    designation = emp.get("designation")
+    return {
+        "name": user_id,
+        "email": user_doc.get("email") or user_id,
+        "full_name": emp.get("employee_name") or user_doc.get("full_name") or user_id,
+        "employee": emp.get("name"),
+        "company": emp.get("company"),
+        "custom_location": emp.get("custom_location"),
+        "department": emp.get("department"),
+        "designation": designation,
+        "geofence_exempt": _is_geofence_exempt(designation),
+    }
 
-        if isinstance(payload, dict):
-            json_token = str(payload.get('mobile_token') or '').strip()
-            if json_token:
-                return json_token
 
-    data = getattr(frappe.local, 'form_dict', None)
-    if data:
-        dict_token = str(data.get('mobile_token') or '').strip()
-        if dict_token:
-            return dict_token
+def _mobile_auth_failure(error):
+    frappe.local.response["http_status_code"] = error.http_status
+    return {"success": False, "error_code": error.error_code, "message": str(error)}
 
-    return ''
+
+def _require_secure_transport():
+    request = getattr(frappe.local, "request", None)
+    if not request or cint(frappe.conf.get("developer_mode")):
+        return
+    forwarded_proto = str(request.headers.get("X-Forwarded-Proto") or "").split(",")[0].strip()
+    if not request.is_secure and forwarded_proto.lower() != "https":
+        raise MobileAuthError(
+            "INSECURE_TRANSPORT",
+            "Mobile authentication requires HTTPS.",
+            400,
+        )
 
 
 @frappe.whitelist(allow_guest=True)
@@ -260,9 +265,16 @@ def validate_checkin_radius(latitude=None, longitude=None, allowed_radius_meters
 
 
 @frappe.whitelist(allow_guest=True)
-def login(username, password):
+def login(username, password, device_id=None, device_name=None):
     """Authenticate user and return session details along with employee info and geofence exemption status."""
     try:
+        _require_secure_transport()
+        enforce_rate_limit(
+            "login",
+            f"{getattr(frappe.local, 'request_ip', '')}:{_normalize_text(username)}",
+            limit=10,
+            seconds=60 * 15,
+        )
         login_manager = LoginManager()
         login_manager.authenticate(user=username, pwd=password)
         login_manager.post_login()
@@ -285,14 +297,20 @@ def login(username, password):
         ) or {}
 
         designation = emp.get("designation")
-        mobile_token = _issue_mobile_token(user_id)
+        token_result = issue_device_token(
+            user_id,
+            employee=emp.get("name"),
+            device_id=device_id,
+            device_name=device_name,
+        )
+        frappe.db.commit()
 
         return {
             "success": True,
             "message": "Login successful",
             "sid": frappe.session.sid,
             "csrf_token": frappe.session.data.csrf_token,
-            "mobile_token": mobile_token,
+            "mobile_token": token_result.mobile_token,
             "user": {
                 "name": user_id,
                 "email": user_doc.get("email") or username,
@@ -311,6 +329,9 @@ def login(username, password):
         frappe.local.response["http_status_code"] = 401
         return {"success": False, "message": "Invalid username or password"}
 
+    except MobileAuthError as error:
+        return _mobile_auth_failure(error)
+
     except Exception:
         frappe.log_error(frappe.get_traceback(), "login_scan.login")
         frappe.local.response["http_status_code"] = 500
@@ -318,36 +339,106 @@ def login(username, password):
 
 
 @frappe.whitelist(allow_guest=True)
-def resume_session(mobile_token=None):
+def resume_session(mobile_token=None, device_id=None, device_name=None):
     """Return fresh session details for an already authenticated user or a valid mobile token."""
     try:
-        user = frappe.session.user
-        if user == "Guest":
-            mobile_token = _get_mobile_token_arg(mobile_token)
-            if not mobile_token:
-                frappe.local.response["http_status_code"] = 401
-                return {"success": False, "message": "Session expired. Please log in again."}
-
-            user = _resolve_mobile_token_user(mobile_token)
-            if not user:
-                frappe.local.response["http_status_code"] = 401
-                return {"success": False, "message": "Session expired. Please log in again."}
-
-            login_manager = LoginManager()
-            login_manager.login_as(user)
-            frappe.db.commit()
-            user = frappe.session.user
+        _require_secure_transport()
+        mobile_token = _get_mobile_token_arg(mobile_token)
+        token_result = validate_device_token(mobile_token, allow_rotation=True)
+        login_manager = LoginManager()
+        login_manager.login_as(token_result.user)
+        new_sid = frappe.session.sid
+        try:
+            user = revalidate_device_family(token_result.device_session)
+        except MobileAuthError:
+            delete_session(new_sid)
+            raise
 
         return {
             "success": True,
             "sid": frappe.session.sid,
             "csrf_token": frappe.session.data.csrf_token,
             "user": user,
+            "user_details": _user_details(user),
+            "mobile_token": token_result.mobile_token,
+            "token_rotated": token_result.token_rotated,
+            "device_session": token_result.device_session,
         }
+    except MobileAuthError as error:
+        if error.error_code in {
+            "MOBILE_TOKEN_MISSING",
+            "MOBILE_TOKEN_INVALID",
+            "MOBILE_TOKEN_REVOKED",
+            "MOBILE_TOKEN_EXPIRED",
+        }:
+            try:
+                enforce_rate_limit(
+                    "resume-invalid",
+                    str(getattr(frappe.local, "request_ip", "") or "unknown"),
+                    limit=10,
+                    seconds=60 * 15,
+                )
+            except MobileAuthError as rate_error:
+                return _mobile_auth_failure(rate_error)
+        return _mobile_auth_failure(error)
     except Exception:
         frappe.log_error(frappe.get_traceback(), "login_scan.resume_session")
-        frappe.local.response["http_status_code"] = 500
-        return {"success": False, "message": "Unable to resume session"}
+        frappe.local.response["http_status_code"] = 503
+        return {
+            "success": False,
+            "error_code": "AUTH_TEMPORARILY_UNAVAILABLE",
+            "message": "Authentication service is temporarily unavailable.",
+        }
+
+
+@frappe.whitelist(allow_guest=True)
+def logout(mobile_token=None):
+    """Revoke the current device family and invalidate the current SID."""
+    try:
+        _require_secure_transport()
+    except MobileAuthError as error:
+        return _mobile_auth_failure(error)
+
+    token = _get_mobile_token_arg(mobile_token)
+    if token:
+        device_session = frappe.db.get_value(
+            "Mobile Device Token",
+            {"token_hash": hash_mobile_token(token)},
+            "device_session",
+        )
+        if device_session:
+            revoke_device_family(
+                device_session,
+                actor=frappe.session.user if frappe.session.user != "Guest" else None,
+                reason="User logout",
+            )
+
+    sid = str(getattr(frappe.session, "sid", "") or "")
+    if sid and sid != "Guest":
+        delete_session(sid)
+    return {"success": True, "message": "Logged out"}
+
+
+@frappe.whitelist()
+def revoke_device_session(device_session, reason=None):
+    frappe.only_for("System Manager")
+    revoked = revoke_device_family(
+        device_session,
+        actor=frappe.session.user,
+        reason=reason or "Administrator revoked device session",
+    )
+    return {"success": True, "device_session": device_session, "revoked": bool(revoked)}
+
+
+@frappe.whitelist()
+def revoke_all_mobile_sessions(user, reason=None):
+    frappe.only_for("System Manager")
+    count = revoke_all_user_families(
+        user,
+        actor=frappe.session.user,
+        reason=reason or "Administrator revoked all mobile sessions",
+    )
+    return {"success": True, "user": user, "revoked_device_sessions": count}
 
 
 @frappe.whitelist(allow_guest=True)
@@ -660,5 +751,3 @@ def update_checkin_activities(checkin_id=None, custom_activities=None):
         frappe.log_error(frappe.get_traceback(), "login_scan.update_checkin_activities")
         frappe.local.response["http_status_code"] = 500
         return {"success": False, "message": f"Unable to update activities: {str(e)}"}
-
-

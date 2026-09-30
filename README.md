@@ -2,6 +2,24 @@
 
 Company Business Rules and Logics
 
+### Scanner Mobile Authentication Deployment
+
+Persistent scanner device sessions are database-backed and store only SHA-256
+token hashes. Deploy them in this order:
+
+1. Deploy the backend and run `bench --site erp.qcstyro.local migrate` with
+   `qcmc_mobile_token_rotation_enabled` absent or set to `0`.
+2. Deploy the scanner frontend version that saves the `mobile_token` returned
+   by every successful `resume_session` response.
+3. After that frontend is confirmed in use, enable periodic rotation with
+   `bench --site erp.qcstyro.local set-config qcmc_mobile_token_rotation_enabled 1`.
+
+Devices holding the former Redis-only token must perform one normal login after
+this deployment. Keep the ERP site behind HTTPS with trusted proxy headers and
+secure cookies; production login and resume endpoints reject insecure transport.
+Disabling rotation does not disable persistent login or silent SID renewal—it
+only prevents replacement-token issuance until the frontend is ready.
+
 ### Fixture Workflow
 
 For normal code-reviewed changes, prefer the patch-first workflow:
@@ -146,5 +164,4 @@ clean-fixtures
 
 
 ### config test Git PUSH
-
 

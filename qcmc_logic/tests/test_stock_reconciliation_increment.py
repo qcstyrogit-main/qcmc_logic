@@ -3,7 +3,7 @@ import threading
 import uuid
 import io
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import frappe
 import qcmc_logic.api.stock_reconciliation as stock_reconciliation_api
@@ -11,6 +11,7 @@ from frappe.tests.utils import FrappeTestCase
 from frappe.utils import nowdate
 
 from qcmc_logic.api.stock_reconciliation import (
+	_authenticate_request_user,
 	_submit_adjustment_entries,
 	_submit_increment_entries,
 	_ensure_pcount_open_for_scanning,
@@ -67,6 +68,66 @@ def run_stock_reconciliation_increment_tests():
 
 
 class TestStockReconciliationIncrement(FrappeTestCase):
+	def test_persistent_mobile_token_authenticates_scanner_request(self):
+		from qcmc_logic.api.mobile_auth import issue_device_token
+
+		issued = issue_device_token("Administrator", device_id="S2")
+		original_user = frappe.session.user
+		try:
+			frappe.session.user = "Guest"
+			self.assertEqual(
+				_authenticate_request_user(issued.mobile_token),
+				"Administrator",
+			)
+		finally:
+			frappe.session.user = original_user
+
+	def test_supplied_revoked_token_is_not_bypassed_by_authenticated_sid(self):
+		from qcmc_logic.api.mobile_auth import issue_device_token, revoke_device_family
+
+		issued = issue_device_token("Administrator", device_id="S2")
+		revoke_device_family(issued.device_session, actor="Administrator")
+		original_user = frappe.session.user
+		try:
+			frappe.session.user = "Administrator"
+			self.assertIsNone(_authenticate_request_user(issued.mobile_token))
+			self.assertEqual(frappe.session.user, "Administrator")
+		finally:
+			frappe.session.user = original_user
+
+	def test_mobile_token_auth_sets_request_user_without_creating_login_session(self):
+		original_user = frappe.session.user
+		original_request = getattr(frappe.local, "request", None)
+		try:
+			frappe.session.user = "Guest"
+			after_response = Mock()
+			frappe.local.request = frappe._dict(
+				after_response=frappe._dict(add=after_response)
+			)
+			with (
+				patch.object(
+					stock_reconciliation_api,
+					"_resolve_mobile_token_user",
+					return_value="scanner@example.com",
+				),
+				patch.object(stock_reconciliation_api.frappe, "set_user") as set_user,
+				patch.object(stock_reconciliation_api.frappe.db, "commit") as commit,
+			):
+				user = _authenticate_request_user("valid-mobile-token")
+				after_response.assert_called_once()
+				after_response.call_args.args[0]()
+
+			self.assertEqual(user, "scanner@example.com")
+			self.assertEqual(set_user.call_args_list[0].args, ("scanner@example.com",))
+			commit.assert_not_called()
+			self.assertEqual(
+				set_user.call_args_list[-1].args,
+				("Guest",),
+			)
+		finally:
+			frappe.session.user = original_user
+			frappe.local.request = original_request
+
 	def test_blank_cost_accounting_count_uses_physical_count(self):
 		row = frappe._dict(physical_count=100, cost_acct_cnt=None)
 		self.assertEqual(effective_physical_count(row), 100)

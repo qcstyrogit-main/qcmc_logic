@@ -5,11 +5,11 @@ import hashlib
 import math
 import uuid
 from collections import defaultdict
-from frappe.auth import LoginManager
 from frappe.utils import cint, get_datetime, now_datetime, nowdate
 from erpnext.stock.utils import get_stock_balance
 from qcmc_logic.overrides.putaway_rule_dimension import get_dimension_stock_balance
 from qcmc_logic.utils import ensure_scanner_warehouse_access
+from qcmc_logic.api.mobile_auth import extract_mobile_token, resolve_device_token_user
 
 def _safe_float(value, default=0.0):
     try:
@@ -214,50 +214,38 @@ def _quantities_equal(left, right):
 
 
 def _extract_mobile_token(mobile_token=None):
-    token = str(mobile_token or "").strip()
-    if token:
-        return token
-
-    form_token = str(frappe.form_dict.get("mobile_token") or "").strip()
-    if form_token:
-        return form_token
-
-    request = getattr(frappe.local, "request", None)
-    if request:
-        try:
-            payload = request.get_json(silent=True) or {}
-        except Exception:
-            payload = {}
-
-        if isinstance(payload, dict):
-            json_token = str(payload.get("mobile_token") or "").strip()
-            if json_token:
-                return json_token
-
-    return ""
+    return extract_mobile_token(mobile_token)
 
 
 def _resolve_mobile_token_user(token):
-    if not token:
-        return None
-    import hashlib
-    digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
-    return frappe.cache.get_value(f"qcmc_scanner_mobile_token:{digest}") or None
+    return resolve_device_token_user(token)
 
 
 def _authenticate_request_user(mobile_token=None):
-    if frappe.session.user != "Guest":
-        return frappe.session.user
-
     token = _extract_mobile_token(mobile_token)
-    user = _resolve_mobile_token_user(token)
-    if not user:
+    if token:
+        user = _resolve_mobile_token_user(token)
+        if not user:
+            return None
+    elif frappe.session.user != "Guest":
+        return frappe.session.user
+    else:
         return None
 
-    login_manager = LoginManager()
-    login_manager.login_as(user)
-    frappe.db.commit()
-    return frappe.session.user
+    # A mobile token authenticates only this API request. Creating a full
+    # LoginManager session here updates User.last_login/last_active and commits
+    # in the middle of scanner transactions, causing contention on tabUser.
+    request_user = frappe.session.user
+    if user == request_user:
+        return user
+    frappe.set_user(user)
+    request = getattr(frappe.local, "request", None)
+    after_response = getattr(request, "after_response", None) if request else None
+    if after_response is not None:
+        # Frappe schedules Session.update after the endpoint returns. Restore
+        # Guest first so token-only requests cannot update User.last_active.
+        after_response.add(lambda: frappe.set_user(request_user))
+    return user
 
 
 def _get_item_defaults(item_code):

@@ -1,0 +1,39 @@
+{
+ "doctype": "DocType",
+ "name": "Mobile Device Session",
+ "module": "QCMC Logics",
+ "autoname": "hash",
+ "engine": "InnoDB",
+ "track_changes": 1,
+ "field_order": [
+  "token_family",
+  "user",
+  "employee",
+  "device_id",
+  "device_name",
+  "created_at",
+  "last_used_at",
+  "revoked",
+  "revoked_at",
+  "revoked_by",
+  "revocation_reason"
+ ],
+ "fields": [
+  {"fieldname": "token_family", "fieldtype": "Data", "label": "Token Family", "reqd": 1, "unique": 1, "read_only": 1, "hidden": 1},
+  {"fieldname": "user", "fieldtype": "Link", "label": "User", "options": "User", "reqd": 1, "read_only": 1, "in_list_view": 1},
+  {"fieldname": "employee", "fieldtype": "Link", "label": "Employee", "options": "Employee", "read_only": 1},
+  {"fieldname": "device_id", "fieldtype": "Data", "label": "Device ID", "read_only": 1, "in_list_view": 1},
+  {"fieldname": "device_name", "fieldtype": "Data", "label": "Device Name", "read_only": 1},
+  {"fieldname": "created_at", "fieldtype": "Datetime", "label": "Created At", "reqd": 1, "read_only": 1},
+  {"fieldname": "last_used_at", "fieldtype": "Datetime", "label": "Last Used At", "reqd": 1, "read_only": 1, "in_list_view": 1},
+  {"fieldname": "revoked", "fieldtype": "Check", "label": "Revoked", "default": "0", "read_only": 1, "in_list_view": 1},
+  {"fieldname": "revoked_at", "fieldtype": "Datetime", "label": "Revoked At", "read_only": 1},
+  {"fieldname": "revoked_by", "fieldtype": "Link", "label": "Revoked By", "options": "User", "read_only": 1},
+  {"fieldname": "revocation_reason", "fieldtype": "Small Text", "label": "Revocation Reason", "read_only": 1}
+ ],
+ "permissions": [
+  {"role": "System Manager", "read": 1, "report": 1}
+ ],
+ "sort_field": "last_used_at",
+ "sort_order": "DESC"
+}

@@ -8,8 +8,6 @@ from frappe.utils import flt, now_datetime
 from qcmc_logic.api.stock_entry_scanner import ScannerAPIError, _resolve_storage_location
 from qcmc_logic.api.stock_reconciliation import (
 	_authenticate_request_user,
-	_extract_mobile_token,
-	_resolve_mobile_token_user,
 )
 from qcmc_logic.api.warehouse_allocation import _committed_location_quantities
 from qcmc_logic.api.warehouse_workflow import (
@@ -27,13 +25,6 @@ def _error(code, message, details=None, status=400):
 
 
 def _auth(mobile_token):
-	token = _extract_mobile_token(mobile_token)
-	if token:
-		user = _resolve_mobile_token_user(token)
-		if not user:
-			raise WorkflowError("WAREHOUSE_PERMISSION_DENIED", "Session expired. Please log in again.", status=403)
-		return user
-
 	user = _authenticate_request_user(mobile_token)
 	if not user or user == "Guest":
 		raise WorkflowError("WAREHOUSE_PERMISSION_DENIED", "Session expired. Please log in again.", status=403)

@@ -221,6 +221,18 @@ function show_storage_location_edit_dialog(node) {
 	});
 }
 
+function physical_count_adjustment_display(value, uom) {
+	const adjustment = Number(value) || 0;
+	const escape = (text) => frappe.utils.escape_html(String(text ?? ""));
+	if (adjustment === 0) {
+		return `<small style="color: #2490ef;">${__("No adjustment")}</small>`;
+	}
+
+	const color_class = adjustment > 0 ? "text-success" : "text-danger";
+	const sign = adjustment > 0 ? "+" : "";
+	return `<small class="${color_class}">${__("Variance")}: ${sign}${escape(format_number(adjustment, null, 3))} ${escape(uom)}</small>`;
+}
+
 function show_storage_location_item_balances(storage_location) {
 	frappe.call({
 		method:
@@ -274,7 +286,7 @@ function show_storage_location_item_balances(storage_location) {
 								? `<a href="${escape(reference_url)}" target="_blank" rel="noopener noreferrer"><strong>${escape(row.reference_name)}</strong></a>`
 								: escape(row.reference_name || "—");
 							const quantity_display = is_count
-								? `<strong>${__("Confirmed {0}", [escape(quantity(row.counted_quantity))])}</strong> ${escape(row.uom)}<br><small class="text-muted">${Number(row.quantity) === 0 ? __("No adjustment") : `${__("Variance")}: ${Number(row.quantity) > 0 ? "+" : ""}${escape(quantity(row.quantity))} ${escape(row.uom)}`}</small>`
+								? `<strong>${__("Confirmed {0}", [escape(quantity(row.counted_quantity))])}</strong> ${escape(row.uom)}<br>${physical_count_adjustment_display(row.quantity, row.uom)}`
 								: `<strong class="${Number(row.quantity) < 0 ? "text-danger" : "text-success"}">${Number(row.quantity) > 0 ? "+" : ""}${escape(quantity(row.quantity))}</strong> ${escape(row.uom)}`;
 							return `<tr>
 							<td><strong>${escape(row.item_code)}</strong><br><small>${escape(row.item_name)}</small></td>
