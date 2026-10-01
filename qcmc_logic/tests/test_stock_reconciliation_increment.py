@@ -900,6 +900,23 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 		self.assertEqual(history[0].previous_quantity, 0)
 		self.assertEqual(history[0].running_quantity, 80)
 
+	def test_adjustment_never_builds_target_below_counted_quantity_when_location_baseline_is_stale(self):
+		reconciliation = self._new_reconciliation()
+		entry = self._adjustment_entry(
+			0,
+			100,
+			physicalCount=100,
+			expectedERPQuantity=500,
+		)
+		with patch(
+			"qcmc_logic.api.stock_reconciliation._current_inventory_quantity",
+			return_value=500,
+		):
+			result = self._adjust(reconciliation, [entry])
+
+		self.assertTrue(result["success"])
+		self.assertEqual(self._summary_quantity(reconciliation), 100)
+
 	def test_followup_snapshot_replaces_prior_snapshot_without_losing_audit(self):
 		reconciliation = self._new_reconciliation()
 		first = self._adjustment_entry(

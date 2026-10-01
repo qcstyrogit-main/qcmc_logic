@@ -334,13 +334,11 @@ class CustomStockReconciliation(StockReconciliation):
             self.get("custom_physical_count_results") or []
         )
         effective_totals = {}
-        variance_totals = {}
+        baseline_totals = {}
         for result in latest_by_location.values():
             key = physical_count_summary_key(result)
             effective_totals[key] = flt(effective_totals.get(key)) + effective_physical_count(result)
-            variance_totals[key] = flt(variance_totals.get(key)) + (
-                effective_physical_count(result) - flt(result.erp_quantity_before)
-            )
+            baseline_totals[key] = flt(baseline_totals.get(key)) + flt(result.erp_quantity_before)
 
         # Preserve manually entered/unrelated reconciliation rows. For keys covered
         # by Physical Count, retain one row and apply counted-location variance
@@ -372,11 +370,19 @@ class CustomStockReconciliation(StockReconciliation):
             valuation_rate = flt(bin_balance.get("valuation_rate"))
             row = existing_by_key.get((item_code, warehouse, batch_no, serial_no, uom))
             values = row.as_dict() if row else {}
+            current_warehouse_quantity = flt(bin_balance.get("actual_qty"))
+            # A stale location baseline can exceed the current warehouse total
+            # after stock moves. Uncounted stock can be zero, never negative, so
+            # the reconciliation target must retain at least the quantity that
+            # was physically counted.
+            target_quantity = effective_totals[key] + max(
+                0, current_warehouse_quantity - baseline_totals[key]
+            )
             values.update({
                 "item_code": item_code,
                 "warehouse": warehouse,
-                "qty": flt(bin_balance.get("actual_qty")) + variance_totals[key],
-                "current_qty": flt(bin_balance.get("actual_qty")),
+                "qty": target_quantity,
+                "current_qty": current_warehouse_quantity,
                 "valuation_rate": valuation_rate,
                 "current_valuation_rate": valuation_rate,
                 "stock_uom": uom or frappe.get_cached_value("Item", item_code, "stock_uom"),
