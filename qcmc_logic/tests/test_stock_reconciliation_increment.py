@@ -701,6 +701,9 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			_resolve_increment_uom("", "", 1)
 
+	def test_barcode_uom_does_not_override_authoritative_erp_stock_uom(self):
+		self.assertEqual(_resolve_increment_uom("PCK", "PC", 1), "PC")
+
 	def test_invalid_quantity_rolls_back_complete_request(self):
 		reconciliation = self._new_reconciliation()
 		with self.assertRaises(frappe.ValidationError):

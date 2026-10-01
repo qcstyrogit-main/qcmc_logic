@@ -386,29 +386,13 @@ def _parse_positive_delta(value, row_number):
 
 
 def _resolve_increment_uom(request_uom, stock_uom, row_number):
-    """Resolve a scanner display UOM to the item's authoritative ERP Stock UOM."""
-    request_uom = str(request_uom or "").strip()
+    """Always use the item's authoritative ERP Stock UOM for scanner counts."""
     stock_uom = str(stock_uom or "").strip()
-    if not request_uom:
-        if not stock_uom:
-            frappe.throw(
-                f"Entry #{row_number}: Item Stock UOM is not configured in ERPNext."
-            )
-        return stock_uom
-
-    request_key = request_uom.casefold()
-    stock_key = stock_uom.casefold()
-    piece_uoms = {"pc", "pcs", "pcs.", "piece", "pieces"}
-    if request_key == stock_key or request_key == f"{stock_key}s" or (
-        request_key in piece_uoms and stock_key in piece_uoms
-    ):
-        return stock_uom
-
-    if not frappe.db.exists("UOM", request_uom):
-        frappe.throw(f"Entry #{row_number}: UOM '{request_uom}' does not exist.")
-    frappe.throw(
-        f"Entry #{row_number}: UOM '{request_uom}' does not match Item stock UOM '{stock_uom}'."
-    )
+    if not stock_uom:
+        frappe.throw(
+            f"Entry #{row_number}: Item Stock UOM is not configured in ERPNext."
+        )
+    return stock_uom
 
 
 def _normalize_submission_id(submission_id):
