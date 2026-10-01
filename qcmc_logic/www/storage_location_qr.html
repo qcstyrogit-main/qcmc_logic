@@ -71,7 +71,7 @@
 	.qr-label-sheet { display: grid; gap: 6px; margin-bottom: 6px; }
 	.size-small .qr-label-sheet { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 	.size-medium .qr-label-sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-	.size-large .qr-label-sheet { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+	.size-large .qr-label-sheet { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 	.qr-label { box-sizing: border-box; display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center; align-items: center; min-height: 250px; padding: 4px; border: 0; border-radius: 0; background: transparent; break-inside: avoid; page-break-inside: avoid; }
 	.qr-code { display: block; width: 230px; height: 230px; min-width: 0; min-height: 0; max-width: 100%; max-height: 100%; object-fit: contain; image-rendering: pixelated; }
 	.label-details { min-width: 0; max-width: 100%; padding: 0; margin-top: 8px; text-align: center; }
@@ -84,7 +84,7 @@
 	.size-medium .location-code { font-size: 26px; }
 	.size-large .qr-label { min-height: 300px; }
 	.size-large .qr-code { width: 250px; height: 250px; }
-	.size-large .location-code { font-size: 32px; }
+	.size-large .location-code { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 32px; }
 	.empty-state { padding: 64px 24px; border: 1px dashed #cbd5e1; border-radius: 12px; text-align: center; }
 	.empty-state h2 { margin: 0 0 8px; }
 	.empty-state p { margin: 0; color: #64748b; }
@@ -146,8 +146,8 @@
 		.size-small .location-code { font-size: 13pt; }
 		.size-medium .qr-label-sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(8, 35.25mm); }
 		.size-medium .location-code { font-size: 18pt; }
-		.size-large .qr-label-sheet { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(6, 47.333mm); }
-		.size-large .location-code { font-size: 24pt; }
+		.size-large .qr-label-sheet { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, 71.5mm); }
+		.size-large .location-code { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 24pt; }
 	}
 </style>
 
@@ -204,8 +204,8 @@
 				.size-small .location-code { font-size: 10pt; }
 				.size-medium .qr-label-sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(8, 35.25mm); }
 				.size-medium .location-code { font-size: 12pt; }
-				.size-large .qr-label-sheet { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(6, 47.333mm); }
-				.size-large .location-code { font-size: 18pt; }
+				.size-large .qr-label-sheet { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, 71.5mm); }
+				.size-large .location-code { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 18pt; }
 			</style>
 		</head>
 		<body>
@@ -234,7 +234,7 @@
 		if (!grid || !selector) return;
 
 		const labels = Array.from(grid.querySelectorAll(".qr-label"));
-		const perSheet = { small: 54, medium: 40, large: 24 };
+		const perSheet = { small: 54, medium: 40, large: 12 };
 		const savedSize = localStorage.getItem("storage-location-qr-size");
 		if (perSheet[savedSize]) selector.value = savedSize;
 
