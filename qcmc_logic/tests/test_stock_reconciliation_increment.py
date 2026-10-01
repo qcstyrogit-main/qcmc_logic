@@ -497,14 +497,17 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 
 	def _adjustment_entry(self, previous, delta, location=None, transactions=None, **values):
 		entry = self._entry(abs(delta) or 0, location=location)
+		final_count = values.get(
+			"physicalCount", values.get("physical_count", previous + delta)
+		)
 		entry.update(
 			{
 				"warehouse": self.warehouse,
 				"inventoryLocation": location or self.locations[0],
-				"quantity": delta,
+				"quantity": values.get("quantity", final_count),
 				"quantityDelta": delta,
 				"expectedPreviousCount": previous,
-				"physicalCount": previous + delta,
+				"physicalCount": final_count,
 				"totalAdded": max(previous + delta, 0),
 				"totalDeducted": max(-delta, 0),
 				"transactions": transactions or [],
@@ -776,6 +779,80 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 		)
 		self.assertEqual(actions, ["ADD", "SUBMITTED", "DEDUCT", "SUBMITTED"])
 
+	def test_adjustment_uses_signed_delta_with_positive_final_quantity(self):
+		reconciliation = self._new_reconciliation()
+		self._adjust(reconciliation, [self._adjustment_entry(0, 1500)])
+		correction = self._adjustment_entry(
+			1500,
+			-500,
+			transactions=[self._transaction("DEDUCT", -500, 1000)],
+			expectedPreviousCount=0,
+		)
+		result = self._adjust(reconciliation, [correction])
+
+		self.assertEqual(correction["quantity"], 1000)
+		self.assertEqual(correction["quantityDelta"], -500)
+		self.assertEqual(correction["physicalCount"], 1000)
+		self.assertEqual(result["results"][0]["physical_count"], 1000)
+
+	def test_adjustment_quantity_is_final_count_fallback(self):
+		reconciliation = self._new_reconciliation()
+		entry = self._adjustment_entry(0, 5)
+		entry.pop("physicalCount")
+
+		result = self._adjust(reconciliation, [entry])
+
+		self.assertEqual(result["results"][0]["physical_count"], 5)
+
+	def test_adjustment_rejects_inconsistent_final_count(self):
+		reconciliation = self._new_reconciliation()
+		entry = self._adjustment_entry(0, 5, physicalCount=7, quantity=7)
+
+		with self.assertRaisesRegex(
+			frappe.ValidationError,
+			"final physical count 7.*previous count 0.*quantityDelta 5",
+		):
+			self._adjust(reconciliation, [entry])
+
+	def test_adjustment_api_validation_error_includes_row_values(self):
+		reconciliation = self._new_reconciliation()
+		entry = self._adjustment_entry(0, -500)
+		with patch(
+			"qcmc_logic.api.stock_reconciliation._authenticate_request_user",
+			return_value="Administrator",
+		):
+			response = submit_pcount_entries(
+				reconciliation,
+				[entry],
+				operation="ADJUSTMENT",
+				submission_id=str(uuid.uuid4()),
+			)
+
+		self.assertEqual(response["error_code"], "PCOUNT_VALIDATION_ERROR")
+		self.assertEqual(response["item_code"], self.item_code)
+		self.assertEqual(response["inventory_location"], self.locations[0])
+		self.assertEqual(response["quantity"], -500)
+		self.assertEqual(response["quantity_delta"], -500)
+		self.assertEqual(response["physical_count"], -500)
+		for value in (
+			self.item_code,
+			self.locations[0],
+			"quantity=-500",
+			"quantity_delta=-500",
+			"physical_count=-500",
+		):
+			self.assertIn(str(value), response["message"])
+
+	def test_adjustment_error_context_recognizes_erpnext_row_format(self):
+		entry = self._adjustment_entry(1500, -500)
+		context = stock_reconciliation_api._adjustment_validation_context(
+			[entry], frappe.ValidationError("[Row #1] Negative Quantity is not allowed")
+		)
+
+		self.assertEqual(context["item_code"], self.item_code)
+		self.assertEqual(context["inventory_location"], self.locations[0])
+		self.assertEqual(context["quantity_delta"], -500)
+
 	def test_adjustment_exact_location_and_conflict(self):
 		reconciliation = self._new_reconciliation()
 		self._adjust(reconciliation, [self._adjustment_entry(0, 5, self.locations[0])])
@@ -798,8 +875,9 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 		entry = self._adjustment_entry(
 			80,
 			80,
-			transactions=[self._transaction("ADD", 80, 160)],
-			physicalCount=160,
+			transactions=[self._transaction("ADD", 80, 80)],
+			physicalCount=80,
+			expectedPreviousCount=0,
 			expectedERPQuantity=80,
 		)
 		with patch(

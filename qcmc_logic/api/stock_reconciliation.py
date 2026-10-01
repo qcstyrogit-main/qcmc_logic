@@ -524,11 +524,24 @@ def _validate_adjustment_entry(entry, row_number, doc):
         _parse_finite_number(erp_baseline_raw, "expectedERPQuantity", row_number)
         if erp_baseline_raw is not None else None
     )
+    quantity_raw = entry.get("quantity")
+    physical_count_raw = entry.get("physicalCount", entry.get("physical_count"))
+    if physical_count_raw is None:
+        physical_count_raw = quantity_raw
     physical_count = _parse_finite_number(
-        entry.get("physicalCount", entry.get("physical_count")), "physicalCount", row_number
+        physical_count_raw, "physicalCount", row_number
     )
     if physical_count < 0:
         frappe.throw(f"Entry #{row_number}: physicalCount cannot be negative.")
+    if quantity_raw is not None:
+        final_quantity = _parse_finite_number(quantity_raw, "quantity", row_number)
+        if final_quantity < 0:
+            frappe.throw(f"Entry #{row_number}: quantity cannot be negative.")
+        if not _quantities_equal(final_quantity, physical_count):
+            frappe.throw(
+                f"Entry #{row_number}: quantity and physicalCount must contain the same "
+                "final counted quantity."
+            )
     transactions = entry.get("transactions") or []
     if not isinstance(transactions, list):
         frappe.throw(f"Entry #{row_number}: transactions must be a list.")
@@ -706,6 +719,12 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
             if authoritative_physical_count < -1e-9:
                 frappe.throw(
                     f"Entry #{index}: the physical count cannot become negative."
+                )
+            if not _quantities_equal(entry.physical_count, authoritative_physical_count):
+                frappe.throw(
+                    f"Entry #{index}: final physical count {entry.physical_count:g} does not "
+                    f"match previous count {previous_physical_count:g} plus quantityDelta "
+                    f"{entry.quantity_delta:g}."
                 )
 
             running_quantity = previous_physical_count
@@ -1196,6 +1215,45 @@ def _submit_increment_entries(reconciliation_id, submission_id, entries, user):
         raise
 
 
+def _adjustment_validation_context(entries, error):
+    if not isinstance(entries, list):
+        return {}
+    match = re.search(r"(?:Entry|Row)\s+#(\d+)", str(error), flags=re.IGNORECASE)
+    if not match:
+        return {}
+    row_number = int(match.group(1))
+    if row_number < 1 or row_number > len(entries):
+        return {}
+    entry = entries[row_number - 1]
+    if not isinstance(entry, dict):
+        return {}
+    bin_data = entry.get("bin") if isinstance(entry.get("bin"), dict) else {}
+    return {
+        "item_code": entry.get("itemCode") or entry.get("item_code") or "",
+        "inventory_location": (
+            entry.get("inventoryLocation")
+            or entry.get("inventory_location")
+            or entry.get("storageLocation")
+            or entry.get("storage_location")
+            or bin_data.get("locationId")
+            or bin_data.get("location_id")
+            or ""
+        ),
+        "quantity": entry.get("quantity"),
+        "quantity_delta": entry.get("quantityDelta", entry.get("quantity_delta")),
+        "physical_count": entry.get("physicalCount", entry.get("physical_count")),
+    }
+
+
+def _adjustment_validation_message(error, context):
+    if not context:
+        return str(error)
+    details = ", ".join(f"{field}={context.get(field)}" for field in (
+        "item_code", "inventory_location", "quantity", "quantity_delta", "physical_count"
+    ))
+    return f"{error} [{details}]"
+
+
 @frappe.whitelist(allow_guest=True)
 def submit_pcount_entries(
     reconciliation_id,
@@ -1252,12 +1310,14 @@ def submit_pcount_entries(
             return {"success": False, "message": "You do not have permission to modify this Stock Reconciliation."}
         except (frappe.ValidationError, frappe.DuplicateEntryError) as exc:
             mismatch = "SUBMISSION_ID_PAYLOAD_MISMATCH" in str(exc)
+            context = _adjustment_validation_context(entries, exc)
             frappe.local.response["http_status_code"] = 409 if mismatch else 400
             return {
                 "success": False,
                 "error_code": "SUBMISSION_ID_PAYLOAD_MISMATCH" if mismatch else "PCOUNT_VALIDATION_ERROR",
-                "message": str(exc),
+                "message": _adjustment_validation_message(exc, context),
                 "submission_id": submission_id,
+                **context,
             }
         except Exception:
             frappe.log_error(frappe.get_traceback(), "stock_reconciliation.adjustment")
