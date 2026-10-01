@@ -1238,6 +1238,36 @@ def _adjustment_validation_message(error, context):
     return f"{error} [{details}]"
 
 
+def _find_invalid_submitted_item(entries):
+    """Return the first missing/disabled submitted item before document validation."""
+    if not isinstance(entries, list):
+        return None
+
+    submitted = []
+    for row_number, entry in enumerate(entries, start=1):
+        if not isinstance(entry, dict):
+            continue
+        item_code = str(entry.get("itemCode") or entry.get("item_code") or "").strip()
+        submitted.append((row_number, item_code))
+
+    item_codes = list({item_code for _, item_code in submitted if item_code})
+    enabled_items = set(
+        frappe.get_all(
+            "Item",
+            filters={"name": ["in", item_codes], "disabled": 0},
+            pluck="name",
+        )
+    ) if item_codes else set()
+    return next(
+        (
+            frappe._dict(row_number=row_number, item_code=item_code)
+            for row_number, item_code in submitted
+            if not item_code or item_code not in enabled_items
+        ),
+        None,
+    )
+
+
 @frappe.whitelist(allow_guest=True)
 def submit_pcount_entries(
     reconciliation_id,
@@ -1260,6 +1290,22 @@ def submit_pcount_entries(
         except (TypeError, ValueError):
             frappe.local.response["http_status_code"] = 400
             return {"success": False, "message": "Entries must be valid JSON."}
+
+    invalid_item = _find_invalid_submitted_item(entries)
+    if invalid_item:
+        frappe.local.response["http_status_code"] = 400
+        item_code = invalid_item.item_code
+        return {
+            "success": False,
+            "error_code": "ITEM_NOT_FOUND",
+            "message": (
+                f"Item '{item_code}' does not exist or is disabled in ERPNext."
+                if item_code else
+                f"Submitted row #{invalid_item.row_number} has no item_code."
+            ),
+            "item_code": item_code,
+            "row_number": invalid_item.row_number,
+        }
 
     normalized_operation = str(operation or "").strip().upper()
     request_action = str(action or scan_mode or "").strip().upper()

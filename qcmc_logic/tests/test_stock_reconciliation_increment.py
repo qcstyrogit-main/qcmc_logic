@@ -725,6 +725,28 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 		self.assertFalse(result["success"])
 		self.assertNotIn("operation", result)
 
+	def test_missing_item_error_precedes_reconciliation_validation_for_all_submit_modes(self):
+		missing_item = "_TEST-PC-MISSING-ITEM"
+		entry = self._entry(5)
+		entry["itemCode"] = missing_item
+		for operation in ("ADJUSTMENT", "INCREMENT", None):
+			with self.subTest(operation=operation), patch(
+				"qcmc_logic.api.stock_reconciliation._authenticate_request_user",
+				return_value="Administrator",
+			):
+				response = submit_pcount_entries(
+					"_MISSING-RECONCILIATION",
+					[entry],
+					operation=operation,
+					submission_id=str(uuid.uuid4()),
+				)
+
+			self.assertFalse(response["success"])
+			self.assertEqual(response["error_code"], "ITEM_NOT_FOUND")
+			self.assertEqual(response["item_code"], missing_item)
+			self.assertEqual(response["row_number"], 1)
+			self.assertIn(missing_item, response["message"])
+
 	def test_two_concurrent_devices_do_not_lose_updates(self):
 		reconciliation = self._new_reconciliation()
 		frappe.db.commit()
