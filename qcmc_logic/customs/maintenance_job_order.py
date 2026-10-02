@@ -102,8 +102,9 @@ def _ensure_breakdown_list():
         _field("breakdown_code", "Breakdown Code", "Data", reqd=1, unique=1,
                in_list_view=1),
         _field("description", "Description", "Data", in_list_view=1),
-        _field("measure", "Measure", "Int"),
-        _field("duration", "Duration", "Select", options="Day\nHour"),
+        _field("category", "Category", "Link", options="Breakdown Class"),
+        _field("measure", "Measure", "Select", options="Day\nHour"),
+        _field("duration", "Duration", "Int"),
         _field("status", "Status", "Select", options="Active\nInactive"),
     ]
     permissions = [
@@ -122,7 +123,7 @@ def _ensure_breakdown_list():
         "custom": 1,
         "autoname": "field:breakdown_code",
         "naming_rule": "By fieldname",
-        "title_field": "breakdown_code",
+        "title_field": "description",
         "show_title_field_in_link": 1,
     })
     doctype.set("fields", fields)
