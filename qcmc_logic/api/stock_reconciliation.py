@@ -704,12 +704,23 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                 frappe.throw(
                     f"Entry #{index}: the physical count cannot become negative."
                 )
-            if not _quantities_equal(entry.physical_count, authoritative_physical_count):
-                frappe.throw(
-                    f"Entry #{index}: final physical count {entry.physical_count:g} does not "
-                    f"match previous count {previous_physical_count:g} plus quantityDelta "
-                    f"{entry.quantity_delta:g}."
-                )
+
+            # The server owns the cumulative Physical Count.
+            #
+            # A scanner submission is an incremental set of NEW transactions.
+            # The client may have stale/missing local knowledge of a count that
+            # was already submitted (app restart, sync, another device, older
+            # local data, etc.). Therefore never reject an otherwise valid
+            # incremental submission merely because the client-computed final
+            # physical_count is stale. Rebuild it from the reconciliation's
+            # latest accepted count plus this submission's validated delta.
+            #
+            # quantity_delta is already validated against transaction history
+            # in _validate_adjustment_entry(), and duplicate transaction IDs
+            # are rejected below, so the server remains authoritative and
+            # idempotent without double-adding previously accepted scans.
+            entry.expected = previous_physical_count
+            entry.physical_count = authoritative_physical_count
 
             running_quantity = previous_physical_count
             normalized_transactions = []
@@ -728,8 +739,6 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                 normalized_transaction["runningQuantity"] = running_quantity
                 normalized_transactions.append(normalized_transaction)
 
-            entry.expected = previous_physical_count
-            entry.physical_count = authoritative_physical_count
             entry.transactions = normalized_transactions
             latest_count_by_key[count_key] = authoritative_physical_count
             variance = authoritative_physical_count - current
