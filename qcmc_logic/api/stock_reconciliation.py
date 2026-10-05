@@ -9,6 +9,7 @@ from frappe.utils import cint, get_datetime, now_datetime, nowdate
 from erpnext.stock.utils import get_stock_balance
 from qcmc_logic.overrides.putaway_rule_dimension import get_dimension_stock_balance
 from qcmc_logic.physical_count_grouping import (
+    aggregate_physical_count_locations,
     latest_physical_count_groups,
     normalize_inventory_tag,
     physical_count_group_key,
@@ -164,18 +165,29 @@ def _current_inventory_quantity(item_code, warehouse, storage_location, batch_no
     storage_location = str(storage_location or "").strip()
     latest_count = frappe.db.sql(
         """
-        select coalesce(cast(nullif(nullif(pcr.cost_acct_cnt, ''), '0.000000000') as decimal(21,9)), pcr.physical_count) as physical_count,
-               coalesce(pcr.submitted_at, sr.modified) as counted_at
-        from `tabQCMC Physical Count Result` pcr
-        inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
-        where sr.docstatus = 1 and sr.custom_physical_count = 1
-          and pcr.item_code = %s and pcr.warehouse = %s
-          and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %s
-        order by coalesce(pcr.submitted_at, sr.modified) desc, pcr.idx desc
-        limit 1
+        with ranked_groups as (
+            select pcr.*,
+                   coalesce(pcr.submitted_at, sr.modified) as group_counted_at,
+                   row_number() over (
+                       partition by pcr.item_code, pcr.warehouse,
+                           coalesce(nullif(pcr.location, ''), pcr.inventory_location),
+                           coalesce(pcr.batch_no, ''), coalesce(pcr.serial_no, ''),
+                           coalesce(pcr.uom, ''), coalesce(pcr.inventory_tag, '')
+                       order by coalesce(pcr.submitted_at, sr.modified) desc, pcr.idx desc
+                   ) as row_rank
+            from `tabQCMC Physical Count Result` pcr
+            inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
+            where sr.docstatus = 1 and sr.custom_physical_count = 1
+              and pcr.item_code = %s and pcr.warehouse = %s
+              and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %s
+        )
+        select sum(coalesce(cast(nullif(nullif(cost_acct_cnt, ''), '0.000000000') as decimal(21,9)), physical_count)) as physical_count,
+               max(group_counted_at) as counted_at
+        from ranked_groups where row_rank = 1
         """,
         (item_code, warehouse, storage_location), as_dict=True,
     )
+    latest_count = latest_count if latest_count and latest_count[0].counted_at else []
     cutoff = latest_count[0].counted_at if latest_count else None
     allocation_state = frappe.db.sql(
         """
@@ -931,26 +943,15 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
 def post_pending_pcount_adjustments(doc):
     """Post the latest location counts when a Physical Count is activated."""
     unallocated_cache = {}
-    latest = {}
-    for result in doc.get("custom_physical_count_results") or []:
-        key = (
-            result.item_code,
-            result.warehouse,
-            result.get("location") or result.inventory_location,
-            result.get("batch_no") or "",
-            result.get("serial_no") or "",
-            result.uom or "",
-        )
-        if key in latest:
-            latest[key].status = "Old Count"
-            latest[key].adjustment_status = "Old Count"
-        latest[key] = result
-
-    if not latest:
+    aggregates = aggregate_physical_count_locations(
+        doc.get("custom_physical_count_results") or [], _effective_physical_count
+    )
+    if not aggregates:
         frappe.throw("No Physical Count Details are available to activate.")
 
     planned = []
-    for result in latest.values():
+    for aggregate in aggregates.values():
+        result = aggregate.groups[0]
         location = result.get("location") or result.inventory_location
         if str(result.submission_id or "").startswith("AUTO-UNALLOCATED-"):
             if result.warehouse not in unallocated_cache:
@@ -964,13 +965,13 @@ def post_pending_pcount_adjustments(doc):
                 result.item_code, result.warehouse, location,
                 result.get("batch_no"), result.get("serial_no"),
             )
-        if not _quantities_equal(current, result.erp_quantity_before):
+        if not _quantities_equal(current, aggregate.erp_quantity_before):
             frappe.throw(
                 "ERP stock changed after this physical count was recorded for "
                 f"{result.item_code} at {location}. Expected "
-                f"{result.erp_quantity_before}, found {current}. Refresh and review."
+                f"{aggregate.erp_quantity_before}, found {current}. Refresh and review."
             )
-        variance = _effective_physical_count(result) - current
+        variance = aggregate.effective_count - current
         entry = frappe._dict(
             item_code=result.item_code,
             warehouse=result.warehouse,
@@ -979,43 +980,44 @@ def post_pending_pcount_adjustments(doc):
             batch_no=result.get("batch_no") or "",
             serial_no=result.get("serial_no") or "",
         )
-        planned.append((result, entry, current, variance))
+        planned.append((aggregate, entry, current, variance))
 
     receipt_rows = [(entry, variance) for _, entry, _, variance in planned if variance > 1e-9]
     issue_rows = [(entry, variance) for _, entry, _, variance in planned if variance < -1e-9]
     receipt = _make_pcount_stock_entry(doc, "Material Receipt", receipt_rows, doc.name) if receipt_rows else None
     issue = _make_pcount_stock_entry(doc, "Material Issue", issue_rows, doc.name) if issue_rows else None
 
-    for result, entry, current, variance in planned:
+    for aggregate, entry, current, variance in planned:
         adjustment = receipt if variance > 1e-9 else issue if variance < -1e-9 else None
-        result.erp_quantity_before = current
-        result.variance = variance
-        result.adjustment_document_type = "Stock Entry" if adjustment else ""
-        result.adjustment_document = adjustment.name if adjustment else ""
-        result.adjustment_status = "Submitted" if adjustment else "Not required"
-        result.status = "Adjusted" if adjustment else "No adjustment required"
+        for result in aggregate.groups:
+            result.erp_quantity_before = current
+            result.adjustment_document_type = "Stock Entry" if adjustment else ""
+            result.adjustment_document = adjustment.name if adjustment else ""
+            result.adjustment_status = "Submitted" if adjustment else "Not required"
+            result.status = "Adjusted" if adjustment else "No adjustment required"
 
-        summary_transaction = frappe.db.get_value(
-            "Physical Count Scan Transaction",
-            {
+            filters = {
                 "submission_id": result.submission_id,
                 "item_code": result.item_code,
                 "warehouse": result.warehouse,
                 "storage_location": entry.location,
                 "physical_count": ["is", "set"],
-            },
-            "name",
-        )
-        if summary_transaction:
-            frappe.db.set_value(
-                "Physical Count Scan Transaction", summary_transaction,
-                {
-                    "variance": variance,
-                    "adjustment_document_type": "Stock Entry" if adjustment else "",
-                    "adjustment_document": adjustment.name if adjustment else "",
-                },
-                update_modified=False,
+            }
+            if result.get("inventory_tag"):
+                filters["inventory_tag"] = result.inventory_tag
+            summary_transaction = frappe.db.get_value(
+                "Physical Count Scan Transaction", filters, "name"
             )
+            if summary_transaction:
+                frappe.db.set_value(
+                    "Physical Count Scan Transaction", summary_transaction,
+                    {
+                        "variance": variance,
+                        "adjustment_document_type": "Stock Entry" if adjustment else "",
+                        "adjustment_document": adjustment.name if adjustment else "",
+                    },
+                    update_modified=False,
+                )
 
     return [document.name for document in (receipt, issue) if document]
 
@@ -2001,7 +2003,9 @@ def _get_physical_location_balances(warehouse):
                    coalesce(pcr.submitted_at, sr.modified) as counted_at,
                    row_number() over (
                        partition by pcr.item_code, pcr.warehouse,
-                           coalesce(nullif(pcr.location, ''), pcr.inventory_location)
+                           coalesce(nullif(pcr.location, ''), pcr.inventory_location),
+                           coalesce(pcr.batch_no, ''), coalesce(pcr.serial_no, ''),
+                           coalesce(pcr.uom, ''), coalesce(pcr.inventory_tag, '')
                        order by coalesce(pcr.submitted_at, sr.modified) desc, pcr.idx desc
                    ) as row_rank
             from `tabQCMC Physical Count Result` pcr
@@ -2010,9 +2014,11 @@ def _get_physical_location_balances(warehouse):
               and pcr.warehouse = %(warehouse)s
         ),
         latest_counts as (
-            select item_code, location, physical_count, counted_at
+            select item_code, location, sum(physical_count) as physical_count,
+                   max(counted_at) as counted_at
             from ranked_counts
             where row_rank = 1
+            group by item_code, location
         ),
         candidates as (
             select wal.item_code, wal.actual_location as location

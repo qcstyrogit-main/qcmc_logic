@@ -17,10 +17,12 @@ from qcmc_logic.api.stock_reconciliation import (
 	_submit_increment_entries,
 	_ensure_pcount_open_for_scanning,
 	_get_physical_location_balances,
+	_current_inventory_quantity,
 	_get_unallocated_warehouse_balances,
 	_resolve_increment_uom,
 	PhysicalCountConflict,
 	PhysicalCountNotOpen,
+	post_pending_pcount_adjustments,
 	get_pcount_item_baseline,
 	get_pcount_reconciliation_review,
 	get_pcount_scan_details,
@@ -98,6 +100,13 @@ def run_inventory_tag_grouping_tests():
 		"test_summary_sums_effective_counts_across_tags",
 		"test_summary_counts_location_erp_baseline_once_for_multiple_tags",
 		"test_summary_still_combines_multiple_locations_by_item_warehouse",
+		"test_posting_compares_combined_tag_count_to_location_stock_once",
+		"test_posting_creates_one_net_adjustment_for_multiple_tags_at_location",
+		"test_posting_links_adjustment_to_each_contributing_tag_group",
+		"test_posting_keeps_count_adjustment_variance_on_tag_rows",
+		"test_current_inventory_quantity_sums_latest_tag_groups",
+		"test_physical_location_balances_sum_tags_before_later_movements",
+		"test_putaway_capacity_uses_combined_effective_tag_count",
 	)
 	suite = unittest.TestSuite(TestStockReconciliationIncrement(name) for name in names)
 	result = unittest.TextTestRunner(verbosity=2).run(suite)
@@ -1486,6 +1495,62 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 			transaction = self._tagged_transaction(tag, "ADD", quantity, quantity)
 			self._adjust(reconciliation, [self._adjustment_entry(0, quantity, location=location, transactions=[transaction])])
 		self.assertEqual(self._summary_quantity(reconciliation), 150)
+
+	def _run_reviewed_group_posting(self):
+		doc = self._reconciliation_with_reviewed_tag_groups()
+		created = frappe._dict(name="MAT-STE-TEST")
+		with (
+			patch("qcmc_logic.api.stock_reconciliation._current_inventory_quantity", return_value=0) as current,
+			patch("qcmc_logic.api.stock_reconciliation._make_pcount_stock_entry", return_value=created) as make,
+		):
+			documents = post_pending_pcount_adjustments(doc)
+		return doc, current, make, documents
+
+	def test_posting_compares_combined_tag_count_to_location_stock_once(self):
+		doc, current, _make, _documents = self._run_reviewed_group_posting()
+		current.assert_called_once()
+
+	def test_posting_creates_one_net_adjustment_for_multiple_tags_at_location(self):
+		_doc, _current, make, documents = self._run_reviewed_group_posting()
+		make.assert_called_once()
+		self.assertEqual(make.call_args.args[2][0][1], 2350)
+		self.assertEqual(documents, ["MAT-STE-TEST"])
+
+	def test_posting_links_adjustment_to_each_contributing_tag_group(self):
+		doc, _current, _make, _documents = self._run_reviewed_group_posting()
+		self.assertEqual({row.adjustment_document for row in doc.custom_physical_count_results}, {"MAT-STE-TEST"})
+
+	def test_posting_keeps_count_adjustment_variance_on_tag_rows(self):
+		doc, _current, _make, _documents = self._run_reviewed_group_posting()
+		self.assertEqual({row.inventory_tag: row.variance for row in doc.custom_physical_count_results}, {"INV-001": -100, "INV-002": -50})
+
+	def test_current_inventory_quantity_sums_latest_tag_groups(self):
+		with patch("frappe.db.sql", side_effect=[
+			[frappe._dict(physical_count=2350, counted_at="2026-10-05")],
+			[frappe._dict(quantity=0, row_count=0)],
+			[(0,)],
+		]) as sql:
+			quantity = _current_inventory_quantity("ITEM-A", "FG", "LOC")
+		self.assertEqual(quantity, 2350)
+		query = sql.call_args_list[0].args[0].lower()
+		self.assertIn("inventory_tag", query)
+		self.assertIn("sum(", query)
+
+	def test_physical_location_balances_sum_tags_before_later_movements(self):
+		with patch("frappe.db.sql", return_value=[]) as sql:
+			_get_physical_location_balances("FG")
+		query = sql.call_args.args[0].lower()
+		self.assertIn("inventory_tag", query)
+		self.assertIn("sum(physical_count)", query)
+		self.assertNotIn("pcr.variance", query)
+
+	def test_putaway_capacity_uses_combined_effective_tag_count(self):
+		from qcmc_logic.overrides.putaway_rule_dimension import get_location_total_physical_balance
+		with patch("frappe.db.sql", return_value=[(0,)]) as sql:
+			get_location_total_physical_balance("FG", "LOC")
+		query = sql.call_args.args[0].lower()
+		self.assertIn("inventory_tag", query)
+		self.assertNotIn("select pcr.variance", query)
 
 	def test_adjustment_without_inventory_tag_remains_compatible(self):
 		reconciliation = self._new_reconciliation()

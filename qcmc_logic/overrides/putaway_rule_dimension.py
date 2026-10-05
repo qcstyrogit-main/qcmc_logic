@@ -112,37 +112,51 @@ def get_location_total_physical_balance(warehouse, location):
 		return 0
 	return flt(frappe.db.sql(
 		"""
-		select coalesce(sum(movement.quantity), 0)
-		from (
-			select wal.actual_qty as quantity
+		with ranked_groups as (
+			select pcr.item_code,
+				coalesce(cast(nullif(nullif(pcr.cost_acct_cnt, ''), '0.000000000') as decimal(21,9)), pcr.physical_count) as quantity,
+				coalesce(pcr.submitted_at, sr.modified) as counted_at,
+				row_number() over (
+					partition by pcr.item_code, pcr.warehouse,
+						coalesce(nullif(pcr.location, ''), pcr.inventory_location),
+						coalesce(pcr.batch_no, ''), coalesce(pcr.serial_no, ''),
+						coalesce(pcr.uom, ''), coalesce(pcr.inventory_tag, '')
+					order by coalesce(pcr.submitted_at, sr.modified) desc, pcr.idx desc
+				) as row_rank
+			from `tabQCMC Physical Count Result` pcr
+			inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
+			where sr.docstatus = 1 and sr.custom_physical_count = 1
+				and pcr.warehouse = %(warehouse)s
+				and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %(location)s
+		), latest_counts as (
+			select item_code, sum(quantity) as quantity, max(counted_at) as counted_at
+			from ranked_groups where row_rank = 1 group by item_code
+		), movement as (
+			select wal.item_code, wal.actual_qty as quantity
 			from `tabWarehouse Allocation Location` wal
 			inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
 			where wa.docstatus = 1 and wa.status = 'Completed'
 				and wa.warehouse = %(warehouse)s and wal.status = 'VERIFIED'
 				and wal.actual_location = %(location)s
+				and (not exists (select 1 from latest_counts lc where lc.item_code = wal.item_code)
+					or coalesce(wa.completed_at, wa.modified) > (select lc.counted_at from latest_counts lc where lc.item_code = wal.item_code))
 			union all
-			select quantity
+			select item_code, quantity
 			from `tabLocation Transfer`
 			where docstatus = 1 and warehouse = %(warehouse)s
 				and target_location = %(location)s
+				and (not exists (select 1 from latest_counts lc where lc.item_code = `tabLocation Transfer`.item_code)
+					or transferred_at > (select lc.counted_at from latest_counts lc where lc.item_code = `tabLocation Transfer`.item_code))
 			union all
-			select -quantity
+			select item_code, -quantity
 			from `tabLocation Transfer`
 			where docstatus = 1 and warehouse = %(warehouse)s
 				and source_location = %(location)s
-			union all
-			select pcr.variance
-			from `tabQCMC Physical Count Result` pcr
-			inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
-			where sr.docstatus = 1 and sr.custom_physical_count = 1
-				and coalesce(pcr.status, '') != 'Old Count'
-				and not (
-					coalesce(cast(nullif(nullif(pcr.cost_acct_cnt, ''), '0.000000000') as decimal(21,9)), pcr.physical_count, 0) = 0
-					and coalesce(pcr.variance, 0) = 0
-				)
-				and pcr.warehouse = %(warehouse)s
-				and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %(location)s
-		) movement
+				and (not exists (select 1 from latest_counts lc where lc.item_code = `tabLocation Transfer`.item_code)
+					or transferred_at > (select lc.counted_at from latest_counts lc where lc.item_code = `tabLocation Transfer`.item_code))
+		)
+		select coalesce((select sum(quantity) from latest_counts), 0)
+			+ coalesce((select sum(quantity) from movement), 0)
 		""",
 		{"warehouse": warehouse, "location": location},
 	)[0][0])
