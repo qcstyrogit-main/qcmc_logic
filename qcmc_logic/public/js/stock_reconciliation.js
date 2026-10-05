@@ -1,9 +1,13 @@
 function qcmc_physical_count_key(row) {
-	return [
-		row.item_code || "", row.warehouse || "",
-		row.location || row.inventory_location || row.inventory_location_id || "",
-		row.batch_no || "", row.serial_no || "", row.uom || "",
-	].join("\u001f");
+    return [
+        row.item_code || "",
+        row.warehouse || "",
+        row.location || row.inventory_location || row.inventory_location_id || "",
+        row.batch_no || "",
+        row.serial_no || "",
+        row.uom || "",
+        String(row.inventory_tag || "").trim(),
+    ].join("\u001f");
 }
 
 function qcmc_latest_physical_count_rows(rows) {

@@ -359,13 +359,9 @@ class CustomStockReconciliation(StockReconciliation):
             row = existing_by_key.get((item_code, warehouse, batch_no, serial_no, uom))
             values = row.as_dict() if row else {}
             current_warehouse_quantity = flt(bin_balance.get("actual_qty"))
-            # A stale location baseline can exceed the current warehouse total
-            # after stock moves. Uncounted stock can be zero, never negative, so
-            # the reconciliation target must retain at least the quantity that
-            # was physically counted.
-            target_quantity = effective_totals[key] + max(
-                0, current_warehouse_quantity - baseline_totals[key]
-            )
+            # Physical Count is the authoritative reconciliation quantity.
+            # Locations and Inventory Tags are already aggregated into effective_totals.
+            target_quantity = effective_totals[key]
             values.update({
                 "item_code": item_code,
                 "warehouse": warehouse,
