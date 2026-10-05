@@ -81,6 +81,16 @@ def run_inventory_tag_grouping_tests():
 		"test_inventory_tag_normalization_trims_only_surrounding_whitespace",
 		"test_group_key_separates_tags_but_location_key_does_not",
 		"test_latest_group_selection_keeps_each_inventory_tag",
+		"test_same_inventory_tag_scans_update_one_active_detail_group",
+		"test_different_inventory_tags_create_separate_detail_groups",
+		"test_mixed_tagged_and_blank_transactions_share_location_total_only",
+		"test_scan_transactions_remain_individual_under_group",
+		"test_group_scan_history_accumulates_across_submissions",
+		"test_replay_does_not_duplicate_group_quantity_or_transactions",
+		"test_reused_transaction_id_with_changed_tag_is_rejected",
+		"test_tag_group_cannot_be_deducted_below_zero",
+		"test_same_tag_different_batch_or_serial_remains_separate",
+		"test_concurrent_same_group_submissions_do_not_lose_delta",
 	)
 	suite = unittest.TestSuite(TestStockReconciliationIncrement(name) for name in names)
 	result = unittest.TextTestRunner(verbosity=2).run(suite)
@@ -637,6 +647,16 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 			"timestamp": "10:04:35 AM", "employeeId": "EMP-001",
 			"employeeName": "Test Scanner", "deviceId": "Scanner 1",
 		}
+
+	def _tagged_transaction(self, tag, action, change, running, transaction_id=None):
+		transaction = self._transaction(action, change, running, transaction_id)
+		if tag is not None:
+			transaction["inventoryTag"] = tag
+		return transaction
+
+	def _active_count_groups(self, reconciliation):
+		doc = frappe.get_doc("Stock Reconciliation", reconciliation)
+		return [row for row in doc.custom_physical_count_results if row.status != "Old Count"]
 
 	def test_increment_first_then_adds_from_erp_total(self):
 		reconciliation = self._new_reconciliation()
@@ -1269,6 +1289,135 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 			["INV-001", "INV-002"],
 		)
 		self.assertEqual(doc.custom_physical_count_results[-1].physical_count, 2000)
+
+	def test_same_inventory_tag_scans_update_one_active_detail_group(self):
+		reconciliation = self._new_reconciliation()
+		transactions = [
+			self._tagged_transaction("INV-001", "ADD", 1000, 1000),
+			self._tagged_transaction("INV-001", "ADD", 1000, 2000),
+		]
+		self._adjust(reconciliation, [self._adjustment_entry(0, 2000, transactions=transactions)])
+		groups = self._active_count_groups(reconciliation)
+		self.assertEqual([(row.inventory_tag, row.physical_count) for row in groups], [("INV-001", 2000)])
+
+	def test_different_inventory_tags_create_separate_detail_groups(self):
+		reconciliation = self._new_reconciliation()
+		transactions = [
+			self._tagged_transaction("INV-001", "ADD", 1000, 1000),
+			self._tagged_transaction("INV-001", "ADD", 1000, 2000),
+			self._tagged_transaction("INV-002", "ADD", 500, 2500),
+		]
+		self._adjust(reconciliation, [self._adjustment_entry(0, 2500, transactions=transactions)])
+		groups = self._active_count_groups(reconciliation)
+		self.assertEqual(
+			{row.inventory_tag: row.physical_count for row in groups},
+			{"INV-001": 2000, "INV-002": 500},
+		)
+		self.assertEqual(self._summary_quantity(reconciliation), 2500)
+
+	def test_mixed_tagged_and_blank_transactions_share_location_total_only(self):
+		reconciliation = self._new_reconciliation()
+		transactions = [
+			self._tagged_transaction(None, "ADD", 100, 100),
+			self._tagged_transaction("INV-001", "ADD", 50, 150),
+		]
+		self._adjust(reconciliation, [self._adjustment_entry(0, 150, transactions=transactions)])
+		groups = self._active_count_groups(reconciliation)
+		self.assertEqual({row.inventory_tag or "": row.physical_count for row in groups}, {"": 100, "INV-001": 50})
+		self.assertEqual(self._summary_quantity(reconciliation), 150)
+
+	def test_scan_transactions_remain_individual_under_group(self):
+		reconciliation = self._new_reconciliation()
+		transactions = [
+			self._tagged_transaction("INV-001", "ADD", 1000, 1000),
+			self._tagged_transaction("INV-001", "ADD", 1000, 2000),
+			self._tagged_transaction("INV-002", "ADD", 500, 2500),
+		]
+		self._adjust(reconciliation, [self._adjustment_entry(0, 2500, transactions=transactions)])
+		self.assertEqual(
+			frappe.db.count("Physical Count Scan Transaction", {"transaction_id": ["in", [tx["id"] for tx in transactions]]}),
+			3,
+		)
+
+	def test_group_scan_history_accumulates_across_submissions(self):
+		reconciliation = self._new_reconciliation()
+		self._adjust(reconciliation, [self._adjustment_entry(0, 100, transactions=[self._tagged_transaction("INV-001", "ADD", 100, 100)])])
+		self._adjust(reconciliation, [self._adjustment_entry(100, 50, transactions=[self._tagged_transaction("INV-001", "ADD", 50, 150)], expectedERPQuantity=0)])
+		groups = self._active_count_groups(reconciliation)
+		self.assertEqual(len(groups), 1)
+		self.assertEqual(groups[0].physical_count, 150)
+		self.assertEqual(groups[0].transaction_count, 2)
+		self.assertEqual(len(json.loads(groups[0].scan_history_json)), 2)
+
+	def test_replay_does_not_duplicate_group_quantity_or_transactions(self):
+		reconciliation = self._new_reconciliation()
+		submission_id = str(uuid.uuid4())
+		transaction = self._tagged_transaction("INV-001", "ADD", 100, 100)
+		entry = self._adjustment_entry(0, 100, transactions=[transaction])
+		self._adjust(reconciliation, [entry], submission_id)
+		replay = self._adjust(reconciliation, [entry], submission_id)
+		self.assertTrue(replay["duplicate_submission"])
+		self.assertEqual(self._active_count_groups(reconciliation)[0].physical_count, 100)
+		self.assertEqual(frappe.db.count("Physical Count Scan Transaction", {"transaction_id": transaction["id"]}), 1)
+
+	def test_reused_transaction_id_with_changed_tag_is_rejected(self):
+		reconciliation = self._new_reconciliation()
+		transaction_id = str(uuid.uuid4())
+		first = self._tagged_transaction("INV-001", "ADD", 100, 100, transaction_id)
+		self._adjust(reconciliation, [self._adjustment_entry(0, 100, transactions=[first])])
+		changed = self._tagged_transaction("INV-002", "ADD", 100, 200, transaction_id)
+		with self.assertRaisesRegex(frappe.ValidationError, "already been submitted"):
+			self._adjust(reconciliation, [self._adjustment_entry(100, 100, transactions=[changed], expectedERPQuantity=0)])
+
+	def test_tag_group_cannot_be_deducted_below_zero(self):
+		reconciliation = self._new_reconciliation()
+		transactions = [
+			self._tagged_transaction("INV-001", "ADD", 5, 5),
+			self._tagged_transaction("INV-002", "ADD", 10, 15),
+		]
+		self._adjust(reconciliation, [self._adjustment_entry(0, 15, transactions=transactions)])
+		deduction = self._tagged_transaction("INV-001", "DEDUCT", -6, 9)
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot become negative"):
+			self._adjust(reconciliation, [self._adjustment_entry(15, -6, transactions=[deduction], expectedERPQuantity=0)])
+
+	def test_same_tag_different_batch_or_serial_remains_separate(self):
+		from qcmc_logic.physical_count_grouping import physical_count_group_key
+		first = frappe._dict(item_code=self.item_code, warehouse=self.warehouse, location=self.locations[0], uom=self.uom, batch_no="B1", inventory_tag="INV-001")
+		second = frappe._dict(first.copy())
+		second.batch_no = "B2"
+		self.assertNotEqual(physical_count_group_key(first), physical_count_group_key(second))
+
+	def test_concurrent_same_group_submissions_do_not_lose_delta(self):
+		reconciliation = self._new_reconciliation()
+		frappe.db.commit()
+		site = frappe.local.site
+		results = queue.Queue()
+		barrier = threading.Barrier(2)
+
+		def submit(delta):
+			try:
+				frappe.init(site=site)
+				frappe.connect()
+				frappe.set_user("Administrator")
+				barrier.wait()
+				transaction = self._tagged_transaction("INV-001", "ADD", delta, delta)
+				results.put(_submit_adjustment_entries(reconciliation, str(uuid.uuid4()), [self._adjustment_entry(0, delta, transactions=[transaction])], "Administrator"))
+			except Exception as exc:
+				results.put(exc)
+			finally:
+				frappe.destroy()
+
+		threads = [threading.Thread(target=submit, args=(40,)), threading.Thread(target=submit, args=(60,))]
+		for thread in threads:
+			thread.start()
+		for thread in threads:
+			thread.join(timeout=20)
+		for _ in threads:
+			outcome = results.get_nowait()
+			if isinstance(outcome, Exception):
+				raise outcome
+		frappe.db.commit()
+		self.assertEqual(self._active_count_groups(reconciliation)[0].physical_count, 100)
 
 	def test_adjustment_without_inventory_tag_remains_compatible(self):
 		reconciliation = self._new_reconciliation()

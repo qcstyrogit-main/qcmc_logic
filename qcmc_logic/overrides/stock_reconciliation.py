@@ -153,7 +153,11 @@ class CustomStockReconciliation(StockReconciliation):
                     ["item_code", "warehouse", "location", "inventory_location",
                      "physical_count", "cost_acct_cnt"], as_dict=True,
                 )
-            if previous and flt(previous.physical_count) != flt(result.physical_count):
+            if (
+                previous
+                and self.workflow_state != "Draft"
+                and flt(previous.physical_count) != flt(result.physical_count)
+            ):
                 frappe.throw(_("Physical Count is the original scanner count and cannot be edited."))
             if previous and (
                 str(previous.item_code or "") != str(result.item_code or "")

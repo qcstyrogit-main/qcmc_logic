@@ -8,7 +8,11 @@ from collections import defaultdict
 from frappe.utils import cint, get_datetime, now_datetime, nowdate
 from erpnext.stock.utils import get_stock_balance
 from qcmc_logic.overrides.putaway_rule_dimension import get_dimension_stock_balance
-from qcmc_logic.physical_count_grouping import normalize_inventory_tag
+from qcmc_logic.physical_count_grouping import (
+    latest_physical_count_groups,
+    normalize_inventory_tag,
+    physical_count_group_key,
+)
 from qcmc_logic.utils import ensure_scanner_warehouse_access
 from qcmc_logic.api.mobile_auth import extract_mobile_token, resolve_device_token_user
 
@@ -661,6 +665,33 @@ def _apply_inventory_tag_to_audit_values(values, transaction):
     return values
 
 
+def _group_entry_transactions(entry):
+    """Group only this request's new transactions by normalized Inventory Tag."""
+    groups = {}
+    for transaction in entry.transactions or []:
+        inventory_tag = _inventory_tag(transaction)
+        group = groups.setdefault(inventory_tag, frappe._dict(
+            inventory_tag=inventory_tag, transactions=[], quantity_delta=0.0,
+        ))
+        normalized = dict(transaction)
+        normalized.pop("inventory_tag", None)
+        if inventory_tag:
+            normalized["inventoryTag"] = inventory_tag
+        else:
+            normalized.pop("inventoryTag", None)
+        change = _safe_float(
+            transaction.get("quantityChange", transaction.get("quantity_change"))
+        )
+        normalized["quantityChange"] = change
+        group.transactions.append(normalized)
+        group.quantity_delta += change
+    if not groups:
+        return [frappe._dict(
+            inventory_tag="", transactions=[], quantity_delta=_safe_float(entry.quantity_delta),
+        )]
+    return list(groups.values())
+
+
 def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
     savepoint = "physical_count_adjustment"
     frappe.db.savepoint(savepoint)
@@ -687,88 +718,85 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
             _validate_adjustment_entry(entry, index, doc)
             for index, entry in enumerate(entries, start=1)
         ]
-        latest_count_by_key = {}
-        for result_row in doc.get("custom_physical_count_results") or []:
-            result_key = (
-                result_row.item_code,
-                result_row.warehouse,
-                result_row.get("location") or result_row.inventory_location,
-                result_row.get("batch_no") or "",
-                result_row.get("serial_no") or "",
-                result_row.uom or "",
-            )
-            latest_count_by_key[result_key] = _safe_float(result_row.physical_count)
+        latest_rows = latest_physical_count_groups(
+            doc.get("custom_physical_count_results") or []
+        )
 
         planned = []
         for index, entry in enumerate(normalized, start=1):
-            dimensions = {"location": entry.location}
-            current = _current_inventory_quantity(
+            location_prefix = physical_count_group_key(frappe._dict(
+                item_code=entry.item_code, warehouse=entry.warehouse,
+                location=entry.location, batch_no=entry.batch_no,
+                serial_no=entry.serial_no, uom=entry.stock_uom,
+            ))[:6]
+            location_rows = [
+                row for key, row in latest_rows.items() if key[:6] == location_prefix
+            ]
+            live_quantity = _current_inventory_quantity(
                 entry.item_code, entry.warehouse, entry.location,
                 entry.batch_no, entry.serial_no,
+            )
+            current = (
+                _safe_float(location_rows[0].erp_quantity_before)
+                if location_rows else live_quantity
             )
             expected_baseline = entry.erp_baseline if entry.erp_baseline is not None else entry.expected
             if not _quantities_equal(current, expected_baseline):
                 entry.expected = expected_baseline
                 raise PhysicalCountConflict(current, entry)
 
-            count_key = (
-                entry.item_code, entry.warehouse, entry.location,
-                entry.batch_no or "", entry.serial_no or "", entry.stock_uom or "",
-            )
-            previous_physical_count = latest_count_by_key.get(count_key, 0.0)
-            authoritative_physical_count = previous_physical_count + entry.quantity_delta
-            if authoritative_physical_count < -1e-9:
-                frappe.throw(
-                    f"Entry #{index}: the physical count cannot become negative."
+            planned_groups = []
+            for group in _group_entry_transactions(entry):
+                identity = frappe._dict(
+                    item_code=entry.item_code, warehouse=entry.warehouse,
+                    location=entry.location, batch_no=entry.batch_no,
+                    serial_no=entry.serial_no, uom=entry.stock_uom,
+                    inventory_tag=group.inventory_tag,
                 )
-
-            # The server owns the cumulative Physical Count.
-            #
-            # A scanner submission is an incremental set of NEW transactions.
-            # The client may have stale/missing local knowledge of a count that
-            # was already submitted (app restart, sync, another device, older
-            # local data, etc.). Therefore never reject an otherwise valid
-            # incremental submission merely because the client-computed final
-            # physical_count is stale. Rebuild it from the reconciliation's
-            # latest accepted count plus this submission's validated delta.
-            #
-            # quantity_delta is already validated against transaction history
-            # in _validate_adjustment_entry(), and duplicate transaction IDs
-            # are rejected below, so the server remains authoritative and
-            # idempotent without double-adding previously accepted scans.
-            entry.expected = previous_physical_count
-            entry.physical_count = authoritative_physical_count
-
-            running_quantity = previous_physical_count
-            normalized_transactions = []
-            for transaction in entry.transactions:
-                normalized_transaction = dict(transaction)
-                change = _parse_finite_number(
-                    transaction.get("quantityChange", transaction.get("quantity_change")),
-                    "quantityChange", index,
-                )
-                running_quantity += change
-                if running_quantity < -1e-9:
+                key = physical_count_group_key(identity)
+                existing = latest_rows.get(key)
+                previous = _safe_float(existing.physical_count if existing else 0)
+                running = previous
+                for transaction in group.transactions:
+                    transaction_id = str(
+                        transaction.get("id") or transaction.get("transaction_id") or ""
+                    ).strip()
+                    if frappe.db.exists(
+                        "Physical Count Scan Transaction", {"transaction_id": transaction_id}
+                    ):
+                        frappe.throw(f"Transaction ID '{transaction_id}' has already been submitted.")
+                    running += _safe_float(transaction.get("quantityChange"))
+                    if running < -1e-9:
+                        frappe.throw(
+                            f"Entry #{index}: the Inventory Tag group cannot become negative."
+                        )
+                    transaction["runningQuantity"] = running
+                authoritative = previous + group.quantity_delta
+                if authoritative < -1e-9:
                     frappe.throw(
-                        f"Entry #{index}: transaction history makes the physical count negative."
+                        f"Entry #{index}: the Inventory Tag group cannot become negative."
                     )
-                normalized_transaction["quantityChange"] = change
-                normalized_transaction["runningQuantity"] = running_quantity
-                inventory_tag = _inventory_tag(transaction)
-                if inventory_tag:
-                    normalized_transaction["inventoryTag"] = inventory_tag
-                normalized_transactions.append(normalized_transaction)
+                group.previous_physical_count = previous
+                group.physical_count = authoritative
+                group.existing = existing
+                planned_groups.append(group)
+                latest_rows[key] = existing or identity
+                latest_rows[key].physical_count = authoritative
 
-            entry.transactions = normalized_transactions
-            latest_count_by_key[count_key] = authoritative_physical_count
-            variance = authoritative_physical_count - current
-            planned.append((index, entry, current, variance))
+            location_total = sum(
+                _safe_float(row.physical_count)
+                for key, row in latest_rows.items()
+                if key[:6] == location_prefix
+            )
+            entry.physical_count = location_total
+            planned.append((index, entry, current, planned_groups))
 
         scanner_full_name = frappe.get_cached_value("User", user, "full_name") or user
         response_entries = []
         audit_docs = []
         submitted_at = now_datetime()
-        for index, entry, current, variance in planned:
+        for index, entry, current, groups in planned:
+            variance = entry.physical_count - current
             adjustment = None
             status = "Pending adjustment"
             response_entries.append({
@@ -789,14 +817,6 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                     transaction.get("quantityChange", transaction.get("quantity_change")),
                     "quantityChange", index,
                 )
-                existing_transaction = frappe.db.get_value(
-                    "Physical Count Scan Transaction",
-                    {"transaction_id": transaction_id},
-                    ["item_code", "warehouse", "storage_location", "action", "quantity_change"],
-                    as_dict=True,
-                )
-                if existing_transaction:
-                    frappe.throw(f"Transaction ID '{transaction_id}' has already been submitted.")
                 audit_values = {
                     "transaction_id": transaction_id, "submission_id": submission_id,
                     "entry_number": index, "reconciliation": reconciliation_id,
@@ -812,27 +832,38 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                     "device_id": str(transaction.get("deviceId") or entry.device_id),
                 }
                 audit_docs.append(_apply_inventory_tag_to_audit_values(audit_values, transaction))
-            audit_docs.append({
-                "transaction_id": f"{submission_id}:summary:{index}", "submission_id": submission_id,
-                "entry_number": index, "reconciliation": reconciliation_id,
-                "item_code": entry.item_code, "warehouse": entry.warehouse,
-                "storage_location": entry.location, "uom": entry.stock_uom,
-                "action": "SUBMITTED" if variance >= 0 else "CORRECTION_SUBMITTED",
-                "quantity_change": entry.quantity_delta,
-                "previous_quantity": entry.physical_count - entry.quantity_delta,
-                "running_quantity": entry.physical_count, "scanned_at": now_datetime(),
-                "processed_at": now_datetime(), "scanner_user": user,
-                "scanner_full_name": scanner_full_name, "device_id": entry.device_id,
-                "physical_count": entry.physical_count, "variance": variance,
-                "adjustment_document_type": "",
-                "adjustment_document": "",
-            })
+            for group_index, group in enumerate(groups, start=1):
+                group_variance = group.physical_count - current
+                audit_docs.append(_apply_inventory_tag_to_audit_values({
+                    "transaction_id": f"{submission_id}:summary:{index}:{group_index}",
+                    "submission_id": submission_id, "entry_number": index,
+                    "reconciliation": reconciliation_id, "item_code": entry.item_code,
+                    "warehouse": entry.warehouse, "storage_location": entry.location,
+                    "uom": entry.stock_uom,
+                    "action": "SUBMITTED" if group.quantity_delta >= 0 else "CORRECTION_SUBMITTED",
+                    "quantity_change": group.quantity_delta,
+                    "previous_quantity": group.previous_physical_count,
+                    "running_quantity": group.physical_count, "scanned_at": now_datetime(),
+                    "processed_at": now_datetime(), "scanner_user": user,
+                    "scanner_full_name": scanner_full_name, "device_id": entry.device_id,
+                    "physical_count": group.physical_count, "variance": group_variance,
+                    "adjustment_document_type": "", "adjustment_document": "",
+                }, {"inventoryTag": group.inventory_tag}))
 
-            first_transaction = entry.transactions[0] if entry.transactions else {}
-            employee_id = str(first_transaction.get("employeeId") or "").strip()
-            employee = employee_id if employee_id and frappe.db.exists("Employee", employee_id) else None
-            doc.append("custom_physical_count_results", {
+                first_transaction = group.transactions[0] if group.transactions else {}
+                employee_id = str(first_transaction.get("employeeId") or "").strip()
+                employee = employee_id if employee_id and frappe.db.exists("Employee", employee_id) else None
+                existing_history = []
+                if group.existing and group.existing.scan_history_json:
+                    try:
+                        parsed_history = json.loads(group.existing.scan_history_json)
+                        existing_history = parsed_history if isinstance(parsed_history, list) else []
+                    except (TypeError, ValueError):
+                        existing_history = []
+                history = existing_history + group.transactions
+                values = {
                 "submission_id": submission_id,
+                "inventory_tag": group.inventory_tag,
                 "item_code": entry.item_code,
                 "item_name": entry.item_name,
                 "warehouse": entry.warehouse,
@@ -846,10 +877,10 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                 "batch_no": entry.batch_no,
                 "serial_no": entry.serial_no,
                 "erp_quantity_before": current,
-                "expected_previous_count": entry.expected,
-                "quantity_delta": entry.quantity_delta,
-                "physical_count": entry.physical_count,
-                "variance": variance,
+                "expected_previous_count": group.previous_physical_count,
+                "quantity_delta": group.quantity_delta,
+                "physical_count": group.physical_count,
+                "variance": group_variance,
                 "adjustment_document_type": "",
                 "adjustment_document": "",
                 "adjustment_status": "Pending",
@@ -862,12 +893,15 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                     if first_transaction else submitted_at
                 ),
                 "submitted_at": submitted_at,
-                "transaction_count": len(entry.transactions),
-                "scan_history_json": json.dumps(
-                    entry.transactions, sort_keys=True, default=str
-                ),
+                "transaction_count": len(history),
+                "scan_history_json": json.dumps(history, sort_keys=True, default=str),
                 "status": status,
-            })
+                }
+                if group.existing:
+                    for fieldname, value in values.items():
+                        group.existing.set(fieldname, value)
+                else:
+                    doc.append("custom_physical_count_results", values)
 
         doc.save(ignore_permissions=True)
         for values in audit_docs:
