@@ -8,6 +8,7 @@ from collections import defaultdict
 from frappe.utils import cint, get_datetime, now_datetime, nowdate
 from erpnext.stock.utils import get_stock_balance
 from qcmc_logic.overrides.putaway_rule_dimension import get_dimension_stock_balance
+from qcmc_logic.physical_count_grouping import normalize_inventory_tag
 from qcmc_logic.utils import ensure_scanner_warehouse_access
 from qcmc_logic.api.mobile_auth import extract_mobile_token, resolve_device_token_user
 
@@ -644,6 +645,22 @@ def _make_pcount_stock_entry(doc, purpose, rows, reconciliation_id):
     return stock_entry
 
 
+def _inventory_tag(transaction):
+    """Return a scan transaction's optional Inventory Tag."""
+    return normalize_inventory_tag(
+        transaction.get("inventoryTag") or transaction.get("inventory_tag") or ""
+    )
+
+
+def _apply_inventory_tag_to_audit_values(values, transaction):
+    """Persist a scan transaction's Inventory Tag on its audit record."""
+    inventory_tag = _inventory_tag(transaction)
+    if not inventory_tag:
+        return values
+    values["inventory_tag"] = inventory_tag
+    return values
+
+
 def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
     savepoint = "physical_count_adjustment"
     frappe.db.savepoint(savepoint)
@@ -737,6 +754,9 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                     )
                 normalized_transaction["quantityChange"] = change
                 normalized_transaction["runningQuantity"] = running_quantity
+                inventory_tag = _inventory_tag(transaction)
+                if inventory_tag:
+                    normalized_transaction["inventoryTag"] = inventory_tag
                 normalized_transactions.append(normalized_transaction)
 
             entry.transactions = normalized_transactions
@@ -777,7 +797,7 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                 )
                 if existing_transaction:
                     frappe.throw(f"Transaction ID '{transaction_id}' has already been submitted.")
-                audit_docs.append({
+                audit_values = {
                     "transaction_id": transaction_id, "submission_id": submission_id,
                     "entry_number": index, "reconciliation": reconciliation_id,
                     "item_code": entry.item_code, "warehouse": entry.warehouse,
@@ -790,7 +810,8 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                     "scanner_full_name": str(transaction.get("employeeName") or scanner_full_name),
                     "employee_id": str(transaction.get("employeeId") or ""),
                     "device_id": str(transaction.get("deviceId") or entry.device_id),
-                })
+                }
+                audit_docs.append(_apply_inventory_tag_to_audit_values(audit_values, transaction))
             audit_docs.append({
                 "transaction_id": f"{submission_id}:summary:{index}", "submission_id": submission_id,
                 "entry_number": index, "reconciliation": reconciliation_id,
@@ -1047,6 +1068,7 @@ def _validate_increment_entry(entry, row_number, doc):
         device_id=device_id,
         action=action,
         scanned_at=entry.get("timestamp") or entry.get("scannedAt") or entry.get("scanned_at"),
+        inventory_tag=_inventory_tag(entry),
     )
 
 
@@ -1172,6 +1194,7 @@ def _submit_increment_entries(reconciliation_id, submission_id, entries, user):
                     "scanner_user": user,
                     "scanner_full_name": scanner_full_name,
                     "device_id": increment.device_id,
+                    "inventory_tag": increment.inventory_tag,
                 }
             )
 

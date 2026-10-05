@@ -10,29 +10,11 @@ from erpnext.stock.doctype.inventory_dimension.inventory_dimension import get_in
 from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import StockReconciliation
 from erpnext.stock.utils import get_stock_balance
 from qcmc_logic.overrides.putaway_rule_dimension import validate_dimension_putaway_capacity
-
-
-def physical_count_location_key(result):
-    return (
-        result.item_code or "",
-        result.warehouse or "",
-        result.get("location") or result.inventory_location or result.inventory_location_id or "",
-        result.get("batch_no") or "",
-        result.get("serial_no") or "",
-        result.uom or "",
-    )
-
-
-def latest_physical_count_results(results):
-    """Return only the latest audit snapshot for every exact inventory key."""
-    latest = {}
-    for position, result in enumerate(results or []):
-        key = physical_count_location_key(result)
-        timestamp = str(result.get("submitted_at") or result.get("counted_at") or "")
-        rank = (timestamp, int(result.get("idx") or 0), position)
-        if key not in latest or rank >= latest[key][0]:
-            latest[key] = (rank, result)
-    return {key: ranked_result[1] for key, ranked_result in latest.items()}
+from qcmc_logic.physical_count_grouping import (
+    latest_physical_count_groups,
+    physical_count_group_key,
+    physical_count_location_key,
+)
 
 
 def physical_count_summary_key(result):
@@ -85,7 +67,7 @@ class CustomStockReconciliation(StockReconciliation):
 
         results = self.get("custom_physical_count_results") or []
         existing_keys = {
-            physical_count_location_key(row)
+            physical_count_group_key(row)
             for row in results
             if row.get("submission_id") and row.status != "Old Count"
         }
@@ -123,7 +105,7 @@ class CustomStockReconciliation(StockReconciliation):
             ) or location.name
             row.uom = item.stock_uom
             row.item_name = item.item_name or item_code
-            key = physical_count_location_key(row)
+            key = physical_count_group_key(row)
             if key in existing_keys:
                 frappe.throw(_(
                     "A Physical Count already exists for this Item and Storage Location. "
@@ -161,7 +143,7 @@ class CustomStockReconciliation(StockReconciliation):
     def validate_cost_accounting_adjustments(self):
         """Keep scanner counts immutable and accept Cost Accounting recounts only For Recon."""
         results = self.get("custom_physical_count_results") or []
-        latest = latest_physical_count_results(results)
+        latest = latest_physical_count_groups(results)
 
         for result in results:
             previous = None
@@ -184,7 +166,7 @@ class CustomStockReconciliation(StockReconciliation):
             count_changed = cost_accounting_count_value(result) != cost_accounting_count_value(previous or {})
             if count_changed and self.workflow_state != "For Recon":
                 frappe.throw(_("Cost Acct Cnt can only be changed during For Recon."))
-            if count_changed and latest.get(physical_count_location_key(result)) is not result:
+            if count_changed and latest.get(physical_count_group_key(result)) is not result:
                 frappe.throw(_("Cost Acct Cnt can only be entered on the latest physical count."))
 
             effective_count = effective_physical_count(result)
@@ -330,7 +312,7 @@ class CustomStockReconciliation(StockReconciliation):
 
     def rebuild_physical_count_summary(self):
         """Build one effective Item row from the latest count at each location."""
-        latest_by_location = latest_physical_count_results(
+        latest_by_location = latest_physical_count_groups(
             self.get("custom_physical_count_results") or []
         )
         effective_totals = {}

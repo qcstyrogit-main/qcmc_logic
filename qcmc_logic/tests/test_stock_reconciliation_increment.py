@@ -2,6 +2,7 @@ import queue
 import threading
 import uuid
 import io
+import json
 import unittest
 from unittest.mock import Mock, patch
 
@@ -55,6 +56,42 @@ def run_cost_acct_cnt_tests():
 	return {"tests_run": result.testsRun, "successful": True}
 
 
+def run_inventory_tag_tests():
+	"""Run Inventory Tag coverage without unrelated reconciliation tests."""
+	names = (
+		"test_scan_transaction_has_searchable_inventory_tag_field",
+		"test_adjustment_inventory_tags_remain_per_transaction_and_searchable",
+		"test_adjustment_without_inventory_tag_remains_compatible",
+		"test_increment_inventory_tag_is_saved_on_its_audit_transaction",
+	)
+	suite = unittest.TestSuite(TestStockReconciliationIncrement(name) for name in names)
+	result = unittest.TextTestRunner(verbosity=2).run(suite)
+	if not result.wasSuccessful():
+		raise AssertionError(
+			f"Inventory Tag tests failed: {len(result.failures)} failures, "
+			f"{len(result.errors)} errors"
+		)
+	return {"tests_run": result.testsRun, "successful": True}
+
+
+def run_inventory_tag_grouping_tests():
+	"""Run Inventory Tag grouping coverage without unrelated reconciliation tests."""
+	names = (
+		"test_physical_count_result_has_inventory_tag_group_field",
+		"test_inventory_tag_normalization_trims_only_surrounding_whitespace",
+		"test_group_key_separates_tags_but_location_key_does_not",
+		"test_latest_group_selection_keeps_each_inventory_tag",
+	)
+	suite = unittest.TestSuite(TestStockReconciliationIncrement(name) for name in names)
+	result = unittest.TextTestRunner(verbosity=2).run(suite)
+	if not result.wasSuccessful():
+		raise AssertionError(
+			f"Inventory Tag grouping tests failed: {len(result.failures)} failures, "
+			f"{len(result.errors)} errors"
+		)
+	return {"tests_run": result.testsRun, "successful": True}
+
+
 def run_stock_reconciliation_increment_tests():
 	"""Run this module without triggering unrelated app-wide test discovery."""
 	suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestStockReconciliationIncrement)
@@ -68,6 +105,78 @@ def run_stock_reconciliation_increment_tests():
 
 
 class TestStockReconciliationIncrement(FrappeTestCase):
+	def test_physical_count_result_has_inventory_tag_group_field(self):
+		meta = frappe.get_meta("QCMC Physical Count Result")
+		field = meta.get_field("inventory_tag")
+		variance = meta.get_field("variance")
+
+		self.assertIsNotNone(field)
+		self.assertEqual(field.fieldtype, "Data")
+		self.assertFalse(field.reqd)
+		self.assertTrue(field.read_only)
+		self.assertTrue(field.in_list_view)
+		self.assertFalse(meta.has_field("custom_inventory_tag"))
+		self.assertEqual(variance.label, "Count Adjustment Variance")
+
+	def test_inventory_tag_normalization_trims_only_surrounding_whitespace(self):
+		from qcmc_logic.physical_count_grouping import normalize_inventory_tag
+
+		self.assertEqual(normalize_inventory_tag("  Inv  001  "), "Inv  001")
+		self.assertEqual(normalize_inventory_tag(""), "")
+		self.assertEqual(normalize_inventory_tag(None), "")
+
+	def test_group_key_separates_tags_but_location_key_does_not(self):
+		from qcmc_logic.physical_count_grouping import (
+			physical_count_group_key,
+			physical_count_location_key,
+		)
+
+		first = frappe._dict(
+			item_code="ITEM-A", warehouse="FG - Test", location="LOC-1",
+			batch_no="BATCH-1", serial_no="SERIAL-1", uom="PCS",
+			inventory_tag="INV-001",
+		)
+		second = frappe._dict(first.copy())
+		second.inventory_tag = "INV-002"
+
+		self.assertNotEqual(physical_count_group_key(first), physical_count_group_key(second))
+		self.assertEqual(physical_count_location_key(first), physical_count_location_key(second))
+
+	def test_latest_group_selection_keeps_each_inventory_tag(self):
+		from qcmc_logic.physical_count_grouping import latest_physical_count_groups
+
+		rows = [
+			frappe._dict(
+				item_code="ITEM-A", warehouse="FG - Test", location="LOC-1", uom="PCS",
+				inventory_tag="INV-001", submitted_at="2026-10-05 10:00:00", idx=1,
+				physical_count=100,
+			),
+			frappe._dict(
+				item_code="ITEM-A", warehouse="FG - Test", location="LOC-1", uom="PCS",
+				inventory_tag="INV-001", submitted_at="2026-10-05 11:00:00", idx=2,
+				physical_count=200,
+			),
+			frappe._dict(
+				item_code="ITEM-A", warehouse="FG - Test", location="LOC-1", uom="PCS",
+				inventory_tag="INV-002", submitted_at="2026-10-05 09:00:00", idx=3,
+				physical_count=500,
+			),
+		]
+
+		latest = latest_physical_count_groups(rows)
+
+		self.assertEqual(len(latest), 2)
+		self.assertEqual(sorted(row.physical_count for row in latest.values()), [200, 500])
+
+	def test_scan_transaction_has_searchable_inventory_tag_field(self):
+		field = frappe.get_meta("Physical Count Scan Transaction").get_field("inventory_tag")
+
+		self.assertIsNotNone(field)
+		self.assertEqual(field.fieldtype, "Data")
+		self.assertFalse(frappe.get_meta("Physical Count Scan Transaction").has_field(
+			"custom_inventory_tag"
+		))
+
 	def test_persistent_mobile_token_authenticates_scanner_request(self):
 		from qcmc_logic.api.mobile_auth import issue_device_token
 
@@ -1119,6 +1228,81 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 			),
 			1,
 		)
+
+	def test_adjustment_inventory_tags_remain_per_transaction_and_searchable(self):
+		reconciliation = self._new_reconciliation()
+		submission_id = str(uuid.uuid4())
+		first = self._transaction("ADD", 1000, 1000)
+		first["inventoryTag"] = "  INV-001  "
+		second = self._transaction("ADD", 1000, 2000)
+		second["inventory_tag"] = "INV-002"
+		entry = self._adjustment_entry(
+			0, 2000, transactions=[first, second], physicalCount=2000
+		)
+
+		original = self._adjust(reconciliation, [entry], submission_id)
+		replay = self._adjust(reconciliation, [entry], submission_id)
+
+		self.assertFalse(original["duplicate_submission"])
+		self.assertTrue(replay["duplicate_submission"])
+		rows = frappe.get_all(
+			"Physical Count Scan Transaction",
+			filters={"transaction_id": ["in", [first["id"], second["id"]]]},
+			fields=["transaction_id", "inventory_tag", "quantity_change"],
+		)
+		by_id = {row.transaction_id: row for row in rows}
+		self.assertEqual(by_id[first["id"]].inventory_tag, "INV-001")
+		self.assertEqual(by_id[second["id"]].inventory_tag, "INV-002")
+		self.assertEqual(by_id[first["id"]].quantity_change, 1000)
+		self.assertEqual(by_id[second["id"]].quantity_change, 1000)
+		self.assertEqual(len(rows), 2)
+		self.assertEqual(
+			frappe.db.count(
+				"Physical Count Scan Transaction", {"inventory_tag": "INV-002"}
+			),
+			1,
+		)
+		doc = frappe.get_doc("Stock Reconciliation", reconciliation)
+		history = json.loads(doc.custom_physical_count_results[-1].scan_history_json)
+		self.assertEqual(
+			[transaction.get("inventoryTag") for transaction in history],
+			["INV-001", "INV-002"],
+		)
+		self.assertEqual(doc.custom_physical_count_results[-1].physical_count, 2000)
+
+	def test_adjustment_without_inventory_tag_remains_compatible(self):
+		reconciliation = self._new_reconciliation()
+		transaction = self._transaction("ADD", 4, 4)
+
+		self._adjust(
+			reconciliation,
+			[self._adjustment_entry(0, 4, transactions=[transaction])],
+		)
+
+		self.assertFalse(frappe.db.get_value(
+			"Physical Count Scan Transaction", transaction["id"], "inventory_tag"
+		))
+		self.assertEqual(self._summary_quantity(reconciliation), 4)
+
+	def test_increment_inventory_tag_is_saved_on_its_audit_transaction(self):
+		reconciliation = self._new_reconciliation()
+		submission_id = str(uuid.uuid4())
+		entry = self._entry(3)
+		entry["inventoryTag"] = "  INC-001  "
+
+		_submit_increment_entries(
+			reconciliation, submission_id, [entry], "Administrator"
+		)
+
+		self.assertEqual(
+			frappe.db.get_value(
+				"Physical Count Scan Transaction",
+				f"{submission_id}:increment:1",
+				"inventory_tag",
+			),
+			"INC-001",
+		)
+		self.assertEqual(self._quantity(reconciliation), 3)
 
 	def test_adjustment_rejects_invalid_transaction_sign_and_running_count(self):
 		reconciliation = self._new_reconciliation()
