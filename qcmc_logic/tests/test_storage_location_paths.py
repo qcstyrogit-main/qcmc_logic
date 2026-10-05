@@ -80,6 +80,7 @@ class TestStorageLocationPaths(TestCase):
 		_get_warehouse_allocation_location_balances("LOC-1", "FG - Guyong")
 		query = sql.call_args.args[0].lower()
 		self.assertIn("inventory_tag", query)
+		self.assertIn("row_number() over", query.lower())
 		self.assertNotIn("pcr.variance", query)
 
 	@patch("frappe.db.sql", return_value=[])

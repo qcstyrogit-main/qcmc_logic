@@ -180,12 +180,17 @@ def _current_inventory_quantity(item_code, warehouse, storage_location, batch_no
             where sr.docstatus = 1 and sr.custom_physical_count = 1
               and pcr.item_code = %s and pcr.warehouse = %s
               and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %s
+              and coalesce(pcr.batch_no, '') = %s
+              and coalesce(pcr.serial_no, '') = %s
         )
         select sum(coalesce(cast(nullif(nullif(cost_acct_cnt, ''), '0.000000000') as decimal(21,9)), physical_count)) as physical_count,
                max(group_counted_at) as counted_at
         from ranked_groups where row_rank = 1
         """,
-        (item_code, warehouse, storage_location), as_dict=True,
+        (
+            item_code, warehouse, storage_location,
+            str(batch_no or "").strip(), str(serial_no or "").strip(),
+        ), as_dict=True,
     )
     latest_count = latest_count if latest_count and latest_count[0].counted_at else []
     cutoff = latest_count[0].counted_at if latest_count else None

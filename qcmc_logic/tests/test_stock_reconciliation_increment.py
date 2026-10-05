@@ -1543,6 +1543,8 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 		query = sql.call_args_list[0].args[0].lower()
 		self.assertIn("inventory_tag", query)
 		self.assertIn("sum(", query)
+		self.assertIn("and coalesce(pcr.batch_no", query)
+		self.assertIn("and coalesce(pcr.serial_no", query)
 
 	def test_physical_location_balances_sum_tags_before_later_movements(self):
 		with patch("frappe.db.sql", return_value=[]) as sql:

@@ -516,18 +516,29 @@ def _get_warehouse_allocation_location_balances(storage_location, warehouse):
 			where docstatus = 1 and warehouse = %(warehouse)s
 				and source_location = %(storage_location)s
 			union all
-			select pcr.item_code, max(pcr.uom),
-				sum(coalesce(cast(nullif(nullif(pcr.cost_acct_cnt, ''), '0.000000000') as decimal(21,9)), pcr.physical_count))
-				- max(pcr.erp_quantity_before), max(coalesce(pcr.submitted_at, sr.modified))
-			from `tabQCMC Physical Count Result` pcr
-			inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
-			where sr.docstatus = 1 and sr.custom_physical_count = 1
-				and coalesce(pcr.status, '') != 'Old Count'
-				and pcr.warehouse = %(warehouse)s
-				and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %(storage_location)s
-			group by pcr.parent, pcr.item_code,
-				coalesce(nullif(pcr.location, ''), pcr.inventory_location)
-			/* inventory_tag rows are combined into one reconciliation movement */
+			select counted.item_code, max(counted.uom),
+				sum(counted.effective_count) - max(counted.erp_quantity_before),
+				max(counted.movement_time)
+			from (
+				select pcr.parent, pcr.item_code, pcr.uom, pcr.erp_quantity_before,
+					coalesce(cast(nullif(nullif(pcr.cost_acct_cnt, ''), '0.000000000') as decimal(21,9)), pcr.physical_count) as effective_count,
+					coalesce(pcr.submitted_at, sr.modified) as movement_time,
+					row_number() over (
+						partition by pcr.parent, pcr.item_code,
+							coalesce(nullif(pcr.location, ''), pcr.inventory_location),
+							coalesce(pcr.batch_no, ''), coalesce(pcr.serial_no, ''),
+							coalesce(pcr.uom, ''), coalesce(pcr.inventory_tag, '')
+						order by coalesce(pcr.submitted_at, sr.modified) desc, pcr.idx desc
+					) as row_rank
+				from `tabQCMC Physical Count Result` pcr
+				inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
+				where sr.docstatus = 1 and sr.custom_physical_count = 1
+					and coalesce(pcr.status, '') != 'Old Count'
+					and pcr.warehouse = %(warehouse)s
+					and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %(storage_location)s
+			) counted
+			where counted.row_rank = 1
+			group by counted.parent, counted.item_code
 		) movement
 		left join `tabItem` item on item.name = movement.item_code
 		group by movement.item_code, item.item_name,
