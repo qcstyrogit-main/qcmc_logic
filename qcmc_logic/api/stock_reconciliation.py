@@ -752,10 +752,14 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                 _safe_float(location_rows[0].erp_quantity_before)
                 if location_rows else live_quantity
             )
-            expected_baseline = entry.erp_baseline if entry.erp_baseline is not None else entry.expected
-            if not _quantities_equal(current, expected_baseline):
+            expected_baseline = (
+                entry.erp_baseline
+                if entry.erp_baseline is not None
+                else current if location_rows else entry.expected
+            )
+            if not _quantities_equal(live_quantity, expected_baseline):
                 entry.expected = expected_baseline
-                raise PhysicalCountConflict(current, entry)
+                raise PhysicalCountConflict(live_quantity, entry)
 
             planned_groups = []
             for group in _group_entry_transactions(entry):
@@ -852,7 +856,7 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                     "reconciliation": reconciliation_id, "item_code": entry.item_code,
                     "warehouse": entry.warehouse, "storage_location": entry.location,
                     "uom": entry.stock_uom,
-                    "action": "SUBMITTED" if group.quantity_delta >= 0 else "CORRECTION_SUBMITTED",
+                    "action": "SUBMITTED" if group_variance >= 0 else "CORRECTION_SUBMITTED",
                     "quantity_change": group.quantity_delta,
                     "previous_quantity": group.previous_physical_count,
                     "running_quantity": group.physical_count, "scanned_at": now_datetime(),

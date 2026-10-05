@@ -1102,9 +1102,9 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 		result = self._adjust(reconciliation, [followup])
 
 		doc = frappe.get_doc("Stock Reconciliation", reconciliation)
-		self.assertEqual([row.physical_count for row in doc.custom_physical_count_results], [260, 100260])
-		self.assertEqual([row.quantity_delta for row in doc.custom_physical_count_results], [260, 100000])
-		self.assertEqual([row.expected_previous_count for row in doc.custom_physical_count_results], [0, 260])
+		self.assertEqual([row.physical_count for row in doc.custom_physical_count_results], [100260])
+		self.assertEqual([row.quantity_delta for row in doc.custom_physical_count_results], [100000])
+		self.assertEqual([row.expected_previous_count for row in doc.custom_physical_count_results], [260])
 		self.assertEqual(self._summary_quantity(reconciliation), 100260)
 		self.assertEqual(result["docstatus"], 0)
 		self.assertEqual(result["status"], "Draft")
@@ -1294,17 +1294,25 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 		self.assertEqual(len(rows), 2)
 		self.assertEqual(
 			frappe.db.count(
-				"Physical Count Scan Transaction", {"inventory_tag": "INV-002"}
+				"Physical Count Scan Transaction",
+				{"inventory_tag": "INV-002", "action": "ADD"},
 			),
 			1,
 		)
 		doc = frappe.get_doc("Stock Reconciliation", reconciliation)
-		history = json.loads(doc.custom_physical_count_results[-1].scan_history_json)
 		self.assertEqual(
-			[transaction.get("inventoryTag") for transaction in history],
-			["INV-001", "INV-002"],
+			{
+				row.inventory_tag: [
+					transaction.get("inventoryTag")
+					for transaction in json.loads(row.scan_history_json)
+				]
+				for row in doc.custom_physical_count_results
+			},
+			{"INV-001": ["INV-001"], "INV-002": ["INV-002"]},
 		)
-		self.assertEqual(doc.custom_physical_count_results[-1].physical_count, 2000)
+		self.assertEqual(
+			sum(row.physical_count for row in doc.custom_physical_count_results), 2000
+		)
 
 	def test_same_inventory_tag_scans_update_one_active_detail_group(self):
 		reconciliation = self._new_reconciliation()

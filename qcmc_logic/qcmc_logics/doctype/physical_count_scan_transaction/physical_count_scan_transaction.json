@@ -4,13 +4,14 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "transaction_id", "submission_id", "entry_number", "reconciliation", "item_code", "warehouse",
+  "transaction_id", "inventory_tag", "submission_id", "entry_number", "reconciliation", "item_code", "warehouse",
   "storage_location", "uom", "action", "quantity_change", "previous_quantity", "running_quantity",
   "physical_count", "variance", "adjustment_document_type", "adjustment_document",
   "scanned_at", "processed_at", "scanner_user", "employee_id", "scanner_full_name", "device_id"
  ],
  "fields": [
   {"fieldname":"transaction_id","fieldtype":"Data","in_list_view":1,"in_standard_filter":1,"label":"Transaction ID","reqd":1,"unique":1},
+  {"fieldname":"inventory_tag","fieldtype":"Data","in_standard_filter":1,"label":"Inventory Tag"},
   {"fieldname":"submission_id","fieldtype":"Data","in_list_view":1,"in_standard_filter":1,"label":"Submission ID","reqd":1},
   {"fieldname":"entry_number","fieldtype":"Int","label":"Entry Number","reqd":1},
   {"fieldname":"reconciliation","fieldtype":"Link","in_list_view":1,"in_standard_filter":1,"label":"Stock Reconciliation","options":"Stock Reconciliation","reqd":1},
