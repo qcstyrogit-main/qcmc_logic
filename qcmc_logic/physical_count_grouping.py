@@ -1,5 +1,9 @@
 """Shared identities for Physical Count rows and Inventory Tag groups."""
 
+import frappe
+
+from frappe.utils import flt
+
 
 def _value(row, fieldname):
     if hasattr(row, "get"):
@@ -44,3 +48,29 @@ def latest_physical_count_groups(rows):
         if key not in latest or rank >= latest[key][0]:
             latest[key] = (rank, row)
     return {key: ranked_row[1] for key, ranked_row in latest.items()}
+
+
+def aggregate_physical_count_locations(rows, effective_count):
+    """Combine active tag groups into one authoritative state per ERP location."""
+    aggregates = {}
+    for row in latest_physical_count_groups(rows).values():
+        if _value(row, "status") == "Old Count":
+            continue
+        key = physical_count_location_key(row)
+        aggregate = aggregates.setdefault(key, frappe._dict(
+            physical_count=0.0,
+            effective_count=0.0,
+            erp_quantity_before=flt(_value(row, "erp_quantity_before")),
+            groups=[],
+        ))
+        baseline = _value(row, "erp_quantity_before")
+        if aggregate.groups and baseline not in (None, ""):
+            existing_baseline = aggregate.erp_quantity_before
+            if abs(flt(baseline) - flt(existing_baseline)) > 1e-9:
+                frappe.throw(
+                    "Inventory Tag groups at one location have different ERP baselines."
+                )
+        aggregate.physical_count += flt(_value(row, "physical_count"))
+        aggregate.effective_count += flt(effective_count(row))
+        aggregate.groups.append(row)
+    return aggregates

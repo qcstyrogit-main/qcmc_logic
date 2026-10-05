@@ -91,6 +91,13 @@ def run_inventory_tag_grouping_tests():
 		"test_tag_group_cannot_be_deducted_below_zero",
 		"test_same_tag_different_batch_or_serial_remains_separate",
 		"test_concurrent_same_group_submissions_do_not_lose_delta",
+		"test_cost_accounting_count_applies_independently_per_inventory_tag",
+		"test_count_adjustment_variance_is_recount_minus_physical_count",
+		"test_blank_cost_accounting_count_uses_group_physical_count",
+		"test_physical_count_stays_immutable_per_tag_group",
+		"test_summary_sums_effective_counts_across_tags",
+		"test_summary_counts_location_erp_baseline_once_for_multiple_tags",
+		"test_summary_still_combines_multiple_locations_by_item_warehouse",
 	)
 	suite = unittest.TestSuite(TestStockReconciliationIncrement(name) for name in names)
 	result = unittest.TextTestRunner(verbosity=2).run(suite)
@@ -1108,7 +1115,7 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 		self.assertEqual(len(doc.custom_physical_count_results), 1)
 		self.assertEqual(doc.custom_physical_count_results[0].physical_count, 20)
 		self.assertEqual(float(doc.custom_physical_count_results[0].cost_acct_cnt), 15)
-		self.assertEqual(doc.custom_physical_count_results[0].variance, 15)
+		self.assertEqual(doc.custom_physical_count_results[0].variance, -5)
 		self.assertEqual(self._summary_quantity(reconciliation), 15)
 
 	def test_for_recon_cost_accounting_count_can_exceed_physical_count(self):
@@ -1123,7 +1130,7 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 		doc.reload()
 		self.assertEqual(doc.custom_physical_count_results[0].physical_count, 100)
 		self.assertEqual(float(doc.custom_physical_count_results[0].cost_acct_cnt), 120)
-		self.assertEqual(doc.custom_physical_count_results[0].variance, 120)
+		self.assertEqual(doc.custom_physical_count_results[0].variance, 20)
 		self.assertEqual(self._summary_quantity(reconciliation), 120)
 
 	def test_for_recon_rejects_negative_cost_accounting_count(self):
@@ -1418,6 +1425,67 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 				raise outcome
 		frappe.db.commit()
 		self.assertEqual(self._active_count_groups(reconciliation)[0].physical_count, 100)
+
+	def _reconciliation_with_reviewed_tag_groups(self):
+		reconciliation = self._new_reconciliation()
+		transactions = [
+			self._tagged_transaction("INV-001", "ADD", 2000, 2000),
+			self._tagged_transaction("INV-002", "ADD", 500, 2500),
+		]
+		self._adjust(reconciliation, [self._adjustment_entry(0, 2500, transactions=transactions)])
+		doc = frappe.get_doc("Stock Reconciliation", reconciliation)
+		doc.workflow_state = "For Recon"
+		for row in doc.custom_physical_count_results:
+			row.cost_acct_cnt = {"INV-001": 1900, "INV-002": 450}[row.inventory_tag]
+		doc.save()
+		doc.reload()
+		return doc
+
+	def test_cost_accounting_count_applies_independently_per_inventory_tag(self):
+		doc = self._reconciliation_with_reviewed_tag_groups()
+		self.assertEqual(
+			{row.inventory_tag: float(row.cost_acct_cnt) for row in doc.custom_physical_count_results},
+			{"INV-001": 1900, "INV-002": 450},
+		)
+
+	def test_count_adjustment_variance_is_recount_minus_physical_count(self):
+		doc = self._reconciliation_with_reviewed_tag_groups()
+		self.assertEqual(
+			{row.inventory_tag: row.variance for row in doc.custom_physical_count_results},
+			{"INV-001": -100, "INV-002": -50},
+		)
+
+	def test_blank_cost_accounting_count_uses_group_physical_count(self):
+		from qcmc_logic.overrides.stock_reconciliation import effective_physical_count
+		self.assertEqual(effective_physical_count(frappe._dict(physical_count=500, cost_acct_cnt=None)), 500)
+
+	def test_physical_count_stays_immutable_per_tag_group(self):
+		doc = self._reconciliation_with_reviewed_tag_groups()
+		row = next(row for row in doc.custom_physical_count_results if row.inventory_tag == "INV-001")
+		row.physical_count = 1800
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot be edited"):
+			doc.save()
+
+	def test_summary_sums_effective_counts_across_tags(self):
+		doc = self._reconciliation_with_reviewed_tag_groups()
+		self.assertEqual(self._summary_quantity(doc.name), 2350)
+
+	def test_summary_counts_location_erp_baseline_once_for_multiple_tags(self):
+		from qcmc_logic.physical_count_grouping import aggregate_physical_count_locations
+		rows = [
+			frappe._dict(item_code="ITEM-A", warehouse="FG", location="LOC", uom="PCS", inventory_tag="INV-001", physical_count=2000, cost_acct_cnt=1900, erp_quantity_before=2600),
+			frappe._dict(item_code="ITEM-A", warehouse="FG", location="LOC", uom="PCS", inventory_tag="INV-002", physical_count=500, cost_acct_cnt=450, erp_quantity_before=2600),
+		]
+		aggregate = next(iter(aggregate_physical_count_locations(rows, lambda row: row.cost_acct_cnt).values()))
+		self.assertEqual(aggregate.erp_quantity_before, 2600)
+		self.assertEqual(aggregate.effective_count, 2350)
+
+	def test_summary_still_combines_multiple_locations_by_item_warehouse(self):
+		reconciliation = self._new_reconciliation()
+		for location, tag, quantity in ((self.locations[0], "INV-001", 100), (self.locations[1], "INV-002", 50)):
+			transaction = self._tagged_transaction(tag, "ADD", quantity, quantity)
+			self._adjust(reconciliation, [self._adjustment_entry(0, quantity, location=location, transactions=[transaction])])
+		self.assertEqual(self._summary_quantity(reconciliation), 150)
 
 	def test_adjustment_without_inventory_tag_remains_compatible(self):
 		reconciliation = self._new_reconciliation()

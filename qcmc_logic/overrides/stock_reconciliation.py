@@ -11,6 +11,7 @@ from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import Stoc
 from erpnext.stock.utils import get_stock_balance
 from qcmc_logic.overrides.putaway_rule_dimension import validate_dimension_putaway_capacity
 from qcmc_logic.physical_count_grouping import (
+    aggregate_physical_count_locations,
     latest_physical_count_groups,
     physical_count_group_key,
     physical_count_location_key,
@@ -126,7 +127,7 @@ class CustomStockReconciliation(StockReconciliation):
             row.expected_previous_count = 0
             row.quantity_delta = count
             row.cost_acct_cnt = None
-            row.variance = count - baseline
+            row.variance = 0
             row.adjustment_status = "Pending"
             row.scanner_user = user
             row.scanner_full_name = frappe.get_cached_value("User", user, "full_name") or user
@@ -176,7 +177,7 @@ class CustomStockReconciliation(StockReconciliation):
             effective_count = effective_physical_count(result)
             if effective_count < 0:
                 frappe.throw(_("Cost Acct Cnt cannot be negative."))
-            result.variance = effective_count - flt(result.erp_quantity_before)
+            result.variance = effective_count - flt(result.physical_count)
 
     def add_missing_location_zero_counts(self):
         """Infer zeros for every uncounted positive balance in this warehouse."""
@@ -316,15 +317,16 @@ class CustomStockReconciliation(StockReconciliation):
 
     def rebuild_physical_count_summary(self):
         """Build one effective Item row from the latest count at each location."""
-        latest_by_location = latest_physical_count_groups(
-            self.get("custom_physical_count_results") or []
+        location_aggregates = aggregate_physical_count_locations(
+            self.get("custom_physical_count_results") or [], effective_physical_count
         )
         effective_totals = {}
         baseline_totals = {}
-        for result in latest_by_location.values():
+        for aggregate in location_aggregates.values():
+            result = aggregate.groups[0]
             key = physical_count_summary_key(result)
-            effective_totals[key] = flt(effective_totals.get(key)) + effective_physical_count(result)
-            baseline_totals[key] = flt(baseline_totals.get(key)) + flt(result.erp_quantity_before)
+            effective_totals[key] = flt(effective_totals.get(key)) + aggregate.effective_count
+            baseline_totals[key] = flt(baseline_totals.get(key)) + aggregate.erp_quantity_before
 
         # Preserve manually entered/unrelated reconciliation rows. For keys covered
         # by Physical Count, retain one row and apply counted-location variance
