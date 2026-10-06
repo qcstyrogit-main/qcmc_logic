@@ -1,0 +1,39 @@
+{
+ "actions": [],
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "machine",
+  "plan_date",
+  "product_code",
+  "product_description",
+  "cavs",
+  "soph",
+  "std_weight_gm",
+  "daily_volume_qty",
+  "daily_volume_kgs",
+  "factor_rate",
+  "cycle_time"
+ ],
+ "fields": [
+  {"columns": 2, "fieldname": "machine", "fieldtype": "Link", "in_list_view": 1, "label": "Machine", "options": "Workstation", "reqd": 1},
+  {"columns": 2, "fieldname": "plan_date", "fieldtype": "Date", "in_list_view": 1, "label": "Plan Date", "reqd": 1},
+  {"columns": 2, "fieldname": "product_code", "fieldtype": "Link", "in_list_view": 1, "label": "Prodcode", "options": "Item", "reqd": 1},
+  {"columns": 3, "fieldname": "product_description", "fieldtype": "Data", "in_list_view": 1, "label": "Proddesc", "read_only": 1},
+  {"columns": 1, "fieldname": "cavs", "fieldtype": "Int", "in_list_view": 1, "label": "Cavs", "read_only": 1},
+  {"columns": 1, "fieldname": "soph", "fieldtype": "Float", "in_list_view": 1, "label": "SOPH", "read_only": 1},
+  {"columns": 1, "fieldname": "std_weight_gm", "fieldtype": "Float", "in_list_view": 1, "label": "StdWt(gm)", "read_only": 1},
+  {"columns": 1, "fieldname": "daily_volume_qty", "fieldtype": "Float", "in_list_view": 1, "label": "Daily Vol Qty", "read_only": 1},
+  {"columns": 1, "fieldname": "daily_volume_kgs", "fieldtype": "Float", "in_list_view": 1, "label": "DailyVolKgs", "read_only": 1},
+  {"columns": 1, "default": "100", "fieldname": "factor_rate", "fieldtype": "Float", "in_list_view": 1, "label": "FactorRate"},
+  {"columns": 1, "fieldname": "cycle_time", "fieldtype": "Float", "in_list_view": 1, "label": "CycleTime", "read_only": 1}
+ ],
+ "istable": 1,
+ "module": "QCMC Logics",
+ "name": "Weekly Production Plan Secondary Item",
+ "permissions": [],
+ "sort_field": "idx",
+ "sort_order": "ASC",
+ "states": []
+}
