@@ -1,0 +1,22 @@
+{
+ "content": null,
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "module": "QCMC Logics",
+ "name": "delivery-schedule-workbench",
+ "page_name": "delivery-schedule-workbench",
+ "roles": [
+  {
+   "role": "Stock Confirm User"
+  },
+  {
+   "role": "Sales Coordinator"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Delivery Schedule Workbench"
+}
