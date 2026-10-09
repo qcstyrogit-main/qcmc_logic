@@ -1,4 +1,4 @@
-frappe.query_reports["Delivery Note Stock Confirmation"] = {
+frappe.query_reports["Delivery Schedule Confirmation"] = {
 	filters: [
 		{fieldname: "company", label: __("Company"), fieldtype: "Link", options: "Company", reqd: 1, default: frappe.defaults.get_user_default("Company")},
 		{fieldname: "delivery_date", label: __("Delivery Date"), fieldtype: "Date", reqd: 1, default: frappe.datetime.get_today()},
@@ -37,10 +37,10 @@ function can_sales_approve() {
 
 function logistics_remarks(report) {
 	const delivery_notes = [...new Set(logistics_selected_rows(report).map(row => row.delivery_note))];
-	if (delivery_notes.length !== 1) return frappe.msgprint(__("Select rows from exactly one Delivery Note."));
+	if (!delivery_notes.length) return frappe.msgprint(__("Select at least one Delivery Note row."));
 	frappe.call({
-		method: "qcmc_logic.qcmc_logics.report.delivery_note_stock_confirmation.delivery_note_stock_confirmation.get_delivery_note_items",
-		args: {delivery_note: delivery_notes[0]},
+		method: "qcmc_logic.qcmc_logics.report.delivery_schedule_confirmation.delivery_schedule_confirmation.get_delivery_note_items_bulk",
+		args: {delivery_notes},
 		callback: response => {
 			if (response.exc) return;
 			with_logistics_reason_options(reason_options => {
@@ -57,6 +57,7 @@ function logistics_remarks(report) {
 							cannot_delete_rows: true,
 							in_place_edit: true,
 							data: (response.message || []).map(row => ({
+								delivery_note: row.delivery_note,
 								dn_detail: row.dn_detail,
 								item_code: row.item_code,
 								item_name: row.item_name,
@@ -67,6 +68,7 @@ function logistics_remarks(report) {
 								logistics_remarks: row.logistics_remarks || ""
 							})),
 							fields: [
+								{fieldname: "delivery_note", label: __("DN"), fieldtype: "Data", read_only: 1, in_list_view: 1, columns: 1},
 								{fieldname: "dn_detail", fieldtype: "Data", hidden: 1},
 								{fieldname: "item_code", label: __("Item"), fieldtype: "Data", read_only: 1, in_list_view: 1, columns: 1},
 								{fieldname: "item_name", label: __("Name"), fieldtype: "Data", read_only: 1, in_list_view: 1, columns: 2},
@@ -81,8 +83,8 @@ function logistics_remarks(report) {
 					primary_action_label: __("Save Logistics Remarks"),
 					primary_action(values) {
 						frappe.call({
-							method: "qcmc_logic.qcmc_logics.report.delivery_note_stock_confirmation.delivery_note_stock_confirmation.save_logistics_remarks",
-							args: {delivery_note: delivery_notes[0], items: values.items || []},
+							method: "qcmc_logic.qcmc_logics.report.delivery_schedule_confirmation.delivery_schedule_confirmation.save_logistics_remarks_bulk",
+							args: {items: values.items || []},
 							freeze: true,
 							freeze_message: __("Saving logistics recommendations..."),
 							callback: r => {
@@ -102,12 +104,14 @@ function logistics_remarks(report) {
 
 function proceed_to_dr(report) {
 	const delivery_notes = [...new Set(logistics_selected_rows(report).map(row => row.delivery_note))];
-	if (delivery_notes.length !== 1) return frappe.msgprint(__("Select rows from exactly one Delivery Note."));
+	if (!delivery_notes.length) return frappe.msgprint(__("Select at least one Delivery Note row."));
 	frappe.call({
-		method: "qcmc_logic.qcmc_logics.report.delivery_note_stock_confirmation.delivery_note_stock_confirmation.get_dr_printing_review_items",
-		args: {delivery_note: delivery_notes[0]},
+		method: "qcmc_logic.qcmc_logics.report.delivery_schedule_confirmation.delivery_schedule_confirmation.get_dr_printing_review_items_bulk",
+		args: {delivery_notes},
 		callback: response => {
 			if (response.exc) return;
+			const items = response.message || [];
+			const reschedule_dates = [...new Set(items.flatMap(row => (row.approved_date_options || "").split("\n")).filter(Boolean))].sort();
 			const dialog = new frappe.ui.Dialog({
 				title: __("Proceed to DR"),
 				size: "extra-large",
@@ -124,19 +128,22 @@ function proceed_to_dr(report) {
 						cannot_add_rows: true,
 						cannot_delete_rows: true,
 						in_place_edit: true,
-						data: response.message || [],
+						data: items,
 						fields: [
+							{fieldname: "delivery_note", label: __("DN"), fieldtype: "Data", read_only: 1, in_list_view: 1, columns: 1},
 							{fieldname: "dn_detail", fieldtype: "Data", hidden: 1},
 							{fieldname: "item_code", label: __("Item"), fieldtype: "Data", read_only: 1, in_list_view: 1, columns: 1},
 							{fieldname: "item_name", label: __("Name"), fieldtype: "Data", read_only: 1, in_list_view: 1, columns: 2},
 							{fieldname: "original_qty", label: __("Orig Qty"), fieldtype: "Float", read_only: 1, in_list_view: 1, columns: 1},
+							{fieldname: "logistics_committed_qty", label: __("Commit Qty"), fieldtype: "Float", read_only: 1, in_list_view: 1, columns: 1},
 							{fieldname: "logistics_proposed_qty", label: __("Prop Qty"), fieldtype: "Float", read_only: 1, in_list_view: 1, columns: 1},
 							{fieldname: "logistics_proposed_date", label: __("Prop Date"), fieldtype: "Date", read_only: 1, in_list_view: 1, columns: 1},
 							{fieldname: "logistics_reason", label: __("Reason"), fieldtype: "Data", read_only: 1, in_list_view: 1, columns: 1},
 							{fieldname: "logistics_remarks", label: __("Remarks"), fieldtype: "Small Text", read_only: 1, in_list_view: 1, columns: 2},
 							{fieldname: "available_reschedule_dates", label: __("Existing Dates"), fieldtype: "Data", read_only: 1},
+							{fieldname: "approved_date_options", fieldtype: "Data", hidden: 1},
 							{fieldname: "approved_qty", label: __("Appr Qty"), fieldtype: "Float", in_list_view: 1, columns: 1},
-							{fieldname: "approved_date", label: __("Appr Date"), fieldtype: "Date", in_list_view: 1, columns: 1},
+							{fieldname: "approved_date", label: __("Appr Date"), fieldtype: "Select", options: "\n" + reschedule_dates.join("\n"), in_list_view: 1, columns: 1},
 							{fieldname: "remove_item", label: __("Remove"), fieldtype: "Check", in_list_view: 1, columns: 1}
 						]
 					}
@@ -144,8 +151,8 @@ function proceed_to_dr(report) {
 				primary_action_label: __("Proceed to DR"),
 				primary_action(values) {
 					frappe.call({
-						method: "qcmc_logic.qcmc_logics.report.delivery_note_stock_confirmation.delivery_note_stock_confirmation.proceed_to_dr_printing",
-						args: {delivery_note: delivery_notes[0], items: values.items || []},
+						method: "qcmc_logic.qcmc_logics.report.delivery_schedule_confirmation.delivery_schedule_confirmation.proceed_to_dr_printing_bulk",
+						args: {items: values.items || []},
 						freeze: true,
 						freeze_message: __("Applying Sales-approved DR values..."),
 						callback: r => {
@@ -164,7 +171,7 @@ function proceed_to_dr(report) {
 
 function with_logistics_reason_options(callback) {
 	frappe.call({
-		method: "qcmc_logic.qcmc_logics.report.delivery_note_stock_confirmation.delivery_note_stock_confirmation.get_logistics_reason_options",
+		method: "qcmc_logic.qcmc_logics.report.delivery_schedule_confirmation.delivery_schedule_confirmation.get_logistics_reason_options",
 		callback: r => callback(r.message || fallback_logistics_reason_options())
 	});
 }

@@ -75,6 +75,33 @@ class TestStorageLocationPaths(TestCase):
 		self.assertIn("pcr.cost_acct_cnt", query)
 		self.assertIn("pcr.physical_count", query)
 
+	@patch("frappe.db.sql", return_value=[])
+	def test_storage_location_balance_sums_tag_groups_without_using_tag_variance(self, sql):
+		_get_warehouse_allocation_location_balances("LOC-1", "FG - Guyong")
+		query = sql.call_args.args[0].lower()
+		self.assertIn("inventory_tag", query)
+		self.assertIn("row_number() over", query.lower())
+		self.assertNotIn("pcr.variance", query)
+
+	@patch("frappe.db.sql", return_value=[])
+	def test_storage_location_history_shows_group_count_and_individual_scan_audit(self, sql):
+		_get_location_movement_details("LOC-1", "FG - Guyong")
+		query = sql.call_args.args[0].lower()
+		self.assertIn("inventory_tag", query)
+		self.assertIn("physical count scan transaction", query)
+
+	@patch("frappe.db.sql", return_value=[])
+	def test_storage_location_history_only_shows_closed_physical_counts(self, sql):
+		_get_location_movement_details("LOC-1", "FG - Guyong")
+		query = " ".join(sql.call_args.args[0].lower().split())
+
+		self.assertEqual(query.count("workflow_state = 'close inventory'"), 2)
+		self.assertIn(
+			"inner join `tabstock reconciliation` scan_sr on scan_sr.name = tx.reconciliation",
+			query,
+		)
+		self.assertIn("scan_sr.docstatus = 1", query)
+
 
 	def test_location_code_is_normalized_for_rename(self):
 		self.assertEqual(normalize_location_code(" sdw1 staging "), "SDW1-STAGING")

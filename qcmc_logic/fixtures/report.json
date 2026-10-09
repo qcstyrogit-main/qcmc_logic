@@ -1124,7 +1124,7 @@
   "javascript": null,
   "json": null,
   "letter_head": null,
-  "module": null,
+  "module": "Stock",
   "name": "Booklet Monitoring Report",
   "prepared_report": 0,
   "query": null,
@@ -2106,37 +2106,6 @@
   "javascript": null,
   "json": null,
   "letter_head": null,
-  "module": "QCMC Logics",
-  "name": "Delivery Note Stock Confirmation",
-  "prepared_report": 0,
-  "query": null,
-  "ref_doctype": "Delivery Note",
-  "reference_report": null,
-  "report_name": "Delivery Note Stock Confirmation",
-  "report_script": null,
-  "report_type": "Script Report",
-  "roles": [
-   {
-    "role": "Stock Confirm User"
-   },
-   {
-    "role": "Sales Coordinator"
-   }
-  ],
-  "timeout": 0
- },
- {
-  "add_total_row": 0,
-  "add_translate_data": 0,
-  "columns": [],
-  "disabled": 0,
-  "docstatus": 0,
-  "doctype": "Report",
-  "filters": [],
-  "is_standard": "Yes",
-  "javascript": null,
-  "json": null,
-  "letter_head": null,
   "module": "Stock",
   "name": "Delivery Note Trends",
   "prepared_report": 0,
@@ -2158,6 +2127,37 @@
    },
    {
     "role": "Accounts User"
+   }
+  ],
+  "timeout": 0
+ },
+ {
+  "add_total_row": 0,
+  "add_translate_data": 0,
+  "columns": [],
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Report",
+  "filters": [],
+  "is_standard": "Yes",
+  "javascript": null,
+  "json": null,
+  "letter_head": null,
+  "module": "QCMC Logics",
+  "name": "Delivery Schedule Confirmation",
+  "prepared_report": 0,
+  "query": null,
+  "ref_doctype": "Delivery Note",
+  "reference_report": null,
+  "report_name": "Delivery Schedule Confirmation",
+  "report_script": null,
+  "report_type": "Script Report",
+  "roles": [
+   {
+    "role": "Stock Confirm User"
+   },
+   {
+    "role": "Sales Coordinator"
    }
   ],
   "timeout": 0

@@ -1,0 +1,101 @@
+{
+ "actions": [],
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "machine",
+  "plan_date",
+  "possible_sales_orders_section",
+  "possible_sales_orders",
+  "scheduled_items_section",
+  "second_item",
+  "second_item_description",
+  "third_item_column",
+  "third_item",
+  "third_item_description"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "machine",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Machine",
+   "options": "Workstation",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "plan_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Plan Date",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "possible_sales_orders_section",
+   "fieldtype": "Section Break",
+   "label": "Possible Sales Orders"
+  },
+  {
+   "fieldname": "possible_sales_orders",
+   "fieldtype": "HTML",
+   "label": "Possible Sales Orders"
+  },
+  {
+   "fieldname": "scheduled_items_section",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Scheduled FG Items"
+  },
+  {
+   "columns": 4,
+   "fieldname": "second_item",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "Item 1",
+   "options": "Item"
+  },
+  {
+   "fieldname": "second_item_description",
+   "fieldtype": "Small Text",
+   "fetch_from": "second_item.description",
+   "hidden": 1,
+   "label": "Item 1 Description",
+   "read_only": 1
+  },
+  {
+   "fieldname": "third_item_column",
+   "fieldtype": "Column Break"
+   ,"hidden": 1
+  },
+  {
+   "columns": 4,
+   "fieldname": "third_item",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "Item 2",
+   "options": "Item"
+  },
+  {
+   "fieldname": "third_item_description",
+   "fieldtype": "Small Text",
+   "fetch_from": "third_item.description",
+   "hidden": 1,
+   "label": "Item 2 Description",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "module": "QCMC Logics",
+ "name": "Weekly Production Plan Detail",
+ "permissions": [],
+ "sort_field": "idx",
+ "sort_order": "ASC",
+ "states": []
+}

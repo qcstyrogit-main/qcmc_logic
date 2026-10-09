@@ -1,0 +1,32 @@
+{
+ "doctype": "DocType",
+ "name": "Mobile Device Token",
+ "module": "QCMC Logics",
+ "autoname": "hash",
+ "engine": "InnoDB",
+ "field_order": [
+  "device_session",
+  "token_hash",
+  "issued_at",
+  "last_used_at",
+  "status",
+  "grace_expires_at",
+  "predecessor",
+  "replaced_by",
+  "revoked_at"
+ ],
+ "fields": [
+  {"fieldname": "device_session", "fieldtype": "Link", "label": "Device Session", "options": "Mobile Device Session", "reqd": 1, "read_only": 1},
+  {"fieldname": "token_hash", "fieldtype": "Data", "label": "Token Hash", "length": 64, "reqd": 1, "unique": 1, "read_only": 1, "hidden": 1},
+  {"fieldname": "issued_at", "fieldtype": "Datetime", "label": "Issued At", "reqd": 1, "read_only": 1},
+  {"fieldname": "last_used_at", "fieldtype": "Datetime", "label": "Last Used At", "reqd": 1, "read_only": 1},
+  {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "Active\nGrace\nRevoked", "default": "Active", "reqd": 1, "read_only": 1},
+  {"fieldname": "grace_expires_at", "fieldtype": "Datetime", "label": "Grace Expires At", "read_only": 1},
+  {"fieldname": "predecessor", "fieldtype": "Link", "label": "Predecessor", "options": "Mobile Device Token", "read_only": 1},
+  {"fieldname": "replaced_by", "fieldtype": "Link", "label": "Replaced By", "options": "Mobile Device Token", "read_only": 1},
+  {"fieldname": "revoked_at", "fieldtype": "Datetime", "label": "Revoked At", "read_only": 1}
+ ],
+ "permissions": [],
+ "sort_field": "issued_at",
+ "sort_order": "DESC"
+}

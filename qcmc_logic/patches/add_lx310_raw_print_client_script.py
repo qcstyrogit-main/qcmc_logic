@@ -14,12 +14,18 @@ def execute():
             row for row in json.load(fixture_file) if row.get("name") == CLIENT_SCRIPT
         )
 
-    if frappe.db.exists("Client Script", CLIENT_SCRIPT):
-        doc = frappe.get_doc("Client Script", CLIENT_SCRIPT)
+    # Fixture synchronization can leave a stale Document object in request
+    # locals after deleting the DB row. Use a fresh DB lookup and avoid saving
+    # that stale object during this migration.
+    if frappe.db.get_value("Client Script", CLIENT_SCRIPT, "name"):
+        values = {
+            key: value
+            for key, value in script_data.items()
+            if key not in {"doctype", "name", "docstatus"}
+        }
+        frappe.db.set_value("Client Script", CLIENT_SCRIPT, values)
     else:
-        doc = frappe.new_doc("Client Script")
-        doc.name = CLIENT_SCRIPT
+        frappe.get_doc(script_data).insert(ignore_permissions=True)
 
-    doc.update(script_data)
-    doc.save(ignore_permissions=True)
+    frappe.clear_document_cache("Client Script", CLIENT_SCRIPT)
     frappe.clear_cache(doctype="Client Script")

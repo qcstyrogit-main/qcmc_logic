@@ -390,6 +390,16 @@
   "restrict_to_domain": null
  },
  {
+  "app_name": "rate_guard",
+  "custom": 0,
+  "docstatus": 0,
+  "doctype": "Module Def",
+  "module_name": "Rate Guard",
+  "name": "Rate Guard",
+  "package": null,
+  "restrict_to_domain": null
+ },
+ {
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,

@@ -456,7 +456,8 @@ app_include_js = [
     "/assets/qcmc_logic/js/warehouse_access.js",
     "/assets/qcmc_logic/js/inventory_group_access.js",
     "/assets/qcmc_logic/js/warehouse_transfer.js",
-    "/assets/qcmc_logic/js/customer_warehouse_defaults.js"
+    "/assets/qcmc_logic/js/customer_warehouse_defaults.js",
+    "/assets/qcmc_logic/js/login_notices.js?v=20261009-announcement-cards-1"
 ]
 
 
@@ -671,3 +672,5 @@ scheduler_events = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+# Add the current login marker after cached boot data is loaded.
+extend_bootinfo = ["qcmc_logic.api.login_notices.extend_bootinfo"]

@@ -5,11 +5,17 @@ import hashlib
 import math
 import uuid
 from collections import defaultdict
-from frappe.auth import LoginManager
 from frappe.utils import cint, get_datetime, now_datetime, nowdate
 from erpnext.stock.utils import get_stock_balance
 from qcmc_logic.overrides.putaway_rule_dimension import get_dimension_stock_balance
+from qcmc_logic.physical_count_grouping import (
+    aggregate_physical_count_locations,
+    latest_physical_count_groups,
+    normalize_inventory_tag,
+    physical_count_group_key,
+)
 from qcmc_logic.utils import ensure_scanner_warehouse_access
+from qcmc_logic.api.mobile_auth import extract_mobile_token, resolve_device_token_user
 
 def _safe_float(value, default=0.0):
     try:
@@ -159,18 +165,34 @@ def _current_inventory_quantity(item_code, warehouse, storage_location, batch_no
     storage_location = str(storage_location or "").strip()
     latest_count = frappe.db.sql(
         """
-        select coalesce(cast(nullif(nullif(pcr.cost_acct_cnt, ''), '0.000000000') as decimal(21,9)), pcr.physical_count) as physical_count,
-               coalesce(pcr.submitted_at, sr.modified) as counted_at
-        from `tabQCMC Physical Count Result` pcr
-        inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
-        where sr.docstatus = 1 and sr.custom_physical_count = 1
-          and pcr.item_code = %s and pcr.warehouse = %s
-          and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %s
-        order by coalesce(pcr.submitted_at, sr.modified) desc, pcr.idx desc
-        limit 1
+        with ranked_groups as (
+            select pcr.*,
+                   coalesce(pcr.submitted_at, sr.modified) as group_counted_at,
+                   row_number() over (
+                       partition by pcr.item_code, pcr.warehouse,
+                           coalesce(nullif(pcr.location, ''), pcr.inventory_location),
+                           coalesce(pcr.batch_no, ''), coalesce(pcr.serial_no, ''),
+                           coalesce(pcr.uom, ''), coalesce(pcr.inventory_tag, '')
+                       order by coalesce(pcr.submitted_at, sr.modified) desc, pcr.idx desc
+                   ) as row_rank
+            from `tabQCMC Physical Count Result` pcr
+            inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
+            where sr.docstatus = 1 and sr.custom_physical_count = 1
+              and pcr.item_code = %s and pcr.warehouse = %s
+              and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %s
+              and coalesce(pcr.batch_no, '') = %s
+              and coalesce(pcr.serial_no, '') = %s
+        )
+        select sum(coalesce(cast(nullif(nullif(cost_acct_cnt, ''), '0.000000000') as decimal(21,9)), physical_count)) as physical_count,
+               max(group_counted_at) as counted_at
+        from ranked_groups where row_rank = 1
         """,
-        (item_code, warehouse, storage_location), as_dict=True,
+        (
+            item_code, warehouse, storage_location,
+            str(batch_no or "").strip(), str(serial_no or "").strip(),
+        ), as_dict=True,
     )
+    latest_count = latest_count if latest_count and latest_count[0].counted_at else []
     cutoff = latest_count[0].counted_at if latest_count else None
     allocation_state = frappe.db.sql(
         """
@@ -214,50 +236,38 @@ def _quantities_equal(left, right):
 
 
 def _extract_mobile_token(mobile_token=None):
-    token = str(mobile_token or "").strip()
-    if token:
-        return token
-
-    form_token = str(frappe.form_dict.get("mobile_token") or "").strip()
-    if form_token:
-        return form_token
-
-    request = getattr(frappe.local, "request", None)
-    if request:
-        try:
-            payload = request.get_json(silent=True) or {}
-        except Exception:
-            payload = {}
-
-        if isinstance(payload, dict):
-            json_token = str(payload.get("mobile_token") or "").strip()
-            if json_token:
-                return json_token
-
-    return ""
+    return extract_mobile_token(mobile_token)
 
 
 def _resolve_mobile_token_user(token):
-    if not token:
-        return None
-    import hashlib
-    digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
-    return frappe.cache.get_value(f"qcmc_scanner_mobile_token:{digest}") or None
+    return resolve_device_token_user(token)
 
 
 def _authenticate_request_user(mobile_token=None):
-    if frappe.session.user != "Guest":
-        return frappe.session.user
-
     token = _extract_mobile_token(mobile_token)
-    user = _resolve_mobile_token_user(token)
-    if not user:
+    if token:
+        user = _resolve_mobile_token_user(token)
+        if not user:
+            return None
+    elif frappe.session.user != "Guest":
+        return frappe.session.user
+    else:
         return None
 
-    login_manager = LoginManager()
-    login_manager.login_as(user)
-    frappe.db.commit()
-    return frappe.session.user
+    # A mobile token authenticates only this API request. Creating a full
+    # LoginManager session here updates User.last_login/last_active and commits
+    # in the middle of scanner transactions, causing contention on tabUser.
+    request_user = frappe.session.user
+    if user == request_user:
+        return user
+    frappe.set_user(user)
+    request = getattr(frappe.local, "request", None)
+    after_response = getattr(request, "after_response", None) if request else None
+    if after_response is not None:
+        # Frappe schedules Session.update after the endpoint returns. Restore
+        # Guest first so token-only requests cannot update User.last_active.
+        after_response.add(lambda: frappe.set_user(request_user))
+    return user
 
 
 def _get_item_defaults(item_code):
@@ -398,29 +408,13 @@ def _parse_positive_delta(value, row_number):
 
 
 def _resolve_increment_uom(request_uom, stock_uom, row_number):
-    """Resolve a scanner display UOM to the item's authoritative ERP Stock UOM."""
-    request_uom = str(request_uom or "").strip()
+    """Always use the item's authoritative ERP Stock UOM for scanner counts."""
     stock_uom = str(stock_uom or "").strip()
-    if not request_uom:
-        if not stock_uom:
-            frappe.throw(
-                f"Entry #{row_number}: Item Stock UOM is not configured in ERPNext."
-            )
-        return stock_uom
-
-    request_key = request_uom.casefold()
-    stock_key = stock_uom.casefold()
-    piece_uoms = {"pc", "pcs", "pcs.", "piece", "pieces"}
-    if request_key == stock_key or request_key == f"{stock_key}s" or (
-        request_key in piece_uoms and stock_key in piece_uoms
-    ):
-        return stock_uom
-
-    if not frappe.db.exists("UOM", request_uom):
-        frappe.throw(f"Entry #{row_number}: UOM '{request_uom}' does not exist.")
-    frappe.throw(
-        f"Entry #{row_number}: UOM '{request_uom}' does not match Item stock UOM '{stock_uom}'."
-    )
+    if not stock_uom:
+        frappe.throw(
+            f"Entry #{row_number}: Item Stock UOM is not configured in ERPNext."
+        )
+    return stock_uom
 
 
 def _normalize_submission_id(submission_id):
@@ -444,7 +438,7 @@ def _get_increment_replay(submission_id, request_hash):
     record = frappe.db.get_value(
         "Physical Count Submission",
         submission_id,
-        ["request_hash", "result_json"],
+        ["request_hash", "result_json", "status"],
         as_dict=True,
     )
     if not record:
@@ -455,7 +449,15 @@ def _get_increment_replay(submission_id, request_hash):
             "Generate a new UUID for a new submission. "
             "[SUBMISSION_ID_PAYLOAD_MISMATCH]"
         )
+
+    # RECEIVED/QUEUED/VALIDATING records are staging inbox records, not completed
+    # replays. Only a finished submission may short-circuit business processing.
+    if str(record.status or "").strip().upper() not in {"SUCCESS", "COMPLETED"}:
+        return None
+
     result = json.loads(record.result_json or "{}")
+    if not result:
+        return None
     result["duplicate_submission"] = True
     return result
 
@@ -536,11 +538,24 @@ def _validate_adjustment_entry(entry, row_number, doc):
         _parse_finite_number(erp_baseline_raw, "expectedERPQuantity", row_number)
         if erp_baseline_raw is not None else None
     )
+    quantity_raw = entry.get("quantity")
+    physical_count_raw = entry.get("physicalCount", entry.get("physical_count"))
+    if physical_count_raw is None:
+        physical_count_raw = quantity_raw
     physical_count = _parse_finite_number(
-        entry.get("physicalCount", entry.get("physical_count")), "physicalCount", row_number
+        physical_count_raw, "physicalCount", row_number
     )
     if physical_count < 0:
         frappe.throw(f"Entry #{row_number}: physicalCount cannot be negative.")
+    if quantity_raw is not None:
+        final_quantity = _parse_finite_number(quantity_raw, "quantity", row_number)
+        if final_quantity < 0:
+            frappe.throw(f"Entry #{row_number}: quantity cannot be negative.")
+        if not _quantities_equal(final_quantity, physical_count):
+            frappe.throw(
+                f"Entry #{row_number}: quantity and physicalCount must contain the same "
+                "final counted quantity."
+            )
     transactions = entry.get("transactions") or []
     if not isinstance(transactions, list):
         frappe.throw(f"Entry #{row_number}: transactions must be a list.")
@@ -659,6 +674,49 @@ def _make_pcount_stock_entry(doc, purpose, rows, reconciliation_id):
     return stock_entry
 
 
+def _inventory_tag(transaction):
+    """Return a scan transaction's optional Inventory Tag."""
+    return normalize_inventory_tag(
+        transaction.get("inventoryTag") or transaction.get("inventory_tag") or ""
+    )
+
+
+def _apply_inventory_tag_to_audit_values(values, transaction):
+    """Persist a scan transaction's Inventory Tag on its audit record."""
+    inventory_tag = _inventory_tag(transaction)
+    if not inventory_tag:
+        return values
+    values["inventory_tag"] = inventory_tag
+    return values
+
+
+def _group_entry_transactions(entry):
+    """Group only this request's new transactions by normalized Inventory Tag."""
+    groups = {}
+    for transaction in entry.transactions or []:
+        inventory_tag = _inventory_tag(transaction)
+        group = groups.setdefault(inventory_tag, frappe._dict(
+            inventory_tag=inventory_tag, transactions=[], quantity_delta=0.0,
+        ))
+        normalized = dict(transaction)
+        normalized.pop("inventory_tag", None)
+        if inventory_tag:
+            normalized["inventoryTag"] = inventory_tag
+        else:
+            normalized.pop("inventoryTag", None)
+        change = _safe_float(
+            transaction.get("quantityChange", transaction.get("quantity_change"))
+        )
+        normalized["quantityChange"] = change
+        group.transactions.append(normalized)
+        group.quantity_delta += change
+    if not groups:
+        return [frappe._dict(
+            inventory_tag="", transactions=[], quantity_delta=_safe_float(entry.quantity_delta),
+        )]
+    return list(groups.values())
+
+
 def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
     savepoint = "physical_count_adjustment"
     frappe.db.savepoint(savepoint)
@@ -685,70 +743,89 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
             _validate_adjustment_entry(entry, index, doc)
             for index, entry in enumerate(entries, start=1)
         ]
-        latest_count_by_key = {}
-        for result_row in doc.get("custom_physical_count_results") or []:
-            result_key = (
-                result_row.item_code,
-                result_row.warehouse,
-                result_row.get("location") or result_row.inventory_location,
-                result_row.get("batch_no") or "",
-                result_row.get("serial_no") or "",
-                result_row.uom or "",
-            )
-            latest_count_by_key[result_key] = _safe_float(result_row.physical_count)
+        latest_rows = latest_physical_count_groups(
+            doc.get("custom_physical_count_results") or []
+        )
 
         planned = []
         for index, entry in enumerate(normalized, start=1):
-            dimensions = {"location": entry.location}
-            current = _current_inventory_quantity(
+            location_prefix = physical_count_group_key(frappe._dict(
+                item_code=entry.item_code, warehouse=entry.warehouse,
+                location=entry.location, batch_no=entry.batch_no,
+                serial_no=entry.serial_no, uom=entry.stock_uom,
+            ))[:6]
+            location_rows = [
+                row for key, row in latest_rows.items() if key[:6] == location_prefix
+            ]
+            live_quantity = _current_inventory_quantity(
                 entry.item_code, entry.warehouse, entry.location,
                 entry.batch_no, entry.serial_no,
             )
-            expected_baseline = entry.erp_baseline if entry.erp_baseline is not None else entry.expected
-            if not _quantities_equal(current, expected_baseline):
-                entry.expected = expected_baseline
-                raise PhysicalCountConflict(current, entry)
-
-            count_key = (
-                entry.item_code, entry.warehouse, entry.location,
-                entry.batch_no or "", entry.serial_no or "", entry.stock_uom or "",
+            current = (
+                _safe_float(location_rows[0].erp_quantity_before)
+                if location_rows else live_quantity
             )
-            previous_physical_count = latest_count_by_key.get(count_key, 0.0)
-            authoritative_physical_count = previous_physical_count + entry.quantity_delta
-            if authoritative_physical_count < -1e-9:
-                frappe.throw(
-                    f"Entry #{index}: the physical count cannot become negative."
-                )
+            expected_baseline = (
+                entry.erp_baseline
+                if entry.erp_baseline is not None
+                else current if location_rows else entry.expected
+            )
+            if not _quantities_equal(live_quantity, expected_baseline):
+                entry.expected = expected_baseline
+                raise PhysicalCountConflict(live_quantity, entry)
 
-            running_quantity = previous_physical_count
-            normalized_transactions = []
-            for transaction in entry.transactions:
-                normalized_transaction = dict(transaction)
-                change = _parse_finite_number(
-                    transaction.get("quantityChange", transaction.get("quantity_change")),
-                    "quantityChange", index,
+            planned_groups = []
+            for group in _group_entry_transactions(entry):
+                identity = frappe._dict(
+                    item_code=entry.item_code, warehouse=entry.warehouse,
+                    location=entry.location, batch_no=entry.batch_no,
+                    serial_no=entry.serial_no, uom=entry.stock_uom,
+                    inventory_tag=group.inventory_tag,
                 )
-                running_quantity += change
-                if running_quantity < -1e-9:
+                key = physical_count_group_key(identity)
+                existing = latest_rows.get(key)
+                previous = _safe_float(existing.physical_count if existing else 0)
+                running = previous
+                for transaction in group.transactions:
+                    transaction_id = str(
+                        transaction.get("id") or transaction.get("transaction_id") or ""
+                    ).strip()
+                    if frappe.db.exists(
+                        "Physical Count Scan Transaction", {"transaction_id": transaction_id}
+                    ):
+                        frappe.throw(f"Transaction ID '{transaction_id}' has already been submitted.")
+                    running += _safe_float(transaction.get("quantityChange"))
+                    if running < -1e-9:
+                        frappe.throw(
+                            f"Entry #{index}: the Inventory Tag group cannot become negative."
+                        )
+                    transaction["runningQuantity"] = running
+                authoritative = previous + group.quantity_delta
+                if authoritative < -1e-9:
                     frappe.throw(
-                        f"Entry #{index}: transaction history makes the physical count negative."
+                        f"Entry #{index}: the Inventory Tag group cannot become negative."
                     )
-                normalized_transaction["quantityChange"] = change
-                normalized_transaction["runningQuantity"] = running_quantity
-                normalized_transactions.append(normalized_transaction)
+                group.previous_physical_count = previous
+                group.physical_count = authoritative
+                group.existing = existing
+                planned_groups.append(group)
+                latest_rows[key] = existing or identity
+                latest_rows[key].physical_count = authoritative
 
-            entry.expected = previous_physical_count
-            entry.physical_count = authoritative_physical_count
-            entry.transactions = normalized_transactions
-            latest_count_by_key[count_key] = authoritative_physical_count
-            variance = authoritative_physical_count - current
-            planned.append((index, entry, current, variance))
+            location_total = sum(
+                _safe_float(row.physical_count)
+                for key, row in latest_rows.items()
+                if key[:6] == location_prefix
+            )
+            entry.physical_count = location_total
+            planned.append((index, entry, current, planned_groups))
 
         scanner_full_name = frappe.get_cached_value("User", user, "full_name") or user
         response_entries = []
         audit_docs = []
         submitted_at = now_datetime()
-        for index, entry, current, variance in planned:
+        for index, entry, current, groups in planned:
+            variance = entry.physical_count - current
             adjustment = None
             status = "Pending adjustment"
             response_entries.append({
@@ -769,15 +846,7 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                     transaction.get("quantityChange", transaction.get("quantity_change")),
                     "quantityChange", index,
                 )
-                existing_transaction = frappe.db.get_value(
-                    "Physical Count Scan Transaction",
-                    {"transaction_id": transaction_id},
-                    ["item_code", "warehouse", "storage_location", "action", "quantity_change"],
-                    as_dict=True,
-                )
-                if existing_transaction:
-                    frappe.throw(f"Transaction ID '{transaction_id}' has already been submitted.")
-                audit_docs.append({
+                audit_values = {
                     "transaction_id": transaction_id, "submission_id": submission_id,
                     "entry_number": index, "reconciliation": reconciliation_id,
                     "item_code": entry.item_code, "warehouse": entry.warehouse,
@@ -790,28 +859,40 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                     "scanner_full_name": str(transaction.get("employeeName") or scanner_full_name),
                     "employee_id": str(transaction.get("employeeId") or ""),
                     "device_id": str(transaction.get("deviceId") or entry.device_id),
-                })
-            audit_docs.append({
-                "transaction_id": f"{submission_id}:summary:{index}", "submission_id": submission_id,
-                "entry_number": index, "reconciliation": reconciliation_id,
-                "item_code": entry.item_code, "warehouse": entry.warehouse,
-                "storage_location": entry.location, "uom": entry.stock_uom,
-                "action": "SUBMITTED" if variance >= 0 else "CORRECTION_SUBMITTED",
-                "quantity_change": entry.quantity_delta,
-                "previous_quantity": entry.physical_count - entry.quantity_delta,
-                "running_quantity": entry.physical_count, "scanned_at": now_datetime(),
-                "processed_at": now_datetime(), "scanner_user": user,
-                "scanner_full_name": scanner_full_name, "device_id": entry.device_id,
-                "physical_count": entry.physical_count, "variance": variance,
-                "adjustment_document_type": "",
-                "adjustment_document": "",
-            })
+                }
+                audit_docs.append(_apply_inventory_tag_to_audit_values(audit_values, transaction))
+            for group_index, group in enumerate(groups, start=1):
+                group_variance = group.physical_count - current
+                audit_docs.append(_apply_inventory_tag_to_audit_values({
+                    "transaction_id": f"{submission_id}:summary:{index}:{group_index}",
+                    "submission_id": submission_id, "entry_number": index,
+                    "reconciliation": reconciliation_id, "item_code": entry.item_code,
+                    "warehouse": entry.warehouse, "storage_location": entry.location,
+                    "uom": entry.stock_uom,
+                    "action": "SUBMITTED" if group_variance >= 0 else "CORRECTION_SUBMITTED",
+                    "quantity_change": group.quantity_delta,
+                    "previous_quantity": group.previous_physical_count,
+                    "running_quantity": group.physical_count, "scanned_at": now_datetime(),
+                    "processed_at": now_datetime(), "scanner_user": user,
+                    "scanner_full_name": scanner_full_name, "device_id": entry.device_id,
+                    "physical_count": group.physical_count, "variance": group_variance,
+                    "adjustment_document_type": "", "adjustment_document": "",
+                }, {"inventoryTag": group.inventory_tag}))
 
-            first_transaction = entry.transactions[0] if entry.transactions else {}
-            employee_id = str(first_transaction.get("employeeId") or "").strip()
-            employee = employee_id if employee_id and frappe.db.exists("Employee", employee_id) else None
-            doc.append("custom_physical_count_results", {
+                first_transaction = group.transactions[0] if group.transactions else {}
+                employee_id = str(first_transaction.get("employeeId") or "").strip()
+                employee = employee_id if employee_id and frappe.db.exists("Employee", employee_id) else None
+                existing_history = []
+                if group.existing and group.existing.scan_history_json:
+                    try:
+                        parsed_history = json.loads(group.existing.scan_history_json)
+                        existing_history = parsed_history if isinstance(parsed_history, list) else []
+                    except (TypeError, ValueError):
+                        existing_history = []
+                history = existing_history + group.transactions
+                values = {
                 "submission_id": submission_id,
+                "inventory_tag": group.inventory_tag,
                 "item_code": entry.item_code,
                 "item_name": entry.item_name,
                 "warehouse": entry.warehouse,
@@ -825,10 +906,10 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                 "batch_no": entry.batch_no,
                 "serial_no": entry.serial_no,
                 "erp_quantity_before": current,
-                "expected_previous_count": entry.expected,
-                "quantity_delta": entry.quantity_delta,
-                "physical_count": entry.physical_count,
-                "variance": variance,
+                "expected_previous_count": group.previous_physical_count,
+                "quantity_delta": group.quantity_delta,
+                "physical_count": group.physical_count,
+                "variance": group_variance,
                 "adjustment_document_type": "",
                 "adjustment_document": "",
                 "adjustment_status": "Pending",
@@ -841,12 +922,15 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                     if first_transaction else submitted_at
                 ),
                 "submitted_at": submitted_at,
-                "transaction_count": len(entry.transactions),
-                "scan_history_json": json.dumps(
-                    entry.transactions, sort_keys=True, default=str
-                ),
+                "transaction_count": len(history),
+                "scan_history_json": json.dumps(history, sort_keys=True, default=str),
                 "status": status,
-            })
+                }
+                if group.existing:
+                    for fieldname, value in values.items():
+                        group.existing.set(fieldname, value)
+                else:
+                    doc.append("custom_physical_count_results", values)
 
         doc.save(ignore_permissions=True)
         for values in audit_docs:
@@ -858,14 +942,30 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
             "message": "Physical Count saved to Draft Stock Reconciliation.",
             "results": response_entries,
         }
-        frappe.get_doc({
-            "doctype": "Physical Count Submission", "submission_id": submission_id,
-            "reconciliation": reconciliation_id, "operation": "adjustment", "status": "Success",
+        submission_values = {
+            "reconciliation": reconciliation_id,
+            "operation": "adjustment",
+            "status": "COMPLETED",
             "device_ids": ", ".join(sorted({entry.device_id for entry in normalized if entry.device_id})),
-            "processed_at": now_datetime(), "processed_by": user, "request_hash": request_hash,
+            "processed_at": now_datetime(),
+            "processed_by": user,
+            "request_hash": request_hash,
             "request_json": request_json,
             "result_json": json.dumps(result, sort_keys=True, separators=(",", ":")),
-        }).insert(ignore_permissions=True)
+            "error_code": "",
+            "error_message": "",
+        }
+        if frappe.db.exists("Physical Count Submission", submission_id):
+            submission = frappe.get_doc("Physical Count Submission", submission_id)
+            for fieldname, value in submission_values.items():
+                submission.set(fieldname, value)
+            submission.save(ignore_permissions=True)
+        else:
+            frappe.get_doc({
+                "doctype": "Physical Count Submission",
+                "submission_id": submission_id,
+                **submission_values,
+            }).insert(ignore_permissions=True)
         frappe.db.commit()
         return result
     except Exception:
@@ -876,26 +976,15 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
 def post_pending_pcount_adjustments(doc):
     """Post the latest location counts when a Physical Count is activated."""
     unallocated_cache = {}
-    latest = {}
-    for result in doc.get("custom_physical_count_results") or []:
-        key = (
-            result.item_code,
-            result.warehouse,
-            result.get("location") or result.inventory_location,
-            result.get("batch_no") or "",
-            result.get("serial_no") or "",
-            result.uom or "",
-        )
-        if key in latest:
-            latest[key].status = "Old Count"
-            latest[key].adjustment_status = "Old Count"
-        latest[key] = result
-
-    if not latest:
+    aggregates = aggregate_physical_count_locations(
+        doc.get("custom_physical_count_results") or [], _effective_physical_count
+    )
+    if not aggregates:
         frappe.throw("No Physical Count Details are available to activate.")
 
     planned = []
-    for result in latest.values():
+    for aggregate in aggregates.values():
+        result = aggregate.groups[0]
         location = result.get("location") or result.inventory_location
         if str(result.submission_id or "").startswith("AUTO-UNALLOCATED-"):
             if result.warehouse not in unallocated_cache:
@@ -909,13 +998,13 @@ def post_pending_pcount_adjustments(doc):
                 result.item_code, result.warehouse, location,
                 result.get("batch_no"), result.get("serial_no"),
             )
-        if not _quantities_equal(current, result.erp_quantity_before):
+        if not _quantities_equal(current, aggregate.erp_quantity_before):
             frappe.throw(
                 "ERP stock changed after this physical count was recorded for "
                 f"{result.item_code} at {location}. Expected "
-                f"{result.erp_quantity_before}, found {current}. Refresh and review."
+                f"{aggregate.erp_quantity_before}, found {current}. Refresh and review."
             )
-        variance = _effective_physical_count(result) - current
+        variance = aggregate.effective_count - current
         entry = frappe._dict(
             item_code=result.item_code,
             warehouse=result.warehouse,
@@ -924,43 +1013,44 @@ def post_pending_pcount_adjustments(doc):
             batch_no=result.get("batch_no") or "",
             serial_no=result.get("serial_no") or "",
         )
-        planned.append((result, entry, current, variance))
+        planned.append((aggregate, entry, current, variance))
 
     receipt_rows = [(entry, variance) for _, entry, _, variance in planned if variance > 1e-9]
     issue_rows = [(entry, variance) for _, entry, _, variance in planned if variance < -1e-9]
     receipt = _make_pcount_stock_entry(doc, "Material Receipt", receipt_rows, doc.name) if receipt_rows else None
     issue = _make_pcount_stock_entry(doc, "Material Issue", issue_rows, doc.name) if issue_rows else None
 
-    for result, entry, current, variance in planned:
+    for aggregate, entry, current, variance in planned:
         adjustment = receipt if variance > 1e-9 else issue if variance < -1e-9 else None
-        result.erp_quantity_before = current
-        result.variance = variance
-        result.adjustment_document_type = "Stock Entry" if adjustment else ""
-        result.adjustment_document = adjustment.name if adjustment else ""
-        result.adjustment_status = "Submitted" if adjustment else "Not required"
-        result.status = "Adjusted" if adjustment else "No adjustment required"
+        for result in aggregate.groups:
+            result.erp_quantity_before = current
+            result.adjustment_document_type = "Stock Entry" if adjustment else ""
+            result.adjustment_document = adjustment.name if adjustment else ""
+            result.adjustment_status = "Submitted" if adjustment else "Not required"
+            result.status = "Adjusted" if adjustment else "No adjustment required"
 
-        summary_transaction = frappe.db.get_value(
-            "Physical Count Scan Transaction",
-            {
+            filters = {
                 "submission_id": result.submission_id,
                 "item_code": result.item_code,
                 "warehouse": result.warehouse,
                 "storage_location": entry.location,
                 "physical_count": ["is", "set"],
-            },
-            "name",
-        )
-        if summary_transaction:
-            frappe.db.set_value(
-                "Physical Count Scan Transaction", summary_transaction,
-                {
-                    "variance": variance,
-                    "adjustment_document_type": "Stock Entry" if adjustment else "",
-                    "adjustment_document": adjustment.name if adjustment else "",
-                },
-                update_modified=False,
+            }
+            if result.get("inventory_tag"):
+                filters["inventory_tag"] = result.inventory_tag
+            summary_transaction = frappe.db.get_value(
+                "Physical Count Scan Transaction", filters, "name"
             )
+            if summary_transaction:
+                frappe.db.set_value(
+                    "Physical Count Scan Transaction", summary_transaction,
+                    {
+                        "variance": variance,
+                        "adjustment_document_type": "Stock Entry" if adjustment else "",
+                        "adjustment_document": adjustment.name if adjustment else "",
+                    },
+                    update_modified=False,
+                )
 
     return [document.name for document in (receipt, issue) if document]
 
@@ -1047,6 +1137,7 @@ def _validate_increment_entry(entry, row_number, doc):
         device_id=device_id,
         action=action,
         scanned_at=entry.get("timestamp") or entry.get("scannedAt") or entry.get("scanned_at"),
+        inventory_tag=_inventory_tag(entry),
     )
 
 
@@ -1172,6 +1263,7 @@ def _submit_increment_entries(reconciliation_id, submission_id, entries, user):
                     "scanner_user": user,
                     "scanner_full_name": scanner_full_name,
                     "device_id": increment.device_id,
+                    "inventory_tag": increment.inventory_tag,
                 }
             )
 
@@ -1208,6 +1300,305 @@ def _submit_increment_entries(reconciliation_id, submission_id, entries, user):
         raise
 
 
+def _adjustment_validation_context(entries, error):
+    if not isinstance(entries, list):
+        return {}
+    match = re.search(r"(?:Entry|Row)\s+#(\d+)", str(error), flags=re.IGNORECASE)
+    if not match:
+        return {}
+    row_number = int(match.group(1))
+    if row_number < 1 or row_number > len(entries):
+        return {}
+    entry = entries[row_number - 1]
+    if not isinstance(entry, dict):
+        return {}
+    bin_data = entry.get("bin") if isinstance(entry.get("bin"), dict) else {}
+    return {
+        "item_code": entry.get("itemCode") or entry.get("item_code") or "",
+        "inventory_location": (
+            entry.get("inventoryLocation")
+            or entry.get("inventory_location")
+            or entry.get("storageLocation")
+            or entry.get("storage_location")
+            or bin_data.get("locationId")
+            or bin_data.get("location_id")
+            or ""
+        ),
+        "quantity": entry.get("quantity"),
+        "quantity_delta": entry.get("quantityDelta", entry.get("quantity_delta")),
+        "physical_count": entry.get("physicalCount", entry.get("physical_count")),
+    }
+
+
+def _adjustment_validation_message(error, context):
+    if not context:
+        return str(error)
+    details = ", ".join(f"{field}={context.get(field)}" for field in (
+        "item_code", "inventory_location", "quantity", "quantity_delta", "physical_count"
+    ))
+    return f"{error} [{details}]"
+
+
+def _find_invalid_submitted_item(entries):
+    """Return the first missing/disabled submitted item before document validation."""
+    if not isinstance(entries, list):
+        return None
+
+    submitted = []
+    for row_number, entry in enumerate(entries, start=1):
+        if not isinstance(entry, dict):
+            continue
+        item_code = str(entry.get("itemCode") or entry.get("item_code") or "").strip()
+        submitted.append((row_number, item_code))
+
+    item_codes = list({item_code for _, item_code in submitted if item_code})
+    enabled_items = set(
+        frappe.get_all(
+            "Item",
+            filters={"name": ["in", item_codes], "disabled": 0},
+            pluck="name",
+        )
+    ) if item_codes else set()
+    return next(
+        (
+            frappe._dict(row_number=row_number, item_code=item_code)
+            for row_number, item_code in submitted
+            if not item_code or item_code not in enabled_items
+        ),
+        None,
+    )
+
+
+def _pcount_upload_counts(entries):
+    locations = set()
+    devices = set()
+    transaction_count = 0
+    for entry in entries or []:
+        if not isinstance(entry, dict):
+            continue
+        bin_data = entry.get("bin") if isinstance(entry.get("bin"), dict) else {}
+        location = str(
+            entry.get("inventoryLocation")
+            or entry.get("inventory_location")
+            or entry.get("storageLocation")
+            or entry.get("storage_location")
+            or bin_data.get("locationId")
+            or bin_data.get("location_id")
+            or ""
+        ).strip()
+        if location:
+            locations.add(location)
+        device_id = str(entry.get("deviceId") or "").strip()
+        if device_id:
+            devices.add(device_id)
+        transactions = entry.get("transactions") or []
+        if isinstance(transactions, list):
+            transaction_count += len(transactions)
+    return len(locations), len(entries or []), transaction_count, devices
+
+
+def _set_pcount_submission_failure(submission_id, status, error_code, message, user=None):
+    if not frappe.db.exists("Physical Count Submission", submission_id):
+        return
+    submission = frappe.get_doc("Physical Count Submission", submission_id)
+    submission.status = status
+    submission.error_code = error_code
+    submission.error_message = str(message or "")[:10000]
+    submission.processed_at = now_datetime()
+    if user:
+        submission.processed_by = user
+    submission.save(ignore_permissions=True)
+    frappe.db.commit()
+
+
+def process_pcount_submission(submission_id):
+    """Background worker for a durably received Physical Count upload."""
+    submission = frappe.get_doc("Physical Count Submission", submission_id)
+    if str(submission.status or "").strip().upper() in {"SUCCESS", "COMPLETED"}:
+        return json.loads(submission.result_json or "{}")
+
+    payload = json.loads(submission.request_json or "{}")
+    entries = payload.get("entries") or []
+    reconciliation_id = payload.get("reconciliation_id") or submission.reconciliation
+    user = submission.get("received_by") or submission.get("processed_by")
+    if not user:
+        raise frappe.ValidationError("Physical Count Submission has no receiving user.")
+
+    submission.status = "VALIDATING"
+    submission.processing_started_at = now_datetime()
+    submission.error_code = ""
+    submission.error_message = ""
+    submission.save(ignore_permissions=True)
+    frappe.db.commit()
+
+    try:
+        return _submit_adjustment_entries(
+            reconciliation_id,
+            submission_id,
+            entries,
+            user,
+        )
+    except PhysicalCountConflict as exc:
+        context = {
+            "success": False,
+            "error_code": "PCOUNT_STOCK_CHANGED",
+            "message": str(exc),
+            "current_erp_quantity": exc.current_quantity,
+            "item_code": exc.entry.get("item_code"),
+            "warehouse": exc.entry.get("warehouse"),
+            "inventory_location": exc.entry.get("location"),
+            "expected_previous_count": exc.entry.get("expected"),
+            "physical_count": exc.entry.get("physical_count"),
+            "submission_id": submission_id,
+        }
+        _set_pcount_submission_failure(
+            submission_id, "NEEDS_REVIEW", "PCOUNT_STOCK_CHANGED",
+            json.dumps(context, sort_keys=True, default=str), user,
+        )
+        return context
+    except PhysicalCountNotOpen as exc:
+        _set_pcount_submission_failure(
+            submission_id, "NEEDS_REVIEW", "PCOUNT_NOT_OPEN", str(exc), user,
+        )
+        return {"success": False, "error_code": "PCOUNT_NOT_OPEN", "message": str(exc)}
+    except (frappe.ValidationError, frappe.DuplicateEntryError) as exc:
+        mismatch = "SUBMISSION_ID_PAYLOAD_MISMATCH" in str(exc)
+        context = _adjustment_validation_context(entries, exc)
+        message = _adjustment_validation_message(exc, context)
+        code = "SUBMISSION_ID_PAYLOAD_MISMATCH" if mismatch else "PCOUNT_VALIDATION_ERROR"
+        _set_pcount_submission_failure(submission_id, "NEEDS_REVIEW", code, message, user)
+        return {"success": False, "error_code": code, "message": message, **context}
+    except Exception as exc:
+        frappe.log_error(frappe.get_traceback(), "stock_reconciliation.pcount_background")
+        _set_pcount_submission_failure(
+            submission_id, "FAILED", "PCOUNT_PROCESSING_ERROR", str(exc), user,
+        )
+        raise
+
+
+@frappe.whitelist(allow_guest=True)
+def upload_pcount_submission(reconciliation_id, entries, submission_id, mobile_token=None):
+    """Durably receive one Physical Count payload and process it asynchronously."""
+    user = _authenticate_request_user(mobile_token)
+    if user == "Guest" or not user:
+        frappe.local.response["http_status_code"] = 401
+        return {"success": False, "message": "Session expired. Please log in again."}
+
+    if isinstance(entries, str):
+        try:
+            entries = json.loads(entries)
+        except (TypeError, ValueError):
+            frappe.local.response["http_status_code"] = 400
+            return {"success": False, "message": "Entries must be valid JSON."}
+    if not isinstance(entries, list) or not entries:
+        frappe.local.response["http_status_code"] = 400
+        return {"success": False, "message": "At least one Physical Count entry is required."}
+
+    submission_id = _normalize_submission_id(submission_id)
+    request_json, request_hash = _canonical_request(
+        reconciliation_id, "adjustment", submission_id, entries
+    )
+
+    existing = frappe.db.get_value(
+        "Physical Count Submission", submission_id,
+        ["request_hash", "status", "result_json", "error_code", "error_message"],
+        as_dict=True,
+    )
+    if existing:
+        if existing.request_hash != request_hash:
+            frappe.local.response["http_status_code"] = 409
+            return {
+                "success": False,
+                "error_code": "SUBMISSION_ID_PAYLOAD_MISMATCH",
+                "message": "submission_id was already used with different request content.",
+                "submission_id": submission_id,
+            }
+        return {
+            "success": True,
+            "duplicate_submission": True,
+            "submission_id": submission_id,
+            "status": existing.status,
+            "error_code": existing.error_code or "",
+            "error_message": existing.error_message or "",
+            "result": json.loads(existing.result_json or "{}"),
+        }
+
+    # Cheap acceptance checks only. Item/location/UOM/baseline validation stays
+    # in the background processor so the scanner is not held open by ERP work.
+    doc = frappe.get_doc("Stock Reconciliation", reconciliation_id)
+    ensure_scanner_warehouse_access(user, [doc.set_warehouse], require_transact=True)
+    _ensure_pcount_open_for_scanning(doc)
+
+    location_count, entry_count, transaction_count, devices = _pcount_upload_counts(entries)
+    submission = frappe.get_doc({
+        "doctype": "Physical Count Submission",
+        "submission_id": submission_id,
+        "reconciliation": reconciliation_id,
+        "operation": "adjustment",
+        "status": "RECEIVED",
+        "received_at": now_datetime(),
+        "received_by": user,
+        "device_ids": ", ".join(sorted(devices)),
+        "request_hash": request_hash,
+        "request_json": request_json,
+        "total_locations": location_count,
+        "total_entries": entry_count,
+        "total_transactions": transaction_count,
+    })
+    submission.insert(ignore_permissions=True)
+    frappe.db.commit()
+
+    frappe.db.set_value(
+        "Physical Count Submission", submission_id, "status", "QUEUED",
+        update_modified=False,
+    )
+    frappe.db.commit()
+    frappe.enqueue(
+        "qcmc_logic.api.stock_reconciliation.process_pcount_submission",
+        submission_id=submission_id,
+        queue="long",
+        job_name=f"pcount:{submission_id}",
+    )
+
+    return {
+        "success": True,
+        "duplicate_submission": False,
+        "submission_id": submission_id,
+        "status": "QUEUED",
+        "total_locations": location_count,
+        "total_entries": entry_count,
+        "total_transactions": transaction_count,
+    }
+
+
+@frappe.whitelist(allow_guest=True)
+def get_pcount_submission_status(submission_id, mobile_token=None):
+    """Return the processing state for one uploaded Physical Count."""
+    user = _authenticate_request_user(mobile_token)
+    if user == "Guest" or not user:
+        frappe.local.response["http_status_code"] = 401
+        return {"success": False, "message": "Session expired. Please log in again."}
+
+    submission = frappe.get_doc("Physical Count Submission", submission_id)
+    reconciliation = frappe.get_doc("Stock Reconciliation", submission.reconciliation)
+    ensure_scanner_warehouse_access(user, [reconciliation.set_warehouse], require_transact=True)
+    return {
+        "success": True,
+        "submission_id": submission.submission_id,
+        "reconciliation_id": submission.reconciliation,
+        "status": submission.status,
+        "received_at": submission.get("received_at"),
+        "processing_started_at": submission.get("processing_started_at"),
+        "processed_at": submission.get("processed_at"),
+        "total_locations": submission.get("total_locations") or 0,
+        "total_entries": submission.get("total_entries") or 0,
+        "total_transactions": submission.get("total_transactions") or 0,
+        "error_code": submission.get("error_code") or "",
+        "error_message": submission.get("error_message") or "",
+        "result": json.loads(submission.result_json or "{}"),
+    }
+
+
 @frappe.whitelist(allow_guest=True)
 def submit_pcount_entries(
     reconciliation_id,
@@ -1230,6 +1621,22 @@ def submit_pcount_entries(
         except (TypeError, ValueError):
             frappe.local.response["http_status_code"] = 400
             return {"success": False, "message": "Entries must be valid JSON."}
+
+    invalid_item = _find_invalid_submitted_item(entries)
+    if invalid_item:
+        frappe.local.response["http_status_code"] = 400
+        item_code = invalid_item.item_code
+        return {
+            "success": False,
+            "error_code": "ITEM_NOT_FOUND",
+            "message": (
+                f"Item '{item_code}' does not exist or is disabled in ERPNext."
+                if item_code else
+                f"Submitted row #{invalid_item.row_number} has no item_code."
+            ),
+            "item_code": item_code,
+            "row_number": invalid_item.row_number,
+        }
 
     normalized_operation = str(operation or "").strip().upper()
     request_action = str(action or scan_mode or "").strip().upper()
@@ -1264,12 +1671,14 @@ def submit_pcount_entries(
             return {"success": False, "message": "You do not have permission to modify this Stock Reconciliation."}
         except (frappe.ValidationError, frappe.DuplicateEntryError) as exc:
             mismatch = "SUBMISSION_ID_PAYLOAD_MISMATCH" in str(exc)
+            context = _adjustment_validation_context(entries, exc)
             frappe.local.response["http_status_code"] = 409 if mismatch else 400
             return {
                 "success": False,
                 "error_code": "SUBMISSION_ID_PAYLOAD_MISMATCH" if mismatch else "PCOUNT_VALIDATION_ERROR",
-                "message": str(exc),
+                "message": _adjustment_validation_message(exc, context),
                 "submission_id": submission_id,
+                **context,
             }
         except Exception:
             frappe.log_error(frappe.get_traceback(), "stock_reconciliation.adjustment")
@@ -1857,7 +2266,9 @@ def _get_physical_location_balances(warehouse):
                    coalesce(pcr.submitted_at, sr.modified) as counted_at,
                    row_number() over (
                        partition by pcr.item_code, pcr.warehouse,
-                           coalesce(nullif(pcr.location, ''), pcr.inventory_location)
+                           coalesce(nullif(pcr.location, ''), pcr.inventory_location),
+                           coalesce(pcr.batch_no, ''), coalesce(pcr.serial_no, ''),
+                           coalesce(pcr.uom, ''), coalesce(pcr.inventory_tag, '')
                        order by coalesce(pcr.submitted_at, sr.modified) desc, pcr.idx desc
                    ) as row_rank
             from `tabQCMC Physical Count Result` pcr
@@ -1866,9 +2277,11 @@ def _get_physical_location_balances(warehouse):
               and pcr.warehouse = %(warehouse)s
         ),
         latest_counts as (
-            select item_code, location, physical_count, counted_at
+            select item_code, location, sum(physical_count) as physical_count,
+                   max(counted_at) as counted_at
             from ranked_counts
             where row_rank = 1
+            group by item_code, location
         ),
         candidates as (
             select wal.item_code, wal.actual_location as location

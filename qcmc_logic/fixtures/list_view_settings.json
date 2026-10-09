@@ -177,7 +177,7 @@
   "disable_sidebar_stats": 0,
   "docstatus": 0,
   "doctype": "List View Settings",
-  "fields": "[{\"label\":\"ID\",\"fieldname\":\"name\"},{\"label\":\"Description\",\"fieldname\":\"description\"}]",
+  "fields": "[{\"label\":\"Description\",\"fieldname\":\"description\"}]",
   "name": "Breakdown Class",
   "show_tags": 0
  },

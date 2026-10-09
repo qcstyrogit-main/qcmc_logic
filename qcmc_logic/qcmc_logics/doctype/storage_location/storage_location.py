@@ -498,6 +498,10 @@ def _get_warehouse_allocation_location_balances(storage_location, warehouse):
 				coalesce(wa.completed_at, wa.modified) as movement_time
 			from `tabWarehouse Allocation Location` wal
 			inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
+			inner join `tabStock Entry` se
+				on se.name = wal.source_document
+				and wal.source_doctype = 'Stock Entry'
+				and se.docstatus = 1
 			where wa.docstatus = 1 and wa.status = 'Completed'
 				and wa.warehouse = %(warehouse)s and wal.status = 'VERIFIED'
 				and wal.actual_location = %(storage_location)s
@@ -512,14 +516,29 @@ def _get_warehouse_allocation_location_balances(storage_location, warehouse):
 			where docstatus = 1 and warehouse = %(warehouse)s
 				and source_location = %(storage_location)s
 			union all
-			select pcr.item_code, pcr.uom, pcr.variance, sr.modified
-			from `tabQCMC Physical Count Result` pcr
-			inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
-			where sr.docstatus = 1 and sr.custom_physical_count = 1
-				and coalesce(pcr.status, '') != 'Old Count'
-				and not (coalesce(pcr.physical_count, 0) = 0 and coalesce(pcr.variance, 0) = 0)
-				and pcr.warehouse = %(warehouse)s
-				and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %(storage_location)s
+			select counted.item_code, max(counted.uom),
+				sum(counted.effective_count) - max(counted.erp_quantity_before),
+				max(counted.movement_time)
+			from (
+				select pcr.parent, pcr.item_code, pcr.uom, pcr.erp_quantity_before,
+					coalesce(cast(nullif(nullif(pcr.cost_acct_cnt, ''), '0.000000000') as decimal(21,9)), pcr.physical_count) as effective_count,
+					coalesce(pcr.submitted_at, sr.modified) as movement_time,
+					row_number() over (
+						partition by pcr.parent, pcr.item_code,
+							coalesce(nullif(pcr.location, ''), pcr.inventory_location),
+							coalesce(pcr.batch_no, ''), coalesce(pcr.serial_no, ''),
+							coalesce(pcr.uom, ''), coalesce(pcr.inventory_tag, '')
+						order by coalesce(pcr.submitted_at, sr.modified) desc, pcr.idx desc
+					) as row_rank
+				from `tabQCMC Physical Count Result` pcr
+				inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
+				where sr.docstatus = 1 and sr.custom_physical_count = 1
+					and coalesce(pcr.status, '') != 'Old Count'
+					and pcr.warehouse = %(warehouse)s
+					and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %(storage_location)s
+			) counted
+			where counted.row_rank = 1
+			group by counted.parent, counted.item_code
 		) movement
 		left join `tabItem` item on item.name = movement.item_code
 		group by movement.item_code, item.item_name,
@@ -618,23 +637,43 @@ def _get_location_movement_details(storage_location, warehouse):
 				and lt.target_location = %(storage_location)s
 			union all
 			select
-				coalesce(pcr.submitted_at, sr.modified), 'Physical Count', sr.name,
-				pcr.item_code, coalesce(item.item_name, pcr.item_code),
-				pcr.variance, pcr.uom, '',
+				max(coalesce(pcr.submitted_at, sr.modified)), 'Physical Count', sr.name,
+				pcr.item_code, max(coalesce(item.item_name, pcr.item_code)),
+				sum(coalesce(cast(nullif(nullif(trim(pcr.cost_acct_cnt), ''), '0.000000000') as decimal(21,9)), pcr.physical_count))
+					- max(pcr.erp_quantity_before), max(pcr.uom), '',
 				coalesce(nullif(pcr.location, ''), pcr.inventory_location),
-				coalesce(nullif(pcr.scanner_full_name, ''), pcr.scanner_user), pcr.device_id,
-				coalesce(
+				max(coalesce(nullif(pcr.scanner_full_name, ''), pcr.scanner_user)), max(pcr.device_id),
+				sum(coalesce(
 					cast(nullif(nullif(trim(pcr.cost_acct_cnt), ''), '0.000000000') as decimal(21,9)),
 					pcr.physical_count
-				)
+				))
 			from `tabQCMC Physical Count Result` pcr
 			inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
 			left join `tabItem` item on item.name = pcr.item_code
-			where sr.docstatus = 1 and sr.custom_physical_count = 1
+			where sr.docstatus = 1 and sr.workflow_state = 'Close Inventory'
+				and sr.custom_physical_count = 1
 				and coalesce(pcr.status, '') != 'Old Count'
-				and not (coalesce(pcr.physical_count, 0) = 0 and coalesce(pcr.variance, 0) = 0)
 				and pcr.warehouse = %(warehouse)s
 				and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %(storage_location)s
+			group by sr.name, pcr.item_code,
+				coalesce(nullif(pcr.location, ''), pcr.inventory_location)
+			/* inventory_tag groups are displayed as one confirmed location count */
+			union all
+			select
+				coalesce(tx.scanned_at, tx.processed_at), 'Physical Count Scan', tx.reconciliation,
+				tx.item_code, coalesce(item.item_name, tx.item_code), tx.quantity_change,
+				tx.uom, '', tx.storage_location,
+				coalesce(nullif(tx.scanner_full_name, ''), tx.scanner_user), tx.device_id,
+				tx.running_quantity
+			from `tabPhysical Count Scan Transaction` tx
+			inner join `tabStock Reconciliation` scan_sr
+				on scan_sr.name = tx.reconciliation
+			left join `tabItem` item on item.name = tx.item_code
+			where scan_sr.docstatus = 1
+				and scan_sr.workflow_state = 'Close Inventory'
+				and tx.warehouse = %(warehouse)s
+				and tx.storage_location = %(storage_location)s
+				and tx.action in ('ADD', 'DEDUCT')
 		) movements
 		order by movement_time desc, reference_name desc
 		""",

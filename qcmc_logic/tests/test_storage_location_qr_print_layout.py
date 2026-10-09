@@ -16,11 +16,11 @@ class TestStorageLocationQRPrintLayout(unittest.TestCase):
 	def test_size_presets_pack_labels_across_the_page(self):
 		small = ".size-small .qr-label-sheet { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(9, 31.222mm);"
 		medium = ".size-medium .qr-label-sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(8, 35.25mm);"
-		large = ".size-large .qr-label-sheet { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(6, 47.333mm);"
+		large = ".size-large .qr-label-sheet { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, 71.5mm);"
 		self.assertGreaterEqual(self.template.count(small), 2)
 		self.assertGreaterEqual(self.template.count(medium), 2)
 		self.assertGreaterEqual(self.template.count(large), 2)
-		self.assertIn("const perSheet = { small: 54, medium: 40, large: 24 };", self.template)
+		self.assertIn("const perSheet = { small: 54, medium: 40, large: 12 };", self.template)
 		self.assertIn("qr-label-sheet", self.template)
 		self.assertNotIn("--sheet-rows", self.template)
 		self.assertIn("height: 289mm;", self.template)
@@ -38,6 +38,12 @@ class TestStorageLocationQRPrintLayout(unittest.TestCase):
 	def test_print_root_uses_explicit_a4_printable_width(self):
 		self.assertIn("width: 202mm !important;", self.template)
 		self.assertIn("width: 202mm;", self.template)
+
+	def test_large_location_code_stays_on_one_line(self):
+		self.assertIn(
+			".size-large .location-code { white-space: nowrap; overflow: hidden; text-overflow: ellipsis;",
+			self.template,
+		)
 
 	def test_print_button_uses_isolated_document(self):
 		self.assertIn('onclick="printQRLabels()"', self.template)

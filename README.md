@@ -2,6 +2,47 @@
 
 Company Business Rules and Logics
 
+### ERP Login Notices
+
+After ERP Desk login, a popup shows active published Announcements and the
+current month's birthdays and work anniversaries for active Employees.
+Work anniversaries use Date of Joining and show the years of service reached
+that month, excluding employees who joined in the current year. Birthday
+years and ages are omitted.
+
+The popup has a Close button. A browser storage marker prevents it from
+reopening on refresh during the same login session. A new login shows it
+again. Announcements follow their existing publication dates and priority.
+They appear as three compact cards per row on desktop, with fewer columns on
+smaller screens. Each card shows a thumbnail, title and short preview;
+**Read more** opens the complete image and formatted announcement.
+
+Use **News & Celebrations** in the ERP toolbar to reopen the popup anytime.
+On layouts without the standard toolbar, the button appears at the bottom left.
+For employees with an enabled Tweet account, **Send greeting** opens a
+**Send message** popup with an editable multiline birthday or anniversary
+message. **Send** delivers it privately through Tweet without navigating away;
+**Cancel** returns to the celebrations. Employees without a Tweet account remain
+listed.
+
+### Scanner Mobile Authentication Deployment
+
+Persistent scanner device sessions are database-backed and store only SHA-256
+token hashes. Deploy them in this order:
+
+1. Deploy the backend and run `bench --site erp.qcstyro.local migrate` with
+   `qcmc_mobile_token_rotation_enabled` absent or set to `0`.
+2. Deploy the scanner frontend version that saves the `mobile_token` returned
+   by every successful `resume_session` response.
+3. After that frontend is confirmed in use, enable periodic rotation with
+   `bench --site erp.qcstyro.local set-config qcmc_mobile_token_rotation_enabled 1`.
+
+Devices holding the former Redis-only token must perform one normal login after
+this deployment. Keep the ERP site behind HTTPS with trusted proxy headers and
+secure cookies; production login and resume endpoints reject insecure transport.
+Disabling rotation does not disable persistent login or silent SID renewal—it
+only prevents replacement-token issuance until the frontend is ready.
+
 ### Fixture Workflow
 
 For normal code-reviewed changes, prefer the patch-first workflow:
@@ -146,5 +187,3 @@ clean-fixtures
 
 
 ### config test Git PUSH
-
-
