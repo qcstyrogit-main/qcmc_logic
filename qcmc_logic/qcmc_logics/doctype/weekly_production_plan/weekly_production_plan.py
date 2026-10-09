@@ -4,7 +4,7 @@ import frappe
 from frappe import _
 from frappe.desk.search import validate_and_sanitize_search_inputs
 from frappe.model.document import Document
-from frappe.utils import add_days, getdate
+from frappe.utils import add_days, flt, getdate
 
 
 PLAN_LENGTH_DAYS = 14
@@ -48,9 +48,12 @@ class WeeklyProductionPlan(Document):
 				details = get_item_production_details(row.product_code, row.machine, check_permission=False)
 				for fieldname in ("product_description", "cavs", "soph", "std_weight_gm", "cycle_time"):
 					row.set(fieldname, details.get(fieldname))
-				hours = (row.get("plan_hrs") or 0) if table_field == "item_1_schedule" else 24
-				row.daily_volume_qty = hours * (row.soph or 0)
-				row.daily_volume_kgs = (row.daily_volume_qty or 0) * (row.std_weight_gm or 0) / 1000
+				if table_field == "item_1_schedule":
+					row.plan_hrs = flt(row.paid_hrs) - flt(row.vos) - flt(row.cm_co) - flt(row.stab)
+					row.daily_volume_qty = row.plan_hrs * flt(row.soph)
+				else:
+					row.daily_volume_qty = 24 * flt(row.soph)
+				row.daily_volume_kgs = flt(row.std_weight_gm) * flt(row.daily_volume_qty) / 1000
 
 	def _set_computed_values(self):
 		if not self.start_date:

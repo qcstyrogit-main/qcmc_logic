@@ -48,6 +48,18 @@ const productionItemHandlers = {
 	machine(frm, cdt, cdn) {
 		populate_production_item(frm, cdt, cdn);
 	},
+	paid_hrs(frm, cdt, cdn) {
+		calculate_plan_hours(frm, cdt, cdn);
+	},
+	vos(frm, cdt, cdn) {
+		calculate_plan_hours(frm, cdt, cdn);
+	},
+	cm_co(frm, cdt, cdn) {
+		calculate_plan_hours(frm, cdt, cdn);
+	},
+	stab(frm, cdt, cdn) {
+		calculate_plan_hours(frm, cdt, cdn);
+	},
 	plan_hrs(frm, cdt, cdn) {
 		calculate_daily_volume(frm, cdt, cdn);
 	},
@@ -143,7 +155,7 @@ function scheduled_items_html(frm, scheduleRow) {
 	const escape = frappe.utils.escape_html;
 	const renderRows = (tableField, secondary = false) => {
 		const rows = rows_for_schedule(frm, tableField, scheduleRow);
-		if (!rows.length) return `<tr><td colspan="${secondary ? 10 : 15}" class="text-muted text-center">${__("No items added.")}</td></tr>`;
+		if (!rows.length) return `<tr><td colspan="${secondary ? 10 : 18}" class="text-muted text-center">${__("No items added.")}</td></tr>`;
 		return rows.map((row) => `
 			<tr>
 				<td>${escape(row.product_code || "")}</td><td>${escape(row.product_description || "")}</td>
@@ -151,6 +163,7 @@ function scheduled_items_html(frm, scheduleRow) {
 				${secondary ? "" : `<td>${row.paid_hrs || 0}</td><td>${row.vos || 0}</td><td>${row.cm_co || 0}</td><td>${row.stab || 0}</td><td>${row.plan_hrs || 0}</td>`}
 				<td>${row.soph || 0}</td><td>${row.std_weight_gm || 0}</td><td>${row.daily_volume_qty || 0}</td><td>${row.daily_volume_kgs || 0}</td>
 				<td>${secondary ? (row.factor_rate || 0) : (row.f_rate || 0)}</td><td>${row.cycle_time || 0}</td>
+				${secondary ? "" : `<td>${escape(row.remarks || "")}</td><td>${escape(row.mat_type || "")}</td><td>${row.steam_regmt || 0}</td>`}
 				<td class="text-nowrap"><button class="btn btn-xs btn-default js-edit-scheduled-item" data-table="${tableField}" data-name="${row.name}">${__("Edit")}</button> <button class="btn btn-xs btn-default js-delete-scheduled-item" data-table="${tableField}" data-name="${row.name}">${__("Remove")}</button></td>
 			</tr>`).join("");
 	};
@@ -159,7 +172,8 @@ function scheduled_items_html(frm, scheduleRow) {
 		<div class="table-responsive"><table class="table table-bordered table-condensed" style="margin-top: 6px; white-space: nowrap"><thead><tr>
 		<th>${__("Prodcode")}</th><th>${__("Proddesc")}</th><th>${__("Cavs")}</th>
 		${secondary ? "" : `<th>${__("PaidHrs")}</th><th>${__("VOS")}</th><th>${__("CM/CO")}</th><th>${__("Stab")}</th><th>${__("PlanHrs")}</th>`}
-		<th>${__("SOPH")}</th><th>${__("StdWt(gm)")}</th><th>${__("Daily Vol Qty")}</th><th>${__("DailyVolKgs")}</th><th>${__(secondary ? "FactorRate" : "F.Rate")}</th><th>${__(secondary ? "CycleTime" : "C.T.")}</th><th>${__("Action")}</th>
+		<th>${__("SOPH")}</th><th>${__("StdWt(gm)")}</th><th>${__("Daily Vol Qty")}</th><th>${__("DailyVolKgs")}</th><th>${__(secondary ? "FactorRate" : "F.Rate")}</th><th>${__(secondary ? "CycleTime" : "C.T.")}</th>
+		${secondary ? "" : `<th>${__("Remarks")}</th><th>${__("MatType")}</th><th>${__("SteamRegmt")}</th>`}<th>${__("Action")}</th>
 		</tr></thead><tbody>${renderRows(tableField, secondary)}</tbody></table></div></div>`;
 	return `<div class="scheduled-items-editor"><h6 style="margin-top: 18px">${__("Scheduled FG Items for {0} on {1}", [scheduleRow.machine, frappe.datetime.str_to_user(scheduleRow.plan_date)])}</h6>${table("Item 1", "item_1_schedule")}${table("Item 2", "item_2_schedule", true)}</div>`;
 }
@@ -191,8 +205,13 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 		{ fieldname: "product_description", label: __("Proddesc"), fieldtype: "Data", read_only: 1, default: existing?.product_description },
 		{ fieldname: "cavs", label: __("Cavs"), fieldtype: "Int", read_only: 1, default: existing?.cavs },
 	];
-	if (!secondary) fields.push(numeric("paid_hrs", "PaidHrs", false, 24), numeric("vos", "VOS"), numeric("cm_co", "CM/CO"), numeric("stab", "Stab"), numeric("plan_hrs", "PlanHrs", false, 24));
+	if (!secondary) fields.push(numeric("paid_hrs", "PaidHrs", false, 24), numeric("vos", "VOS"), numeric("cm_co", "CM/CO"), numeric("stab", "Stab"), numeric("plan_hrs", "PlanHrs", true, 24));
 	fields.push(numeric("soph", "SOPH", true), numeric("std_weight_gm", "StdWt(gm)", true), numeric("daily_volume_qty", "Daily Vol Qty", true), numeric("daily_volume_kgs", "DailyVolKgs", true), numeric(secondary ? "factor_rate" : "f_rate", secondary ? "FactorRate" : "F.Rate", false, 100), numeric("cycle_time", secondary ? "CycleTime" : "C.T.", true));
+	if (!secondary) fields.push(
+		{ fieldname: "remarks", label: __("Remarks"), fieldtype: "Small Text", default: existing?.remarks },
+		{ fieldname: "mat_type", label: __("MatType"), fieldtype: "Data", default: existing?.mat_type },
+		numeric("steam_regmt", "SteamRegmt"),
+	);
 	dialog = new frappe.ui.Dialog({ title: __(rowName ? "Edit {0}" : "Add {0}", [secondary ? "Item 2" : "Item 1"]), fields, primary_action_label: __("Save Row"), primary_action(values) {
 		const target = existing || frm.add_child(tableField);
 		Object.assign(target, values, { machine: scheduleRow.machine, plan_date: scheduleRow.plan_date });
@@ -201,8 +220,9 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 		dialog.hide();
 		keep_schedule_detail_open(frm, scheduleRow);
 	} });
-	for (const fieldname of ["paid_hrs", "vos", "cm_co", "stab", "plan_hrs"]) if (dialog.fields_dict[fieldname]) dialog.fields_dict[fieldname].df.onchange = () => calculate_dialog_volume(dialog, secondary);
+	for (const fieldname of ["paid_hrs", "vos", "cm_co", "stab"]) if (dialog.fields_dict[fieldname]) dialog.fields_dict[fieldname].df.onchange = () => calculate_dialog_plan_hours(dialog);
 	dialog.show();
+	if (!secondary) calculate_dialog_plan_hours(dialog);
 	if (initialProduct) load_dialog_product_details(dialog, scheduleRow.machine, secondary);
 }
 
@@ -225,8 +245,26 @@ async function load_dialog_product_details(dialog, machine, secondary) {
 }
 
 function calculate_dialog_volume(dialog, secondary) {
-	const hours = secondary ? 24 : flt(dialog.get_value("plan_hrs")); const quantity = hours * flt(dialog.get_value("soph"));
-	dialog.set_value("daily_volume_qty", quantity); dialog.set_value("daily_volume_kgs", quantity * flt(dialog.get_value("std_weight_gm")) / 1000);
+	const hours = secondary ? 24 : calculate_net_paid_hours(
+		dialog.get_value("paid_hrs"),
+		dialog.get_value("vos"),
+		dialog.get_value("cm_co"),
+		dialog.get_value("stab"),
+	);
+	const quantity = hours * flt(dialog.get_value("soph"));
+	dialog.set_value("daily_volume_qty", quantity);
+	dialog.set_value("daily_volume_kgs", flt(dialog.get_value("std_weight_gm")) * quantity / 1000);
+}
+
+function calculate_dialog_plan_hours(dialog) {
+	const planHours = calculate_net_paid_hours(
+		dialog.get_value("paid_hrs"),
+		dialog.get_value("vos"),
+		dialog.get_value("cm_co"),
+		dialog.get_value("stab"),
+	);
+	dialog.set_value("plan_hrs", planHours);
+	calculate_dialog_volume(dialog, false);
 }
 
 async function add_scheduled_item(frm, tableField, scheduleRow, productCode) {
@@ -258,10 +296,23 @@ async function populate_production_item(frm, cdt, cdn) {
 
 function calculate_daily_volume(frm, cdt, cdn) {
 	const row = frappe.get_doc(cdt, cdn);
-	const hours = row.doctype === "Weekly Production Plan Secondary Item" ? 24 : flt(row.plan_hrs);
+	const hours = row.doctype === "Weekly Production Plan Secondary Item"
+		? 24
+		: calculate_net_paid_hours(row.paid_hrs, row.vos, row.cm_co, row.stab);
 	const quantity = hours * flt(row.soph);
 	frappe.model.set_value(cdt, cdn, "daily_volume_qty", quantity);
-	frappe.model.set_value(cdt, cdn, "daily_volume_kgs", quantity * flt(row.std_weight_gm) / 1000);
+	frappe.model.set_value(cdt, cdn, "daily_volume_kgs", flt(row.std_weight_gm) * quantity / 1000);
+}
+
+function calculate_plan_hours(frm, cdt, cdn) {
+	const row = frappe.get_doc(cdt, cdn);
+	const planHours = calculate_net_paid_hours(row.paid_hrs, row.vos, row.cm_co, row.stab);
+	frappe.model.set_value(cdt, cdn, "plan_hrs", planHours);
+	calculate_daily_volume(frm, cdt, cdn);
+}
+
+function calculate_net_paid_hours(paidHours, vos, cmCo, stab) {
+	return flt(paidHours) - flt(vos) - flt(cmCo) - flt(stab);
 }
 
 async function refresh_machine_schedule(frm) {
