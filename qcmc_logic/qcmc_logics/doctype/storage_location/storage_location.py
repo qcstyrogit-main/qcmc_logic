@@ -650,7 +650,8 @@ def _get_location_movement_details(storage_location, warehouse):
 			from `tabQCMC Physical Count Result` pcr
 			inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
 			left join `tabItem` item on item.name = pcr.item_code
-			where sr.docstatus = 1 and sr.custom_physical_count = 1
+			where sr.docstatus = 1 and sr.workflow_state = 'Close Inventory'
+				and sr.custom_physical_count = 1
 				and coalesce(pcr.status, '') != 'Old Count'
 				and pcr.warehouse = %(warehouse)s
 				and coalesce(nullif(pcr.location, ''), pcr.inventory_location) = %(storage_location)s
@@ -665,8 +666,12 @@ def _get_location_movement_details(storage_location, warehouse):
 				coalesce(nullif(tx.scanner_full_name, ''), tx.scanner_user), tx.device_id,
 				tx.running_quantity
 			from `tabPhysical Count Scan Transaction` tx
+			inner join `tabStock Reconciliation` scan_sr
+				on scan_sr.name = tx.reconciliation
 			left join `tabItem` item on item.name = tx.item_code
-			where tx.warehouse = %(warehouse)s
+			where scan_sr.docstatus = 1
+				and scan_sr.workflow_state = 'Close Inventory'
+				and tx.warehouse = %(warehouse)s
 				and tx.storage_location = %(storage_location)s
 				and tx.action in ('ADD', 'DEDUCT')
 		) movements

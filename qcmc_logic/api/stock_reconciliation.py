@@ -438,7 +438,7 @@ def _get_increment_replay(submission_id, request_hash):
     record = frappe.db.get_value(
         "Physical Count Submission",
         submission_id,
-        ["request_hash", "result_json"],
+        ["request_hash", "result_json", "status"],
         as_dict=True,
     )
     if not record:
@@ -449,7 +449,15 @@ def _get_increment_replay(submission_id, request_hash):
             "Generate a new UUID for a new submission. "
             "[SUBMISSION_ID_PAYLOAD_MISMATCH]"
         )
+
+    # RECEIVED/QUEUED/VALIDATING records are staging inbox records, not completed
+    # replays. Only a finished submission may short-circuit business processing.
+    if str(record.status or "").strip().upper() not in {"SUCCESS", "COMPLETED"}:
+        return None
+
     result = json.loads(record.result_json or "{}")
+    if not result:
+        return None
     result["duplicate_submission"] = True
     return result
 
@@ -934,14 +942,30 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
             "message": "Physical Count saved to Draft Stock Reconciliation.",
             "results": response_entries,
         }
-        frappe.get_doc({
-            "doctype": "Physical Count Submission", "submission_id": submission_id,
-            "reconciliation": reconciliation_id, "operation": "adjustment", "status": "Success",
+        submission_values = {
+            "reconciliation": reconciliation_id,
+            "operation": "adjustment",
+            "status": "COMPLETED",
             "device_ids": ", ".join(sorted({entry.device_id for entry in normalized if entry.device_id})),
-            "processed_at": now_datetime(), "processed_by": user, "request_hash": request_hash,
+            "processed_at": now_datetime(),
+            "processed_by": user,
+            "request_hash": request_hash,
             "request_json": request_json,
             "result_json": json.dumps(result, sort_keys=True, separators=(",", ":")),
-        }).insert(ignore_permissions=True)
+            "error_code": "",
+            "error_message": "",
+        }
+        if frappe.db.exists("Physical Count Submission", submission_id):
+            submission = frappe.get_doc("Physical Count Submission", submission_id)
+            for fieldname, value in submission_values.items():
+                submission.set(fieldname, value)
+            submission.save(ignore_permissions=True)
+        else:
+            frappe.get_doc({
+                "doctype": "Physical Count Submission",
+                "submission_id": submission_id,
+                **submission_values,
+            }).insert(ignore_permissions=True)
         frappe.db.commit()
         return result
     except Exception:
@@ -1343,6 +1367,236 @@ def _find_invalid_submitted_item(entries):
         ),
         None,
     )
+
+
+def _pcount_upload_counts(entries):
+    locations = set()
+    devices = set()
+    transaction_count = 0
+    for entry in entries or []:
+        if not isinstance(entry, dict):
+            continue
+        bin_data = entry.get("bin") if isinstance(entry.get("bin"), dict) else {}
+        location = str(
+            entry.get("inventoryLocation")
+            or entry.get("inventory_location")
+            or entry.get("storageLocation")
+            or entry.get("storage_location")
+            or bin_data.get("locationId")
+            or bin_data.get("location_id")
+            or ""
+        ).strip()
+        if location:
+            locations.add(location)
+        device_id = str(entry.get("deviceId") or "").strip()
+        if device_id:
+            devices.add(device_id)
+        transactions = entry.get("transactions") or []
+        if isinstance(transactions, list):
+            transaction_count += len(transactions)
+    return len(locations), len(entries or []), transaction_count, devices
+
+
+def _set_pcount_submission_failure(submission_id, status, error_code, message, user=None):
+    if not frappe.db.exists("Physical Count Submission", submission_id):
+        return
+    submission = frappe.get_doc("Physical Count Submission", submission_id)
+    submission.status = status
+    submission.error_code = error_code
+    submission.error_message = str(message or "")[:10000]
+    submission.processed_at = now_datetime()
+    if user:
+        submission.processed_by = user
+    submission.save(ignore_permissions=True)
+    frappe.db.commit()
+
+
+def process_pcount_submission(submission_id):
+    """Background worker for a durably received Physical Count upload."""
+    submission = frappe.get_doc("Physical Count Submission", submission_id)
+    if str(submission.status or "").strip().upper() in {"SUCCESS", "COMPLETED"}:
+        return json.loads(submission.result_json or "{}")
+
+    payload = json.loads(submission.request_json or "{}")
+    entries = payload.get("entries") or []
+    reconciliation_id = payload.get("reconciliation_id") or submission.reconciliation
+    user = submission.get("received_by") or submission.get("processed_by")
+    if not user:
+        raise frappe.ValidationError("Physical Count Submission has no receiving user.")
+
+    submission.status = "VALIDATING"
+    submission.processing_started_at = now_datetime()
+    submission.error_code = ""
+    submission.error_message = ""
+    submission.save(ignore_permissions=True)
+    frappe.db.commit()
+
+    try:
+        return _submit_adjustment_entries(
+            reconciliation_id,
+            submission_id,
+            entries,
+            user,
+        )
+    except PhysicalCountConflict as exc:
+        context = {
+            "success": False,
+            "error_code": "PCOUNT_STOCK_CHANGED",
+            "message": str(exc),
+            "current_erp_quantity": exc.current_quantity,
+            "item_code": exc.entry.get("item_code"),
+            "warehouse": exc.entry.get("warehouse"),
+            "inventory_location": exc.entry.get("location"),
+            "expected_previous_count": exc.entry.get("expected"),
+            "physical_count": exc.entry.get("physical_count"),
+            "submission_id": submission_id,
+        }
+        _set_pcount_submission_failure(
+            submission_id, "NEEDS_REVIEW", "PCOUNT_STOCK_CHANGED",
+            json.dumps(context, sort_keys=True, default=str), user,
+        )
+        return context
+    except PhysicalCountNotOpen as exc:
+        _set_pcount_submission_failure(
+            submission_id, "NEEDS_REVIEW", "PCOUNT_NOT_OPEN", str(exc), user,
+        )
+        return {"success": False, "error_code": "PCOUNT_NOT_OPEN", "message": str(exc)}
+    except (frappe.ValidationError, frappe.DuplicateEntryError) as exc:
+        mismatch = "SUBMISSION_ID_PAYLOAD_MISMATCH" in str(exc)
+        context = _adjustment_validation_context(entries, exc)
+        message = _adjustment_validation_message(exc, context)
+        code = "SUBMISSION_ID_PAYLOAD_MISMATCH" if mismatch else "PCOUNT_VALIDATION_ERROR"
+        _set_pcount_submission_failure(submission_id, "NEEDS_REVIEW", code, message, user)
+        return {"success": False, "error_code": code, "message": message, **context}
+    except Exception as exc:
+        frappe.log_error(frappe.get_traceback(), "stock_reconciliation.pcount_background")
+        _set_pcount_submission_failure(
+            submission_id, "FAILED", "PCOUNT_PROCESSING_ERROR", str(exc), user,
+        )
+        raise
+
+
+@frappe.whitelist(allow_guest=True)
+def upload_pcount_submission(reconciliation_id, entries, submission_id, mobile_token=None):
+    """Durably receive one Physical Count payload and process it asynchronously."""
+    user = _authenticate_request_user(mobile_token)
+    if user == "Guest" or not user:
+        frappe.local.response["http_status_code"] = 401
+        return {"success": False, "message": "Session expired. Please log in again."}
+
+    if isinstance(entries, str):
+        try:
+            entries = json.loads(entries)
+        except (TypeError, ValueError):
+            frappe.local.response["http_status_code"] = 400
+            return {"success": False, "message": "Entries must be valid JSON."}
+    if not isinstance(entries, list) or not entries:
+        frappe.local.response["http_status_code"] = 400
+        return {"success": False, "message": "At least one Physical Count entry is required."}
+
+    submission_id = _normalize_submission_id(submission_id)
+    request_json, request_hash = _canonical_request(
+        reconciliation_id, "adjustment", submission_id, entries
+    )
+
+    existing = frappe.db.get_value(
+        "Physical Count Submission", submission_id,
+        ["request_hash", "status", "result_json", "error_code", "error_message"],
+        as_dict=True,
+    )
+    if existing:
+        if existing.request_hash != request_hash:
+            frappe.local.response["http_status_code"] = 409
+            return {
+                "success": False,
+                "error_code": "SUBMISSION_ID_PAYLOAD_MISMATCH",
+                "message": "submission_id was already used with different request content.",
+                "submission_id": submission_id,
+            }
+        return {
+            "success": True,
+            "duplicate_submission": True,
+            "submission_id": submission_id,
+            "status": existing.status,
+            "error_code": existing.error_code or "",
+            "error_message": existing.error_message or "",
+            "result": json.loads(existing.result_json or "{}"),
+        }
+
+    # Cheap acceptance checks only. Item/location/UOM/baseline validation stays
+    # in the background processor so the scanner is not held open by ERP work.
+    doc = frappe.get_doc("Stock Reconciliation", reconciliation_id)
+    ensure_scanner_warehouse_access(user, [doc.set_warehouse], require_transact=True)
+    _ensure_pcount_open_for_scanning(doc)
+
+    location_count, entry_count, transaction_count, devices = _pcount_upload_counts(entries)
+    submission = frappe.get_doc({
+        "doctype": "Physical Count Submission",
+        "submission_id": submission_id,
+        "reconciliation": reconciliation_id,
+        "operation": "adjustment",
+        "status": "RECEIVED",
+        "received_at": now_datetime(),
+        "received_by": user,
+        "device_ids": ", ".join(sorted(devices)),
+        "request_hash": request_hash,
+        "request_json": request_json,
+        "total_locations": location_count,
+        "total_entries": entry_count,
+        "total_transactions": transaction_count,
+    })
+    submission.insert(ignore_permissions=True)
+    frappe.db.commit()
+
+    frappe.db.set_value(
+        "Physical Count Submission", submission_id, "status", "QUEUED",
+        update_modified=False,
+    )
+    frappe.db.commit()
+    frappe.enqueue(
+        "qcmc_logic.api.stock_reconciliation.process_pcount_submission",
+        submission_id=submission_id,
+        queue="long",
+        job_name=f"pcount:{submission_id}",
+    )
+
+    return {
+        "success": True,
+        "duplicate_submission": False,
+        "submission_id": submission_id,
+        "status": "QUEUED",
+        "total_locations": location_count,
+        "total_entries": entry_count,
+        "total_transactions": transaction_count,
+    }
+
+
+@frappe.whitelist(allow_guest=True)
+def get_pcount_submission_status(submission_id, mobile_token=None):
+    """Return the processing state for one uploaded Physical Count."""
+    user = _authenticate_request_user(mobile_token)
+    if user == "Guest" or not user:
+        frappe.local.response["http_status_code"] = 401
+        return {"success": False, "message": "Session expired. Please log in again."}
+
+    submission = frappe.get_doc("Physical Count Submission", submission_id)
+    reconciliation = frappe.get_doc("Stock Reconciliation", submission.reconciliation)
+    ensure_scanner_warehouse_access(user, [reconciliation.set_warehouse], require_transact=True)
+    return {
+        "success": True,
+        "submission_id": submission.submission_id,
+        "reconciliation_id": submission.reconciliation,
+        "status": submission.status,
+        "received_at": submission.get("received_at"),
+        "processing_started_at": submission.get("processing_started_at"),
+        "processed_at": submission.get("processed_at"),
+        "total_locations": submission.get("total_locations") or 0,
+        "total_entries": submission.get("total_entries") or 0,
+        "total_transactions": submission.get("total_transactions") or 0,
+        "error_code": submission.get("error_code") or "",
+        "error_message": submission.get("error_message") or "",
+        "result": json.loads(submission.result_json or "{}"),
+    }
 
 
 @frappe.whitelist(allow_guest=True)

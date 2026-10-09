@@ -4,105 +4,39 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "submission_id",
-  "reconciliation",
-  "operation",
-  "status",
-  "processed_at",
-  "processed_by",
-  "device_ids",
-  "request_hash",
-  "request_json",
-  "result_json"
+  "submission_id", "reconciliation", "operation", "status",
+  "received_at", "received_by", "processing_started_at", "processed_at", "processed_by",
+  "device_ids", "total_locations", "total_entries", "total_transactions", "retry_count",
+  "request_hash", "request_json", "result_json", "error_code", "error_message"
  ],
  "fields": [
-  {
-   "fieldname": "submission_id",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Submission ID",
-   "reqd": 1,
-   "unique": 1
-  },
-  {
-   "fieldname": "reconciliation",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Stock Reconciliation",
-   "options": "Stock Reconciliation",
-   "reqd": 1
-  },
-  {
-   "fieldname": "operation",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Operation",
-   "read_only": 1
-  },
-  {
-   "fieldname": "status",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Status",
-   "read_only": 1
-  },
-  {
-   "fieldname": "processed_at",
-   "fieldtype": "Datetime",
-   "in_list_view": 1,
-   "label": "Processed At",
-   "reqd": 1
-  },
-  {
-   "fieldname": "processed_by",
-   "fieldtype": "Link",
-   "label": "Processed By",
-   "options": "User",
-   "reqd": 1
-  },
-  {
-   "fieldname": "device_ids",
-   "fieldtype": "Small Text",
-   "label": "Device IDs",
-   "read_only": 1
-  },
-  {
-   "fieldname": "request_hash",
-   "fieldtype": "Data",
-   "label": "Request Hash",
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "request_json",
-   "fieldtype": "Long Text",
-   "label": "Request JSON",
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "result_json",
-   "fieldtype": "Long Text",
-   "label": "Result JSON",
-   "read_only": 1,
-   "reqd": 1
-  }
+  {"fieldname":"submission_id","fieldtype":"Data","in_list_view":1,"in_standard_filter":1,"label":"Submission ID","reqd":1,"unique":1},
+  {"fieldname":"reconciliation","fieldtype":"Link","in_list_view":1,"in_standard_filter":1,"label":"Stock Reconciliation","options":"Stock Reconciliation","reqd":1},
+  {"fieldname":"operation","fieldtype":"Select","in_list_view":1,"label":"Operation","options":"adjustment\nincrement","read_only":1},
+  {"fieldname":"status","fieldtype":"Select","in_list_view":1,"in_standard_filter":1,"label":"Status","options":"RECEIVED\nQUEUED\nVALIDATING\nCOMPLETED\nNEEDS_REVIEW\nFAILED\nSuccess","read_only":1},
+  {"fieldname":"received_at","fieldtype":"Datetime","in_list_view":1,"label":"Received At","read_only":1},
+  {"fieldname":"received_by","fieldtype":"Link","label":"Received By","options":"User","read_only":1},
+  {"fieldname":"processing_started_at","fieldtype":"Datetime","label":"Processing Started At","read_only":1},
+  {"fieldname":"processed_at","fieldtype":"Datetime","in_list_view":1,"label":"Processed At","read_only":1},
+  {"fieldname":"processed_by","fieldtype":"Link","label":"Processed By","options":"User","read_only":1},
+  {"fieldname":"device_ids","fieldtype":"Small Text","label":"Device IDs","read_only":1},
+  {"fieldname":"total_locations","fieldtype":"Int","label":"Total Locations","read_only":1},
+  {"fieldname":"total_entries","fieldtype":"Int","label":"Total Entries","read_only":1},
+  {"fieldname":"total_transactions","fieldtype":"Int","label":"Total Transactions","read_only":1},
+  {"fieldname":"retry_count","fieldtype":"Int","label":"Retry Count","read_only":1},
+  {"fieldname":"request_hash","fieldtype":"Data","label":"Request Hash","read_only":1,"reqd":1},
+  {"fieldname":"request_json","fieldtype":"Long Text","label":"Request JSON","read_only":1,"reqd":1},
+  {"fieldname":"result_json","fieldtype":"Long Text","label":"Result JSON","read_only":1},
+  {"fieldname":"error_code","fieldtype":"Data","label":"Error Code","read_only":1},
+  {"fieldname":"error_message","fieldtype":"Long Text","label":"Error Message","read_only":1}
  ],
  "index_web_pages_for_search": 0,
  "links": [],
  "module": "QCMC Logics",
  "name": "Physical Count Submission",
  "permissions": [
-  {
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager"
-  }
+  {"export":1,"print":1,"read":1,"report":1,"role":"System Manager"}
  ],
- "sort_field": "processed_at",
+ "sort_field": "modified",
  "sort_order": "DESC"
 }

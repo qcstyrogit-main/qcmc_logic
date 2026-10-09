@@ -27,6 +27,7 @@ def list_active_announcements(limit=10, start=0):
         """
         SELECT
             name,
+            title,
             image,
             announcement,
             published,
