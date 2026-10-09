@@ -77,6 +77,24 @@ def execute():
 
     stock_settings_meta = frappe.get_meta("Stock Settings")
     for fieldname, definition in STOCK_SETTINGS_FIELDS.items():
+        # Legacy fixtures can leave this primary key with a different dt or
+        # fieldname. create_custom_field checks dt/fieldname, so it would try to
+        # insert the same primary key again instead of repairing that record.
+        canonical_name = f"Stock Settings-{fieldname}"
+        if frappe.db.exists("Custom Field", canonical_name):
+            field = frappe.get_doc("Custom Field", canonical_name)
+            if field.dt != "Stock Settings" or field.fieldname != fieldname:
+                old_doctype = field.dt
+                field.update({**definition, "dt": "Stock Settings"})
+                field.flags.ignore_validate = True
+                field.save(ignore_permissions=True)
+                if old_doctype:
+                    frappe.clear_cache(doctype=old_doctype)
+            continue
+
+        if frappe.db.exists("Custom Field", {"dt": "Stock Settings", "fieldname": fieldname}):
+            continue
+
         if not stock_settings_meta.has_field(fieldname):
             create_custom_field(
                 "Stock Settings",
