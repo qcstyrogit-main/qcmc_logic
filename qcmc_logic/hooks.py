@@ -341,6 +341,7 @@ fixtures = [
                 "not in",
                 [
                     "User-hide_private",
+                    "Contact-social_contact",
                     "User-hide_my_private_information_from_others",
                     "Purchase Invoice Item-to_room",
                     "Employee-from_bin",
@@ -407,6 +408,7 @@ fixtures = [
     {"doctype": "Job Card Downtime"},
 ]
 before_migrate = [
+    "qcmc_logic.patches.repair_social_contact_dependency.execute",
     # This custom DocType must exist before fixtures such as Workflows are synced.
     "qcmc_logic.customs.maintenance_job_order.ensure_maintenance_job_order",
     "qcmc_logic.patches.setup_invoicing_clerk_role.execute",
