@@ -9,6 +9,8 @@ current month's birthdays and work anniversaries for active Employees.
 Work anniversaries use Date of Joining and show the years of service reached
 that month, excluding employees who joined in the current year. Birthday
 years and ages are omitted.
+Today's birthday and anniversary celebrants appear first, with a **Celebrating
+today** label and an animated cake. Reduced-motion preferences show a still cake.
 
 The popup has a Close button. A browser storage marker prevents it from
 reopening on refresh during the same login session. A new login shows it
@@ -16,6 +18,9 @@ again. Announcements follow their existing publication dates and priority.
 They appear as three compact cards per row on desktop, with fewer columns on
 smaller screens. Each card shows a thumbnail, title and short preview;
 **Read more** opens the complete image and formatted announcement.
+Cards show the number of unique logged-in users who opened **Read more**.
+Each user counts once per announcement across repeat opens, logins and devices.
+View tracking starts when this feature is deployed; earlier reads are not counted.
 
 Use **News & Celebrations** in the ERP toolbar to reopen the popup anytime.
 On layouts without the standard toolbar, the button appears at the bottom left.
