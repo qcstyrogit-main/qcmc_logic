@@ -101,6 +101,36 @@ class TestWarehouseTransferCancellation(unittest.TestCase):
         self.assertEqual([row.voucher_detail_no for row in sl_entries], ["WT-DETAIL-1", "WT-DETAIL-2"])
         self.assertTrue(all(row.is_cancelled for row in sl_entries))
 
+    def test_serial_batch_bundle_child_doctype_is_scoped_to_warehouse_transfer_details(self):
+        original_child_doctype = wt_events.SerialBatchBundle.child_doctype
+        bundle = frappe._dict(sle=frappe._dict(voucher_type="Warehouse Transfer"))
+
+        with wt_events._warehouse_transfer_serial_batch_child_doctype():
+            self.assertEqual(
+                wt_events.SerialBatchBundle.child_doctype.fget(bundle),
+                "Warehouse Transfer Details",
+            )
+
+        self.assertIs(wt_events.SerialBatchBundle.child_doctype, original_child_doctype)
+
+    @patch("qcmc_logic.customs.warehouse_transfer_events.frappe.db.exists")
+    def test_target_duplicate_guard_checks_detail_and_sign_not_target_warehouse(self, exists):
+        doc = self.doc()
+        exists.return_value = "SLE-IN"
+
+        self.assertEqual(wt_events._has_posted_transfer_sles(doc, positive=True), "SLE-IN")
+
+        exists.assert_called_once_with(
+            "Stock Ledger Entry",
+            {
+                "voucher_type": "Warehouse Transfer",
+                "voucher_no": "WT-TEST-0001",
+                "voucher_detail_no": ["in", ["WT-DETAIL-1", "WT-DETAIL-2"]],
+                "is_cancelled": 0,
+                "actual_qty": [">", 0],
+            },
+        )
+
     @patch("qcmc_logic.customs.warehouse_transfer_events.frappe.db.set_value")
     def test_cancel_status_is_displayed_without_touching_amended_from(self, set_value):
         doc = self.doc()

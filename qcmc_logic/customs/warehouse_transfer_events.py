@@ -1,6 +1,9 @@
+from contextlib import contextmanager
+
 import frappe
 from erpnext.stock.utils import get_incoming_rate
 from erpnext.accounts.general_ledger import make_reverse_gl_entries
+from erpnext.stock.serial_batch_bundle import SerialBatchBundle
 from qcmc_logic.utils import (
     get_user_allowed_warehouses,
     _get_material_request_warehouses,
@@ -313,18 +316,34 @@ def _get_row_material_request(row):
     return None
 
 
-def _has_stock_ledger_entries(doc, warehouse, positive):
+def _has_stock_ledger_entries(doc, warehouse=None, positive=None):
     filters = {
         "voucher_type": "Warehouse Transfer",
         "voucher_no": doc.name,
-        "warehouse": warehouse,
         "is_cancelled": 0,
     }
-    if positive:
+    if warehouse:
+        filters["warehouse"] = warehouse
+    if positive is True:
         filters["actual_qty"] = [">", 0]
-    else:
+    elif positive is False:
         filters["actual_qty"] = ["<", 0]
 
+    return frappe.db.exists("Stock Ledger Entry", filters)
+
+
+def _has_posted_transfer_sles(doc, positive):
+    detail_names = [row.name for row in (doc.get("transfer_items") or []) if row.name]
+    if not detail_names:
+        return _has_stock_ledger_entries(doc, positive=positive)
+
+    filters = {
+        "voucher_type": "Warehouse Transfer",
+        "voucher_no": doc.name,
+        "voucher_detail_no": ["in", detail_names],
+        "is_cancelled": 0,
+    }
+    filters["actual_qty"] = [">", 0] if positive else ["<", 0]
     return frappe.db.exists("Stock Ledger Entry", filters)
 
 
@@ -345,7 +364,7 @@ def _has_gl_entries(doc, source=True):
 def create_source_stock_entry(docname):
     doc = frappe.get_doc("Warehouse Transfer", docname)
     try:
-        if _has_stock_ledger_entries(doc, doc.source_warehouse, positive=False):
+        if _has_posted_transfer_sles(doc, positive=False):
             return
 
         sl_entries = []
@@ -407,7 +426,7 @@ def create_target_stock_entry(docname):
 
     doc = frappe.get_doc("Warehouse Transfer", docname)
     try:
-        if _has_stock_ledger_entries(doc, doc.target_warehouse, positive=True):
+        if _has_posted_transfer_sles(doc, positive=True):
             return
 
         sl_entries = []
@@ -862,7 +881,24 @@ def _reverse_warehouse_transfer_stock(doc):
         _copy_optional_sle_fields(linked_sle, reverse_sle)
         sl_entries.append(reverse_sle)
 
-    make_sl_entries(sl_entries, allow_negative_stock=True)
+    with _warehouse_transfer_serial_batch_child_doctype():
+        make_sl_entries(sl_entries, allow_negative_stock=True)
+
+
+@contextmanager
+def _warehouse_transfer_serial_batch_child_doctype():
+    original_child_doctype = SerialBatchBundle.child_doctype
+
+    def child_doctype(self):
+        if self.sle.voucher_type == "Warehouse Transfer":
+            return "Warehouse Transfer Details"
+        return original_child_doctype.fget(self)
+
+    SerialBatchBundle.child_doctype = property(child_doctype)
+    try:
+        yield
+    finally:
+        SerialBatchBundle.child_doctype = original_child_doctype
 
 
 def _get_transfer_rows_by_name(doc):
