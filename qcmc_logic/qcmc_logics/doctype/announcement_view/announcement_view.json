@@ -1,0 +1,15 @@
+{
+ "doctype": "DocType",
+ "name": "Announcement View",
+ "module": "QCMC Logics",
+ "engine": "InnoDB",
+ "field_order": ["announcement", "viewer", "viewed_on"],
+ "fields": [
+  {"fieldname": "announcement", "fieldtype": "Link", "label": "Announcement", "options": "Announcements", "reqd": 1, "read_only": 1, "in_list_view": 1, "search_index": 1},
+  {"fieldname": "viewer", "fieldtype": "Link", "label": "Viewer", "options": "User", "reqd": 1, "read_only": 1},
+  {"fieldname": "viewed_on", "fieldtype": "Datetime", "label": "Viewed On", "default": "Now", "reqd": 1, "read_only": 1, "in_list_view": 1}
+ ],
+ "permissions": [{"role": "System Manager", "read": 1, "report": 1}],
+ "sort_field": "viewed_on",
+ "sort_order": "DESC"
+}

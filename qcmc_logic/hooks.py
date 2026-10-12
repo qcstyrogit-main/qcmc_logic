@@ -457,7 +457,7 @@ app_include_js = [
     "/assets/qcmc_logic/js/inventory_group_access.js",
     "/assets/qcmc_logic/js/warehouse_transfer.js",
     "/assets/qcmc_logic/js/customer_warehouse_defaults.js",
-    "/assets/qcmc_logic/js/login_notices.js?v=20261009-announcement-cards-1"
+    "/assets/qcmc_logic/js/login_notices.js?v=20261012-today-celebrations-3"
 ]
 
 

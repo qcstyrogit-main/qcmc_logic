@@ -51,9 +51,10 @@
                 const greetingAction = data.can_greet && row.user_id && row.user_id !== frappe.session.user
                     ? `<button type="button" class="qcmc-greet" data-greet-kind="${anniversary ? "anniversary" : "birthdays"}" data-greet-index="${index}" aria-label="${escape(__("Send greeting to {0} in Tweet", [row.employee_name]))}">${escape(__("Send greeting"))}</button>`
                     : (data.can_greet && !row.user_id ? `<span class="qcmc-no-tweet">${escape(__("No Tweet account"))}</span>` : "");
-                return `<article class="qcmc-person">
+                return `<article class="qcmc-person ${row.is_today ? "qcmc-person-today" : ""}">
                     <span class="qcmc-avatar ${anniversary ? "qcmc-avatar-gold" : ""}" aria-hidden="true">${escape(initials)}</span>
                     <div class="qcmc-person-details"><strong>${escape(row.employee_name)}</strong>
+                        ${row.is_today ? `<span class="qcmc-celebrating-today"><picture aria-hidden="true"><source media="(prefers-reduced-motion: reduce)" srcset="/assets/qcmc_logic/images/celebration-cake.png"><img src="/assets/qcmc_logic/images/celebration-cake.gif" width="32" height="32" alt=""></picture>${escape(__("Celebrating today"))}</span>` : ""}
                         ${row.department ? `<span>${escape(row.department)}</span>` : ""}
                     </div>
                     <div class="qcmc-person-date"><span>${escape(month)} ${escape(row.day)}</span>
@@ -64,13 +65,15 @@
             }).join("");
             const announcementImage = row => /^(https?:\/\/|\/(?![\/\\]))/i.test(row.image || "")
                 ? `<img src="${escape(row.image)}" alt="${escape(row.title || __("Announcement"))}" loading="lazy">` : "";
+            const viewLabel = count => __(Number(count) === 1 ? "{0} view" : "{0} views", [Number(count) || 0]);
             const announcements = data.announcements.map((row, index) => {
                 const preview = frappe.utils.html2text(row.announcement || "").replace(/\s+/g, " ").trim();
                 return `<article class="qcmc-announcement">
                     <div class="qcmc-announcement-cover">${announcementImage(row) || icon("announcements")}</div>
                     <div class="qcmc-announcement-body"><h4>${escape(row.title || __("Announcement"))}</h4>
                     <p>${escape(preview.slice(0, 160))}${preview.length > 160 ? "…" : ""}</p>
-                    <button type="button" class="qcmc-read-more" data-announcement-index="${index}">${escape(__("Read more"))} <span aria-hidden="true">→</span></button></div>
+                    <div class="qcmc-announcement-footer"><button type="button" class="qcmc-read-more" data-announcement-index="${index}">${escape(__("Read more"))} <span aria-hidden="true">→</span></button>
+                    <span class="qcmc-view-count" data-announcement-views="${index}" aria-live="polite">${escape(viewLabel(row.views))}</span></div></div>
                 </article>`;
             }).join("");
             const categories = [
@@ -134,6 +137,8 @@
                     .qcmc-notices .qcmc-person-details{flex:1;min-width:0}
                     .qcmc-notices .qcmc-person-details strong{display:block;font-size:12px;font-weight:600;line-height:1.5;overflow-wrap:anywhere}
                     .qcmc-notices .qcmc-person-details>span{display:block;font-size:11px;color:var(--text-muted,#667085);margin-top:3px}
+                    .qcmc-notices .qcmc-person-details>.qcmc-celebrating-today{display:flex;align-items:center;gap:5px;color:var(--primary,#3462b5);font-size:11px;font-weight:600}
+                    .qcmc-notices .qcmc-celebrating-today picture,.qcmc-notices .qcmc-celebrating-today img{display:block;width:32px;height:32px;flex-shrink:0}
                     .qcmc-notices .qcmc-person-date{display:flex;align-items:flex-end;flex-direction:column;gap:5px;flex-shrink:0;font-size:11px;color:var(--text-muted,#667085)}
                     .qcmc-notices .qcmc-greet{border:1px solid var(--border-color,#dce3ed);background:var(--fg-color,#fff);color:var(--primary,#3462b5);font-size:10px;font-weight:600;padding:4px 8px;border-radius:6px;cursor:pointer}
                     .qcmc-notices .qcmc-greet:hover{background:var(--control-bg,#eef2ff)}
@@ -153,6 +158,8 @@
                     .qcmc-notices .qcmc-announcement p{font-size:12px;line-height:1.6;color:var(--text-muted,#667085);margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
                     .qcmc-notices .qcmc-read-more{border:0;background:transparent;color:var(--primary,#3462b5);font-size:12px;font-weight:600;padding:6px 0;text-align:left;cursor:pointer;margin-top:auto}
                     .qcmc-notices .qcmc-read-more:hover{text-decoration:underline}
+                    .qcmc-notices .qcmc-announcement-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;flex-wrap:wrap}
+                    .qcmc-notices .qcmc-view-count{font-size:11px;color:var(--text-muted,#667085);white-space:nowrap}
                     @media(max-width:767px){.qcmc-notices .qcmc-announcement-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
                     @media(max-width:576px){.qcmc-notices .qcmc-announcement-grid{grid-template-columns:minmax(0,1fr)}}
                     @media(max-width:576px){.qcmc-notices .qcmc-hero{padding:22px 18px;gap:12px}.qcmc-notices .qcmc-hero h2{font-size:21px}.qcmc-notices .qcmc-period{padding:8px 10px}.qcmc-notices .qcmc-tabs{padding:8px 10px 0;gap:0}.qcmc-notices .qcmc-tab{font-size:11px;gap:5px;padding:12px 6px}.qcmc-notices .qcmc-tab svg{display:none}.qcmc-notices .qcmc-panel{padding:20px 18px 8px}.qcmc-notices .qcmc-person{gap:9px}.qcmc-notices .qcmc-avatar{width:32px;height:32px;border-radius:10px}.qcmc-notices .qcmc-person-details strong{font-size:11px}}
@@ -213,6 +220,17 @@
                     </style><article class="qcmc-announcement-detail">${announcementImage(row)}<div>${row.announcement || ""}</div></article>`);
                     dialog.hide();
                     detail.show();
+                    // Opening cards, thumbnails, or tabs alone does not count.
+                    frappe.call({
+                        method: "qcmc_logic.api.login_notices.record_announcement_view",
+                        type: "POST", args: {name: row.name}, silent: true,
+                    }).then(response => {
+                        const count = Number(response.message?.views);
+                        if (!Number.isFinite(count) || count < 0) return;
+                        row.views = count;
+                        const label = root.querySelector(`[data-announcement-views="${button.dataset.announcementIndex}"]`);
+                        if (label) label.textContent = viewLabel(count);
+                    }).catch(error => console.warn("Could not record announcement view", error));
                 });
             });
             root.querySelectorAll("[data-greet-kind]").forEach(button => {

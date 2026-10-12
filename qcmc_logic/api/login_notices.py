@@ -11,6 +11,38 @@ from werkzeug.wrappers import Response
 from qcmc_logic.api.public_announcements import list_active_announcements
 
 
+def _add_announcement_view_counts(rows):
+    if not rows:
+        return
+    counts = frappe.db.sql(
+        'SELECT announcement, COUNT(name) AS views FROM `tabAnnouncement View` '
+        'WHERE announcement IN %(names)s GROUP BY announcement',
+        {'names': tuple(row['name'] for row in rows)}, as_dict=True)
+    counts = {row.announcement: row.views for row in counts}
+    for row in rows:
+        row['views'] = counts.get(row['name'], 0)
+
+
+@frappe.whitelist(methods=['POST'])
+def record_announcement_view(name):
+    if frappe.session.user == 'Guest':
+        raise frappe.PermissionError('Please log in to view company notices')
+    doc = frappe.get_doc('Announcements', name)
+    today = getdate()
+    if (not doc.published
+            or (doc.publish_from and getdate(doc.publish_from) > today)
+            or (doc.publish_to and getdate(doc.publish_to) < today)):
+        raise frappe.PermissionError('Announcement is unavailable')
+    # Derive identity from the login session, never from a browser parameter.
+    identity = {'announcement': name, 'viewer': frappe.session.user}
+    # Link values follow announcement/user renames; historical hash names do not.
+    if not frappe.db.exists('Announcement View', identity):
+        frappe.get_doc({
+            'doctype': 'Announcement View', **identity,
+        }).insert(ignore_permissions=True, ignore_if_duplicate=True)
+    return {'views': frappe.db.count('Announcement View', {'announcement': name})}
+
+
 def _notice_image_url(image, name):
     # Local files must use the current browser origin and its login cookie.
     prefix = frappe.utils.get_url().rstrip('/') + '/'
@@ -93,6 +125,7 @@ def get_login_notices():
         announcements = list_active_announcements(limit=announcements["total"])
     for row in announcements['items']:
         row['image'] = _notice_image_url(row.get('image'), row['name'])
+    _add_announcement_view_counts(announcements['items'])
 
     def celebration(row, date_field):
         return {
@@ -100,6 +133,7 @@ def get_login_notices():
             "employee_name": row["employee_name"],
             "department": row.get("department") or "",
             "day": getdate(row[date_field]).day,
+            "is_today": getdate(row[date_field]).day == current.day,
             "user_id": row.get("user_id") if can_greet else None,
         }
 
@@ -112,7 +146,7 @@ def get_login_notices():
         if joining and joining.month == current.month and current.year > joining.year:
             anniversaries.append({**celebration(row, "date_of_joining"), "years": current.year - joining.year})
     for rows in (birthdays, anniversaries):
-        rows.sort(key=lambda row: (row["day"], row["employee_name"]))
+        rows.sort(key=lambda row: (not row["is_today"], row["day"], row["employee_name"]))
 
     return {
         "month": current.month,

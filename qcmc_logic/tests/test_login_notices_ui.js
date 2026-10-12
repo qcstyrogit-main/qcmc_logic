@@ -18,8 +18,8 @@ async function main() {
             {announcement: "<p>Company news</p>", image: "javascript:alert(1)"},
             {announcement: "<p>Private image</p>", image: "/api/method/qcmc_logic.api.login_notices.get_announcement_image?name=ANN-00001"},
         ],
-        birthdays: [{employee_name: '<img src=x onerror="alert(1)">', department: "MIS", day: 31}],
-        anniversaries: [{employee_name: "Veteran", department: "MIS", day: 31, years: 6}],
+        birthdays: [{employee_name: '<img src=x onerror="alert(1)">', department: "MIS", day: 12, is_today: true}, {employee_name: 'Upcoming', day: 31, is_today: false}],
+        anniversaries: [{employee_name: "Veteran", department: "MIS", day: 12, years: 6, is_today: true}],
     };
     async function load(session, user = "Administrator", useLocks = true) {
         let ready;
@@ -77,6 +77,8 @@ async function main() {
     assert.match(dialogs[0].html, /qcmc-announcement-grid/);
     assert.match(dialogs[0].html, /data-announcement-index="0"/);
     assert.match(dialogs[0].html, /Read more/);
+    assert.equal((dialogs[0].html.match(/src="\/assets\/qcmc_logic\/images\/celebration-cake.gif"/g) || []).length, 2);
+    assert.equal((dialogs[0].html.match(/Celebrating today/g) || []).length, 2);
     dialogs[0].options.primary_action();
     assert.equal(dialogs[0].hidden, true);
     await load("session-1");

@@ -9,6 +9,23 @@ from qcmc_logic.api import login_notices
 
 
 class TestLoginNotices(unittest.TestCase):
+    def test_todays_celebrants_are_first_in_both_tabs(self):
+        people = [
+            dict(name='EARLIER', employee_name='Earlier', date_of_birth=date(1990, 10, 2), date_of_joining=date(2020, 10, 2)),
+            dict(name='LATER', employee_name='Later', date_of_birth=date(1990, 10, 20), date_of_joining=date(2020, 10, 20)),
+            dict(name='TODAY-Z', employee_name='Zed Today', date_of_birth=date(1990, 10, 12), date_of_joining=date(2020, 10, 12)),
+            dict(name='TODAY-A', employee_name='Amy Today', date_of_birth=date(1990, 10, 12), date_of_joining=date(2020, 10, 12)),
+        ]
+        with patch.object(login_notices, 'getdate', side_effect=lambda value=None: real_getdate(value) if value else date(2026, 10, 12)), patch.object(
+            frappe, 'db', Mock(sql=Mock(return_value=people))
+        ), patch.object(frappe, 'get_installed_apps', return_value=[]), patch.object(
+            login_notices, 'list_active_announcements', return_value={'items': [], 'total': 0}
+        ), patch.object(frappe, 'session', frappe._dict(user='Administrator')):
+            result = login_notices.get_login_notices()
+        for tab in ('birthdays', 'anniversaries'):
+            self.assertEqual([row['employee_id'] for row in result[tab]], ['TODAY-A', 'TODAY-Z', 'EARLIER', 'LATER'])
+            self.assertEqual([row['is_today'] for row in result[tab]], [True, True, False, False])
+
     def test_private_image_uses_authenticated_same_origin_endpoint(self):
         with patch.object(frappe.utils, 'get_url', return_value='https://configured.erp'):
             self.assertEqual(login_notices._notice_image_url('https://configured.erp/private/files/image.jpg', 'ANN-00001'), '/api/method/qcmc_logic.api.login_notices.get_announcement_image?name=ANN-00001')
@@ -67,8 +84,8 @@ class TestLoginNotices(unittest.TestCase):
             login_notices, "list_active_announcements", return_value={"items": [], "total": 0}
         ), patch.object(login_notices.frappe, "session", frappe._dict(user="Administrator")):
             result = login_notices.get_login_notices()
-        self.assertEqual(result["birthdays"], [dict(employee_id="EMP-1", employee_name="Birthday", department="MIS", day=31, user_id="birthday@example.com")])
-        self.assertEqual(result["anniversaries"], [dict(employee_id="EMP-2", employee_name="Veteran", department="MIS", day=31, years=6, user_id=None)])
+        self.assertEqual(result["birthdays"], [dict(employee_id="EMP-1", employee_name="Birthday", department="MIS", day=31, is_today=False, user_id="birthday@example.com")])
+        self.assertEqual(result["anniversaries"], [dict(employee_id="EMP-2", employee_name="Veteran", department="MIS", day=31, years=6, is_today=False, user_id=None)])
         self.assertTrue(result["can_greet"])
         self.assertEqual(result["month"], 10)
         self.assertEqual(result["year"], 2026)
