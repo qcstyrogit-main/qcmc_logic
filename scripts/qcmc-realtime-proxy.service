@@ -1,0 +1,11 @@
+[Unit]
+Description=Frappe realtime proxy for the development ERP tunnel
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node /home/qcmc_admin/frappe-bench/apps/qcmc_logic/scripts/realtime_proxy.cjs erp.qcstyro.local https://desktop-vlfuuk4.tail39f829.ts.net 9001
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

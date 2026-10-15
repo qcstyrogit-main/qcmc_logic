@@ -25,6 +25,7 @@ async function main() {
         let ready;
         const context = {
             document: {
+                head: {appendChild() {}}, body: {appendChild() {}},
                 getElementById: () => null,
                 querySelector: () => ({prepend() {}}),
                 createElement: () => ({style: {}, setAttribute() {}, addEventListener() {}, appendChild() {}}),

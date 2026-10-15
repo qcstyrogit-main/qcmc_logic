@@ -8,6 +8,14 @@ app_license = "mit"
 # Apps
 # ------------------
 doc_events = {
+    "Comment": {
+        "before_save": "qcmc_logic.api.announcement_comments.stamp_comment_mentions",
+        "on_update": "qcmc_logic.api.announcement_comments.publish_comment_change",
+        "after_delete": "qcmc_logic.api.announcement_comments.publish_comment_change",
+    },
+    "Notification Log": {
+        "before_insert": "qcmc_logic.api.announcement_comments.link_mention_notification",
+    },
     "*": {
         "validate": [
             "qcmc_logic.customs.warehouse_access_permissions.validate_warehouse_access",
@@ -230,6 +238,9 @@ doctype_list_js = {
 
 
 override_whitelisted_methods = {
+    "frappe.desk.doctype.notification_log.notification_log.get_notification_logs": "qcmc_logic.api.desk_notifications.get_notification_logs",
+    "frappe.desk.doctype.notification_log.notification_log.mark_as_read": "qcmc_logic.api.desk_notifications.mark_as_read",
+    "frappe.desk.doctype.notification_log.notification_log.mark_all_as_read": "qcmc_logic.api.desk_notifications.mark_all_as_read",
     "frappe.model.workflow.apply_workflow": "qcmc_logic.customs.purchase_request_workflow.apply_workflow",
 	"erpnext.stock.doctype.pick_list.pick_list.create_stock_entry": "qcmc_logic.overrides.pick_list.create_stock_entry",
     "frappe_assistant_core.api.fac_endpoint.handle_mcp": "qcmc_logic.overrides.oauth_override.handle_mcp",
@@ -459,7 +470,14 @@ app_include_js = [
     "/assets/qcmc_logic/js/inventory_group_access.js",
     "/assets/qcmc_logic/js/warehouse_transfer.js",
     "/assets/qcmc_logic/js/customer_warehouse_defaults.js",
-    "/assets/qcmc_logic/js/login_notices.js?v=20261012-today-celebrations-3"
+    "/assets/qcmc_logic/js/realtime_same_origin.js?v=20261015-2",
+    "/assets/qcmc_logic/js/announcement_comments.js?v=20261015-10",
+    "/assets/qcmc_logic/js/login_notices.js?v=20261015-celebration-launcher-16",
+    "/assets/qcmc_logic/js/desk_notifications.js?v=20261015-5",
+    "/assets/qcmc_logic/js/visible_horizontal_scroll.js?v=20261015-2",
+    "/assets/qcmc_logic/js/list_column_resize.js?v=20261015-7",
+    "/assets/qcmc_logic/js/grid_column_resize.js?v=20261015-3",
+    "/assets/qcmc_logic/js/document_sidebar_toggle.js?v=20261015-22"
 ]
 
 

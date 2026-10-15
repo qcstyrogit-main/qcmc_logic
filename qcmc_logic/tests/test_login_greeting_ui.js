@@ -10,7 +10,7 @@ async function main() {
     const root = {querySelectorAll: selector => selector === "[data-greet-kind]" ? [button] : []};
     const payload = {month: 10, year: 2026, can_greet: true, announcements: [], anniversaries: [], birthdays: [{employee_name: "Birthday Person", department: "MIS", day: 31, user_id: "person@example.com"}]};
     const context = {
-        document: {getElementById: () => null, querySelector: () => ({prepend() {}}), createElement: () => ({style: {}, setAttribute() {}, addEventListener() {}, appendChild() {}})},
+        document: {head: {appendChild() {}}, body: {appendChild() {}}, getElementById: () => null, querySelector: () => ({prepend() {}}), createElement: () => ({style: {}, setAttribute() {}, addEventListener() {}, appendChild() {}})},
         window: {localStorage: {getItem() {}, setItem() {}}},
         console: {warn() {}},
         $: () => ({on: (event, handler) => {ready = handler;}}),

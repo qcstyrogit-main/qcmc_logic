@@ -3,12 +3,22 @@
     let started = false;
     let opening = false;
     let noticeDialog = null;
+    let pendingAnnouncement = null;
+    let initialMentionConsumed = false;
+    let stopCommentUpdates = null;
+    let activeAnnouncementDetail = null;
+    let pendingStandalone = false;
+    let pendingComment = null;
 
-    async function openNotices(manual = false) {
+    async function openNotices(manual = false, announcement = null, standalone = false, comment = null) {
+        if (announcement) {pendingAnnouncement = announcement; pendingStandalone = standalone; pendingComment = comment;}
         if (!frappe.session || frappe.session.user === "Guest" || opening || (!manual && started)) return;
         if (manual && noticeDialog) {
-            noticeDialog.show();
-            return;
+            if (!pendingAnnouncement) {noticeDialog.show(); return;}
+            if (noticeDialog.qcmcOpenAnnouncement(pendingAnnouncement, pendingStandalone, pendingComment)) {pendingAnnouncement = null; return;}
+            // A newer announcement may not be in this cached set yet.
+            noticeDialog.hide(); noticeDialog = null;
+            stopCommentUpdates?.(); stopCommentUpdates = null;
         }
         const session = frappe.boot.qcmc_login_notice_session;
         if (!session) return;
@@ -66,6 +76,7 @@
             const announcementImage = row => /^(https?:\/\/|\/(?![\/\\]))/i.test(row.image || "")
                 ? `<img src="${escape(row.image)}" alt="${escape(row.title || __("Announcement"))}" loading="lazy">` : "";
             const viewLabel = count => __(Number(count) === 1 ? "{0} view" : "{0} views", [Number(count) || 0]);
+            const commentLabel = count => __(Number(count) === 1 ? "{0} comment" : "{0} comments", [Number(count) || 0]);
             const announcements = data.announcements.map((row, index) => {
                 const preview = frappe.utils.html2text(row.announcement || "").replace(/\s+/g, " ").trim();
                 return `<article class="qcmc-announcement">
@@ -73,7 +84,8 @@
                     <div class="qcmc-announcement-body"><h4>${escape(row.title || __("Announcement"))}</h4>
                     <p>${escape(preview.slice(0, 160))}${preview.length > 160 ? "…" : ""}</p>
                     <div class="qcmc-announcement-footer"><button type="button" class="qcmc-read-more" data-announcement-index="${index}">${escape(__("Read more"))} <span aria-hidden="true">→</span></button>
-                    <span class="qcmc-view-count" data-announcement-views="${index}" aria-live="polite">${escape(viewLabel(row.views))}</span></div></div>
+                    <div class="qcmc-announcement-stats"><span class="qcmc-view-count" data-announcement-views="${index}" aria-live="polite">${escape(viewLabel(row.views))}</span>
+                    <span class="qcmc-view-count" data-announcement-comments="${index}" aria-live="polite">${escape(commentLabel(row.comments))}</span></div></div></div>
                 </article>`;
             }).join("");
             const categories = [
@@ -89,6 +101,7 @@
             ];
             const dialog = new frappe.ui.Dialog({
                 title: __("Announcements & Celebrations"),
+                animate: false,
                 size: "large",
                 fields: [{fieldname: "content", fieldtype: "HTML"}],
                 primary_action_label: __("Close"),
@@ -160,6 +173,7 @@
                     .qcmc-notices .qcmc-read-more:hover{text-decoration:underline}
                     .qcmc-notices .qcmc-announcement-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;flex-wrap:wrap}
                     .qcmc-notices .qcmc-view-count{font-size:11px;color:var(--text-muted,#667085);white-space:nowrap}
+                    .qcmc-notices .qcmc-announcement-stats{display:flex;gap:8px;flex-wrap:wrap}
                     @media(max-width:767px){.qcmc-notices .qcmc-announcement-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
                     @media(max-width:576px){.qcmc-notices .qcmc-announcement-grid{grid-template-columns:minmax(0,1fr)}}
                     @media(max-width:576px){.qcmc-notices .qcmc-hero{padding:22px 18px;gap:12px}.qcmc-notices .qcmc-hero h2{font-size:21px}.qcmc-notices .qcmc-period{padding:8px 10px}.qcmc-notices .qcmc-tabs{padding:8px 10px 0;gap:0}.qcmc-notices .qcmc-tab{font-size:11px;gap:5px;padding:12px 6px}.qcmc-notices .qcmc-tab svg{display:none}.qcmc-notices .qcmc-panel{padding:20px 18px 8px}.qcmc-notices .qcmc-person{gap:9px}.qcmc-notices .qcmc-avatar{width:32px;height:32px;border-radius:10px}.qcmc-notices .qcmc-person-details strong{font-size:11px}}
@@ -176,6 +190,24 @@
                     ${categories.map((item, index) => `<section class="qcmc-panel" id="qcmc-panel-${item.id}" role="tabpanel" aria-labelledby="qcmc-tab-${item.id}" ${index ? "hidden" : ""} tabindex="0"><h3>${escape(item.heading)}</h3><p class="qcmc-panel-description">${escape(item.description)}</p><div class="qcmc-list">${item.body}</div></section>`).join("")}
                 </div>`);
             const root = dialog.fields_dict.content.$wrapper[0].querySelector(".qcmc-notices");
+            const countRequests = new Map();
+            stopCommentUpdates?.();
+            stopCommentUpdates = frappe.qcmc_announcement_comments?.subscribe?.(message => {
+                const indexes = data.announcements.map((row, index) => index).filter(index => message?.reconnected || data.announcements[index].name === message?.announcement);
+                indexes.forEach(index => {
+                    const row = data.announcements[index];
+                    const sequence = (countRequests.get(row.name) || 0) + 1;
+                    countRequests.set(row.name, sequence);
+                    frappe.call({method: "qcmc_logic.api.announcement_comments.get_comment_count", args: {name: row.name}, silent: true}).then(response => {
+                        if (countRequests.get(row.name) !== sequence) return;
+                        const count = Number(response.message?.count);
+                        if (!Number.isFinite(count) || count < 0) return;
+                        row.comments = count;
+                        const label = root.querySelector(`[data-announcement-comments="${index}"]`);
+                        if (label) label.textContent = commentLabel(count);
+                    }).catch(error => console.warn("Could not update announcement comment count", error));
+                });
+            });
             const tabs = Array.from(root.querySelectorAll("[data-notice-tab]"));
             const panels = Array.from(root.querySelectorAll('[role="tabpanel"]'));
             const selectTab = (tab, focus = false) => {
@@ -197,29 +229,55 @@
                     }
                 });
             });
-            root.querySelectorAll("[data-announcement-index]").forEach(button => {
+            const announcementButtons = Array.from(root.querySelectorAll("[data-announcement-index]"));
+            announcementButtons.forEach(button => {
                 button.addEventListener("click", () => {
                     const row = data.announcements[Number(button.dataset.announcementIndex)];
                     if (!row) return;
+                    const standalone = !!button.qcmcStandalone;
+                    const targetComment = button.qcmcTargetComment || null;
+                    button.qcmcTargetComment = null;
+                    button.qcmcStandalone = false;
+                    if (activeAnnouncementDetail) {
+                        activeAnnouncementDetail.qcmcSuppressReturn = true;
+                        activeAnnouncementDetail.hide();
+                    }
+                    let discussion;
                     const detail = new frappe.ui.Dialog({
                         title: escape(row.title || __("Announcement")),
-                        size: "large",
+                        size: "large", animate: false,
                         fields: [{fieldname: "announcement_detail", fieldtype: "HTML"}],
-                        primary_action_label: __("Back to announcements"),
-                        primary_action: () => detail.hide(),
-                        onhide: () => { dialog.show(); button.focus(); },
+                        onhide: () => {
+                            discussion?.destroy();
+                            if (activeAnnouncementDetail === detail) activeAnnouncementDetail = null;
+                            if (!standalone && !detail.qcmcSuppressReturn) {dialog.show(); button.focus();}
+                        },
                     });
                     detail.$wrapper.addClass("qcmc-announcement-detail-modal");
                     // Full HTML comes from the server's sanitized announcement API.
                     detail.fields_dict.announcement_detail.$wrapper.html(`<style>
                         .qcmc-announcement-detail-modal .modal-content{border-radius:16px;overflow:hidden}
-                        .qcmc-announcement-detail{max-height:65vh;overflow:auto;overflow-wrap:anywhere;line-height:1.7}
+                        .qcmc-announcement-detail-layout{max-height:65vh;display:flex;flex-direction:column}
+                        .qcmc-announcement-detail{min-height:0;flex:1 1 auto;overflow:auto;overflow-wrap:anywhere;line-height:1.7}
+                        .qcmc-announcement-composer-slot{flex-shrink:0}
                         .qcmc-announcement-detail img{max-width:100%;height:auto}
                         .qcmc-announcement-detail>img{display:block;margin:0 auto 20px}
                         .qcmc-announcement-detail table{max-width:100%;display:block;overflow:auto}
-                    </style><article class="qcmc-announcement-detail">${announcementImage(row)}<div>${row.announcement || ""}</div></article>`);
+                    </style><div class="qcmc-announcement-detail-layout"><article class="qcmc-announcement-detail">${announcementImage(row)}<div>${row.announcement || ""}</div></article><div class="qcmc-announcement-composer-slot"></div></div>`);
                     dialog.hide();
+                    activeAnnouncementDetail = detail;
                     detail.show();
+                    discussion = frappe.qcmc_announcement_comments?.attach({
+                        parent: detail.fields_dict.announcement_detail.$wrapper[0].querySelector(".qcmc-announcement-detail"),
+                        composerParent: detail.fields_dict.announcement_detail.$wrapper[0].querySelector(".qcmc-announcement-composer-slot"),
+                        announcement: row.name, targetComment,
+                        onCount: count => {
+                            countRequests.set(row.name, (countRequests.get(row.name) || 0) + 1);
+                            row.comments = count;
+                            const label = root.querySelector(`[data-announcement-comments="${button.dataset.announcementIndex}"]`);
+                            if (label) label.textContent = commentLabel(count);
+                        },
+                    });
                     // Opening cards, thumbnails, or tabs alone does not count.
                     frappe.call({
                         method: "qcmc_logic.api.login_notices.record_announcement_view",
@@ -233,6 +291,15 @@
                     }).catch(error => console.warn("Could not record announcement view", error));
                 });
             });
+            dialog.qcmcOpenAnnouncement = (name, standalone = false, comment = null) => {
+                const index = data.announcements.findIndex(row => row.name === name);
+                const button = announcementButtons.find(button => Number(button.dataset.announcementIndex) === index);
+                if (!button) return false;
+                button.qcmcStandalone = standalone;
+                button.qcmcTargetComment = comment;
+                button.click();
+                return true;
+            };
             root.querySelectorAll("[data-greet-kind]").forEach(button => {
                 button.addEventListener("click", async () => {
                     const anniversary = button.dataset.greetKind === "anniversary";
@@ -306,7 +373,11 @@
                 } catch (error) {
                     // Continue when browser storage is unavailable.
                 }
-                dialog.show();
+                if (!pendingAnnouncement) dialog.show();
+                if (pendingAnnouncement) {
+                    const name = pendingAnnouncement; pendingAnnouncement = null;
+                    if (!dialog.qcmcOpenAnnouncement(name, pendingStandalone, pendingComment)) frappe.msgprint(__("This announcement is no longer available."));
+                }
                 try {
                     window.localStorage.setItem(storageKey, session);
                 } catch (error) {
@@ -328,31 +399,109 @@
 
     function addReopenButton() {
         if (!frappe.session || frappe.session.user === "Guest" || document.getElementById("qcmc-open-notices")) return;
-        const navbar = document.querySelector(".navbar-right, .navbar .navbar-nav.ml-auto, .navbar .navbar-nav:last-child");
+        const style = document.createElement("style");
+        style.textContent = `
+            .qcmc-action-tooltip{pointer-events:none}
+            #qcmc-open-notices{padding:0;border:0;background:transparent;cursor:pointer}
+            #qcmc-open-notices .qcmc-launcher-label{display:flex;align-items:center;justify-content:center;line-height:1.2;white-space:nowrap}
+            #qcmc-open-notices:focus-visible{outline:0}
+            #qcmc-open-notices:focus-visible .qcmc-launcher-label{outline:3px solid #386ad8;outline-offset:3px}
+            #qcmc-open-notices.qcmc-launcher-compact{position:static;inset:auto;display:inline-flex;align-items:center;width:auto;height:30px;margin-right:8px;flex:0 0 auto;z-index:auto;transform:none;transition:none}
+            #qcmc-open-notices.qcmc-launcher-compact .qcmc-launcher-label{position:static;gap:6px;padding:6px 10px;border:1px solid #8daee4;border-radius:7px;background:linear-gradient(120deg,#5387ed20,#ffcb661c),var(--fg-color,#fff);color:var(--text-color,#42454b);font-size:11px;font-weight:650;animation:qcmc-toolbar-glow 4.5s ease-in-out infinite}
+            #qcmc-open-notices.qcmc-launcher-compact .qcmc-launcher-label::before{content:"";width:10px;height:10px;flex-shrink:0;background:#5885d6;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+            #qcmc-open-notices.qcmc-launcher-compact:hover .qcmc-launcher-label{animation-play-state:paused;box-shadow:0 0 0 3px #5387ed24;border-color:#5885d6}
+            @keyframes qcmc-toolbar-glow{0%,60%,100%{box-shadow:0 0 0 0 #5387ed00}30%{box-shadow:0 0 0 3px #5387ed24}}
+            @media(prefers-reduced-motion:reduce){#qcmc-open-notices.qcmc-launcher-compact .qcmc-launcher-label{animation:none}}
+            #qcmc-open-notices.qcmc-launcher-desk{position:fixed;left:max(16px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom));width:auto;max-width:calc(100vw - 32px);height:34px;margin:0;z-index:1030}
+            #qcmc-open-notices.qcmc-launcher-desk .qcmc-launcher-label{box-sizing:border-box;width:100%;height:100%;justify-content:flex-start}
+            #qcmc-open-notices.qcmc-launcher-sidebar{width:100%;height:34px;margin:0 0 8px}
+            #qcmc-open-notices.qcmc-launcher-sidebar .qcmc-launcher-label{box-sizing:border-box;width:100%;height:100%;justify-content:flex-start;padding:6px 9px}
+            .body-sidebar-container:not(.expanded) #qcmc-open-notices.qcmc-launcher-sidebar .qcmc-launcher-label{font-size:0;justify-content:center;gap:0;padding:6px}
+            #qcmc-open-notices[hidden],.qcmc-notices-nav-item[hidden]{display:none!important}
+        `;
+        document.head.appendChild(style);
         const button = document.createElement("button");
         button.id = "qcmc-open-notices";
         button.type = "button";
-        button.className = "btn btn-default btn-sm";
-        button.textContent = __("News & Celebrations");
-        button.title = __("Reopen announcements, anniversaries and birthdays");
+        button.className = "qcmc-celebration-launcher";
+        const label = document.createElement("span");
+        label.className = "qcmc-launcher-label";
+        label.textContent = __("News & Celebrations");
+        button.appendChild(label);
         button.setAttribute("aria-haspopup", "dialog");
-        button.style.cssText = "font-size:11px;border-radius:8px;white-space:nowrap;margin-right:8px";
-        button.addEventListener("click", () => openNotices(true));
-        if (navbar) {
-            const item = document.createElement("li");
-            item.className = "nav-item";
-            item.appendChild(button);
-            navbar.prepend(item);
-        } else {
-            // Some Desk layouts omit the standard toolbar, especially on mobile.
-            button.style.cssText += ";position:fixed;bottom:20px;left:20px;z-index:1030;box-shadow:0 3px 14px #11182722";
-            document.body.appendChild(button);
-        }
+        button.setAttribute("aria-label", __("News & Celebrations"));
+        $(button).tooltip?.({title: () => __("News & Celebrations"), placement: () => button.className.includes("qcmc-launcher-sidebar") ? "right" : "top", container: "body", boundary: "window", offset: "0,8", template: '<div class="tooltip qcmc-action-tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>', trigger: "hover focus", delay: {show: 200, hide: 0}});
+        button.addEventListener("click", () => {$(button).tooltip?.("hide"); return openNotices(true);});
+        button.hidden = true;
+        document.body.appendChild(button);
+        const navbarItem = document.createElement("li");
+        navbarItem.className = "nav-item qcmc-notices-nav-item";
+        const placeButton = () => {
+            $(button).tooltip?.("hide");
+            $(button).tooltip?.("disable");
+            const route = frappe.get_route?.() || [];
+            const routeType = String(route[0] || "").toLowerCase();
+            // Only the main Desk/app grid floats; workspaces use the sidebar.
+            const isHome = !routeType || (routeType === "apps" && route.length === 1);
+            navbarItem.hidden = true;
+            button.hidden = true;
+            button.className = `qcmc-celebration-launcher qcmc-launcher-compact${isHome ? " qcmc-launcher-desk" : ""}`;
+            if (isHome) {
+                document.body.appendChild(button);
+                button.hidden = false;
+                return;
+            }
+            // This section contains Search and Notifications, below the app header.
+            const sidebar = document.querySelector(".body-sidebar .standard-items-sections");
+            if (sidebar) {
+                button.className += " qcmc-launcher-sidebar";
+                sidebar.prepend(button);
+                button.hidden = false;
+                if (!sidebar.closest?.(".body-sidebar-container")?.classList.contains("expanded")) $(button).tooltip?.("enable");
+                return;
+            }
+            // Older Desk layouts without the modern sidebar retain toolbar access.
+            // Use the active page only; cached, hidden pages also have toolbars.
+            const toolbar = frappe.container?.page?.querySelector?.(".page-actions");
+            if (toolbar) {
+                toolbar.prepend(button);
+                button.hidden = false;
+                return;
+            }
+            const navbar = document.querySelector(".navbar-right, .navbar .navbar-nav.ml-auto, .navbar .navbar-nav:last-child");
+            if (navbar) {
+                navbarItem.appendChild(button);
+                navbar.prepend(navbarItem);
+                navbarItem.hidden = false;
+                button.hidden = false;
+            }
+            // Never float over a transaction while its toolbar is still loading.
+        };
+        placeButton();
+        frappe.router?.on?.("change", placeButton);
+        $(document).on("page-change", placeButton);
+        $(document).on("sidebar-expand", placeButton);
     }
 
-    frappe.qcmc_login_notices = {open: () => openNotices(true)};
+    async function openMentionedAnnouncement() {
+        let name = frappe.route_options?.qcmc_announcement;
+        let comment = frappe.route_options?.qcmc_comment || null;
+        if (comment) delete frappe.route_options.qcmc_comment;
+        if (name) delete frappe.route_options.qcmc_announcement;
+        if (!initialMentionConsumed && typeof URLSearchParams !== "undefined") {
+            const params = new URLSearchParams(window.location?.search || "");
+            name = name || params.get("qcmc_announcement");
+            comment = comment || params.get("qcmc_comment");
+            initialMentionConsumed = true;
+        }
+        if (typeof name !== "string" || !name) return false;
+        await openNotices(true, name, true, comment);
+        return true;
+    }
+    frappe.qcmc_login_notices = {open: (name, comment = null) => openNotices(true, name, !!name, comment)};
+    frappe.router?.on?.("change", openMentionedAnnouncement);
     $(document).on("app_ready", async () => {
         addReopenButton();
-        await openNotices();
+        if (!await openMentionedAnnouncement()) await openNotices();
     });
 })();
