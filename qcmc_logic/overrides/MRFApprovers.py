@@ -3,6 +3,25 @@ from hrms.hr.doctype.job_requisition.job_requisition import JobRequisition as Or
 
 class MRFApproverSetCustomFields(OriginalJobRequisition):
 
+    def validate(self):
+        super().validate()
+        self.validate_employee_or_remarks()
+
+    def validate_employee_or_remarks(self):
+        """Require an employee selection or remarks identifying unlisted employees."""
+        has_employee = any(
+            row.get("employee") for row in (self.get("custom_employees") or [])
+        )
+        has_remarks = bool((self.get("custom_remarks") or "").strip())
+
+        if not has_employee and not has_remarks:
+            frappe.throw(
+                frappe._(
+                    "Please select at least one Employee or enter the employee name(s) in Remarks."
+                ),
+                title=frappe._("Employee or Remarks Required"),
+            )
+
     def before_save(self):
         """Auto-fill approval fields based on workflow state and user roles."""
         user_roles = [r.role for r in frappe.db.get_all("Has Role", filters={"parent": frappe.session.user}, fields=["role"])]

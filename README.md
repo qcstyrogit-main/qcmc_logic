@@ -2,7 +2,90 @@
 
 Company Business Rules and Logics
 
+### Resizable List Columns
+
+On desktop ERP List pages, drag the right edge of a column header to resize it.
+Widths are saved in each user's personal settings separately for each DocType.
+Double-click the edge to fit the header and longest loaded value. Keyboard users can focus
+the divider and use arrow keys (Shift for larger steps); Home resets the width.
+Report grids and the mobile list layout retain their existing behavior.
+
+Form tables such as **Items** also support dragging their header dividers and
+double-clicking to fit their loaded values. Their widths are saved separately for each user,
+parent DocType and table field, without changing transaction data or the column chooser.
+On long desktop lists and tables with overflowing columns, a synchronized
+horizontal scrollbar stays at the bottom of the visible table or list panel,
+including lists with an independently scrolling inner result area.
+
+### Document Details Sidebar
+
+On saved desktop forms, the panel icon at the bottom of the details sidebar collapses
+or restores the right-hand Assign, Attachments, Tags and Share panel. Single-click
+the panel border to toggle it; a narrow rail keeps the bottom icon accessible when collapsed. Hiding it
+expands the form area and lets sections and tables use its available width with
+normal field padding. The preference is remembered for each user in this browser;
+new documents and mobile layouts retain their native sidebar behavior.
+The collapsed rail includes Assign, Attachments, Tags and Share icons with tooltips.
+Selecting an icon opens its native action directly while the panel stays collapsed.
+Tags uses a popup containing the existing editor; unavailable actions are omitted.
+Rename, Print, Favorite and Info shortcuts are also available. Rename and Print
+follow native availability rules. Info shows the document name, last editor,
+last edit time, creator and creation time without expanding the sidebar.
+
 ### ERP Login Notices
+
+Announcement details include discussions with replies and native `@` mentions.
+Comments use avatars, rounded bubbles, nested replies and newest/oldest sorting.
+A fixed inline composer supports emoji and Ctrl+Enter to post, with a reply target
+and Cancel action. Realtime refreshes preserve unsent drafts. Editing uses the same
+inline composer with Save and Cancel, restoring any pending comment/reply draft afterwards.
+Reply automatically inserts a highlighted native mention of the comment author
+without showing `@`. Changing or cancelling the reply preserves typed draft text.
+Clicking a posted user mention opens a small profile popup with only Name,
+Department, Position (Employee designation), and Email. Missing details show a dash.
+Announcement mention notifications and their email-delivery failure alerts open
+the announcement popup directly, including older notifications. The bell shows
+the current user's unread count (99+ above 99), updated on realtime events,
+reconnect/focus, and native read actions. Email failures use the notification
+template's Open Document destination; unrelated notification routes are preserved.
+Notification clicks open only the requested detail and close back to the Desk.
+Clicking a mention notification marks that selected record read, scrolls to its
+comment and highlights the bubble in blue. New saved mentions carry a verified
+Comment ID through notification/email links. Legacy notifications use a unique
+matching comment when possible; deleted or ambiguous targets open the announcement
+without guessing another comment. Large banner images loading later preserve the
+target position, and reduced-motion preferences disable the animated highlight.
+The navbar bell stays visible when its menu closes. The list and badge refresh
+together on realtime events, with a 15-second recovery check for missed events.
+The bell list and read actions are personal to the logged-in user, including
+Administrator. Read changes sync to that user's other tabs; another user's read
+state is unaffected. Use separate browser profiles for simultaneous accounts,
+since tabs in the same browser profile share the authentication cookie.
+Authors can edit or delete their own comments; System Managers can moderate.
+Deleting a parent keeps its replies, labeled as replies to a deleted comment.
+Cards show the number of comments including replies. Threads and card counts
+update in realtime after committed discussion changes, including changes from
+the form timeline. Reconnect/focus checks recover missed updates; no Refresh
+button is needed. Standard Frappe Comment records are reused, including form timeline
+comments, and mention notifications follow Frappe's enabled-user mention settings.
+Announcement mention notifications link directly to the popup, including for
+employees without access to the announcement administration form.
+
+For this WSL development tunnel, `scripts/qcmc-realtime-proxy.service` forwards
+Socket.IO to port 9000 with the fixed Frappe site header. The Windows Tailscale
+`/socket.io` route points to this local proxy on port 9001. The site setting
+`qcmc_realtime_same_origin` lets the development browser use the HTTPS tunnel
+instead of trying to connect directly to port 9000. Standard production nginx
+setups already supply this routing and do not need the local proxy.
+
+For production deployment, include all new app files in the commit, back up the
+site, and apply the usual Bench migration, asset build, cache clear and process
+restart for the target site. Verify the deployment on the same Frappe/ERPNext
+versions and check Socket.IO plus background workers. Do not install this
+development machine's Tailscale route or hardcoded proxy service on production.
+Smoke-test two separate accounts: each bell must contain only its recipient's
+notifications, reading one must leave the other's unread count unchanged, and
+a new mention should update the recipient's list and open a single announcement.
 
 After ERP Desk login, a popup shows active published Announcements and the
 current month's birthdays and work anniversaries for active Employees.
@@ -22,8 +105,11 @@ Cards show the number of unique logged-in users who opened **Read more**.
 Each user counts once per announcement across repeat opens, logins and devices.
 View tracking starts when this feature is deployed; earlier reads are not counted.
 
-Use **News & Celebrations** in the ERP toolbar to reopen the popup anytime.
-On layouts without the standard toolbar, the button appears at the bottom left.
+Use the compact **News & Celebrations** button at the bottom left on the main
+Desk screen to reopen the popup. Dashboards, workspaces and transaction pages
+show a compact button above Search in the left sidebar, keeping controls clear.
+Collapsed sidebars show the sparkle icon; older layouts without this sidebar use
+the top toolbar. Both button styles support keyboard focus.
 For employees with an enabled Tweet account, **Send greeting** opens a
 **Send message** popup with an editable multiline birthday or anniversary
 message. **Send** delivers it privately through Tweet without navigating away;

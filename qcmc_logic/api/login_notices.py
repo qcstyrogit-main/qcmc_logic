@@ -9,6 +9,7 @@ from frappe.utils import getdate
 from werkzeug.wrappers import Response
 
 from qcmc_logic.api.public_announcements import list_active_announcements
+from qcmc_logic.api.announcement_comments import add_counts as add_announcement_comment_counts
 
 
 def _add_announcement_view_counts(rows):
@@ -88,6 +89,8 @@ def extend_bootinfo(bootinfo):
     bootinfo["qcmc_login_notice_session"] = sha256(
         f"qcmc-login-notices:{frappe.session.sid}".encode()
     ).hexdigest()
+    bootinfo['qcmc_realtime_same_origin'] = bool(frappe.conf.get('qcmc_realtime_same_origin'))
+    bootinfo['qcmc_realtime_proxy_origin'] = frappe.conf.get('host_name') or ''
 
 
 @frappe.whitelist()
@@ -126,6 +129,7 @@ def get_login_notices():
     for row in announcements['items']:
         row['image'] = _notice_image_url(row.get('image'), row['name'])
     _add_announcement_view_counts(announcements['items'])
+    add_announcement_comment_counts(announcements['items'])
 
     def celebration(row, date_field):
         return {

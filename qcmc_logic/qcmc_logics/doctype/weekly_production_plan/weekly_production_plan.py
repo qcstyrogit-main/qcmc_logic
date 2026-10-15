@@ -23,6 +23,21 @@ class WeeklyProductionPlan(Document):
 		self._populate_machine_schedule()
 
 	def _validate_scheduled_items(self):
+		if is_extrusion_section(self.section):
+			if self.get("item_1_schedule") or self.get("item_2_schedule"):
+				frappe.throw(_("EXTRUSION plans can only use the Extrusion Item List."))
+			for row in self.get("extrusion_item_schedule"):
+				if row.roll_code and not item_has_active_bom_for_machine(row.roll_code, row.machine):
+					frappe.throw(
+						_("Extrusion Item List, row {0}: {1} must have an active submitted BOM for machine {2}.").format(
+							row.idx, row.roll_code, frappe.bold(row.machine)
+						)
+					)
+			return
+
+		if self.get("extrusion_item_schedule"):
+			frappe.throw(_("The Extrusion Item List is only available for the EXTRUSION section."))
+
 		for row in self.get("machine_schedule"):
 			for fieldname, label in (("second_item", _("Item 1")), ("third_item", _("Item 2"))):
 				item_code = row.get(fieldname)
@@ -43,6 +58,18 @@ class WeeklyProductionPlan(Document):
 					)
 
 	def _populate_scheduled_item_details(self):
+		if is_extrusion_section(self.section):
+			for row in self.get("extrusion_item_schedule"):
+				details = get_item_production_details(row.roll_code, row.machine, check_permission=False)
+				row.std_weight_kg = details.get("std_weight_gm")
+				row.roll_description = details.get("product_description")
+				row.trim_percent = details.get("trim_percent")
+				row.soph = details.get("soph")
+				row.plan_hours = flt(row.paid_time) - flt(row.vos) - flt(row.change_over) - flt(row.stabilization)
+				row.number_of_kgs = flt(row.plan_hours) * flt(row.soph)
+				row.number_of_rolls = row.number_of_kgs / flt(row.std_weight_kg) if flt(row.std_weight_kg) else 0
+			return
+
 		for table_field in ("item_1_schedule", "item_2_schedule"):
 			for row in self.get(table_field):
 				details = get_item_production_details(row.product_code, row.machine, check_permission=False)
@@ -110,6 +137,10 @@ def make_record_no(section: str, start_date: str) -> str:
 
 	section_code = "".join(character for character in section.upper() if character.isalnum())
 	return f"{section_code}{getdate(start_date).strftime('%m%d%y')}"
+
+
+def is_extrusion_section(section: str | None) -> bool:
+	return (section or "").strip().upper().startswith("EXTRUSION")
 
 
 def get_section_workstations(section: str) -> list[str]:
@@ -180,7 +211,8 @@ def get_item_production_details(item_code: str, machine: str, check_permission: 
 			bom.name,
 			bom.custom_number_of_cavity as cavs,
 			bom.custom_soph as soph,
-			bom.custom_rate_per_minute as cycle_time
+			bom.custom_rate_per_minute as cycle_time,
+			bom.custom_roll_trimmings_ as trim_percent
 		from `tabBOM` bom
 		where bom.item = %(item_code)s
 			and bom.docstatus = 1
@@ -213,7 +245,10 @@ def get_item_production_details(item_code: str, machine: str, check_permission: 
 		"soph": bom[0].soph,
 		"std_weight_gm": item.get("weight_per_unit"),
 		"cycle_time": bom[0].cycle_time,
+		"trim_percent": bom[0].trim_percent,
 	}
+
+
 @frappe.whitelist()
 def get_machine_schedule(company: str, section: str, start_date: str) -> dict:
 	if not company or not section or not start_date:

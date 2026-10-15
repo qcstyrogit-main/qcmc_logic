@@ -16,7 +16,8 @@
   "machine_schedule",
   "scheduled_fg_items_section",
   "item_1_schedule",
-  "item_2_schedule"
+  "item_2_schedule",
+  "extrusion_item_schedule"
  ],
  "fields": [
   {
@@ -89,6 +90,13 @@
    "hidden": 1,
    "label": "Item 2",
    "options": "Weekly Production Plan Secondary Item"
+  },
+  {
+   "fieldname": "extrusion_item_schedule",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Extrusion Items",
+   "options": "Weekly Production Plan Extrusion Item"
   },
   {
    "fieldname": "machine_schedule_section",
