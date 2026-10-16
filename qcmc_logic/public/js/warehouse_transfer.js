@@ -427,5 +427,5 @@ qcmc_logic.warehouse_transfer.apply_receiving_rows = function(frm, dialog) {
     }
 
     frm.refresh_field("transfer_items");
-    return frm.save();
+    return frm.save("Update");
 };
