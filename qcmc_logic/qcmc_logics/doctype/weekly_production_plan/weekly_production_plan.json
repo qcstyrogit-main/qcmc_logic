@@ -12,6 +12,9 @@
   "end_date",
   "section",
   "record_no",
+  "workflow_state",
+  "production_plan_file",
+  "import_results",
   "machine_schedule_section",
   "machine_schedule",
   "scheduled_fg_items_section",
@@ -72,6 +75,26 @@
    "reqd": 1
   },
   {
+   "fieldname": "production_plan_file",
+   "fieldtype": "Attach",
+   "hidden": 1,
+   "label": "Production Plan Excel"
+  },
+  {
+   "default": "Active",
+   "fieldname": "workflow_state",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Workflow Status",
+   "options": "Workflow State",
+   "read_only": 1
+  },
+  {
+   "fieldname": "import_results",
+   "fieldtype": "HTML"
+  },
+  {
    "fieldname": "scheduled_fg_items_section",
    "fieldtype": "Section Break",
    "hidden": 1,
@@ -81,14 +104,14 @@
    "fieldname": "item_1_schedule",
    "fieldtype": "Table",
    "hidden": 1,
-   "label": "Item 1",
+   "label": "FG 1",
    "options": "Weekly Production Plan Item"
   },
   {
    "fieldname": "item_2_schedule",
    "fieldtype": "Table",
    "hidden": 1,
-   "label": "Item 2",
+   "label": "FG 2",
    "options": "Weekly Production Plan Secondary Item"
   },
   {
@@ -111,12 +134,14 @@
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
  "module": "QCMC Logics",
  "name": "Weekly Production Plan",
  "naming_rule": "By fieldname",
  "permissions": [
   {
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -126,10 +151,13 @@
    "report": 1,
    "role": "Manufacturing Manager",
    "share": 1,
+   "submit": 1,
    "write": 1
   },
   {
+   "cancel": 1,
    "create": 1,
+   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -137,9 +165,11 @@
    "report": 1,
    "role": "Manufacturing User",
    "share": 1,
+   "submit": 1,
    "write": 1
   },
   {
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -149,6 +179,7 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],

@@ -20,6 +20,7 @@
   "daily_volume_kgs",
   "f_rate",
   "cycle_time",
+  "imported_from_excel",
   "remarks",
   "mat_type",
   "steam_regmt"
@@ -41,6 +42,7 @@
   {"columns": 1, "fieldname": "daily_volume_kgs", "fieldtype": "Float", "in_list_view": 1, "label": "DailyVolKgs", "read_only": 1},
   {"columns": 1, "default": "100", "fieldname": "f_rate", "fieldtype": "Float", "in_list_view": 1, "label": "F.Rate"},
   {"columns": 1, "fieldname": "cycle_time", "fieldtype": "Float", "in_list_view": 1, "label": "C.T.", "read_only": 1},
+  {"default": "0", "fieldname": "imported_from_excel", "fieldtype": "Check", "hidden": 1, "label": "Imported from Excel", "read_only": 1},
   {"columns": 2, "fieldname": "remarks", "fieldtype": "Small Text", "in_list_view": 1, "label": "Remarks"},
   {"columns": 1, "fieldname": "mat_type", "fieldtype": "Data", "in_list_view": 1, "label": "MatType"},
   {"columns": 1, "fieldname": "steam_regmt", "fieldtype": "Float", "in_list_view": 1, "label": "SteamRegmt"}

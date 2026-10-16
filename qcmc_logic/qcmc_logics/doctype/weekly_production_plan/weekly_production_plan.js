@@ -23,6 +23,7 @@ frappe.ui.form.on("Weekly Production Plan", {
 
 	refresh(frm) {
 		set_grid_read_only(frm);
+		sync_production_plan_import_controls(frm);
 	},
 
 	async company(frm) {
@@ -35,9 +36,48 @@ frappe.ui.form.on("Weekly Production Plan", {
 	},
 
 	section(frm) {
+		sync_production_plan_import_controls(frm);
 		refresh_machine_schedule(frm);
 	},
 });
+
+function sync_production_plan_import_controls(frm) {
+	const importButtonLabel = __("Import Production Plan");
+	const clearButtonLabel = __("Clear Imported Items");
+	const canImport = frm.doc.docstatus === 0 && !is_extrusion_section(frm.doc.section);
+	frm.toggle_display("production_plan_file", false);
+	frm.remove_custom_button(importButtonLabel);
+	frm.remove_custom_button(clearButtonLabel);
+	if (canImport) {
+		frm.add_custom_button(importButtonLabel, () => show_production_plan_import_dialog(frm));
+		frm.add_custom_button(clearButtonLabel, () => clear_imported_production_items(frm));
+	}
+}
+
+function clear_imported_production_items(frm) {
+	const allFg1Rows = frm.doc.item_1_schedule || [];
+	const taggedRows = allFg1Rows.filter((row) => cint(row.imported_from_excel));
+	const rowsToClear = taggedRows.length ? taggedRows : allFg1Rows;
+
+	if (!rowsToClear.length) {
+		frm.fields_dict.import_results?.$wrapper?.empty();
+		frappe.show_alert({ message: __("There are no imported items to clear."), indicator: "blue" });
+		return;
+	}
+
+	const message = taggedRows.length
+		? __("Remove {0} Excel-imported schedule row(s)?", [rowsToClear.length])
+		: __("This older plan has no import tags. Remove all {0} existing FG1 row(s)?", [rowsToClear.length]);
+	frappe.confirm(message, () => {
+		for (const row of rowsToClear) {
+			frappe.model.clear_doc(row.doctype, row.name);
+		}
+		frm.refresh_field("item_1_schedule");
+		frm.fields_dict.import_results?.$wrapper?.empty();
+		frm.dirty();
+		frappe.show_alert({ message: __("Imported schedule rows cleared."), indicator: "green" });
+	});
+}
 
 frappe.ui.form.on("Weekly Production Plan Detail", {
 	form_render(frm, cdt, cdn) {
@@ -91,79 +131,14 @@ frappe.ui.form.on("Weekly Production Plan Extrusion Item", {
 	stabilization: calculate_extrusion_output,
 });
 
-async function render_possible_sales_orders(frm, cdt, cdn) {
+function render_possible_sales_orders(frm, cdt, cdn) {
 	const row = frappe.get_doc(cdt, cdn);
 	const gridRow = frm.fields_dict.machine_schedule?.grid?.grid_rows_by_docname?.[cdn];
 	const wrapper = gridRow?.grid_form?.fields_dict?.possible_sales_orders?.$wrapper;
 	if (!wrapper) return;
 
-	wrapper.html(`<div class="text-muted">${__("Loading current Sales Orders...")}</div>`);
-	const response = await frappe.call({
-		method: "qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan.get_possible_sales_order_items",
-		args: { machine: row.machine },
-	});
-	if (!gridRow.grid_form?.fields_dict?.possible_sales_orders?.$wrapper) return;
-
-	const candidates = response.message || [];
-	const escape = frappe.utils.escape_html;
-	const extrusion = is_extrusion_section(frm.doc.section);
-	const body = candidates.map((candidate, index) => `
-		<tr class="js-so-candidate" data-search="${escape(`${candidate.sales_order} ${candidate.item_code} ${candidate.description || ""}`.toLowerCase())}" data-status="${candidate.docstatus === 0 ? "draft" : "submitted"}">
-			<td>${frappe.utils.get_form_link("Sales Order", candidate.sales_order, true)}</td>
-			<td>${escape(frappe.datetime.str_to_user(candidate.sales_order_date))}</td>
-			<td>${candidate.docstatus === 0 ? `<span class="indicator-pill orange">${__("Draft")}</span>` : `<span class="indicator-pill green">${__("Submitted")}</span>`}</td>
-			<td>${frappe.utils.get_form_link("Item", candidate.item_code, true)}</td>
-			<td class="text-right">${format_number(candidate.remaining_qty)}</td>
-			<td class="text-right text-nowrap">${extrusion ? `
-				<button class="btn btn-xs btn-default js-use-candidate" data-index="${index}" data-table="extrusion_item_schedule">${__("Add to Extrusion Items")}</button>
-			` : `
-				<button class="btn btn-xs btn-default js-use-candidate" data-index="${index}" data-table="item_1_schedule">${__("Add to Item 1")}</button>
-				<button class="btn btn-xs btn-default js-use-candidate" data-index="${index}" data-table="item_2_schedule">${__("Add to Item 2")}</button>
-			`}
-			</td>
-		</tr>
-	`).join("");
-
-	const salesOrders = candidates.length ? `
-		<div class="row" style="margin: 0 0 8px">
-			<div class="col-sm-8" style="padding-left: 0"><input type="text" class="form-control input-sm js-so-filter" placeholder="${__("Filter by SO No., item, or description")}"></div>
-			<div class="col-sm-4" style="padding-right: 0"><select class="form-control input-sm js-so-status-filter"><option value="">${__("All statuses")}</option><option value="draft">${__("Draft")}</option><option value="submitted">${__("Submitted")}</option></select></div>
-		</div>
-		<div class="text-muted small js-so-result-count" style="margin-bottom: 5px"></div>
-		<div class="table-responsive" style="max-height: 245px; overflow-y: auto; border-bottom: 1px solid var(--border-color)">
-			<table class="table table-bordered table-condensed">
-				<thead style="position: sticky; top: 0; background: var(--card-bg); z-index: 1"><tr><th>${__("SO No.")}</th><th>${__("SO Date")}</th><th>${__("Status")}</th><th>${__("FG Item")}</th><th class="text-right">${__("Remaining Qty")}</th><th>${__("Action")}</th></tr></thead>
-				<tbody>${body}</tbody>
-			</table>
-		</div>
-	` : `<div class="text-muted">${__("No eligible Sales Order items for this machine.")}</div>`;
-	wrapper.html(`${salesOrders}${scheduled_items_html(frm, row)}`);
+	wrapper.html(scheduled_items_html(frm, row));
 	bind_scheduled_item_actions(wrapper, frm, row);
-	bind_sales_order_filters(wrapper);
-	wrapper.find(".js-use-candidate").on("click", async function() {
-		const candidate = candidates[Number(this.dataset.index)];
-		const tableField = this.dataset.table;
-		open_scheduled_item_dialog(frm, row, tableField, null, candidate.item_code);
-	});
-}
-
-function bind_sales_order_filters(wrapper) {
-	const filterRows = () => {
-		const textFilter = (wrapper.find(".js-so-filter").val() || "").trim().toLowerCase();
-		const statusFilter = wrapper.find(".js-so-status-filter").val() || "";
-		let visible = 0;
-		wrapper.find(".js-so-candidate").each(function() {
-			const matchesText = !textFilter || (this.dataset.search || "").includes(textFilter);
-			const matchesStatus = !statusFilter || this.dataset.status === statusFilter;
-			const show = matchesText && matchesStatus;
-			$(this).toggle(show);
-			if (show) visible += 1;
-		});
-		wrapper.find(".js-so-result-count").text(__("{0} matching Sales Order item(s)", [visible]));
-	};
-	wrapper.find(".js-so-filter").on("input", filterRows);
-	wrapper.find(".js-so-status-filter").on("change", filterRows);
-	filterRows();
 }
 
 function rows_for_schedule(frm, tableField, scheduleRow) {
@@ -199,7 +174,7 @@ function scheduled_items_html(frm, scheduleRow) {
 	if (is_extrusion_section(frm.doc.section)) {
 		return extrusion_items_html(frm, scheduleRow);
 	}
-	return `<div class="scheduled-items-editor"><h6 style="margin-top: 18px">${__("Scheduled FG Items for {0} on {1}", [scheduleRow.machine, frappe.datetime.str_to_user(scheduleRow.plan_date)])}</h6>${table("Item 1", "item_1_schedule")}${table("Item 2", "item_2_schedule", true)}</div>`;
+	return `<div class="scheduled-items-editor"><h6 style="margin-top: 18px">${__("Scheduled FG Items for {0} on {1}", [scheduleRow.machine, frappe.datetime.str_to_user(scheduleRow.plan_date)])}</h6>${table("FG 1", "item_1_schedule")}${table("FG 2", "item_2_schedule", true)}</div>`;
 }
 
 function extrusion_items_html(frm, scheduleRow) {
@@ -258,7 +233,7 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 		{ fieldname: "mat_type", label: __("MatType"), fieldtype: "Data", default: existing?.mat_type },
 		numeric("steam_regmt", "SteamRegmt"),
 	);
-	dialog = new frappe.ui.Dialog({ title: __(rowName ? "Edit {0}" : "Add {0}", [secondary ? "Item 2" : "Item 1"]), fields, primary_action_label: __("Save Row"), primary_action(values) {
+	dialog = new frappe.ui.Dialog({ title: __(rowName ? "Edit {0}" : "Add {0}", [secondary ? "FG 2" : "FG 1"]), fields, primary_action_label: __("Save Row"), primary_action(values) {
 		const target = existing || frm.add_child(tableField);
 		Object.assign(target, values, { machine: scheduleRow.machine, plan_date: scheduleRow.plan_date });
 		frm.refresh_field(tableField);
@@ -500,4 +475,121 @@ function set_grid_read_only(frm) {
 	grid.cannot_add_rows = true;
 	grid.cannot_delete_rows = true;
 	grid.wrapper.find(".grid-add-row, .grid-remove-rows, .grid-delete-row").hide();
+}
+
+function show_production_plan_import_dialog(frm) {
+	if (!frm.doc.section || !frm.doc.start_date) {
+		frappe.msgprint(__("Select the Section and Start Date first."));
+		return;
+	}
+
+	const dialog = new frappe.ui.Dialog({
+		title: __("Import Production Plan"),
+		fields: [
+			{
+				fieldname: "file_url",
+				fieldtype: "Attach",
+				label: __("Production Plan Excel"),
+				reqd: 1,
+			},
+		],
+		primary_action_label: __("Import"),
+		async primary_action(values) {
+			await import_production_plan(frm, values.file_url);
+			dialog.hide();
+		},
+	});
+	dialog.show();
+}
+
+async function import_production_plan(frm, fileUrl) {
+	if (frm.doc.docstatus !== 0) {
+		frappe.msgprint(__("Production Plan Excel can only be imported while the plan is Active."));
+		return;
+	}
+	if (is_extrusion_section(frm.doc.section)) {
+		frappe.msgprint(__("Production Plan Excel can only be imported for FG plans, not Extrusion plans."));
+		return;
+	}
+	if (!fileUrl || !frm.doc.section || !frm.doc.start_date) {
+		frappe.msgprint(__("Select the Section, Start Date, and Production Plan Excel file first."));
+		return;
+	}
+	const occupiedSlots = [
+		...(frm.doc.item_1_schedule || []),
+		...(frm.doc.item_2_schedule || []),
+	].map((row) => ({
+		machine: row.machine,
+		plan_date: row.plan_date,
+	}));
+	const response = await frappe.call({
+		method: "qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan.import_production_plan",
+		args: {
+			file_url: fileUrl,
+			section: frm.doc.section,
+			start_date: frm.doc.start_date,
+			plan_name: frm.is_new() ? null : frm.doc.name,
+			occupied_slots: JSON.stringify(occupiedSlots),
+		},
+		freeze: true,
+		freeze_message: __("Reading and scheduling production plan..."),
+	});
+	const result = response.message || {};
+	for (const values of result.rows || []) {
+		Object.assign(frm.add_child("item_1_schedule"), values);
+	}
+	frm.refresh_field("item_1_schedule");
+	frm.dirty();
+	render_production_plan_import_results(frm, result);
+
+	const message = __("Scheduled {0} of {1} product(s) into {2} daily row(s).", [
+		result.scheduled_products || 0,
+		result.source_rows || 0,
+		(result.rows || []).length,
+	]);
+	frappe.show_alert({ message, indicator: (result.unassigned || []).length ? "orange" : "green" }, 7);
+}
+
+function render_production_plan_import_results(frm, result) {
+	const wrapper = frm.fields_dict.import_results?.$wrapper;
+	if (!wrapper) return;
+
+	const unassigned = result.unassigned || [];
+	if (!unassigned.length) {
+		wrapper.html(`
+			<div class="alert alert-success" style="margin: 15px 0">
+				<strong>${__("Excel Import Result")}</strong><br>
+				${__("All products with a positive For Production quantity were scheduled.")}
+			</div>
+		`);
+		return;
+	}
+
+	const escape = frappe.utils.escape_html;
+	const rows = unassigned.map((row) => `
+		<tr>
+			<td>${escape((row.excel_rows || []).join(", "))}</td>
+			<td>${escape(row.product_code || "")}</td>
+			<td class="text-right">${format_number(row.for_production_qty || 0)}</td>
+			<td>${escape(row.reason || "")}</td>
+		</tr>
+	`).join("");
+
+	wrapper.html(`
+		<div class="alert alert-warning" style="margin: 15px 0 8px">
+			<strong>${__("Products Not Scheduled")}</strong><br>
+			${__("The following Excel rows could not be fully assigned. Update the machine schedule or BOM workstation, then import again.")}
+		</div>
+		<div class="table-responsive" style="margin-bottom: 15px">
+			<table class="table table-bordered table-condensed">
+				<thead><tr>
+					<th>${__("Excel Row")}</th>
+					<th>${__("Product Code")}</th>
+					<th class="text-right">${__("Remaining Qty")}</th>
+					<th>${__("Reason")}</th>
+				</tr></thead>
+				<tbody>${rows}</tbody>
+			</table>
+		</div>
+	`);
 }

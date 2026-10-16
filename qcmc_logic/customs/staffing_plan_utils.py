@@ -9,6 +9,25 @@ def recalculate_staffing_plan(staffing_plan):
     to_date = doc.to_date
     is_edsa = doc.custom_located_to_edsa
 
+    separation_employees = frappe.db.sql_list("""
+        SELECT employee
+        FROM `tabEmployee Separation`
+        WHERE docstatus != 2
+        AND employee IS NOT NULL
+    """)
+
+    long_leave_employees = frappe.db.sql_list("""
+        SELECT employee
+        FROM `tabLeave Application`
+        WHERE CURRENT_DATE BETWEEN from_date AND to_date
+        AND status = 'Approved'
+        AND total_leave_days >= 30
+        AND employee IS NOT NULL
+    """)
+
+    excluded_employees = list(set(separation_employees + long_leave_employees))
+
+
     for d in doc.staffing_details:
         # example: count active employees with matching designation, section, etc.
         
@@ -24,17 +43,18 @@ def recalculate_staffing_plan(staffing_plan):
                     "designation": d.designation,
                     "custom_location": "EDSA",
                     "status": "Active",
-                    "name": ["not in", frappe.db.sql_list("""
-                    SELECT employee
-                    FROM `tabEmployee Separation`
-                    WHERE docstatus != 2
-                    """)],
-		"name": ["not in", frappe.db.sql_list("""
-		        SELECT employee
-		        FROM `tabLeave Application`
-		        WHERE CURRENT_DATE BETWEEN from_date AND to_date
-		        AND status = 'Approved' and total_leave_days >= 30
-		    """)]
+                    "name": ["not in", excluded_employees],
+        #             "name": ["not in", frappe.db.sql_list("""
+        #             SELECT employee
+        #             FROM `tabEmployee Separation`
+        #             WHERE docstatus != 2
+        #             """)],
+		# "name": ["not in", frappe.db.sql_list("""
+		#         SELECT employee
+		#         FROM `tabLeave Application`
+		#         WHERE CURRENT_DATE BETWEEN from_date AND to_date
+		#         AND status = 'Approved' and total_leave_days >= 30
+		#     """)]
 
                 }
             )
@@ -59,12 +79,19 @@ def recalculate_staffing_plan(staffing_plan):
                     "department": doc.department,
                     "company": doc.company,
                     "status": "Active",
-                    "name": ["not in", frappe.db.sql_list("""
-                    SELECT employee
-                    FROM `tabEmployee Separation`
-                    WHERE docstatus != 2
-                    """)],
-		"name": ["not in", frappe.db.sql_list("""
+                    "name": ["not in", excluded_employees],
+        #             "name": ["not in", frappe.db.sql_list("""
+        #             SELECT employee
+        #             FROM `tabEmployee Separation`
+        #             WHERE docstatus != 2
+        #             """)],
+		# "name": ["not in", frappe.db.sql_list("""
+		#         SELECT employee
+		#         FROM `tabLeave Application`
+		#         WHERE CURRENT_DATE BETWEEN from_date AND to_date
+		#         AND status = 'Approved' and total_leave_days >= 30
+		#     """)]
+
                         SELECT employee
                         FROM `tabLeave Application`
                         WHERE CURRENT_DATE BETWEEN from_date AND to_date
