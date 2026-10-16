@@ -20,6 +20,14 @@
             icon.setAttribute('aria-label', __('Notifications: {0} unread', [unread]));
         });
     }
+    function closeNotifications(target) {
+        const dropdown = $(target).closest('.dropdown-notifications');
+        if (dropdown.closest('.navbar, .desktop-notifications').length) {
+            dropdown.data('closable', true).dropdown('hide');
+        } else {
+            dropdown.addClass('hidden');
+        }
+    }
     async function refreshList() {
         const view = frappe.app?.sidebar?.notifications?.tabs?.notifications;
         if (!view?.render_notifications_dropdown) return;
@@ -68,6 +76,13 @@
             if (/notification_log\.(mark_as_read|mark_all_as_read)/.test(method)) refreshCount();
         });
         document.addEventListener('click', async event => {
+            const close = event.target.closest?.('.close-notification-dialogue');
+            if (close) {
+                // Native Frappe hides the whole container, including the desktop bell.
+                event.preventDefault(); event.stopImmediatePropagation();
+                closeNotifications(close);
+                return;
+            }
             const item = event.target.closest?.('a.notification-item[data-name]');
             if (!item || event.target.closest?.('.mark-as-read')) return;
             let url;
@@ -87,9 +102,7 @@
                 item.classList.remove('unread');
                 // The modern sidebar uses a custom menu instead of Bootstrap.
                 // Hide its notification list without toggling a second bell.
-                const dropdown = $(item).closest('.dropdown-notifications');
-                if (dropdown.closest('.navbar').length) dropdown.dropdown('hide');
-                else dropdown.addClass('hidden');
+                closeNotifications(item);
                 await frappe.qcmc_login_notices.open(response.message.announcement, response.message.comment || null);
                 await refreshCount();
             } catch (error) {console.warn('Could not open announcement notification', error);}
