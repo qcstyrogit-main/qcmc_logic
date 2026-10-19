@@ -234,6 +234,14 @@ def _approve_delivery_note_for_dr(delivery_note, decisions):
 	doc = _get_locked_delivery_note(delivery_note)
 	_validate_sales_review_delivery_note(doc, require_transact=True)
 
+	if set(decisions) != {item.name for item in doc.items}:
+		frappe.throw(_("Select and review every item in Delivery Note {0} before proceeding. Clear filters if items are hidden.").format(doc.name))
+	for item in doc.items:
+		version = decisions[item.name].get("document_modified")
+		if version and version != str(doc.modified):
+			frappe.throw(_("Delivery Note {0} changed. Refresh and review it again before proceeding.").format(doc.name))
+		_validate_sales_decision_for_reason(item, decisions[item.name])
+
 	removed = []
 	deferred = []
 	for item in list(doc.items):
@@ -287,6 +295,7 @@ def _approve_delivery_note_for_dr(delivery_note, decisions):
 			row["approved_qty"],
 			row["approved_date"],
 			doc.name,
+			original_qty=row["original_qty"],
 		)
 	doc.add_comment("Workflow", _("Proceed to DR approved by Sales."))
 	if removed or deferred:
@@ -295,6 +304,9 @@ def _approve_delivery_note_for_dr(delivery_note, decisions):
 
 def _validate_sales_decision_for_reason(item, decision):
 	reason = item.get("custom_logistics_reason") or ""
+	if not reason:
+		frappe.throw(_("Logistics confirmation is required for item {0}.").format(item.item_code))
+	_validate_reason_code(reason)
 	if reason == "OK":
 		return
 
@@ -558,7 +570,7 @@ def _get_reschedule_schedule_rows(item):
 	)
 
 
-def _move_deferred_sales_order_qty(item, approved_qty, approved_date, delivery_note):
+def _move_deferred_sales_order_qty(item, approved_qty, approved_date, delivery_note, *, original_qty):
 	if not item.so_detail or not item.against_sales_order:
 		return
 	target_detail = _get_existing_schedule_detail_for_date(item, approved_date)
@@ -580,8 +592,8 @@ def _move_deferred_sales_order_qty(item, approved_qty, approved_date, delivery_n
 		frappe.throw(_("Selected Sales Order schedules could not be found."))
 	if (source.item_code, source.warehouse) != (target.item_code, target.warehouse):
 		frappe.throw(_("Deferred quantity can only move to the same item and warehouse."))
-	new_source_qty = frappe.utils.flt(approved_qty)
-	deferred_qty = frappe.utils.flt(source.qty) - new_source_qty
+	deferred_qty = frappe.utils.flt(original_qty) - frappe.utils.flt(approved_qty)
+	new_source_qty = frappe.utils.flt(source.qty) - deferred_qty
 	if deferred_qty <= 0:
 		return
 	active_draft_qty = scheduling._get_draft_delivery_note_qty(source.name)

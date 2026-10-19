@@ -14,6 +14,7 @@ def get_data(filters=None):
 		rows = [row for row in rows if str(row.get("delivery_date") or "") == str(filters.get("delivery_date") or "")]
 	for row in rows:
 		row.workbench_date = filters.get("delivery_date")
+		row.document_modified = str(frappe.db.get_value("Delivery Note", row.delivery_note, "modified"))
 		_enrich_row(row)
 	message = _("{0} item(s) awaiting stock confirmation.").format(len(rows))
 	summary = [
@@ -40,7 +41,9 @@ def autosave_item(row):
 	if not row.get("delivery_note") or not row.get("dn_detail"):
 		frappe.throw(_("Delivery Note and item are required."))
 
-	doc = frappe.get_doc("Delivery Note", row.delivery_note)
+	doc = delivery_schedule_confirmation._get_locked_delivery_note(row.delivery_note)
+	if str(doc.modified) != row.get("document_modified"):
+		frappe.throw(_("This Delivery Note changed in another session. Reload the workbench before editing."))
 	item = next((item for item in doc.items if item.name == row.dn_detail), None)
 	if not item:
 		frappe.throw(_("Delivery Note Item {0} was not found.").format(row.dn_detail))
@@ -83,7 +86,7 @@ def autosave_item(row):
 		_set_sales_decision_fields(item, row)
 
 	doc.save(ignore_permissions=True)
-	return {"dn_detail": item.name, "saved": True}
+	return {"dn_detail": item.name, "saved": True, "document_modified": str(doc.modified)}
 
 
 def _enrich_row(row):

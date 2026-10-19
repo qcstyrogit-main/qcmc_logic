@@ -12,6 +12,16 @@ class DeliveryScheduleWorkbench {
 		this.page = page;
 		this.rows = [];
 		this.autosave_timers = {};
+		this.save_chain = Promise.resolve();
+		this.dirty_rows = new Set();
+		this.save_failed = false;
+		this.load_sequence = 0;
+		window.addEventListener("beforeunload", (event) => {
+			if (this.dirty_rows.size || this.saving) {
+				event.preventDefault();
+				event.returnValue = "";
+			}
+		});
 		this.reason_options = "\nOK\nTO\nCR\nSA\nOR\nND\nSE";
 		this.reason_meanings = {
 			OK: "Good to go", TO: "Truck Overload", CR: "Customer Request",
@@ -40,7 +50,8 @@ class DeliveryScheduleWorkbench {
 		if (this.can_sales_approve()) {
 			this.page.add_inner_button(__("Proceed Selected to DR"), () => this.proceed_selected());
 		}
-		this.page.add_inner_button(__("Open Report"), () => {
+		this.page.add_inner_button(__("Open Report"), async () => {
+			if (!(await this.flush_saves())) return;
 			frappe.set_route("query-report", "Delivery Schedule Confirmation", {
 				company: this.filter_values.company,
 				delivery_date: this.filter_values.delivery_date,
@@ -346,7 +357,9 @@ class DeliveryScheduleWorkbench {
 		});
 	}
 
-	refresh() {
+	async refresh() {
+		const sequence = ++this.load_sequence;
+		if (!(await this.flush_saves())) return;
 		const filters = this.get_filters();
 		if (!filters.company || !filters.delivery_date) return;
 		frappe.call({
@@ -356,6 +369,7 @@ class DeliveryScheduleWorkbench {
 			freeze_message: __("Loading Delivery Schedule..."),
 			callback: (r) => {
 				if (r.exc) return;
+				if (sequence !== this.load_sequence) return;
 				this.rows = (r.message && r.message.rows) || [];
 				this.message = (r.message && r.message.message) || "";
 				this.render();
@@ -545,29 +559,49 @@ class DeliveryScheduleWorkbench {
 	}
 
 	queue_autosave(index) {
+		this.dirty_rows.add(index);
 		clearTimeout(this.autosave_timers[index]);
 		this.set_save_status(index, __("Saving..."));
 		this.autosave_timers[index] = setTimeout(() => this.autosave_row(index), 600);
 	}
 
 	autosave_row(index) {
-		const row = Object.assign({}, this.rows[index]);
-		if ((row.logistics_reason || "") === "OK") {
-			row.logistics_proposed_qty = "";
-			row.logistics_proposed_date = "";
-		}
-		frappe.call({
-			method: "qcmc_logic.qcmc_logics.page.delivery_schedule_workbench.delivery_schedule_workbench.autosave_item",
-			args: {row},
-			callback: (r) => {
-				if (r.exc) {
-					this.set_save_status(index, __("Not saved"));
-					return;
-				}
-				this.set_save_status(index, __("Saved"));
-				setTimeout(() => this.set_save_status(index, ""), 1500);
-			},
+		clearTimeout(this.autosave_timers[index]);
+		this.save_chain = this.save_chain.then(async () => {
+			if (this.save_failed || !this.dirty_rows.has(index)) return;
+			this.dirty_rows.delete(index);
+			const row = Object.assign({}, this.rows[index]);
+			this.saving = true;
+			try {
+				const r = await frappe.call({
+					method: "qcmc_logic.qcmc_logics.page.delivery_schedule_workbench.delivery_schedule_workbench.autosave_item",
+					args: {row},
+				});
+				if (r.exc || !r.message?.saved) throw new Error("Save failed");
+				this.rows.filter(item => item.delivery_note === row.delivery_note).forEach(item => {
+					item.document_modified = r.message.document_modified;
+				});
+				this.set_save_status(index, this.dirty_rows.has(index) ? __("Saving...") : __("Saved"));
+			} catch (error) {
+				this.dirty_rows.add(index);
+				this.save_failed = true;
+				this.set_save_status(index, __("Not saved — reload required"));
+			} finally {
+				this.saving = false;
+			}
 		});
+		return this.save_chain;
+	}
+
+	async flush_saves() {
+		for (const index of this.dirty_rows) this.autosave_row(index);
+		await this.save_chain;
+		if (this.save_failed) {
+			frappe.msgprint(__("Changes could not be saved. Copy your unsaved edits, then reload this page before continuing."));
+			return false;
+		}
+		if (this.dirty_rows.size) return this.flush_saves();
+		return true;
 	}
 
 	set_save_status(index, status) {
@@ -585,10 +619,12 @@ class DeliveryScheduleWorkbench {
 		return selected;
 	}
 
-	proceed_selected() {
+	async proceed_selected() {
+		if (!(await this.flush_saves())) return;
 		const rows = this.get_selected_rows();
 		if (!rows.length) return frappe.msgprint(__("Select at least one row."));
-		frappe.confirm(__("Proceed selected Delivery Note(s) to DR Printing?"), () => {
+		frappe.confirm(__("Proceed selected Delivery Note(s) to DR Printing?"), async () => {
+			if (!(await this.flush_saves())) return;
 			frappe.call({
 				method: "qcmc_logic.qcmc_logics.report.delivery_schedule_confirmation.delivery_schedule_confirmation.proceed_to_dr_printing_bulk",
 				args: {items: rows},

@@ -351,6 +351,8 @@ def warehouse_transaction_permission_query(user):
 
 
 def delivery_note_permission_query(user):
+    if user == "Administrator" or "System Manager" in frappe.get_roles(user):
+        return ""
     return _sales_transaction_read_permission_query("Delivery Note", user)
 
 
