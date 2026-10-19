@@ -59,6 +59,20 @@ class WeeklyProductionPlan(Document):
 						)
 					)
 
+		fg1_by_slot = {}
+		for row in self.get("item_1_schedule"):
+			fg1_by_slot.setdefault((row.machine, getdate(row.plan_date)), []).append(row.product_code)
+		for row in self.get("item_2_schedule"):
+			fg1_items = fg1_by_slot.get((row.machine, getdate(row.plan_date)), [])
+			if not row.fg1_product_code and len(fg1_items) == 1:
+				row.fg1_product_code = fg1_items[0]
+			if row.fg1_product_code not in fg1_items:
+				frappe.throw(
+					_("FG 2, row {0}: select an FG 1 Item scheduled for machine {1} on {2}.").format(
+						row.idx, frappe.bold(row.machine), frappe.format_value(row.plan_date, {"fieldtype": "Date"})
+					)
+				)
+
 	def _populate_scheduled_item_details(self):
 		if is_extrusion_section(self.section):
 			for row in self.get("extrusion_item_schedule"):
@@ -78,17 +92,27 @@ class WeeklyProductionPlan(Document):
 				row.update(values)
 			return
 
-		for table_field in ("item_1_schedule", "item_2_schedule"):
-			for row in self.get(table_field):
-				details = get_item_production_details(row.product_code, row.machine, check_permission=False)
-				for fieldname in ("product_description", "cavs", "soph", "std_weight_gm", "cycle_time"):
-					row.set(fieldname, details.get(fieldname))
-				if table_field == "item_1_schedule":
-					row.plan_hrs = flt(row.paid_hrs) - flt(row.vos) - flt(row.cm_co) - flt(row.stab)
-					row.daily_volume_qty = row.plan_hrs * flt(row.soph)
-				else:
-					row.daily_volume_qty = 24 * flt(row.soph)
-				row.daily_volume_kgs = flt(row.std_weight_gm) * flt(row.daily_volume_qty) / 1000
+		fg1_by_slot_and_item = {}
+		for row in self.get("item_1_schedule"):
+			details = get_item_production_details(row.product_code, row.machine, check_permission=False)
+			for fieldname in ("product_description", "cavs", "soph", "std_weight_gm", "cycle_time"):
+				row.set(fieldname, details.get(fieldname))
+			row.plan_hrs = flt(row.paid_hrs) - flt(row.vos) - flt(row.cm_co) - flt(row.stab)
+			row.daily_volume_qty = row.plan_hrs * flt(row.soph)
+			row.daily_volume_kgs = flt(row.std_weight_gm) * flt(row.daily_volume_qty) / 1000
+			fg1_by_slot_and_item[(row.machine, getdate(row.plan_date), row.product_code)] = row
+
+		for row in self.get("item_2_schedule"):
+			details = get_item_production_details(row.product_code, row.machine, check_permission=False)
+			for fieldname in ("product_description", "cavs", "soph", "std_weight_gm", "cycle_time"):
+				row.set(fieldname, details.get(fieldname))
+			parent_row = fg1_by_slot_and_item.get((row.machine, getdate(row.plan_date), row.fg1_product_code))
+			values = calculate_secondary_values(
+				parent_row.daily_volume_qty if parent_row else 0,
+				row.factor_rate,
+				row.std_weight_gm,
+			)
+			row.update(values)
 
 	def _set_computed_values(self):
 		if not self.start_date:
@@ -168,6 +192,15 @@ def calculate_extrusion_values(
 		"plan_hours": plan_hours,
 		"number_of_kgs": number_of_kgs,
 		"number_of_rolls": number_of_kgs / weight if weight else 0,
+	}
+
+
+def calculate_secondary_values(parent_quantity: float, factor_rate: float, std_weight_gm: float) -> dict[str, float]:
+	"""Calculate a companion FG 2 part from its parent FG 1 output."""
+	daily_volume_qty = flt(parent_quantity) * flt(factor_rate) / 100
+	return {
+		"daily_volume_qty": daily_volume_qty,
+		"daily_volume_kgs": flt(std_weight_gm) * daily_volume_qty / 1000,
 	}
 
 

@@ -113,6 +113,12 @@ const productionItemHandlers = {
 	std_weight_gm(frm, cdt, cdn) {
 		calculate_daily_volume(frm, cdt, cdn);
 	},
+	fg1_product_code(frm, cdt, cdn) {
+		calculate_daily_volume(frm, cdt, cdn);
+	},
+	factor_rate(frm, cdt, cdn) {
+		calculate_daily_volume(frm, cdt, cdn);
+	},
 };
 
 frappe.ui.form.on("Weekly Production Plan Item", productionItemHandlers);
@@ -147,26 +153,61 @@ function rows_for_schedule(frm, tableField, scheduleRow) {
 	);
 }
 
+function format_plan_number(value, precision = 2) {
+	return flt(value).toFixed(precision);
+}
+
+function schedule_hours_summary_html(frm, scheduleRow, extrusion = false) {
+	const totalPaidTime = 24;
+	const rows = rows_for_schedule(
+		frm,
+		extrusion ? "extrusion_item_schedule" : "item_1_schedule",
+		scheduleRow,
+	);
+	const totals = rows.reduce((result, row) => {
+		result.plannedPaidHours += flt(extrusion ? row.paid_time : row.paid_hrs);
+		result.vos += flt(row.vos);
+		result.cmCo += flt(extrusion ? row.change_over : row.cm_co);
+		result.stab += flt(extrusion ? row.stabilization : row.stab);
+		return result;
+	}, { plannedPaidHours: 0, vos: 0, cmCo: 0, stab: 0 });
+	const remaining = totalPaidTime - totals.plannedPaidHours;
+	const cells = [
+		[__("Total Paid Time Hrs"), totalPaidTime],
+		[__("Total Planned VOS Hrs"), totals.vos],
+		[__("Total CM/CO Hrs"), totals.cmCo],
+		[__("Total Stabilization Hrs"), totals.stab],
+		[__("Remaining Paid Hrs"), remaining],
+	];
+
+	return `<div class="table-responsive" style="margin-top: 10px">
+		<table class="table table-bordered table-condensed" style="width: auto; min-width: 680px; margin-bottom: 8px; white-space: nowrap">
+			<thead><tr>${cells.map(([label]) => `<th>${label}</th>`).join("")}</tr></thead>
+			<tbody><tr style="background-color: #fffec4; font-weight: 600">${cells.map(([, value]) => `<td>${format_plan_number(value)}</td>`).join("")}</tr></tbody>
+		</table>
+	</div>`;
+}
+
 function scheduled_items_html(frm, scheduleRow) {
 	const escape = frappe.utils.escape_html;
 	const renderRows = (tableField, secondary = false) => {
 		const rows = rows_for_schedule(frm, tableField, scheduleRow);
-		if (!rows.length) return `<tr><td colspan="${secondary ? 10 : 18}" class="text-muted text-center">${__("No items added.")}</td></tr>`;
+		if (!rows.length) return `<tr><td colspan="${secondary ? 11 : 18}" class="text-muted text-center">${__("No items added.")}</td></tr>`;
 		return rows.map((row) => `
 			<tr>
-				<td>${escape(row.product_code || "")}</td><td>${escape(row.product_description || "")}</td>
+				${secondary ? `<td>${escape(row.fg1_product_code || "")}</td>` : ""}<td>${escape(row.product_code || "")}</td><td>${escape(row.product_description || "")}</td>
 				<td>${row.cavs || 0}</td>
-				${secondary ? "" : `<td>${row.paid_hrs || 0}</td><td>${row.vos || 0}</td><td>${row.cm_co || 0}</td><td>${row.stab || 0}</td><td>${row.plan_hrs || 0}</td>`}
-				<td>${row.soph || 0}</td><td>${row.std_weight_gm || 0}</td><td>${row.daily_volume_qty || 0}</td><td>${row.daily_volume_kgs || 0}</td>
-				<td>${secondary ? (row.factor_rate || 0) : (row.f_rate || 0)}</td><td>${row.cycle_time || 0}</td>
-				${secondary ? "" : `<td>${escape(row.remarks || "")}</td><td>${escape(row.mat_type || "")}</td><td>${row.steam_regmt || 0}</td>`}
+				${secondary ? "" : `<td>${format_plan_number(row.paid_hrs)}</td><td>${format_plan_number(row.vos)}</td><td>${format_plan_number(row.cm_co)}</td><td>${format_plan_number(row.stab)}</td><td>${format_plan_number(row.plan_hrs)}</td>`}
+				<td>${format_plan_number(row.soph)}</td><td>${format_plan_number(row.std_weight_gm, 4)}</td><td>${format_plan_number(row.daily_volume_qty)}</td><td>${format_plan_number(row.daily_volume_kgs)}</td>
+				<td>${format_plan_number(secondary ? row.factor_rate : row.f_rate)}</td><td>${format_plan_number(row.cycle_time, 4)}</td>
+				${secondary ? "" : `<td>${escape(row.remarks || "")}</td><td>${escape(row.mat_type || "")}</td><td>${format_plan_number(row.steam_regmt)}</td>`}
 				<td class="text-nowrap"><button class="btn btn-xs btn-default js-edit-scheduled-item" data-table="${tableField}" data-name="${row.name}">${__("Edit")}</button> <button class="btn btn-xs btn-default js-delete-scheduled-item" data-table="${tableField}" data-name="${row.name}">${__("Remove")}</button></td>
 			</tr>`).join("");
 	};
 	const table = (title, tableField, secondary = false) => `
 		<div style="margin-top: 15px"><div class="flex justify-between align-center"><strong>${__(title)}</strong><button class="btn btn-xs btn-primary js-add-scheduled-item" data-table="${tableField}">${__("Add Row")}</button></div>
 		<div class="table-responsive"><table class="table table-bordered table-condensed" style="margin-top: 6px; white-space: nowrap"><thead><tr>
-		<th>${__("Prodcode")}</th><th>${__("Proddesc")}</th><th>${__("Cavs")}</th>
+		${secondary ? `<th>${__("FG 1 Item")}</th>` : ""}<th>${__("Prodcode")}</th><th>${__("Proddesc")}</th><th>${__("Cavs")}</th>
 		${secondary ? "" : `<th>${__("PaidHrs")}</th><th>${__("VOS")}</th><th>${__("CM/CO")}</th><th>${__("Stab")}</th><th>${__("PlanHrs")}</th>`}
 		<th>${__("SOPH")}</th><th>${__("StdWt(gm)")}</th><th>${__("Daily Vol Qty")}</th><th>${__("DailyVolKgs")}</th><th>${__(secondary ? "FactorRate" : "F.Rate")}</th><th>${__(secondary ? "CycleTime" : "C.T.")}</th>
 		${secondary ? "" : `<th>${__("Remarks")}</th><th>${__("MatType")}</th><th>${__("SteamRegmt")}</th>`}<th>${__("Action")}</th>
@@ -174,21 +215,21 @@ function scheduled_items_html(frm, scheduleRow) {
 	if (is_extrusion_section(frm.doc.section)) {
 		return extrusion_items_html(frm, scheduleRow);
 	}
-	return `<div class="scheduled-items-editor"><h6 style="margin-top: 18px">${__("Scheduled FG Items for {0} on {1}", [scheduleRow.machine, frappe.datetime.str_to_user(scheduleRow.plan_date)])}</h6>${table("FG 1", "item_1_schedule")}${table("FG 2", "item_2_schedule", true)}</div>`;
+	return `<div class="scheduled-items-editor">${schedule_hours_summary_html(frm, scheduleRow)}<h6 style="margin-top: 18px">${__("Scheduled FG Items for {0} on {1}", [scheduleRow.machine, frappe.datetime.str_to_user(scheduleRow.plan_date)])}</h6>${table("FG 1", "item_1_schedule")}${table("FG 2", "item_2_schedule", true)}</div>`;
 }
 
 function extrusion_items_html(frm, scheduleRow) {
 	const escape = frappe.utils.escape_html;
 	const rows = rows_for_schedule(frm, "extrusion_item_schedule", scheduleRow);
 	const body = rows.length ? rows.map((row) => `<tr>
-		<td>${escape(row.roll_code || "")}</td><td>${row.std_weight_kg || 0}</td><td>${escape(row.roll_description || "")}</td>
-		<td>${escape(row.used_for || "")}</td><td>${row.paid_time || 0}</td><td>${row.vos || 0}</td><td>${row.change_over || 0}</td>
-		<td>${row.stabilization || 0}</td><td>${row.plan_hours || 0}</td><td>${row.trim_percent || 0}</td><td>${row.soph || 0}</td>
-		<td>${row.number_of_kgs || 0}</td><td>${row.number_of_rolls || 0}</td><td>${escape(row.remarks || "")}</td><td>${escape(row.color || "")}</td>
-		<td>${row.virgin || 0}</td><td>${row.reco || 0}</td><td>${row.colorant || 0}</td><td>${row.additives || 0}</td>
+		<td>${escape(row.roll_code || "")}</td><td>${format_plan_number(row.std_weight_kg, 4)}</td><td>${escape(row.roll_description || "")}</td>
+		<td>${escape(row.used_for || "")}</td><td>${format_plan_number(row.paid_time)}</td><td>${format_plan_number(row.vos)}</td><td>${format_plan_number(row.change_over)}</td>
+		<td>${format_plan_number(row.stabilization)}</td><td>${format_plan_number(row.plan_hours)}</td><td>${format_plan_number(row.trim_percent)}</td><td>${format_plan_number(row.soph)}</td>
+		<td>${format_plan_number(row.number_of_kgs)}</td><td>${format_plan_number(row.number_of_rolls)}</td><td>${escape(row.remarks || "")}</td><td>${escape(row.color || "")}</td>
+		<td>${format_plan_number(row.virgin)}</td><td>${format_plan_number(row.reco)}</td><td>${format_plan_number(row.colorant)}</td><td>${format_plan_number(row.additives)}</td>
 		<td class="text-nowrap"><button class="btn btn-xs btn-default js-edit-scheduled-item" data-table="extrusion_item_schedule" data-name="${row.name}">${__("Edit")}</button> <button class="btn btn-xs btn-default js-delete-scheduled-item" data-table="extrusion_item_schedule" data-name="${row.name}">${__("Remove")}</button></td>
 	</tr>`).join("") : `<tr><td colspan="20" class="text-muted text-center">${__("No extrusion items added.")}</td></tr>`;
-	return `<div class="scheduled-items-editor"><h6 style="margin-top: 18px">${__("Extrusion Items for {0} on {1}", [scheduleRow.machine, frappe.datetime.str_to_user(scheduleRow.plan_date)])}</h6>
+	return `<div class="scheduled-items-editor">${schedule_hours_summary_html(frm, scheduleRow, true)}<h6 style="margin-top: 18px">${__("Extrusion Items for {0} on {1}", [scheduleRow.machine, frappe.datetime.str_to_user(scheduleRow.plan_date)])}</h6>
 		<div class="flex justify-between align-center"><strong>${__("Extrusion Item List")}</strong><button class="btn btn-xs btn-primary js-add-scheduled-item" data-table="extrusion_item_schedule">${__("Add Row")}</button></div>
 		<div class="table-responsive"><table class="table table-bordered table-condensed" style="margin-top: 6px; white-space: nowrap"><thead><tr>
 		<th>${__("Rollcode")}</th><th>${__("StdWt")}</th><th>${__("Rolldesc")}</th><th>${__("Used For")}</th><th>${__("PaidTim")}</th><th>${__("VOS")}</th><th>${__("C.O.")}</th><th>${__("Stab")}</th><th>${__("PlanHrs")}</th><th>${__("% Trim")}</th><th>${__("SOPH")}</th><th>${__("NoofKgs")}</th><th>${__("NoofRolls")}</th><th>${__("Remarks")}</th><th>${__("Color")}</th><th>${__("Virgin")}</th><th>${__("Reco")}</th><th>${__("Colorant")}</th><th>${__("Additives")}</th><th>${__("Action")}</th>
@@ -203,6 +244,15 @@ function bind_scheduled_item_actions(wrapper, frm, scheduleRow) {
 		open_scheduled_item_dialog(frm, scheduleRow, this.dataset.table, this.dataset.name);
 	});
 	wrapper.find(".js-delete-scheduled-item").on("click", function() {
+		const deletedRow = locals[frm.fields_dict[this.dataset.table].df.options]?.[this.dataset.name];
+		if (this.dataset.table === "item_1_schedule" && deletedRow) {
+			for (const secondaryRow of rows_for_schedule(frm, "item_2_schedule", scheduleRow)) {
+				if (secondaryRow.fg1_product_code === deletedRow.product_code) {
+					frappe.model.clear_doc(secondaryRow.doctype, secondaryRow.name);
+				}
+			}
+			frm.refresh_field("item_2_schedule");
+		}
 		frappe.model.clear_doc(frm.fields_dict[this.dataset.table].df.options, this.dataset.name);
 		frm.refresh_field(this.dataset.table);
 		frm.dirty();
@@ -217,17 +267,20 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 	}
 	const secondary = tableField === "item_2_schedule";
 	const existing = rowName ? locals[frm.fields_dict[tableField].df.options]?.[rowName] : null;
+	const fg1Rows = rows_for_schedule(frm, "item_1_schedule", scheduleRow);
+	const defaultFg1Product = existing?.fg1_product_code || (fg1Rows.length === 1 ? fg1Rows[0].product_code : null);
 	let dialog;
-	const numeric = (fieldname, label, read_only = false, defaultValue = 0) => ({ fieldname, label, fieldtype: "Float", read_only, default: existing?.[fieldname] ?? defaultValue });
+	const numeric = (fieldname, label, read_only = false, defaultValue = 0, precision = 2) => ({ fieldname, label, fieldtype: "Float", read_only, default: existing?.[fieldname] ?? defaultValue, precision });
 	const fields = [
 		{ fieldname: "machine", label: __("Machine"), fieldtype: "Link", options: "Workstation", read_only: 1, default: scheduleRow.machine },
 		{ fieldname: "plan_date", label: __("Plan Date"), fieldtype: "Date", read_only: 1, default: scheduleRow.plan_date },
-		{ fieldname: "product_code", label: __("Prodcode"), fieldtype: "Link", options: "Item", reqd: 1, default: existing?.product_code || initialProduct, get_query: () => ({ query: "qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan.get_machine_fg_items", filters: { machine: scheduleRow.machine } }), onchange: () => load_dialog_product_details(dialog, scheduleRow.machine, secondary) },
+		...(secondary ? [{ fieldname: "fg1_product_code", label: __("FG 1 Item"), fieldtype: "Link", options: "Item", reqd: 1, default: defaultFg1Product, get_query: () => ({ filters: { name: ["in", fg1Rows.map((row) => row.product_code)] } }) }] : []),
+		{ fieldname: "product_code", label: __("Prodcode"), fieldtype: "Link", options: "Item", reqd: 1, default: existing?.product_code || initialProduct, get_query: () => ({ query: "qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan.get_machine_fg_items", filters: { machine: scheduleRow.machine } }), onchange: () => load_dialog_product_details(dialog, scheduleRow.machine, secondary, frm, scheduleRow) },
 		{ fieldname: "product_description", label: __("Proddesc"), fieldtype: "Data", read_only: 1, default: existing?.product_description },
 		{ fieldname: "cavs", label: __("Cavs"), fieldtype: "Int", read_only: 1, default: existing?.cavs },
 	];
 	if (!secondary) fields.push(numeric("paid_hrs", "PaidHrs", false, 24), numeric("vos", "VOS"), numeric("cm_co", "CM/CO"), numeric("stab", "Stab"), numeric("plan_hrs", "PlanHrs", true, 24));
-	fields.push(numeric("soph", "SOPH", true), numeric("std_weight_gm", "StdWt(gm)", true), numeric("daily_volume_qty", "Daily Vol Qty", true), numeric("daily_volume_kgs", "DailyVolKgs", true), numeric(secondary ? "factor_rate" : "f_rate", secondary ? "FactorRate" : "F.Rate", false, 100), numeric("cycle_time", secondary ? "CycleTime" : "C.T.", true));
+	fields.push(numeric("soph", "SOPH", true), numeric("std_weight_gm", "StdWt(gm)", true, 0, 4), numeric("daily_volume_qty", "Daily Vol Qty", true), numeric("daily_volume_kgs", "DailyVolKgs", true), numeric(secondary ? "factor_rate" : "f_rate", secondary ? "FactorRate" : "F.Rate", false, 100), numeric("cycle_time", secondary ? "CycleTime" : "C.T.", true, 0, 4));
 	if (!secondary) fields.push(
 		{ fieldname: "remarks", label: __("Remarks"), fieldtype: "Small Text", default: existing?.remarks },
 		{ fieldname: "mat_type", label: __("MatType"), fieldtype: "Data", default: existing?.mat_type },
@@ -235,28 +288,37 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 	);
 	dialog = new frappe.ui.Dialog({ title: __(rowName ? "Edit {0}" : "Add {0}", [secondary ? "FG 2" : "FG 1"]), fields, primary_action_label: __("Save Row"), primary_action(values) {
 		const target = existing || frm.add_child(tableField);
+		const previousProductCode = target.product_code;
 		Object.assign(target, values, { machine: scheduleRow.machine, plan_date: scheduleRow.plan_date });
+		if (!secondary && previousProductCode && previousProductCode !== target.product_code) {
+			for (const secondaryRow of rows_for_schedule(frm, "item_2_schedule", scheduleRow)) {
+				if (secondaryRow.fg1_product_code === previousProductCode) secondaryRow.fg1_product_code = target.product_code;
+			}
+		}
+		if (!secondary) update_linked_secondary_rows(frm, target);
 		frm.refresh_field(tableField);
 		frm.dirty();
 		dialog.hide();
 		keep_schedule_detail_open(frm, scheduleRow);
 	} });
 	for (const fieldname of ["paid_hrs", "vos", "cm_co", "stab"]) if (dialog.fields_dict[fieldname]) dialog.fields_dict[fieldname].df.onchange = () => calculate_dialog_plan_hours(dialog);
+	for (const fieldname of ["fg1_product_code", "factor_rate"]) if (dialog.fields_dict[fieldname]) dialog.fields_dict[fieldname].df.onchange = () => calculate_dialog_volume(dialog, true, frm, scheduleRow);
 	dialog.show();
-	if (!secondary) calculate_dialog_plan_hours(dialog);
-	if (initialProduct) load_dialog_product_details(dialog, scheduleRow.machine, secondary);
+	if (secondary) calculate_dialog_volume(dialog, true, frm, scheduleRow);
+	else calculate_dialog_plan_hours(dialog);
+	if (initialProduct) load_dialog_product_details(dialog, scheduleRow.machine, secondary, frm, scheduleRow);
 }
 
 function open_extrusion_item_dialog(frm, scheduleRow, rowName = null, initialProduct = null) {
 	const tableField = "extrusion_item_schedule";
 	const existing = rowName ? locals[frm.fields_dict[tableField].df.options]?.[rowName] : null;
 	let dialog;
-	const numeric = (fieldname, label, read_only = false, defaultValue = 0) => ({ fieldname, label: __(label), fieldtype: "Float", read_only, default: existing?.[fieldname] ?? defaultValue });
+	const numeric = (fieldname, label, read_only = false, defaultValue = 0, precision = 2) => ({ fieldname, label: __(label), fieldtype: "Float", read_only, default: existing?.[fieldname] ?? defaultValue, precision });
 	const fields = [
 		{ fieldname: "machine", label: __("Machine"), fieldtype: "Link", options: "Workstation", read_only: 1, default: scheduleRow.machine },
 		{ fieldname: "plan_date", label: __("Plan Date"), fieldtype: "Date", read_only: 1, default: scheduleRow.plan_date },
 		{ fieldname: "roll_code", label: __("Rollcode"), fieldtype: "Link", options: "Item", reqd: 1, default: existing?.roll_code || initialProduct, get_query: () => ({ query: "qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan.get_machine_fg_items", filters: { machine: scheduleRow.machine } }), onchange: () => load_extrusion_dialog_details(dialog, scheduleRow.machine) },
-		numeric("std_weight_kg", "StdWt", true),
+		numeric("std_weight_kg", "StdWt", true, 0, 4),
 		{ fieldname: "roll_description", label: __("Rolldesc"), fieldtype: "Data", read_only: 1, default: existing?.roll_description },
 		{ fieldname: "used_for", label: __("Used For"), fieldtype: "Data", default: existing?.used_for },
 		numeric("paid_time", "PaidTim", false, 24), numeric("vos", "VOS"), numeric("change_over", "C.O."), numeric("stabilization", "Stab"), numeric("plan_hours", "PlanHrs", true, 24), numeric("trim_percent", "% Trim", true), numeric("soph", "SOPH", true), numeric("number_of_kgs", "NoofKgs", true), numeric("number_of_rolls", "NoofRolls", true),
@@ -303,16 +365,24 @@ function keep_schedule_detail_open(frm, scheduleRow) {
 	}, 100);
 }
 
-async function load_dialog_product_details(dialog, machine, secondary) {
+async function load_dialog_product_details(dialog, machine, secondary, frm = null, scheduleRow = null) {
 	const productCode = dialog.get_value("product_code"); if (!productCode) return;
 	const response = await frappe.call({ method: "qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan.get_item_production_details", args: { item_code: productCode, machine } });
 	const details = response.message || {};
 	for (const fieldname of ["product_description", "cavs", "soph", "std_weight_gm", "cycle_time"]) dialog.set_value(fieldname, details[fieldname] || 0);
-	calculate_dialog_volume(dialog, secondary);
+	calculate_dialog_volume(dialog, secondary, frm, scheduleRow);
 }
 
-function calculate_dialog_volume(dialog, secondary) {
-	const hours = secondary ? 24 : calculate_net_paid_hours(
+function calculate_dialog_volume(dialog, secondary, frm = null, scheduleRow = null) {
+	if (secondary) {
+		const parent = rows_for_schedule(frm, "item_1_schedule", scheduleRow)
+			.find((row) => row.product_code === dialog.get_value("fg1_product_code"));
+		const quantity = flt(parent?.daily_volume_qty) * flt(dialog.get_value("factor_rate")) / 100;
+		dialog.set_value("daily_volume_qty", quantity);
+		dialog.set_value("daily_volume_kgs", flt(dialog.get_value("std_weight_gm")) * quantity / 1000);
+		return;
+	}
+	const hours = calculate_net_paid_hours(
 		dialog.get_value("paid_hrs"),
 		dialog.get_value("vos"),
 		dialog.get_value("cm_co"),
@@ -391,12 +461,35 @@ function calculate_extrusion_output(frm, cdt, cdn) {
 
 function calculate_daily_volume(frm, cdt, cdn) {
 	const row = frappe.get_doc(cdt, cdn);
-	const hours = row.doctype === "Weekly Production Plan Secondary Item"
-		? 24
-		: calculate_net_paid_hours(row.paid_hrs, row.vos, row.cm_co, row.stab);
-	const quantity = hours * flt(row.soph);
+	let quantity;
+	if (row.doctype === "Weekly Production Plan Secondary Item") {
+		const parent = (frm.doc.item_1_schedule || []).find((candidate) =>
+			candidate.machine === row.machine
+			&& candidate.plan_date === row.plan_date
+			&& candidate.product_code === row.fg1_product_code
+		);
+		quantity = flt(parent?.daily_volume_qty) * flt(row.factor_rate) / 100;
+	} else {
+		const hours = calculate_net_paid_hours(row.paid_hrs, row.vos, row.cm_co, row.stab);
+		quantity = hours * flt(row.soph);
+	}
 	frappe.model.set_value(cdt, cdn, "daily_volume_qty", quantity);
 	frappe.model.set_value(cdt, cdn, "daily_volume_kgs", flt(row.std_weight_gm) * quantity / 1000);
+	if (row.doctype === "Weekly Production Plan Item") update_linked_secondary_rows(frm, row, quantity);
+}
+
+function update_linked_secondary_rows(frm, parentRow, parentQuantity = null) {
+	const quantity = parentQuantity === null ? flt(parentRow.daily_volume_qty) : flt(parentQuantity);
+	for (const row of frm.doc.item_2_schedule || []) {
+		if (
+			row.machine !== parentRow.machine
+			|| row.plan_date !== parentRow.plan_date
+			|| row.fg1_product_code !== parentRow.product_code
+		) continue;
+		const secondaryQuantity = quantity * flt(row.factor_rate) / 100;
+		frappe.model.set_value(row.doctype, row.name, "daily_volume_qty", secondaryQuantity);
+		frappe.model.set_value(row.doctype, row.name, "daily_volume_kgs", flt(row.std_weight_gm) * secondaryQuantity / 1000);
+	}
 }
 
 function calculate_plan_hours(frm, cdt, cdn) {

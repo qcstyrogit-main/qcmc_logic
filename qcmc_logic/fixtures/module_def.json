@@ -70,6 +70,16 @@
   "restrict_to_domain": null
  },
  {
+  "app_name": "clefincode_chat",
+  "custom": 0,
+  "docstatus": 0,
+  "doctype": "Module Def",
+  "module_name": "ClefinCode Chat",
+  "name": "ClefinCode Chat",
+  "package": null,
+  "restrict_to_domain": null
+ },
+ {
   "app_name": "erpnext",
   "custom": 0,
   "docstatus": 0,

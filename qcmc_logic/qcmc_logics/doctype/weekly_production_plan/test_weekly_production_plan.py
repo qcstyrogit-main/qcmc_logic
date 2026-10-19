@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan import (
 	calculate_extrusion_values,
+	calculate_secondary_values,
 	extract_production_rows,
 	get_possible_sales_order_items,
 	is_extrusion_section,
@@ -56,6 +57,16 @@ class TestWeeklyProductionPlan(unittest.TestCase):
 		self.assertEqual(values["plan_hours"], 18)
 		self.assertEqual(values["number_of_kgs"], 1800)
 		self.assertEqual(values["number_of_rolls"], 0)
+
+	def test_secondary_output_uses_parent_quantity_and_factor_rate(self):
+		self.assertEqual(
+			calculate_secondary_values(1225, 100, 42.345),
+			{"daily_volume_qty": 1225, "daily_volume_kgs": 51.872625},
+		)
+		self.assertEqual(
+			calculate_secondary_values(1225, 50, 42.345),
+			{"daily_volume_qty": 612.5, "daily_volume_kgs": 25.9363125},
+		)
 
 	@patch("qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan.frappe")
 	def test_possible_sales_orders_are_filtered_by_machine_bom_and_delivery_note(self, frappe):
