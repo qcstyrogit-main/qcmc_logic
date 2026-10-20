@@ -74,8 +74,8 @@
 	.size-large .qr-label-sheet { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 	.qr-label { box-sizing: border-box; display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center; align-items: center; min-height: 250px; padding: 4px; border: 0; border-radius: 0; background: transparent; break-inside: avoid; page-break-inside: avoid; }
 	.qr-code { display: block; width: 230px; height: 230px; min-width: 0; min-height: 0; max-width: 100%; max-height: 100%; object-fit: contain; image-rendering: pixelated; }
-	.label-details { min-width: 0; max-width: 100%; padding: 0; margin-top: 8px; text-align: center; }
-	.location-code { overflow-wrap: anywhere; font-size: 24px; line-height: 1.1; font-weight: 800; text-align: center; }
+	.label-details { width: 100%; min-width: 0; max-width: 100%; padding: 0; margin-top: 8px; text-align: center; }
+	.location-code { width: 100%; max-width: 100%; white-space: nowrap; overflow: hidden; overflow-wrap: normal; font-size: 24px; line-height: 1.1; font-weight: 800; text-align: center; }
 	.size-small .qr-label { min-height: 180px; }
 	.size-small .qr-code { width: 130px; height: 130px; }
 	.size-small .location-code { font-size: 20px; }
@@ -84,7 +84,7 @@
 	.size-medium .location-code { font-size: 26px; }
 	.size-large .qr-label { min-height: 300px; }
 	.size-large .qr-code { width: 250px; height: 250px; }
-	.size-large .location-code { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 32px; }
+	.size-large .location-code { font-size: 32px; }
 	.empty-state { padding: 64px 24px; border: 1px dashed #cbd5e1; border-radius: 12px; text-align: center; }
 	.empty-state h2 { margin: 0 0 8px; }
 	.empty-state p { margin: 0; color: #64748b; }
@@ -147,11 +147,24 @@
 		.size-medium .qr-label-sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(8, 35.25mm); }
 		.size-medium .location-code { font-size: 18pt; }
 		.size-large .qr-label-sheet { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, 71.5mm); }
-		.size-large .location-code { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 24pt; }
+		.size-large .location-code { font-size: 24pt; }
 	}
 </style>
 
 <script>
+	function fitLocationCodes(root) {
+		const view = root.defaultView || window;
+		root.querySelectorAll(".location-code").forEach((code) => {
+			code.style.removeProperty("font-size");
+			let fontSize = parseFloat(view.getComputedStyle(code).fontSize) || 16;
+			const minimumFontSize = 8;
+			while (code.scrollWidth > code.clientWidth && fontSize > minimumFontSize) {
+				fontSize = Math.max(minimumFontSize, fontSize - 0.5);
+				code.style.fontSize = `${fontSize}px`;
+			}
+		});
+	}
+
 	function printQRLabels() {
 		const grid = document.querySelector(".qr-label-grid");
 		const selector = document.querySelector("#qr-size");
@@ -198,14 +211,14 @@
 					break-inside: avoid;
 				}
 				.qr-code { display: block; width: auto; height: 100%; min-height: 0; max-width: 100%; max-height: 100%; margin: 0 auto; object-fit: contain; }
-				.label-details { min-width: 0; max-width: 100%; margin: .5mm 0 0; padding: 0; }
-				.location-code { overflow-wrap: anywhere; line-height: 1; font-weight: 800; text-align: center; }
+				.label-details { width: 100%; min-width: 0; max-width: 100%; margin: .5mm 0 0; padding: 0; }
+				.location-code { width: 100%; max-width: 100%; white-space: nowrap; overflow: hidden; overflow-wrap: normal; line-height: 1; font-weight: 800; text-align: center; }
 				.size-small .qr-label-sheet { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(9, 31.222mm); }
 				.size-small .location-code { font-size: 10pt; }
 				.size-medium .qr-label-sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(8, 35.25mm); }
 				.size-medium .location-code { font-size: 12pt; }
 				.size-large .qr-label-sheet { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, 71.5mm); }
-				.size-large .location-code { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 18pt; }
+				.size-large .location-code { font-size: 18pt; }
 			</style>
 		</head>
 		<body>
@@ -222,9 +235,12 @@
 				img.onerror = resolve;
 			})
 		)).then(() => {
-			printWindow.addEventListener("afterprint", () => printWindow.close(), { once: true });
-			printWindow.focus();
-			printWindow.print();
+			printWindow.requestAnimationFrame(() => {
+				fitLocationCodes(printWindow.document);
+				printWindow.addEventListener("afterprint", () => printWindow.close(), { once: true });
+				printWindow.focus();
+				printWindow.print();
+			});
 		});
 	}
 
@@ -248,6 +264,7 @@
 				grid.lastElementChild.appendChild(label);
 			});
 			localStorage.setItem("storage-location-qr-size", size);
+			window.requestAnimationFrame(() => fitLocationCodes(grid));
 		}
 
 		selector.addEventListener("change", () => rebuildSheets(selector.value));
