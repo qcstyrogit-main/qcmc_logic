@@ -58,6 +58,12 @@ class TestStorageLocationQRPrintLayout(unittest.TestCase):
 		self.assertIn("fitLocationCodes(printWindow.document)", self.template)
 		self.assertIn("fitLocationCodes(grid)", self.template)
 
+	def test_printed_location_code_is_centered_to_its_qr_width(self):
+		self.assertIn('const qr = label.querySelector(".qr-code")', self.template)
+		self.assertIn("qr.getBoundingClientRect().width", self.template)
+		self.assertIn("details.style.width = `${alignedWidth}px`", self.template)
+		self.assertIn("justify-self: center", self.template)
+
 	def test_print_button_uses_isolated_document(self):
 		self.assertIn('onclick="printQRLabels()"', self.template)
 		self.assertIn('function printQRLabels()', self.template)
