@@ -206,6 +206,8 @@ function schedule_hours_summary_html(frm, scheduleRow, extrusion = false) {
 
 function scheduled_items_html(frm, scheduleRow) {
 	const escape = frappe.utils.escape_html;
+	const hasFg1Item = rows_for_schedule(frm, "item_1_schedule", scheduleRow)
+		.some((row) => row.product_code);
 	const renderRows = (tableField, secondary = false) => {
 		const rows = rows_for_schedule(frm, tableField, scheduleRow);
 		if (!rows.length) return `<tr><td colspan="${secondary ? 11 : 18}" class="text-muted text-center">${__("No items added.")}</td></tr>`;
@@ -220,14 +222,20 @@ function scheduled_items_html(frm, scheduleRow) {
 				<td class="text-nowrap"><button class="btn btn-xs btn-default js-edit-scheduled-item" data-table="${tableField}" data-name="${row.name}">${__("Edit")}</button> <button class="btn btn-xs btn-default js-delete-scheduled-item" data-table="${tableField}" data-name="${row.name}">${__("Remove")}</button></td>
 			</tr>`).join("");
 	};
-	const table = (title, tableField, secondary = false) => `
-		<div style="margin-top: 15px"><div class="flex justify-between align-center"><strong>${__(title)}</strong><button class="btn btn-xs btn-primary js-add-scheduled-item" data-table="${tableField}">${__("Add Row")}</button></div>
+	const table = (title, tableField, secondary = false) => {
+		const addDisabled = secondary && !hasFg1Item;
+		const disabledAttributes = addDisabled
+			? ` disabled aria-disabled="true" title="${__("Add at least one FG 1 item first.")}"`
+			: "";
+		return `
+		<div style="margin-top: 15px"><div class="flex justify-between align-center"><strong>${__(title)}</strong><button class="btn btn-xs btn-primary js-add-scheduled-item" data-table="${tableField}"${disabledAttributes}>${__("Add Row")}</button></div>
 		<div class="table-responsive"><table class="table table-bordered table-condensed" style="margin-top: 6px; white-space: nowrap"><thead><tr>
 		${secondary ? `<th>${__("FG 1 Item")}</th>` : ""}<th>${__("Prodcode")}</th><th>${__("Proddesc")}</th><th>${__("Cavs")}</th>
 		${secondary ? "" : `<th>${__("PaidHrs")}</th><th>${__("VOS")}</th><th>${__("CM/CO")}</th><th>${__("Stab")}</th><th>${__("PlanHrs")}</th>`}
 		<th>${__("SOPH")}</th><th>${__("StdWt(gm)")}</th><th>${__("Daily Vol Qty")}</th><th>${__("DailyVolKgs")}</th><th>${__(secondary ? "FactorRate" : "F.Rate")}</th><th>${__(secondary ? "CycleTime" : "C.T.")}</th>
 		${secondary ? "" : `<th>${__("Remarks")}</th><th>${__("MatType")}</th><th>${__("SteamRegmt")}</th>`}<th>${__("Action")}</th>
 		</tr></thead><tbody>${renderRows(tableField, secondary)}</tbody></table></div></div>`;
+	};
 	if (is_extrusion_section(frm.doc.section)) {
 		return extrusion_items_html(frm, scheduleRow);
 	}
@@ -284,6 +292,13 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 	const secondary = tableField === "item_2_schedule";
 	const existing = rowName ? locals[frm.fields_dict[tableField].df.options]?.[rowName] : null;
 	const fg1Rows = rows_for_schedule(frm, "item_1_schedule", scheduleRow);
+	if (secondary && !existing && !fg1Rows.some((row) => row.product_code)) {
+		frappe.show_alert({
+			message: __("Add at least one FG 1 item before adding an FG 2 item."),
+			indicator: "orange",
+		});
+		return;
+	}
 	const defaultFg1Product = existing?.fg1_product_code || (fg1Rows.length === 1 ? fg1Rows[0].product_code : null);
 	let dialog;
 	const numeric = (fieldname, label, read_only = false, defaultValue = 0, precision = 2) => ({ fieldname, label, fieldtype: "Float", read_only, default: existing?.[fieldname] ?? defaultValue, precision });
