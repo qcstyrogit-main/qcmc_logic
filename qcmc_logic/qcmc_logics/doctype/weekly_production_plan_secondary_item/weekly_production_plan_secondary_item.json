@@ -28,7 +28,7 @@
   {"columns": 1, "fieldname": "std_weight_gm", "fieldtype": "Float", "in_list_view": 1, "label": "StdWt(gm)", "precision": "4", "read_only": 1},
   {"columns": 1, "fieldname": "daily_volume_qty", "fieldtype": "Float", "in_list_view": 1, "label": "Daily Vol Qty", "precision": "2", "read_only": 1},
   {"columns": 1, "fieldname": "daily_volume_kgs", "fieldtype": "Float", "in_list_view": 1, "label": "DailyVolKgs", "precision": "2", "read_only": 1},
-  {"columns": 1, "default": "100", "fieldname": "factor_rate", "fieldtype": "Float", "in_list_view": 1, "label": "FactorRate", "precision": "2"},
+  {"columns": 1, "default": "100", "fieldname": "factor_rate", "fieldtype": "Float", "in_list_view": 1, "label": "FactorRate", "precision": "2", "read_only": 1},
   {"columns": 1, "fieldname": "cycle_time", "fieldtype": "Float", "in_list_view": 1, "label": "CycleTime", "precision": "4", "read_only": 1}
  ],
  "istable": 1,

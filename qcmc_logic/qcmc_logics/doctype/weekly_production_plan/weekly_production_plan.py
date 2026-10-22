@@ -18,6 +18,7 @@ class WeeklyProductionPlan(Document):
 		self.name = make_record_no(self.section, self.start_date)
 
 	def validate(self):
+		validate_start_date(self.start_date)
 		self._set_computed_values()
 		validate_section_company(self.company, self.section)
 		self._validate_scheduled_items()
@@ -95,8 +96,10 @@ class WeeklyProductionPlan(Document):
 		fg1_by_slot_and_item = {}
 		for row in self.get("item_1_schedule"):
 			details = get_item_production_details(row.product_code, row.machine, check_permission=False)
-			for fieldname in ("product_description", "cavs", "soph", "std_weight_gm", "cycle_time"):
+			for fieldname in ("product_description", "cavs", "soph", "std_weight_gm"):
 				row.set(fieldname, details.get(fieldname))
+			if not row.cycle_time:
+				row.cycle_time = details.get("cycle_time")
 			row.plan_hrs = flt(row.paid_hrs) - flt(row.vos) - flt(row.cm_co) - flt(row.stab)
 			row.daily_volume_qty = row.plan_hrs * flt(row.soph)
 			row.daily_volume_kgs = flt(row.std_weight_gm) * flt(row.daily_volume_qty) / 1000
@@ -104,15 +107,11 @@ class WeeklyProductionPlan(Document):
 
 		for row in self.get("item_2_schedule"):
 			details = get_item_production_details(row.product_code, row.machine, check_permission=False)
-			for fieldname in ("product_description", "cavs", "soph", "std_weight_gm", "cycle_time"):
+			for fieldname in ("product_description", "cavs", "soph", "std_weight_gm"):
 				row.set(fieldname, details.get(fieldname))
 			parent_row = fg1_by_slot_and_item.get((row.machine, getdate(row.plan_date), row.fg1_product_code))
-			values = calculate_secondary_values(
-				parent_row.daily_volume_qty if parent_row else 0,
-				row.factor_rate,
-				row.std_weight_gm,
-			)
-			row.update(values)
+			if parent_row:
+				sync_secondary_values(row, parent_row)
 
 	def _set_computed_values(self):
 		if not self.start_date:
@@ -171,6 +170,12 @@ def make_record_no(section: str, start_date: str) -> str:
 	return f"{section_code}{getdate(start_date).strftime('%m%d%y')}"
 
 
+def validate_start_date(start_date: str) -> None:
+	"""Require weekly production plans to begin on a Monday."""
+	if start_date and getdate(start_date).weekday() != 0:
+		frappe.throw(_("Start Date must be a Monday."))
+
+
 def is_extrusion_section(section: str | None) -> bool:
 	return (section or "").strip().upper().startswith("EXTRUSION")
 
@@ -202,6 +207,15 @@ def calculate_secondary_values(parent_quantity: float, factor_rate: float, std_w
 		"daily_volume_qty": daily_volume_qty,
 		"daily_volume_kgs": flt(std_weight_gm) * daily_volume_qty / 1000,
 	}
+
+
+def sync_secondary_values(secondary_row, parent_row) -> None:
+	"""Keep inherited FG 2 planning values aligned with its linked FG 1 row."""
+	secondary_row.factor_rate = parent_row.f_rate
+	secondary_row.cycle_time = parent_row.cycle_time
+	secondary_row.update(
+		calculate_secondary_values(parent_row.daily_volume_qty, parent_row.f_rate, secondary_row.std_weight_gm)
+	)
 
 
 def get_section_workstations(section: str) -> list[str]:

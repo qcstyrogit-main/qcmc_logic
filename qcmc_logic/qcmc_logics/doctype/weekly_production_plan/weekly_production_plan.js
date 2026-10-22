@@ -31,7 +31,16 @@ frappe.ui.form.on("Weekly Production Plan", {
 		clear_generated_schedule(frm);
 	},
 
-	start_date(frm) {
+	async start_date(frm) {
+		if (frm.doc.start_date && frappe.datetime.str_to_obj(frm.doc.start_date).getDay() !== 1) {
+			frappe.msgprint({
+				title: __("Invalid Start Date"),
+				message: __("Start Date must be a Monday."),
+				indicator: "red",
+			});
+			await frm.set_value("start_date", null);
+			return;
+		}
 		refresh_machine_schedule(frm);
 	},
 
@@ -118,6 +127,13 @@ const productionItemHandlers = {
 	},
 	factor_rate(frm, cdt, cdn) {
 		calculate_daily_volume(frm, cdt, cdn);
+	},
+	f_rate(frm, cdt, cdn) {
+		calculate_daily_volume(frm, cdt, cdn);
+	},
+	cycle_time(frm, cdt, cdn) {
+		const row = frappe.get_doc(cdt, cdn);
+		if (row.doctype === "Weekly Production Plan Item") update_linked_secondary_rows(frm, row);
 	},
 };
 
@@ -280,7 +296,7 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 		{ fieldname: "cavs", label: __("Cavs"), fieldtype: "Int", read_only: 1, default: existing?.cavs },
 	];
 	if (!secondary) fields.push(numeric("paid_hrs", "PaidHrs", false, 24), numeric("vos", "VOS"), numeric("cm_co", "CM/CO"), numeric("stab", "Stab"), numeric("plan_hrs", "PlanHrs", true, 24));
-	fields.push(numeric("soph", "SOPH", true), numeric("std_weight_gm", "StdWt(gm)", true, 0, 4), numeric("daily_volume_qty", "Daily Vol Qty", true), numeric("daily_volume_kgs", "DailyVolKgs", true), numeric(secondary ? "factor_rate" : "f_rate", secondary ? "FactorRate" : "F.Rate", false, 100), numeric("cycle_time", secondary ? "CycleTime" : "C.T.", true, 0, 4));
+	fields.push(numeric("soph", "SOPH", true), numeric("std_weight_gm", "StdWt(gm)", true, 0, 4), numeric("daily_volume_qty", "Daily Vol Qty", true), numeric("daily_volume_kgs", "DailyVolKgs", true), numeric(secondary ? "factor_rate" : "f_rate", secondary ? "FactorRate" : "F.Rate", secondary, 100), numeric("cycle_time", secondary ? "CycleTime" : "C.T.", secondary, 0, 4));
 	if (!secondary) fields.push(
 		{ fieldname: "remarks", label: __("Remarks"), fieldtype: "Small Text", default: existing?.remarks },
 		{ fieldname: "mat_type", label: __("MatType"), fieldtype: "Data", default: existing?.mat_type },
@@ -302,7 +318,7 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 		keep_schedule_detail_open(frm, scheduleRow);
 	} });
 	for (const fieldname of ["paid_hrs", "vos", "cm_co", "stab"]) if (dialog.fields_dict[fieldname]) dialog.fields_dict[fieldname].df.onchange = () => calculate_dialog_plan_hours(dialog);
-	for (const fieldname of ["fg1_product_code", "factor_rate"]) if (dialog.fields_dict[fieldname]) dialog.fields_dict[fieldname].df.onchange = () => calculate_dialog_volume(dialog, true, frm, scheduleRow);
+	if (dialog.fields_dict.fg1_product_code) dialog.fields_dict.fg1_product_code.df.onchange = () => calculate_dialog_volume(dialog, true, frm, scheduleRow);
 	dialog.show();
 	if (secondary) calculate_dialog_volume(dialog, true, frm, scheduleRow);
 	else calculate_dialog_plan_hours(dialog);
@@ -377,7 +393,10 @@ function calculate_dialog_volume(dialog, secondary, frm = null, scheduleRow = nu
 	if (secondary) {
 		const parent = rows_for_schedule(frm, "item_1_schedule", scheduleRow)
 			.find((row) => row.product_code === dialog.get_value("fg1_product_code"));
-		const quantity = flt(parent?.daily_volume_qty) * flt(dialog.get_value("factor_rate")) / 100;
+		const factorRate = flt(parent?.f_rate);
+		dialog.set_value("factor_rate", factorRate);
+		dialog.set_value("cycle_time", flt(parent?.cycle_time));
+		const quantity = flt(parent?.daily_volume_qty) * factorRate / 100;
 		dialog.set_value("daily_volume_qty", quantity);
 		dialog.set_value("daily_volume_kgs", flt(dialog.get_value("std_weight_gm")) * quantity / 1000);
 		return;
@@ -468,7 +487,9 @@ function calculate_daily_volume(frm, cdt, cdn) {
 			&& candidate.plan_date === row.plan_date
 			&& candidate.product_code === row.fg1_product_code
 		);
-		quantity = flt(parent?.daily_volume_qty) * flt(row.factor_rate) / 100;
+		frappe.model.set_value(cdt, cdn, "factor_rate", flt(parent?.f_rate));
+		frappe.model.set_value(cdt, cdn, "cycle_time", flt(parent?.cycle_time));
+		quantity = flt(parent?.daily_volume_qty) * flt(parent?.f_rate) / 100;
 	} else {
 		const hours = calculate_net_paid_hours(row.paid_hrs, row.vos, row.cm_co, row.stab);
 		quantity = hours * flt(row.soph);
@@ -486,7 +507,9 @@ function update_linked_secondary_rows(frm, parentRow, parentQuantity = null) {
 			|| row.plan_date !== parentRow.plan_date
 			|| row.fg1_product_code !== parentRow.product_code
 		) continue;
-		const secondaryQuantity = quantity * flt(row.factor_rate) / 100;
+		frappe.model.set_value(row.doctype, row.name, "factor_rate", flt(parentRow.f_rate));
+		frappe.model.set_value(row.doctype, row.name, "cycle_time", flt(parentRow.cycle_time));
+		const secondaryQuantity = quantity * flt(parentRow.f_rate) / 100;
 		frappe.model.set_value(row.doctype, row.name, "daily_volume_qty", secondaryQuantity);
 		frappe.model.set_value(row.doctype, row.name, "daily_volume_kgs", flt(row.std_weight_gm) * secondaryQuantity / 1000);
 	}
