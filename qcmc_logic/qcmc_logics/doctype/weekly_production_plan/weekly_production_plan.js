@@ -90,9 +90,79 @@ function clear_imported_production_items(frm) {
 
 frappe.ui.form.on("Weekly Production Plan Detail", {
 	form_render(frm, cdt, cdn) {
+		set_weekly_plan_row_editor_size(frm, cdn);
 		render_possible_sales_orders(frm, cdt, cdn);
 	},
 });
+
+function set_weekly_plan_row_editor_size(frm, cdn) {
+	const gridRow = frm.fields_dict.machine_schedule?.grid?.grid_rows_by_docname?.[cdn];
+	const formWrapper = gridRow?.grid_form?.wrapper;
+	const wrapper = formWrapper?.jquery ? formWrapper[0] : formWrapper;
+	const modal = wrapper?.closest?.(".modal") || Array.from(document.querySelectorAll(".modal"))
+		.filter((element) => element.offsetParent !== null)
+		.reverse()
+		.find((element) => element.textContent.includes(__("Editing Row")));
+	const visibleDialogs = Array.from(document.querySelectorAll(".modal-dialog")).filter((element) => element.offsetParent !== null);
+	const modalDialog = wrapper?.closest?.(".modal-dialog") || modal?.querySelector?.(".modal-dialog") || visibleDialogs[visibleDialogs.length - 1];
+	if (!modalDialog) return;
+
+	modal?.classList.add("qcmc-weekly-production-plan-row-modal");
+	modalDialog.classList.add("qcmc-weekly-production-plan-row-editor");
+	if (document.getElementById("qcmc-weekly-production-plan-row-editor-style")) return;
+	const style = document.createElement("style");
+	style.id = "qcmc-weekly-production-plan-row-editor-style";
+	style.textContent = `
+		.qcmc-weekly-production-plan-row-modal {
+			position: fixed !important;
+			inset: 0 !important;
+			width: 100vw !important;
+			height: 100vh !important;
+			height: 100dvh !important;
+			padding: 0 !important;
+			overflow: hidden !important;
+		}
+		.qcmc-weekly-production-plan-row-editor {
+			position: absolute !important;
+			inset: 0 !important;
+			width: 100% !important;
+			max-width: none !important;
+			height: 100% !important;
+			margin: 0 !important;
+			padding: 0 !important;
+		}
+		.qcmc-weekly-production-plan-row-editor .modal-content {
+			display: flex;
+			flex-direction: column;
+			height: 100%;
+			max-height: 100%;
+			border-radius: 0;
+		}
+		.qcmc-weekly-production-plan-row-editor .modal-body {
+			flex: 1 1 auto;
+			min-height: 0;
+			overflow: auto;
+		}
+		.qcmc-weekly-production-plan-row-editor .scheduled-items-editor,
+		.qcmc-weekly-production-plan-row-editor .scheduled-items-editor .table-responsive {
+			width: 200%;
+		}
+		.qcmc-scheduled-resizable-table { table-layout: fixed; min-width: 100%; }
+		.qcmc-scheduled-resizable-table th,
+		.qcmc-scheduled-resizable-table td {
+			white-space: normal !important;
+			overflow-wrap: anywhere;
+			word-break: normal;
+		}
+		.qcmc-scheduled-resizable-table th { position: relative; }
+		.qcmc-scheduled-resizable-table th { padding-inline-end: 13px; }
+		.qcmc-scheduled-column-handle { position: absolute; z-index: 2; inset-block: 0; inset-inline-end: -1px; width: 12px; cursor: col-resize; touch-action: none; }
+		.qcmc-scheduled-column-handle::after { content: ""; position: absolute; inset-block: 15%; inset-inline-start: 5px; width: 2px; border-radius: 2px; background: var(--border-color, #c8cdd2); }
+		.qcmc-scheduled-column-handle:hover::after, .qcmc-scheduled-column-handle:focus-visible::after { background: var(--primary, #5387ed); }
+		.qcmc-scheduled-column-resizing, .qcmc-scheduled-column-resizing * { cursor: col-resize !important; user-select: none !important; }
+	`;
+	document.head.appendChild(style);
+}
 
 const productionItemHandlers = {
 	product_code(frm, cdt, cdn) {
@@ -160,7 +230,67 @@ function render_possible_sales_orders(frm, cdt, cdn) {
 	if (!wrapper) return;
 
 	wrapper.html(scheduled_items_html(frm, row));
+	enhance_scheduled_item_tables(wrapper);
 	bind_scheduled_item_actions(wrapper, frm, row);
+}
+
+function enhance_scheduled_item_tables(wrapper) {
+	const root = wrapper?.[0] || wrapper;
+	if (!root?.querySelectorAll) return;
+	root.querySelectorAll("table[data-resize-key]").forEach((table) => {
+		const headers = Array.from(table.querySelectorAll("thead th"));
+		if (!headers.length) return;
+		let colgroup = table.querySelector("colgroup");
+		if (!colgroup) {
+			colgroup = document.createElement("colgroup");
+			headers.forEach(() => colgroup.appendChild(document.createElement("col")));
+			table.insertBefore(colgroup, table.firstChild);
+		}
+		const cols = Array.from(colgroup.children);
+		if (cols.length !== headers.length) return;
+		const key = `qcmc-weekly-plan-columns:${frappe.session.user}:${table.dataset.resizeKey}`;
+		let widths = {};
+		try { widths = JSON.parse(localStorage.getItem(key) || "{}"); } catch (error) { /* Ignore unavailable browser storage. */ }
+		headers.forEach((header, index) => {
+			const measured = header.getBoundingClientRect().width || 100;
+			const width = Math.max(60, Number(widths[index]) || measured);
+			cols[index].style.width = `${width}px`;
+		});
+		const updateTableWidth = () => {
+			table.style.width = `${cols.reduce((total, col) => total + col.getBoundingClientRect().width, 0)}px`;
+		};
+		updateTableWidth();
+		headers.forEach((header, index) => {
+			if (header.querySelector(".qcmc-scheduled-column-handle")) return;
+			const handle = document.createElement("span");
+			handle.className = "qcmc-scheduled-column-handle";
+			handle.tabIndex = 0;
+			handle.setAttribute("role", "separator");
+			handle.setAttribute("aria-orientation", "vertical");
+			handle.setAttribute("aria-label", __("Resize {0} column", [header.textContent.trim()]));
+			header.appendChild(handle);
+			handle.addEventListener("pointerdown", (event) => {
+				event.preventDefault();
+				const startX = event.clientX;
+				const startWidth = cols[index].getBoundingClientRect().width || header.getBoundingClientRect().width;
+				const move = (moveEvent) => {
+					const width = Math.max(60, startWidth + moveEvent.clientX - startX);
+					cols[index].style.width = `${width}px`;
+					updateTableWidth();
+				};
+				const finish = () => {
+					document.body.classList.remove("qcmc-scheduled-column-resizing");
+					window.removeEventListener("pointermove", move);
+					window.removeEventListener("pointerup", finish);
+					widths[index] = Math.round(cols[index].getBoundingClientRect().width);
+					try { localStorage.setItem(key, JSON.stringify(widths)); } catch (error) { /* Resizing still works without persistence. */ }
+				};
+				document.body.classList.add("qcmc-scheduled-column-resizing");
+				window.addEventListener("pointermove", move);
+				window.addEventListener("pointerup", finish, {once: true});
+			});
+		});
+	});
 }
 
 function rows_for_schedule(frm, tableField, scheduleRow) {
@@ -229,7 +359,7 @@ function scheduled_items_html(frm, scheduleRow) {
 			: "";
 		return `
 		<div style="margin-top: 15px"><div class="flex justify-between align-center"><strong>${__(title)}</strong><button class="btn btn-xs btn-primary js-add-scheduled-item" data-table="${tableField}"${disabledAttributes}>${__("Add Row")}</button></div>
-		<div class="table-responsive"><table class="table table-bordered table-condensed" style="margin-top: 6px; white-space: nowrap"><thead><tr>
+		<div class="table-responsive"><table class="table table-bordered table-condensed qcmc-scheduled-resizable-table" data-resize-key="${tableField}" style="margin-top: 6px; white-space: nowrap"><thead><tr>
 		${secondary ? `<th>${__("FG 1 Item")}</th>` : ""}<th>${__("Prodcode")}</th><th>${__("Proddesc")}</th><th>${__("Cavs")}</th>
 		${secondary ? "" : `<th>${__("PaidHrs")}</th><th>${__("VOS")}</th><th>${__("CM/CO")}</th><th>${__("Stab")}</th><th>${__("PlanHrs")}</th>`}
 		<th>${__("SOPH")}</th><th>${__("StdWt(gm)")}</th><th>${__("Daily Vol Qty")}</th><th>${__("DailyVolKgs")}</th><th>${__(secondary ? "FactorRate" : "F.Rate")}</th><th>${__(secondary ? "CycleTime" : "C.T.")}</th>
@@ -255,7 +385,7 @@ function extrusion_items_html(frm, scheduleRow) {
 	</tr>`).join("") : `<tr><td colspan="20" class="text-muted text-center">${__("No extrusion items added.")}</td></tr>`;
 	return `<div class="scheduled-items-editor">${schedule_hours_summary_html(frm, scheduleRow, true)}<h6 style="margin-top: 18px">${__("Extrusion Items for {0} on {1}", [scheduleRow.machine, frappe.datetime.str_to_user(scheduleRow.plan_date)])}</h6>
 		<div class="flex justify-between align-center"><strong>${__("Extrusion Item List")}</strong><button class="btn btn-xs btn-primary js-add-scheduled-item" data-table="extrusion_item_schedule">${__("Add Row")}</button></div>
-		<div class="table-responsive"><table class="table table-bordered table-condensed" style="margin-top: 6px; white-space: nowrap"><thead><tr>
+		<div class="table-responsive"><table class="table table-bordered table-condensed qcmc-scheduled-resizable-table" data-resize-key="extrusion_item_schedule" style="margin-top: 6px; white-space: nowrap"><thead><tr>
 		<th>${__("Rollcode")}</th><th>${__("StdWt")}</th><th>${__("Rolldesc")}</th><th>${__("Used For")}</th><th>${__("PaidTim")}</th><th>${__("VOS")}</th><th>${__("C.O.")}</th><th>${__("Stab")}</th><th>${__("PlanHrs")}</th><th>${__("% Trim")}</th><th>${__("SOPH")}</th><th>${__("NoofKgs")}</th><th>${__("NoofRolls")}</th><th>${__("Remarks")}</th><th>${__("Color")}</th><th>${__("Virgin")}</th><th>${__("Reco")}</th><th>${__("Colorant")}</th><th>${__("Additives")}</th><th>${__("Action")}</th>
 		</tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
