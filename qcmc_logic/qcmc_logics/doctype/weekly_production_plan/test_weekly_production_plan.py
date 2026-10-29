@@ -10,6 +10,7 @@ from qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_pla
 	is_extrusion_section,
 	make_record_no,
 	sync_secondary_values,
+	validate_slot_paid_hours,
 	validate_start_date,
 )
 
@@ -58,6 +59,29 @@ class TestWeeklyProductionPlan(unittest.TestCase):
 		self.assertTrue(is_extrusion_section("EXTRUSION35"))
 		self.assertTrue(is_extrusion_section(" extrusion99 "))
 		self.assertFalse(is_extrusion_section("CPS"))
+
+	@patch("qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan.frappe")
+	def test_slot_paid_hours_accepts_a_total_of_24(self, frappe):
+		rows = [
+			SimpleNamespace(machine="AVM1", plan_date="2026-10-05", idx=1, get=lambda _field: 12),
+			SimpleNamespace(machine="AVM1", plan_date="2026-10-05", idx=2, get=lambda _field: 12),
+		]
+		validate_slot_paid_hours(rows, "paid_hrs", "FG 1")
+		frappe.throw.assert_not_called()
+
+	@patch("qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan.frappe")
+	def test_slot_paid_hours_rejects_a_total_above_24(self, frappe):
+		frappe.throw.side_effect = RuntimeError("paid hours exceeded")
+		rows = [
+			SimpleNamespace(machine="AVM1", plan_date="2026-10-05", idx=1, get=lambda _field: 12),
+			SimpleNamespace(machine="AVM1", plan_date="2026-10-05", idx=2, get=lambda _field: 13),
+		]
+		with patch(
+			"qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan._",
+			side_effect=lambda message: message,
+		):
+			with self.assertRaisesRegex(RuntimeError, "paid hours exceeded"):
+				validate_slot_paid_hours(rows, "paid_hrs", "FG 1")
 
 	def test_extrusion_output_formulas(self):
 		self.assertEqual(

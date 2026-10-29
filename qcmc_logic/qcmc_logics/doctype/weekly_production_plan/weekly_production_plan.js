@@ -23,6 +23,8 @@ frappe.ui.form.on("Weekly Production Plan", {
 
 	refresh(frm) {
 		set_grid_read_only(frm);
+		set_weekly_plan_row_editor_size(frm);
+		setup_machine_schedule_editor_launcher(frm);
 		sync_production_plan_import_controls(frm);
 	},
 
@@ -90,8 +92,12 @@ function clear_imported_production_items(frm) {
 
 frappe.ui.form.on("Weekly Production Plan Detail", {
 	form_render(frm, cdt, cdn) {
-		set_weekly_plan_row_editor_size(frm, cdn);
-		render_possible_sales_orders(frm, cdt, cdn);
+		const gridRow = frm.fields_dict.machine_schedule?.grid?.grid_rows_by_docname?.[cdn];
+		const scheduleRow = frappe.get_doc(cdt, cdn);
+		setTimeout(() => {
+			gridRow?.hide_form();
+			open_expanded_schedule_editor(frm, scheduleRow);
+		}, 0);
 	},
 });
 
@@ -104,11 +110,11 @@ function set_weekly_plan_row_editor_size(frm, cdn) {
 		.reverse()
 		.find((element) => element.textContent.includes(__("Editing Row")));
 	const visibleDialogs = Array.from(document.querySelectorAll(".modal-dialog")).filter((element) => element.offsetParent !== null);
-	const modalDialog = wrapper?.closest?.(".modal-dialog") || modal?.querySelector?.(".modal-dialog") || visibleDialogs[visibleDialogs.length - 1];
-	if (!modalDialog) return;
-
-	modal?.classList.add("qcmc-weekly-production-plan-row-modal");
-	modalDialog.classList.add("qcmc-weekly-production-plan-row-editor");
+	const modalDialog = wrapper?.closest?.(".modal-dialog") || modal?.querySelector?.(".modal-dialog") || (modal ? visibleDialogs[visibleDialogs.length - 1] : null);
+	if (modalDialog) {
+		modal?.classList.add("qcmc-weekly-production-plan-row-modal");
+		modalDialog.classList.add("qcmc-weekly-production-plan-row-editor");
+	}
 	if (document.getElementById("qcmc-weekly-production-plan-row-editor-style")) return;
 	const style = document.createElement("style");
 	style.id = "qcmc-weekly-production-plan-row-editor-style";
@@ -145,8 +151,21 @@ function set_weekly_plan_row_editor_size(frm, cdn) {
 		}
 		.qcmc-weekly-production-plan-row-editor .scheduled-items-editor,
 		.qcmc-weekly-production-plan-row-editor .scheduled-items-editor .table-responsive {
-			width: 200%;
+			width: 100%;
 		}
+		.qcmc-machine-schedule-detail { padding: 20px 15px 40px; }
+		.qcmc-machine-schedule-heading {
+			display: flex;
+			align-items: baseline;
+			gap: 12px;
+			padding-bottom: 16px;
+			margin-bottom: 12px;
+			border-bottom: 1px solid var(--border-color);
+		}
+		.qcmc-machine-schedule-heading h3 { margin: 0; font-size: 18px; }
+		.qcmc-machine-schedule-heading .js-back-production-plan { margin-inline-start: auto; }
+		.qcmc-machine-schedule-detail .scheduled-items-editor { min-width: 100%; }
+		.qcmc-machine-schedule-detail .table-responsive { width: 100%; }
 		.qcmc-scheduled-resizable-table { table-layout: fixed; min-width: 100%; }
 		.qcmc-scheduled-resizable-table th,
 		.qcmc-scheduled-resizable-table td {
@@ -156,6 +175,7 @@ function set_weekly_plan_row_editor_size(frm, cdn) {
 		}
 		.qcmc-scheduled-resizable-table th { position: relative; }
 		.qcmc-scheduled-resizable-table th { padding-inline-end: 13px; }
+		.qcmc-scheduled-resizable-table .qcmc-description-column { white-space: nowrap !important; }
 		.qcmc-scheduled-column-handle { position: absolute; z-index: 2; inset-block: 0; inset-inline-end: -1px; width: 12px; cursor: col-resize; touch-action: none; }
 		.qcmc-scheduled-column-handle::after { content: ""; position: absolute; inset-block: 15%; inset-inline-start: 5px; width: 2px; border-radius: 2px; background: var(--border-color, #c8cdd2); }
 		.qcmc-scheduled-column-handle:hover::after, .qcmc-scheduled-column-handle:focus-visible::after { background: var(--primary, #5387ed); }
@@ -234,6 +254,64 @@ function render_possible_sales_orders(frm, cdt, cdn) {
 	bind_scheduled_item_actions(wrapper, frm, row);
 }
 
+const expandedScheduleEditors = new Map();
+
+function open_expanded_schedule_editor(frm, scheduleRow) {
+	const existingView = expandedScheduleEditors.get(scheduleRow.name);
+	if (existingView) {
+		refresh_expanded_schedule_editor(frm, scheduleRow);
+		return;
+	}
+
+	for (const [rowName, view] of expandedScheduleEditors) {
+		view.wrapper.remove();
+		expandedScheduleEditors.delete(rowName);
+	}
+	const formLayout = frm.$wrapper.find(".form-layout").first();
+	const wrapper = $(`
+		<div class="qcmc-machine-schedule-detail">
+			<div class="qcmc-machine-schedule-heading">
+				<h3>${frappe.utils.escape_html(scheduleRow.machine || "")}</h3>
+				<span class="text-muted">${frappe.datetime.str_to_user(scheduleRow.plan_date)}</span>
+				<button type="button" class="btn btn-default js-back-production-plan">
+					${__("Back to Production Plan")}
+				</button>
+			</div>
+			<div class="qcmc-machine-schedule-content"></div>
+		</div>
+	`);
+	formLayout.hide().after(wrapper);
+	frm.$wrapper.addClass("qcmc-machine-schedule-detail-mode");
+	wrapper.find(".js-back-production-plan").on("click", () => close_machine_schedule_detail(frm));
+	expandedScheduleEditors.set(scheduleRow.name, {
+		wrapper: wrapper.find(".qcmc-machine-schedule-content"),
+		container: wrapper,
+		formLayout,
+	});
+	frm.page.remove_inner_button(__("Back to Production Plan"));
+	frm.page.add_inner_button(__("Back to Production Plan"), () => close_machine_schedule_detail(frm));
+	refresh_expanded_schedule_editor(frm, scheduleRow);
+}
+
+function refresh_expanded_schedule_editor(frm, scheduleRow) {
+	const view = expandedScheduleEditors.get(scheduleRow.name);
+	const wrapper = view?.wrapper;
+	if (!wrapper) return;
+	wrapper.html(scheduled_items_html(frm, scheduleRow, true));
+	enhance_scheduled_item_tables(wrapper);
+	bind_scheduled_item_actions(wrapper, frm, scheduleRow);
+}
+
+function close_machine_schedule_detail(frm) {
+	for (const [rowName, view] of expandedScheduleEditors) {
+		view.container.remove();
+		view.formLayout.show();
+		expandedScheduleEditors.delete(rowName);
+	}
+	frm.$wrapper.removeClass("qcmc-machine-schedule-detail-mode");
+	frm.page.remove_inner_button(__("Back to Production Plan"));
+}
+
 function enhance_scheduled_item_tables(wrapper) {
 	const root = wrapper?.[0] || wrapper;
 	if (!root?.querySelectorAll) return;
@@ -248,11 +326,28 @@ function enhance_scheduled_item_tables(wrapper) {
 		}
 		const cols = Array.from(colgroup.children);
 		if (cols.length !== headers.length) return;
-		const key = `qcmc-weekly-plan-columns:${frappe.session.user}:${table.dataset.resizeKey}`;
+		const key = `qcmc-weekly-plan-columns-v2:${frappe.session.user}:${table.dataset.resizeKey}`;
 		let widths = {};
 		try { widths = JSON.parse(localStorage.getItem(key) || "{}"); } catch (error) { /* Ignore unavailable browser storage. */ }
 		headers.forEach((header, index) => {
-			const measured = header.getBoundingClientRect().width || 100;
+			const headerLabel = header.textContent.trim();
+			const isDescription = ["Proddesc", "Rolldesc"].includes(headerLabel);
+			if (isDescription) {
+				header.classList.add("qcmc-description-column");
+				table.querySelectorAll(`tbody tr`).forEach((row) => row.cells[index]?.classList.add("qcmc-description-column"));
+			}
+			const cells = [header, ...Array.from(table.querySelectorAll("tbody tr"), (row) => row.cells[index]).filter(Boolean)];
+			const naturalWidth = cells.reduce((maximum, cell) => {
+				const text = cell.textContent.replace(/\s+/g, " ").trim();
+				const style = window.getComputedStyle(cell);
+				const canvas = enhance_scheduled_item_tables.measureCanvas
+					|| (enhance_scheduled_item_tables.measureCanvas = document.createElement("canvas"));
+				const context = canvas.getContext("2d");
+				context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+				return Math.max(maximum, context.measureText(text).width + 30);
+			}, 0);
+			const maximumDefault = isDescription ? 420 : 220;
+			const measured = Math.min(maximumDefault, Math.max(60, naturalWidth));
 			const width = Math.max(60, Number(widths[index]) || measured);
 			cols[index].style.width = `${width}px`;
 		});
@@ -334,7 +429,7 @@ function schedule_hours_summary_html(frm, scheduleRow, extrusion = false) {
 	</div>`;
 }
 
-function scheduled_items_html(frm, scheduleRow) {
+function scheduled_items_html(frm, scheduleRow, expanded = false) {
 	const escape = frappe.utils.escape_html;
 	const hasFg1Item = rows_for_schedule(frm, "item_1_schedule", scheduleRow)
 		.some((row) => row.product_code);
@@ -367,12 +462,13 @@ function scheduled_items_html(frm, scheduleRow) {
 		</tr></thead><tbody>${renderRows(tableField, secondary)}</tbody></table></div></div>`;
 	};
 	if (is_extrusion_section(frm.doc.section)) {
-		return extrusion_items_html(frm, scheduleRow);
+		return extrusion_items_html(frm, scheduleRow, expanded);
 	}
-	return `<div class="scheduled-items-editor">${schedule_hours_summary_html(frm, scheduleRow)}<h6 style="margin-top: 18px">${__("Scheduled FG Items for {0} on {1}", [scheduleRow.machine, frappe.datetime.str_to_user(scheduleRow.plan_date)])}</h6>${table("FG 1", "item_1_schedule")}${table("FG 2", "item_2_schedule", true)}</div>`;
+	const expandButton = expanded ? "" : `<button class="btn btn-sm btn-default js-expand-schedule-editor">${__("Expand Schedule Editor")}</button>`;
+	return `<div class="scheduled-items-editor"><div class="flex justify-between align-center">${schedule_hours_summary_html(frm, scheduleRow)}${expandButton}</div><h6 style="margin-top: 18px">${__("Scheduled FG Items for {0} on {1}", [scheduleRow.machine, frappe.datetime.str_to_user(scheduleRow.plan_date)])}</h6>${table("FG 1", "item_1_schedule")}${table("FG 2", "item_2_schedule", true)}</div>`;
 }
 
-function extrusion_items_html(frm, scheduleRow) {
+function extrusion_items_html(frm, scheduleRow, expanded = false) {
 	const escape = frappe.utils.escape_html;
 	const rows = rows_for_schedule(frm, "extrusion_item_schedule", scheduleRow);
 	const body = rows.length ? rows.map((row) => `<tr>
@@ -383,7 +479,8 @@ function extrusion_items_html(frm, scheduleRow) {
 		<td>${format_plan_number(row.virgin)}</td><td>${format_plan_number(row.reco)}</td><td>${format_plan_number(row.colorant)}</td><td>${format_plan_number(row.additives)}</td>
 		<td class="text-nowrap"><button class="btn btn-xs btn-default js-edit-scheduled-item" data-table="extrusion_item_schedule" data-name="${row.name}">${__("Edit")}</button> <button class="btn btn-xs btn-default js-delete-scheduled-item" data-table="extrusion_item_schedule" data-name="${row.name}">${__("Remove")}</button></td>
 	</tr>`).join("") : `<tr><td colspan="20" class="text-muted text-center">${__("No extrusion items added.")}</td></tr>`;
-	return `<div class="scheduled-items-editor">${schedule_hours_summary_html(frm, scheduleRow, true)}<h6 style="margin-top: 18px">${__("Extrusion Items for {0} on {1}", [scheduleRow.machine, frappe.datetime.str_to_user(scheduleRow.plan_date)])}</h6>
+	const expandButton = expanded ? "" : `<button class="btn btn-sm btn-default js-expand-schedule-editor">${__("Expand Schedule Editor")}</button>`;
+	return `<div class="scheduled-items-editor"><div class="flex justify-between align-center">${schedule_hours_summary_html(frm, scheduleRow, true)}${expandButton}</div><h6 style="margin-top: 18px">${__("Extrusion Items for {0} on {1}", [scheduleRow.machine, frappe.datetime.str_to_user(scheduleRow.plan_date)])}</h6>
 		<div class="flex justify-between align-center"><strong>${__("Extrusion Item List")}</strong><button class="btn btn-xs btn-primary js-add-scheduled-item" data-table="extrusion_item_schedule">${__("Add Row")}</button></div>
 		<div class="table-responsive"><table class="table table-bordered table-condensed qcmc-scheduled-resizable-table" data-resize-key="extrusion_item_schedule" style="margin-top: 6px; white-space: nowrap"><thead><tr>
 		<th>${__("Rollcode")}</th><th>${__("StdWt")}</th><th>${__("Rolldesc")}</th><th>${__("Used For")}</th><th>${__("PaidTim")}</th><th>${__("VOS")}</th><th>${__("C.O.")}</th><th>${__("Stab")}</th><th>${__("PlanHrs")}</th><th>${__("% Trim")}</th><th>${__("SOPH")}</th><th>${__("NoofKgs")}</th><th>${__("NoofRolls")}</th><th>${__("Remarks")}</th><th>${__("Color")}</th><th>${__("Virgin")}</th><th>${__("Reco")}</th><th>${__("Colorant")}</th><th>${__("Additives")}</th><th>${__("Action")}</th>
@@ -391,6 +488,9 @@ function extrusion_items_html(frm, scheduleRow) {
 }
 
 function bind_scheduled_item_actions(wrapper, frm, scheduleRow) {
+	wrapper.find(".js-expand-schedule-editor").on("click", function() {
+		open_expanded_schedule_editor(frm, scheduleRow);
+	});
 	wrapper.find(".js-add-scheduled-item").on("click", function() {
 		open_scheduled_item_dialog(frm, scheduleRow, this.dataset.table);
 	});
@@ -411,6 +511,7 @@ function bind_scheduled_item_actions(wrapper, frm, scheduleRow) {
 		frm.refresh_field(this.dataset.table);
 		frm.dirty();
 		render_possible_sales_orders(frm, scheduleRow.doctype, scheduleRow.name);
+		refresh_expanded_schedule_editor(frm, scheduleRow);
 	});
 }
 
@@ -448,6 +549,7 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 		numeric("steam_regmt", "SteamRegmt"),
 	);
 	dialog = new frappe.ui.Dialog({ title: __(rowName ? "Edit {0}" : "Add {0}", [secondary ? "FG 2" : "FG 1"]), fields, primary_action_label: __("Save Row"), primary_action(values) {
+		if (!secondary && !validate_slot_paid_hours(frm, scheduleRow, tableField, "paid_hrs", values.paid_hrs, existing)) return;
 		const target = existing || frm.add_child(tableField);
 		const previousProductCode = target.product_code;
 		Object.assign(target, values, { machine: scheduleRow.machine, plan_date: scheduleRow.plan_date });
@@ -460,6 +562,7 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 		frm.refresh_field(tableField);
 		frm.dirty();
 		dialog.hide();
+		refresh_expanded_schedule_editor(frm, scheduleRow);
 		keep_schedule_detail_open(frm, scheduleRow);
 	} });
 	for (const fieldname of ["paid_hrs", "vos", "cm_co", "stab"]) if (dialog.fields_dict[fieldname]) dialog.fields_dict[fieldname].df.onchange = () => calculate_dialog_plan_hours(dialog);
@@ -488,9 +591,10 @@ function open_extrusion_item_dialog(frm, scheduleRow, rowName = null, initialPro
 		numeric("virgin", "Virgin"), numeric("reco", "Reco"), numeric("colorant", "Colorant"), numeric("additives", "Additives"),
 	];
 	dialog = new frappe.ui.Dialog({ title: __(rowName ? "Edit Extrusion Item" : "Add Extrusion Item"), fields, primary_action_label: __("Save Row"), primary_action(values) {
+		if (!validate_slot_paid_hours(frm, scheduleRow, tableField, "paid_time", values.paid_time, existing)) return;
 		const target = existing || frm.add_child(tableField);
 		Object.assign(target, values, { machine: scheduleRow.machine, plan_date: scheduleRow.plan_date });
-		frm.refresh_field(tableField); frm.dirty(); dialog.hide(); keep_schedule_detail_open(frm, scheduleRow);
+		frm.refresh_field(tableField); frm.dirty(); dialog.hide(); refresh_expanded_schedule_editor(frm, scheduleRow); keep_schedule_detail_open(frm, scheduleRow);
 	} });
 	for (const fieldname of ["paid_time", "vos", "change_over", "stabilization"]) dialog.fields_dict[fieldname].df.onchange = () => calculate_extrusion_dialog_output(dialog);
 	dialog.show(); calculate_extrusion_dialog_output(dialog);
@@ -517,6 +621,10 @@ function calculate_extrusion_dialog_output(dialog) {
 }
 
 function keep_schedule_detail_open(frm, scheduleRow) {
+	if (expandedScheduleEditors.has(scheduleRow.name)) {
+		refresh_expanded_schedule_editor(frm, scheduleRow);
+		return;
+	}
 	setTimeout(() => {
 		const gridRow = frm.fields_dict.machine_schedule?.grid?.grid_rows_by_docname?.[scheduleRow.name];
 		if (!gridRow) return;
@@ -671,6 +779,29 @@ function calculate_net_paid_hours(paidHours, vos, cmCo, stab) {
 	return flt(paidHours) - flt(vos) - flt(cmCo) - flt(stab);
 }
 
+function validate_slot_paid_hours(frm, scheduleRow, tableField, hoursField, requestedHours, existing = null) {
+	const usedHours = rows_for_schedule(frm, tableField, scheduleRow)
+		.filter((row) => !existing || row.name !== existing.name)
+		.reduce((total, row) => total + flt(row[hoursField]), 0);
+	const availableHours = Math.max(0, 24 - usedHours);
+	const enteredHours = flt(requestedHours);
+	if (enteredHours >= 0 && enteredHours <= availableHours + 0.000001) return true;
+
+	frappe.msgprint({
+		title: __("Paid Hours Exceeded"),
+		indicator: "red",
+		message: enteredHours < 0
+			? __("Paid hours cannot be negative.")
+			: __("Only {0} paid hour(s) remain for {1} on {2}. You entered {3}.", [
+				format_plan_number(availableHours),
+				scheduleRow.machine,
+				frappe.datetime.str_to_user(scheduleRow.plan_date),
+				format_plan_number(enteredHours),
+			]),
+	});
+	return false;
+}
+
 function is_extrusion_section(section) {
 	return String(section || "").trim().toUpperCase().startsWith("EXTRUSION");
 }
@@ -736,6 +867,20 @@ function set_grid_read_only(frm) {
 	grid.cannot_add_rows = true;
 	grid.cannot_delete_rows = true;
 	grid.wrapper.find(".grid-add-row, .grid-remove-rows, .grid-delete-row").hide();
+}
+
+function setup_machine_schedule_editor_launcher(frm) {
+	const grid = frm.fields_dict.machine_schedule?.grid;
+	if (!grid) return;
+	const redirectGridRow = (gridRow) => {
+		if (gridRow?.grid !== grid || !gridRow.doc || gridRow.__qcmcScheduleRedirect) return;
+		gridRow.__qcmcScheduleRedirect = true;
+		gridRow.toggle_view = () => open_expanded_schedule_editor(frm, gridRow.doc);
+	};
+	grid.grid_rows.forEach(redirectGridRow);
+	$(frm.wrapper)
+		.off("grid-row-render.qcmc-schedule-detail")
+		.on("grid-row-render.qcmc-schedule-detail", (_event, gridRow) => redirectGridRow(gridRow));
 }
 
 function show_production_plan_import_dialog(frm) {

@@ -26,6 +26,10 @@ class WeeklyProductionPlan(Document):
 		self._populate_machine_schedule()
 
 	def _validate_scheduled_items(self):
+		validate_slot_paid_hours(self.get("item_1_schedule"), "paid_hrs", _("FG 1"))
+		validate_slot_paid_hours(
+			self.get("extrusion_item_schedule"), "paid_time", _("Extrusion Item List")
+		)
 		if is_extrusion_section(self.section):
 			if self.get("item_1_schedule") or self.get("item_2_schedule"):
 				frappe.throw(_("EXTRUSION plans can only use the Extrusion Item List."))
@@ -174,6 +178,36 @@ def validate_start_date(start_date: str) -> None:
 	"""Require weekly production plans to begin on a Monday."""
 	if start_date and getdate(start_date).weekday() != 0:
 		frappe.throw(_("Start Date must be a Monday."))
+
+
+def validate_slot_paid_hours(rows, hours_field: str, table_label: str) -> None:
+	"""Limit each machine/date production slot to one 24-hour paid day."""
+	totals = {}
+	for row in rows or []:
+		if not row.machine or not row.plan_date:
+			continue
+		hours = flt(row.get(hours_field))
+		if hours < 0:
+			frappe.throw(
+				_("{0}, row {1}: paid hours cannot be negative.").format(table_label, row.idx)
+			)
+		key = (row.machine, getdate(row.plan_date))
+		totals[key] = totals.get(key, 0) + hours
+
+	for (machine, plan_date), total in totals.items():
+		if total <= 24.000001:
+			continue
+		frappe.throw(
+			_(
+				"{0}: total paid hours for machine {1} on {2} is {3}. "
+				"It cannot exceed 24.00 hours."
+			).format(
+				table_label,
+				frappe.bold(machine),
+				frappe.format_value(plan_date, {"fieldtype": "Date"}),
+				frappe.bold(f"{total:.2f}"),
+			)
+		)
 
 
 def is_extrusion_section(section: str | None) -> bool:
