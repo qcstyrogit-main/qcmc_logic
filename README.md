@@ -2,6 +2,37 @@
 
 Company Business Rules and Logics
 
+### User Transaction Dashboard
+
+Open **User Transaction Dashboard** through Desk search or visit
+`/app/user-transaction-dashboard` as a System Manager. Select **Date From** and
+**Date To** to see employees/users as rows and transaction DocTypes as columns,
+with row/column totals and summary cards. The default range is the current
+month through today. Changing a date refreshes the dashboard; **Refresh** reloads
+the counts for the selected dates.
+
+The filter bar above the cards contains visible date fields and searchable
+**Modules**, **Displayed DocTypes** and **Displayed Users** selectors. Empty
+selections show all available values. Use Modules to narrow columns by their
+ERPNext module, and Displayed DocTypes to choose individual transaction columns.
+Use Displayed Users to choose the employees/accounts included in the matrix.
+Summary cards and totals reflect the displayed users and columns.
+
+Counts include draft, submitted and cancelled documents by their original
+creator and creation time, including the entire final day. The dashboard covers
+persisted, top-level submittable DocTypes, including custom transactions;
+master records, child rows, Single and virtual DocTypes are excluded. Employee
+names use the linked user account, falling back to the user's full name or ID.
+Users and DocTypes with zero activity remain visible. Deleted documents are
+excluded; retained documents from deleted user accounts still appear under
+their original user ID. Both the page and its data endpoint require System Manager access.
+The existing User Transaction Activity report remains available.
+
+Deploy with the normal app migration, or sync this Page alone using
+`bench --site erp.qcstyro.local reload-doc qcmc_logics page user_transaction_dashboard`
+and clear the site's cache. This Page uses its standard script; no asset build
+or additional dependencies are required.
+
 ### Resizable List Columns
 
 On desktop ERP List pages, drag the right edge of a column header to resize it.
