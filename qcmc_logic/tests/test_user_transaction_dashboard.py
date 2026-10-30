@@ -108,6 +108,26 @@ class TestUserTransactionDashboard(unittest.TestCase):
         actual = next(row for row in data["rows"] if row["user"] == owner)
         self.assertEqual(actual["employee_name"], owner)
         self.assertEqual(actual["counts"], owner_row["counts"])
+        self.assertFalse(actual["monitored"])
+        self.assertEqual(actual["can_create"], [])
+
+    def test_create_permissions_match_frappe_and_only_active_system_users_are_monitored(self):
+        data = self.dashboard.get_data("2999-01-01", "2999-01-01")
+        users = {user.name: user for user in frappe.get_all(
+            "User", fields=["name", "enabled", "user_type"]
+        )}
+        sample_types = ["Purchase Order", "Purchase Invoice", "Stock Entry", "Warehouse Transfer"]
+        for row in data["rows"]:
+            user = users[row["user"]]
+            monitored = bool(user.enabled and user.user_type == "System User")
+            self.assertEqual(row["monitored"], monitored)
+            for doctype in sample_types:
+                if doctype not in data["doctypes"]:
+                    continue
+                expected = monitored and frappe.has_permission(
+                    doctype, "create", user=user.name
+                )
+                self.assertEqual(doctype in row["can_create"], bool(expected), (user.name, doctype))
 
     def test_employee_labels_do_not_duplicate_users_and_have_fallbacks(self):
         fixtures = {
