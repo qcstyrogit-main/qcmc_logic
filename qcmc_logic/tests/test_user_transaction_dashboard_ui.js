@@ -51,11 +51,18 @@ async function main() {
     const constructed = new context.Dashboard({main: mainNode, set_primary_action() {}});
     assert.match(mainNode.value, /Native toolbar/, "Dashboard construction preserves the connected native toolbar");
     assert.deepEqual(controls.map(control => control.df.label),
-        ["Date From", "Date To", "Modules", "Displayed DocTypes", "Displayed Users"]);
+        ["Date From", "Date To", "Modules", "Displayed DocTypes", "Displayed Users", "Activity View"]);
     assert.ok(controls.every(control => control.parent.parent.name.endsWith(".utd-filters")),
         "Every filter is mounted in the visible dashboard filter container");
     assert.equal(constructed.date_from.get_value(), "2026-10-01");
     assert.equal(constructed.date_to.get_value(), "2026-10-30");
+    assert.equal(constructed.activity_view.get_value(), "With Activity");
+    assert.equal(requests.length, 1, "Current-month data starts loading automatically");
+    assert.equal(requests[0].options.args.date_from, "2026-10-01");
+    context.frappe.pages["user-transaction-dashboard"].on_page_show({transaction_dashboard: constructed});
+    assert.equal(requests.length, 1, "Page-show does not duplicate initial load");
+    requests.shift().resolve({message: {doctypes: [], rows: []}});
+    await Promise.resolve();
     constructed.doctypes.set_input(['<img src=x onerror=alert(1)>']);
     constructed.doctypes.update_status();
     assert.equal(constructed.doctypes.status, '&lt;img src=x onerror=alert(1)&gt;',
@@ -71,6 +78,7 @@ async function main() {
     const data = {
         doctypes: ["Purchase Order", "<img src=x onerror=alert(1)>"],
         rows: [{user: "a@example.com", employee_name: "<script>bad()</script>",
+            monitored: true, can_create: ["Purchase Order"],
             counts: {"Purchase Order": 56, "<img src=x onerror=alert(1)>": 30}, total: 86}],
         totals: {counts: {"Purchase Order": 56, "<img src=x onerror=alert(1)>": 30}, total: 86},
         summary: {documents: 86, active_users: 1, active_doctypes: 2},
@@ -93,6 +101,10 @@ async function main() {
             {user: "zero@example.com", employee_name: "Zero", counts: {"Purchase Order": 0, "Purchase Invoice": 0}, total: 0},
         ],
     };
+    for (const row of scoped.rows) {
+        row.monitored = true;
+        row.can_create = ["Purchase Order", "Purchase Invoice"];
+    }
     dashboard.data = scoped;
     let selectedUsers = ["alice@example.com"], selectedTypes = ["Purchase Order"], selectedModules = [];
     dashboard.users = {get_value: () => selectedUsers};
@@ -109,6 +121,62 @@ async function main() {
     filtered = dashboard.filter_data();
     assert.equal(JSON.stringify(filtered.doctypes), '["Purchase Invoice"]');
     assert.equal(filtered.totals.total, 32);
+    const usage = {
+        doctypes: ["Purchase Order", "Purchase Invoice"],
+        doctype_modules: scoped.doctype_modules,
+        rows: [
+            {user: "alice", employee_name: "Alice", monitored: true, can_create: ["Purchase Order", "Purchase Invoice"], counts: {"Purchase Order": 3, "Purchase Invoice": 0}},
+            {user: "bob", employee_name: "Bob", monitored: true, can_create: ["Purchase Order"], counts: {}},
+            {user: "charlie", employee_name: "Charlie", monitored: true, can_create: ["Purchase Invoice"], counts: {}},
+            {user: "reader", employee_name: "Reader", monitored: true, can_create: [], counts: {}},
+            {user: "disabled", employee_name: "Disabled", monitored: false, can_create: [], counts: {"Purchase Order": 2}},
+        ],
+    };
+    dashboard.data = usage;
+    selectedModules = [];
+    let view = "With Activity";
+    dashboard.activity_view = {get_value: () => view};
+    filtered = dashboard.filter_data();
+    assert.equal(filtered.rows.length, 2, "Default view keeps activity, including retained historical counts");
+    assert.equal(JSON.stringify(filtered.doctypes), '["Purchase Order"]');
+    assert.equal(filtered.summary.using, 1);
+    assert.equal(filtered.summary.not_using, 2, "Hidden zero-only DocTypes remain part of the eligible population");
+    assert.equal(filtered.summary.usage_rate, 33.3);
+    assert.equal(filtered.summary.documents, 5);
+    dashboard.render(filtered);
+    assert.match(dashboard.$results.value, /Historical count; no current Create permission/);
+    const savedUsage = dashboard.data;
+    dashboard.data = {...usage, rows: usage.rows.map(row => ({...row, counts: {}}))};
+    const emptyPeriod = dashboard.filter_data();
+    assert.equal(emptyPeriod.rows.length, 0);
+    assert.equal(emptyPeriod.doctypes.length, 0);
+    assert.equal(emptyPeriod.summary.not_using, 3);
+    assert.equal(emptyPeriod.summary.usage_rate, 0);
+    dashboard.data = savedUsage;
+    view = "Without Activity";
+    filtered = dashboard.filter_data();
+    assert.equal(filtered.rows.length, 2);
+    assert.equal(filtered.summary.using, 1, "Activity View does not change scope cards");
+    assert.equal(filtered.totals.total, 0);
+    dashboard.render(filtered);
+    assert.match(dashboard.$results.value, /No current Create permission/);
+    assert.match(dashboard.$results.value, /—/);
+    assert.match(dashboard.$results.value, />0<\/td>/, "Create access without activity renders zero");
+    view = "All";
+    assert.equal(dashboard.filter_data().rows.length, 4, "Read-only users with no transactions are not labeled Not Using");
+    selectedTypes = ["Purchase Order"];
+    filtered = dashboard.filter_data();
+    assert.equal(filtered.summary.not_using, 1);
+    assert.equal(filtered.summary.usage_rate, 50);
+    view = "Without Activity";
+    assert.equal(dashboard.filter_data().rows.length, 1);
+    selectedUsers = ["alice"];
+    view = "All";
+    assert.equal(dashboard.filter_data().summary.usage_rate, 100);
+    dashboard.data = {...usage, rows: []};
+    assert.equal(dashboard.filter_data().summary.usage_rate, null, "No eligible users has no percentage denominator");
+    dashboard.data = scoped;
+    view = "With Activity";
     selectedModules = [];
     selectedUsers = []; selectedTypes = [];
     const userOptions = dashboard.filter_options("users", "ALICE");
@@ -165,7 +233,7 @@ async function main() {
     await empty;
     assert.match(dashboard.$status.value, /No users/);
     assert.ok(!dashboard.$results.value.includes("<table"));
-    console.log("PASS: visible filter controls, searched dropdowns, module/DocType/user selection, filtered totals, escaped matrix, stale success/error, invalid dates and empty states");
+    console.log("PASS: automatic current-month load, permission-aware activity views and scope cards, zero versus no access, historical counts, searched selectors, escaped rendering, stale responses and empty states");
 }
 
 main().catch(error => { console.error(error); process.exitCode = 1; });

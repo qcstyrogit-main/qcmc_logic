@@ -8,7 +8,8 @@ frappe.pages["user-transaction-dashboard"].on_page_load = function (wrapper) {
 };
 
 frappe.pages["user-transaction-dashboard"].on_page_show = function (wrapper) {
-    wrapper.transaction_dashboard.refresh();
+    const dashboard = wrapper.transaction_dashboard;
+    if (!dashboard.data && !dashboard.loading) dashboard.refresh();
 };
 
 class UserTransactionDashboard {
@@ -17,6 +18,7 @@ class UserTransactionDashboard {
         this.sequence = 0;
         this.ready = false;
         this.data = null;
+        this.loading = false;
         this.page.main.append(`
             <div class="user-transaction-dashboard" aria-busy="false">
                 <div class="utd-filters"></div>
@@ -29,7 +31,7 @@ class UserTransactionDashboard {
         this.$status = this.$root.find(".utd-status");
         this.$results = this.$root.find(".utd-results");
         this.$root.find(".utd-description").text(__(
-            "Documents created by each user, including drafts, submitted and cancelled transactions. Dates use creation time."
+            "Monitor documents created against current Create permissions. Includes drafts, submitted and cancelled transactions."
         ));
         const make_filter = df => {
             const parent = $("<div class='utd-filter'></div>").appendTo(this.$root.find(".utd-filters"));
@@ -76,9 +78,15 @@ class UserTransactionDashboard {
             placeholder: __("All users"), get_data: txt => this.filter_options("users", txt),
             change: () => this.ready && this.apply_filters(),
         });
+        this.activity_view = make_filter({
+            fieldname: "activity_view", label: __("Activity View"), fieldtype: "Select",
+            options: "With Activity\nWithout Activity\nAll", default: "With Activity",
+            change: () => this.ready && this.apply_filters(),
+        });
         page.set_primary_action(__("Refresh"), () => this.refresh(), "refresh");
         this.add_styles();
         this.ready = true;
+        this.refresh();
     }
 
     filter_options(kind, query = "") {
@@ -104,17 +112,39 @@ class UserTransactionDashboard {
         const modules = this.modules?.get_value() || [];
         const selected_types = this.doctypes?.get_value() || [];
         const users = this.users?.get_value() || [];
-        const doctypes = this.data.doctypes.filter(dt =>
+        const scope_types = this.data.doctypes.filter(dt =>
             (!selected_types.length || selected_types.includes(dt)) &&
             (!modules.length || modules.includes(this.data.doctype_modules?.[dt])));
-        const rows = this.data.rows.filter(row => !users.length || users.includes(row.user))
-            .map(row => ({...row, total: doctypes.reduce((sum, dt) => sum + Number(row.counts[dt] || 0), 0)}));
+        // Determine eligibility over the full selected scope before hiding empty
+        // columns or inactive rows. Otherwise the default view inflates usage.
+        const scope_rows = this.data.rows.filter(row => !users.length || users.includes(row.user))
+            .map(row => {
+                const total = scope_types.reduce((sum, dt) => sum + Number(row.counts[dt] || 0), 0);
+                const eligible = Boolean(row.monitored && scope_types.some(dt => (row.can_create || []).includes(dt)));
+                return {...row, total, eligible,
+                    usage_status: !eligible ? "Historical activity" : total > 0 ? "Using" : "Not Using"};
+            }).filter(row => row.eligible || row.total > 0);
+        const eligible_users = scope_rows.filter(row => row.eligible).length;
+        const using = scope_rows.filter(row => row.eligible && row.total > 0).length;
+        const view = this.activity_view?.get_value() || "With Activity";
+        const rows = scope_rows.filter(row => view === "All" ||
+            (view === "Without Activity" ? row.eligible && row.total === 0 : row.total > 0));
+        const scope_counts = Object.fromEntries(scope_types.map(dt => [dt,
+            scope_rows.reduce((sum, row) => sum + Number(row.counts[dt] || 0), 0)]));
+        const doctypes = scope_types.filter(dt => {
+            if (view === "With Activity" && !selected_types.length) return scope_counts[dt] > 0;
+            return selected_types.length || scope_counts[dt] > 0 || scope_rows.some(row => row.eligible && row.can_create.includes(dt));
+        });
         const counts = Object.fromEntries(doctypes.map(dt => [dt, rows.reduce((sum, row) => sum + Number(row.counts[dt] || 0), 0)]));
         const total = rows.reduce((sum, row) => sum + row.total, 0);
         return {doctypes, rows, totals: {counts, total}, summary: {
-            documents: total, active_users: rows.filter(row => row.total > 0).length,
-            active_doctypes: Object.values(counts).filter(value => value > 0).length,
-        }};
+            documents: scope_rows.reduce((sum, row) => sum + row.total, 0),
+            using, not_using: eligible_users - using, eligible_users,
+            usage_rate: eligible_users ? Math.round(using / eligible_users * 1000) / 10 : null,
+            active_users: scope_rows.filter(row => row.total > 0).length,
+            active_doctypes: Object.values(scope_counts).filter(value => value > 0).length,
+            historical_users: scope_rows.filter(row => !row.eligible && row.total > 0).length,
+        }, view, scope_users: scope_rows.length};
     }
 
     apply_filters() {
@@ -122,7 +152,9 @@ class UserTransactionDashboard {
         const filtered = this.filter_data();
         this.render(filtered);
         this.$status.text(!this.data.rows.length ? __("No users to display.") :
-            !filtered.rows.length ? __("No users match the current filters.") :
+            !filtered.rows.length ? (filtered.view === "With Activity" ?
+                __("No documents were created in this scope and date range. Select Without Activity or All to see eligible users.") :
+                __("No users match this Activity View. Try All or adjust your filters.")) :
             !filtered.summary.documents ? __("No transactions match the current filters. Zero counts are shown below.") : "");
     }
 
@@ -131,6 +163,7 @@ class UserTransactionDashboard {
         const date_from = this.date_from.get_value();
         const date_to = this.date_to.get_value();
         this.data = null;
+        this.loading = false;
         this.$results.empty();
         this.$root.attr("aria-busy", "false");
         if (!date_from || !date_to) {
@@ -142,6 +175,7 @@ class UserTransactionDashboard {
             return;
         }
         this.$root.attr("aria-busy", "true");
+        this.loading = true;
         this.$status.text(__("Loading transaction counts…"));
         try {
             const response = await frappe.call({
@@ -158,7 +192,10 @@ class UserTransactionDashboard {
             this.$results.empty();
             this.$status.text(__("Unable to load transaction counts. Check your connection and access, then select Refresh."));
         } finally {
-            if (sequence === this.sequence) this.$root.attr("aria-busy", "false");
+            if (sequence === this.sequence) {
+                this.loading = false;
+                this.$root.attr("aria-busy", "false");
+            }
         }
     }
 
@@ -166,13 +203,14 @@ class UserTransactionDashboard {
         const escape = value => frappe.utils.escape_html(String(value ?? ""));
         const number = value => escape(Number(value || 0).toLocaleString());
         const cards = [
-            [__("Total Documents"), data.summary.documents],
-            [__("Users with Activity"), data.summary.active_users],
-            [__("DocTypes with Activity"), data.summary.active_doctypes],
-        ].map(([label, value]) => `
-            <div class="utd-card">
+            [__("Using"), number(data.summary.using), "using"],
+            [__("Not Using"), number(data.summary.not_using), "not-using"],
+            [__("Usage Rate"), data.summary.usage_rate == null ? "—" : `${number(data.summary.usage_rate)}%`, "rate"],
+            [__("Total Transactions"), number(data.summary.documents), "transactions"],
+        ].map(([label, value, kind]) => `
+            <div class="utd-card utd-card-${kind}">
                 <div class="utd-card-label text-muted">${escape(label)}</div>
-                <div class="utd-card-value">${number(value)}</div>
+                <div class="utd-card-value">${value}</div>
             </div>
         `).join("");
         let table = "";
@@ -183,8 +221,16 @@ class UserTransactionDashboard {
                     <th scope="row" class="utd-name">
                         <div>${escape(row.employee_name)}</div>
                         <div class="utd-user text-muted">${escape(row.user)}</div>
+                        <span class="utd-usage-status ${row.eligible ? (row.total > 0 ? "utd-using" : "utd-not-using") : "text-muted"}">${escape(__(row.usage_status || ""))}</span>
                     </th>
-                    ${data.doctypes.map(dt => `<td class="utd-number${row.counts[dt] ? "" : " text-muted"}">${number(row.counts[dt])}</td>`).join("")}
+                    ${data.doctypes.map(dt => {
+                        const count = Number(row.counts[dt] || 0);
+                        const allowed = row.monitored && (row.can_create || []).includes(dt);
+                        const title = !allowed ? (count > 0 ?
+                            __("Historical count; no current Create permission") : __("No current Create permission")) :
+                            count ? __("Documents created in the selected period") : __("Has Create permission; no documents created");
+                        return `<td class="utd-number${count ? "" : " text-muted"}" title="${escape(title)}">${count || allowed ? number(count) : "—"}</td>`;
+                    }).join("")}
                     <td class="utd-number utd-total">${number(row.total)}</td>
                 </tr>
             `).join("") || `<tr><td colspan="${data.doctypes.length + 2}" class="text-muted">${escape(__("No users match the current filters."))}</td></tr>`;
@@ -203,7 +249,9 @@ class UserTransactionDashboard {
                 </div>
             `;
         }
-        this.$results.html(`<div class="utd-cards">${cards}</div>${table}`);
+        this.$results.html(`<div class="utd-cards">${cards}</div>
+            <p class="utd-legend text-muted small">${escape(__("Using / Not Using: enabled System Users with current Create access in the selected scope. Cards include both groups regardless of Activity View."))}
+                <br>${escape(__("0 = has Create access, no activity; — = no current Create access. Historical counts are retained. Table totals follow the displayed rows."))}</p>${table}`);
     }
 
     add_styles() {
@@ -212,15 +260,20 @@ class UserTransactionDashboard {
         style.id = "user-transaction-dashboard-style";
         style.textContent = `
             .user-transaction-dashboard { padding: 20px 0; }
-            .user-transaction-dashboard .utd-filters { display: grid; grid-template-columns: repeat(2, minmax(140px, .8fr)) repeat(3, minmax(180px, 1.2fr)); gap: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border-color, #d1d8dd); border-radius: var(--border-radius-md, 8px); background: var(--card-bg, #fff); }
+            .user-transaction-dashboard .utd-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border-color, #d1d8dd); border-radius: var(--border-radius-md, 8px); background: var(--card-bg, #fff); }
             .user-transaction-dashboard .utd-filter .frappe-control { margin-bottom: 0; }
             .user-transaction-dashboard .utd-filter .dropdown-menu { min-width: 280px; max-width: 85vw; }
             .user-transaction-dashboard .utd-description { margin-bottom: 16px; }
             .user-transaction-dashboard .utd-status:empty { display: none; }
-            .user-transaction-dashboard .utd-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+            .user-transaction-dashboard .utd-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
             .user-transaction-dashboard .utd-card { background: var(--card-bg, #fff); border: 1px solid var(--border-color, #d1d8dd); border-radius: var(--border-radius-md, 8px); padding: 20px; }
             .user-transaction-dashboard .utd-card-label { font-size: 13px; margin-bottom: 8px; }
             .user-transaction-dashboard .utd-card-value { font-size: 28px; font-weight: 600; color: var(--text-color); }
+            .user-transaction-dashboard .utd-card-using { border-top: 3px solid var(--green-500, #28a745); }
+            .user-transaction-dashboard .utd-card-not-using { border-top: 3px solid var(--orange-500, #f59e0b); }
+            .user-transaction-dashboard .utd-usage-status { display: inline-block; font-size: 11px; font-weight: 500; margin-top: 6px; }
+            .user-transaction-dashboard .utd-using { color: var(--green-600, #198754); }
+            .user-transaction-dashboard .utd-not-using { color: var(--orange-600, #b86e00); }
             .user-transaction-dashboard .utd-table-scroll { overflow: auto; max-height: 65vh; border: 1px solid var(--border-color, #d1d8dd); border-radius: var(--border-radius-md, 8px); }
             .user-transaction-dashboard .utd-table { margin: 0; border: 0; border-collapse: separate; border-spacing: 0; width: 100%; }
             .user-transaction-dashboard .utd-table th, .user-transaction-dashboard .utd-table td { padding: 12px 16px; border-width: 0 1px 1px 0; vertical-align: middle; background: var(--card-bg, #fff); }

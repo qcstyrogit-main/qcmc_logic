@@ -8,7 +8,7 @@ Open **User Transaction Dashboard** through Desk search or visit
 `/app/user-transaction-dashboard` as a System Manager. Select **Date From** and
 **Date To** to see employees/users as rows and transaction DocTypes as columns,
 with row/column totals and summary cards. The default range is the current
-month through today. Changing a date refreshes the dashboard; **Refresh** reloads
+month through today and data loads automatically. Changing a date refreshes the dashboard; **Refresh** reloads
 the counts for the selected dates.
 
 The filter bar above the cards contains visible date fields and searchable
@@ -16,14 +16,32 @@ The filter bar above the cards contains visible date fields and searchable
 selections show all available values. Use Modules to narrow columns by their
 ERPNext module, and Displayed DocTypes to choose individual transaction columns.
 Use Displayed Users to choose the employees/accounts included in the matrix.
-Summary cards and totals reflect the displayed users and columns.
+**Activity View** defaults to **With Activity**, showing users and DocTypes with
+created documents. Choose **Without Activity** for eligible users who created
+nothing, or **All** to include both groups and permission-relevant zero columns.
+Explicitly selected DocTypes remain visible even when they have no activity.
+
+The **Using**, **Not Using**, **Usage Rate** and **Total Transactions** cards
+summarize the selected date/module/DocType/user scope regardless of Activity View.
+Eligible users are enabled System Users with current DocType-level **Create**
+permission in that scope. Read-only users do not inflate Not Using. Usage Rate
+is Using divided by eligible users, or a dash if there are none. Current Create
+access follows Frappe's effective roles and custom DocType permissions; it does
+not evaluate document-specific warehouse/company restrictions or imply activity
+from reading, editing, submitting, or logging in.
+
+Grid cells show **0** for Create access without activity and **—** for no current
+Create access. Positive counts remain visible even after access or account state
+changes. Rows outside the eligible population with retained counts are labeled
+**Historical activity** and excluded from the usage-rate denominator. Transaction
+cards retain those counts; table footer totals apply to the displayed rows.
 
 Counts include draft, submitted and cancelled documents by their original
 creator and creation time, including the entire final day. The dashboard covers
 persisted, top-level submittable DocTypes, including custom transactions;
 master records, child rows, Single and virtual DocTypes are excluded. Employee
 names use the linked user account, falling back to the user's full name or ID.
-Users and DocTypes with zero activity remain visible. Deleted documents are
+Users and DocTypes with zero activity are available through Activity View. Deleted documents are
 excluded; retained documents from deleted user accounts still appear under
 their original user ID. Both the page and its data endpoint require System Manager access.
 The existing User Transaction Activity report remains available.
