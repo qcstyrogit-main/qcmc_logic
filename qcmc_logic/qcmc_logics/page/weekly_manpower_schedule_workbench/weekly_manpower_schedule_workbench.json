@@ -1,0 +1,25 @@
+{
+ "content": null,
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "module": "QCMC Logics",
+ "name": "weekly-manpower-schedule-workbench",
+ "page_name": "weekly-manpower-schedule-workbench",
+ "roles": [
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Weekly Manpower Schedule Workbench"
+}

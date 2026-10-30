@@ -224,6 +224,7 @@ doctype_js = {
 doctype_list_js = {
     "Issue": "public/js/issue_list.js",
     "Warehouse Allocation": "qcmc_logics/doctype/warehouse_allocation/warehouse_allocation_list.js",
+    "Weekly Manpower Schedule": "qcmc_logics/doctype/weekly_manpower_schedule/weekly_manpower_schedule_list.js",
 }
 
 # override_doctype_class = {
