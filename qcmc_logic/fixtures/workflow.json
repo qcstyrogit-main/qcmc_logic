@@ -5262,5 +5262,108 @@
   "workflow_data": null,
   "workflow_name": "WF_WarehouseTransfer",
   "workflow_state_field": "transfer_status"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow",
+  "document_type": "Weekly Production Plan",
+  "enable_action_confirmation": 1,
+  "is_active": 1,
+  "name": "Weekly Production Plan Workflow",
+  "override_status": 0,
+  "send_email_alert": 0,
+  "states": [
+   {
+    "allow_edit": "Manufacturing User",
+    "avoid_status_override": 0,
+    "doc_status": "0",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "send_email": 0,
+    "state": "Active",
+    "update_field": "workflow_state",
+    "update_value": "Active",
+    "workflow_builder_id": null
+   },
+   {
+    "allow_edit": "Manufacturing Manager",
+    "avoid_status_override": 0,
+    "doc_status": "1",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "send_email": 0,
+    "state": "Final",
+    "update_field": "workflow_state",
+    "update_value": "Final",
+    "workflow_builder_id": null
+   },
+   {
+    "allow_edit": "Manufacturing Manager",
+    "avoid_status_override": 0,
+    "doc_status": "2",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "send_email": 0,
+    "state": "Cancelled",
+    "update_field": "workflow_state",
+    "update_value": "Cancelled",
+    "workflow_builder_id": null
+   }
+  ],
+  "transitions": [
+   {
+    "action": "Finalize",
+    "allow_self_approval": 1,
+    "allowed": "Manufacturing User",
+    "condition": null,
+    "next_state": "Final",
+    "send_email_to_creator": 0,
+    "state": "Active",
+    "transition_tasks": null,
+    "workflow_builder_id": null
+   },
+   {
+    "action": "Finalize",
+    "allow_self_approval": 1,
+    "allowed": "Manufacturing Manager",
+    "condition": null,
+    "next_state": "Final",
+    "send_email_to_creator": 0,
+    "state": "Active",
+    "transition_tasks": null,
+    "workflow_builder_id": null
+   },
+   {
+    "action": "Cancel",
+    "allow_self_approval": 1,
+    "allowed": "Manufacturing User",
+    "condition": null,
+    "next_state": "Cancelled",
+    "send_email_to_creator": 0,
+    "state": "Final",
+    "transition_tasks": null,
+    "workflow_builder_id": null
+   },
+   {
+    "action": "Cancel",
+    "allow_self_approval": 1,
+    "allowed": "Manufacturing Manager",
+    "condition": null,
+    "next_state": "Cancelled",
+    "send_email_to_creator": 0,
+    "state": "Final",
+    "transition_tasks": null,
+    "workflow_builder_id": null
+   }
+  ],
+  "workflow_data": null,
+  "workflow_name": "Weekly Production Plan Workflow",
+  "workflow_state_field": "workflow_state"
  }
 ]

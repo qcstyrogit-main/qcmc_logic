@@ -39,7 +39,9 @@ class TestAnnouncementComments(unittest.TestCase):
     def test_create_uses_session_identity_and_checks_reply_announcement(self):
         saved = Mock(name='C-NEW'); saved.name = 'C-NEW'
         parent = frappe._dict(name='C-1', reference_doctype='Announcements', reference_name='ANN-1', comment_type='Comment')
-        with patch.object(frappe, 'get_doc', side_effect=[self.active, parent, saved]) as get_doc, patch.object(frappe, 'db', Mock(count=Mock(return_value=2))):
+        # Availability is covered separately. Isolate it here so a cold system
+        # timezone cache cannot consume this test's mocked document reads.
+        with patch.object(api, '_active'), patch.object(frappe, 'get_doc', side_effect=[parent, saved]) as get_doc, patch.object(frappe, 'db', Mock(count=Mock(return_value=2))):
             result = api.add_comment('ANN-1', '<p>Hello</p>', parent='C-1')
         values = get_doc.call_args.args[0]
         self.assertEqual(values['comment_email'], frappe.session.user)
@@ -47,7 +49,7 @@ class TestAnnouncementComments(unittest.TestCase):
         saved.insert.assert_called_once_with(ignore_permissions=True)
         self.assertEqual(result['count'], 2)
         parent.reference_name = 'OTHER'
-        with patch.object(frappe, 'get_doc', side_effect=[self.active, parent]):
+        with patch.object(api, '_active'), patch.object(frappe, 'get_doc', side_effect=[parent]):
             with self.assertRaises(frappe.PermissionError): api.add_comment('ANN-1', 'Reply', parent='C-1')
 
     def test_sanitizes_html_and_rejects_empty_or_excessive_content(self):

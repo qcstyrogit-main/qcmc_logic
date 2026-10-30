@@ -85,6 +85,58 @@ def create_sales_invoice_from_draft_dn(dn_name):
 	return sales_invoice
 
 
+@frappe.whitelist()
+def get_delivery_note_draft_invoices(dn_name):
+	doc = frappe.get_doc("Delivery Note", dn_name)
+	doc.check_permission("read")
+	if doc.docstatus != 0 or doc.workflow_state != "To Deliver and Bill":
+		return []
+	rows = frappe.db.sql("""
+		SELECT DISTINCT si.name, si.docstatus
+		FROM `tabSales Invoice Item` sii JOIN `tabSales Invoice` si ON si.name = sii.parent
+		WHERE sii.delivery_note = %s AND si.docstatus < 2
+		ORDER BY si.creation
+	""", dn_name, as_dict=True)
+	return [
+		{"name": row.name, "docstatus": row.docstatus,
+		 "can_write": frappe.has_permission("Sales Invoice", "write", doc=row.name)}
+		for row in rows if frappe.has_permission("Sales Invoice", "read", doc=row.name)
+	]
+
+
+@frappe.whitelist()
+def sync_draft_invoice_quantities_from_delivery_note(dn_name):
+	doc = frappe.get_doc("Delivery Note", dn_name)
+	doc.check_permission("write")
+	if doc.docstatus != 0 or doc.workflow_state != "To Deliver and Bill":
+		frappe.throw(frappe._("Only a draft Delivery Note in To Deliver and Bill can update linked draft invoices."))
+	for item in doc.items:
+		from qcmc_logic.qcmc_logics.report.delivery_note_printing import delivery_note_printing
+		delivery_note_printing._validate_warehouse_access(item.warehouse, require_transact=True)
+	rows = frappe.db.sql("""
+		SELECT DISTINCT si.name, si.docstatus
+		FROM `tabSales Invoice Item` sii JOIN `tabSales Invoice` si ON si.name = sii.parent
+		WHERE sii.delivery_note = %s AND si.docstatus < 2
+	""", dn_name, as_dict=True)
+	if any(row.docstatus == 1 for row in rows):
+		frappe.throw(frappe._("A linked invoice has already been submitted. Correct the invoice through the approved amendment process."))
+	qty_by_detail = {item.name: item.qty for item in doc.items}
+	updated = []
+	for row in rows:
+		invoice = frappe.get_doc("Sales Invoice", row.name)
+		invoice.check_permission("write")
+		changed = False
+		for item in invoice.items:
+			if item.delivery_note == dn_name and item.dn_detail in qty_by_detail and item.qty != qty_by_detail[item.dn_detail]:
+				item.qty = qty_by_detail[item.dn_detail]
+				changed = True
+		if changed:
+			invoice.run_method("calculate_taxes_and_totals")
+			invoice.save()
+			updated.append(invoice.name)
+	return updated
+
+
 def apply_sales_order_item_pricing(source_doc, target_doc):
 	so_detail = source_doc.get("so_detail")
 	if not so_detail:

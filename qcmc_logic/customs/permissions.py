@@ -351,6 +351,8 @@ def warehouse_transaction_permission_query(user):
 
 
 def delivery_note_permission_query(user):
+    if user == "Administrator" or "System Manager" in frappe.get_roles(user):
+        return ""
     return _sales_transaction_read_permission_query("Delivery Note", user)
 
 
@@ -430,6 +432,8 @@ def purchase_receipt_permission_query(user):
 
 
 def sales_invoice_permission_query(user):
+    if "Invoicing Clerk" in frappe.get_roles(user):
+        return ""
     return _sales_transaction_read_permission_query("Sales Invoice", user)
 
 
@@ -602,6 +606,8 @@ def warehouse_transaction_has_permission(doc, ptype=None, user=None):
 def sales_transaction_has_permission(doc, ptype=None, user=None):
     if not user:
         user = frappe.session.user
+    if doc and doc.doctype == "Sales Invoice" and "Invoicing Clerk" in frappe.get_roles(user):
+        return True
     if ptype not in {None, "read", "select"}:
         return warehouse_transaction_has_permission(doc, ptype=ptype, user=user)
     if not doc:

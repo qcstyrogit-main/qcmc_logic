@@ -104,6 +104,12 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "name": "Finalize",
+  "workflow_action_name": "Finalize"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "name": "For BCC Approval",
   "workflow_action_name": "For BCC Approval"
  },

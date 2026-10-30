@@ -9,7 +9,7 @@ class Node {
 }
 async function main() {
     const events = {}, realtime = {}, calls = [], opened = [], icon = new Node();
-    let navbarHidden = false, rendered = 0;
+    let navbarHidden = false, rendered = 0, menuClosed = false, inNavbar = true;
     let count = 4, focusedComment = null, notificationRows = [{name: 'N-1'}];
     const context = {URL, console, setTimeout: callback => callback(), setInterval: callback => {events.poll = callback;},
         __: (text, args = []) => text.replace(/\{(\d+)\}/g, (_, i) => args[i]),
@@ -17,7 +17,7 @@ async function main() {
             addEventListener: (name, callback) => {events[name] = callback;}},
         window: {location: {origin: 'https://erp.example'}, addEventListener() {}},
         MutationObserver: class {observe() {}},
-        $: () => ({on: (name, callback) => {events[name] = callback;}, closest: selector => ({length: 1, closest: () => ({length: 1}), addClass(name) {if (name === 'hidden') navbarHidden = true;}, removeClass() {}, dropdown() {}}), trigger() {}}),
+        $: () => ({on: (name, callback) => {events[name] = callback;}, closest: selector => ({length: 1, closest: selector => ({length: inNavbar && selector.includes('.desktop-notifications') ? 1 : 0}), addClass(name) {if (name === 'hidden') navbarHidden = true;}, removeClass() {}, data() {return this;}, dropdown(action) {if (action === 'hide') menuClosed = true;}}), trigger() {}}),
         frappe: {app: {sidebar: {notifications: {tabs: {notifications: {render_notifications_dropdown() {rendered++;}}}}}}, update_user_info() {}, boot: {}, session: {user: 'test@example.com'}, after_ajax: callback => callback(),
             realtime: {on: (name, callback) => {realtime[name] = callback;}},
             qcmc_login_notices: {open: (name, comment) => {opened.push(name); focusedComment = comment;}},
@@ -36,6 +36,21 @@ async function main() {
     count = 3; notificationRows = [{name: 'N-3'}]; await events.poll();
     assert.equal(icon.children[0].textContent, '3', 'Recovery check updates counts without a page refresh');
     assert.equal(context.frappe.app.sidebar.notifications.tabs.notifications.dropdown_items[0].name, 'N-3');
+    const close = {};
+    async function clickClose() {
+        let stopped = false;
+        await events.click({target: {closest: selector => selector === '.close-notification-dialogue' ? close : null},
+            preventDefault() {}, stopImmediatePropagation() {stopped = true;}});
+        // Frappe's native target handler hides the entire container unless intercepted.
+        if (!stopped) navbarHidden = true;
+    }
+    await clickClose();
+    assert.equal(navbarHidden, false, 'The close button must preserve the navbar bell');
+    assert.equal(menuClosed, true, 'The close button dismisses the Bootstrap notification menu');
+    inNavbar = false; navbarHidden = false;
+    await clickClose();
+    assert.equal(navbarHidden, true, 'The sidebar notification panel still closes');
+    inNavbar = true; navbarHidden = false;
     let prevented = false;
     const item = {dataset: {name: 'N-1'}, getAttribute: () => '/desk?qcmc_announcement=ANN-1', classList: {remove() {}}};
     await events.click({target: {closest: selector => selector.startsWith('a.') ? item : null}, preventDefault() {prevented = true;}, stopImmediatePropagation() {}});

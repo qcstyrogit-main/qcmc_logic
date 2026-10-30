@@ -1,0 +1,10 @@
+{
+ "doctype": "Page",
+ "module": "QCMC Logics",
+ "name": "user-transaction-dashboard",
+ "page_name": "user-transaction-dashboard",
+ "roles": [{"role": "System Manager"}],
+ "standard": "Yes",
+ "system_page": 0,
+ "title": "User Transaction Dashboard"
+}

@@ -37,13 +37,12 @@
   },
   {
    "fieldname": "possible_sales_orders_section",
-   "fieldtype": "Section Break",
-   "label": "Possible Sales Orders"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "possible_sales_orders",
    "fieldtype": "HTML",
-   "label": "Possible Sales Orders"
+   "label": "Scheduled FG Items"
   },
   {
    "fieldname": "scheduled_items_section",
@@ -57,7 +56,7 @@
    "fieldtype": "Link",
    "hidden": 1,
    "in_list_view": 1,
-   "label": "Item 1",
+   "label": "FG 1",
    "options": "Item"
   },
   {
@@ -65,7 +64,7 @@
    "fieldtype": "Small Text",
    "fetch_from": "second_item.description",
    "hidden": 1,
-   "label": "Item 1 Description",
+   "label": "FG 1 Description",
    "read_only": 1
   },
   {
@@ -79,7 +78,7 @@
    "fieldtype": "Link",
    "hidden": 1,
    "in_list_view": 1,
-   "label": "Item 2",
+   "label": "FG 2",
    "options": "Item"
   },
   {
@@ -87,7 +86,7 @@
    "fieldtype": "Small Text",
    "fetch_from": "third_item.description",
    "hidden": 1,
-   "label": "Item 2 Description",
+   "label": "FG 2 Description",
    "read_only": 1
   }
  ],

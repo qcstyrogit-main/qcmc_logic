@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 0,
+ "autoname": "field:agency_code",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "agency_code",
+  "agency_description"
+ ],
+ "fields": [
+  {
+   "fieldname": "agency_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Agency Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "agency_description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Agency Description",
+   "reqd": 1
+  }
+ ],
+ "links": [],
+ "module": "QCMC Logics",
+ "name": "Agency",
+ "naming_rule": "By fieldname",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "agency_code",
+ "sort_order": "ASC",
+ "states": [],
+ "title_field": "agency_description",
+ "track_changes": 1
+}

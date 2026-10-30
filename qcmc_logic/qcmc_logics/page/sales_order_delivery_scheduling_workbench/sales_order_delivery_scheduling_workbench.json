@@ -1,0 +1,10 @@
+{
+ "doctype": "Page",
+ "module": "QCMC Logics",
+ "name": "sales-order-delivery-scheduling-workbench",
+ "page_name": "sales-order-delivery-scheduling-workbench",
+ "roles": [{"role": "Sales Coordinator"}],
+ "standard": "Yes",
+ "system_page": 0,
+ "title": "Sales Order Delivery Scheduling Workbench"
+}

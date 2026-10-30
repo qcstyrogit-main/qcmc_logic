@@ -162,6 +162,14 @@
  {
   "docstatus": 0,
   "doctype": "Workflow State",
+  "icon": "ok-sign",
+  "name": "Final",
+  "style": "Success",
+  "workflow_state_name": "Final"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
   "icon": "",
   "name": "For Approval",
   "style": "",
