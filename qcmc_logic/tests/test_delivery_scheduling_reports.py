@@ -246,7 +246,7 @@ class TestDeliveryNotePrinting(TestCase):
 			with self.assertRaises(frappe.PermissionError):
 				printing._validate_invoicing_role()
 
-	def test_assigns_unique_dr_number_with_controlled_permission_bypass(self):
+	def test_assigns_unique_dr_number_with_write_permission(self):
 		doc = MagicMock()
 		doc.name = "DN-1"
 		doc.company = "QC Styropackaging Corporation"
@@ -254,13 +254,16 @@ class TestDeliveryNotePrinting(TestCase):
 			patch.object(printing, "_validate_invoicing_role"),
 			patch.object(printing, "_get_locked_delivery_note", return_value=doc),
 			patch.object(printing, "_validate_delivery_note"),
-			patch.object(printing.frappe.db, "get_value", return_value=None),
-			patch.object(printing.frappe.cache, "lock", return_value=MagicMock(__enter__=MagicMock(), __exit__=MagicMock())),
+			patch.object(printing.frappe, "db", MagicMock(get_value=MagicMock(side_effect=[None, "DR-100"]))),
+			patch.object(printing, "_get_print_format", return_value="Configured Default"),
+			patch.object(printing.frappe, "cache", MagicMock()),
+			patch.object(printing, "_", side_effect=lambda value: value),
 		):
 			result = printing.assign_dr_number("DN-1", "DR-100")
 		self.assertEqual(doc.custom_dr_number, "DR-100")
-		doc.save.assert_called_once_with(ignore_permissions=True)
-		self.assertEqual(result["print_format"], "Deliver Receipt QC")
+		doc.check_permission.assert_called_once_with("write")
+		doc.save.assert_called_once_with()
+		self.assertEqual(result["print_format"], "Configured Default")
 
 	def test_submit_requires_dr_number(self):
 		doc = MagicMock()
@@ -349,6 +352,16 @@ class TestDeliveryNotePrinting(TestCase):
 	def test_release_requires_logistics_confirmation(self):
 		with self.assertRaises(frappe.ValidationError):
 			logistics._validate_sales_decision_for_reason(frappe._dict(item_code="ITEM"), {})
+
+	def test_stock_availability_allows_zero_with_sales_reschedule(self):
+		item = frappe._dict(item_code="EFB12", custom_logistics_reason="SA", custom_logistics_proposed_qty=0)
+		with self.assertRaises(frappe.ValidationError):
+			logistics._validate_sales_decision_for_reason(item, {"approved_qty": 0, "remove_item": 1})
+		logistics._validate_sales_decision_for_reason(item, {
+			"approved_qty": 0,
+			"approved_date": "2026-10-20",
+			"remove_item": 1,
+		})
 
 	def test_workbench_autosave_rejects_stale_document(self):
 		from qcmc_logic.qcmc_logics.page.delivery_schedule_workbench import delivery_schedule_workbench as workbench

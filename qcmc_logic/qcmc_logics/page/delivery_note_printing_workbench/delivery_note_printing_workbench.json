@@ -1,0 +1,10 @@
+{
+ "doctype": "Page",
+ "module": "QCMC Logics",
+ "name": "delivery-note-printing-workbench",
+ "page_name": "delivery-note-printing-workbench",
+ "roles": [{"role": "Invoicing Clerk"}],
+ "standard": "Yes",
+ "system_page": 0,
+ "title": "Delivery Note Printing Workbench"
+}

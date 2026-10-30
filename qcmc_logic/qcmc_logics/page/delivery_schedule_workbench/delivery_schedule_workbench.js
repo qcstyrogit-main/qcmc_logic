@@ -50,14 +50,6 @@ class DeliveryScheduleWorkbench {
 		if (this.can_sales_approve()) {
 			this.page.add_inner_button(__("Proceed Selected to DR"), () => this.proceed_selected());
 		}
-		this.page.add_inner_button(__("Open Report"), async () => {
-			if (!(await this.flush_saves())) return;
-			frappe.set_route("query-report", "Delivery Schedule Confirmation", {
-				company: this.filter_values.company,
-				delivery_date: this.filter_values.delivery_date,
-				warehouse: this.filter_values.warehouse,
-			});
-		});
 	}
 
 	setup_body() {
@@ -381,12 +373,12 @@ class DeliveryScheduleWorkbench {
 		if (!this.$tbody) return;
 		this.$summary.text(this.message || __("{0} item(s)", [this.rows.length]));
 		const sales_headers = this.can_sales_approve() ? `
-				<th>${__("Final DR Qty")}</th>
+				<th>${__("Change DR Qty")}</th>
 				<th>${__("Move To")}</th>
 				<th>${__("Remove")}</th>` : "";
 		this.$thead.html(`
 			<tr>
-				<th class="check-col"><input class="delivery-check" type="checkbox" data-action="select-all"></th>
+				<th class="check-col" title="${__("Select every visible item in the Delivery Note")}"><input class="delivery-check" type="checkbox" data-action="select-all" title="${__("Select all visible rows")}"></th>
 				<th>${__("DN")}</th>
 				<th>${__("Customer")}</th>
 				<th>${__("SO")}</th>
@@ -398,7 +390,7 @@ class DeliveryScheduleWorkbench {
 				<th>${__("Reason")}</th>
 				<th>${__("Prop Qty")}</th>
 				<th>${__("Prop Date")}</th>
-				<th>${__("Logistics Remarks")}</th>
+				<th>${__("Shared Remarks")}</th>
 				${sales_headers}
 				<th>${__("Save")}</th>
 			</tr>
@@ -430,8 +422,17 @@ class DeliveryScheduleWorkbench {
 		const proposed_qty_disabled = field_state.proposed_qty_disabled ? "disabled" : "";
 		const proposed_date_disabled = field_state.proposed_date_disabled ? "disabled" : "";
 		const remove_checked = cint(row.remove_item) ? "checked" : "";
+		const logistics_cells = this.can_logistics_review() ? `
+				<td><select class="form-control input-xs" data-field="logistics_reason">${reason_options}</select></td>
+				<td><input class="form-control input-xs" type="number" data-field="logistics_proposed_qty" value="${row.logistics_proposed_qty ?? ""}" ${proposed_qty_disabled}></td>
+				<td><input class="form-control input-xs" type="date" data-field="logistics_proposed_date" value="${row.logistics_proposed_date || ""}" ${proposed_date_disabled}></td>
+				<td><textarea data-field="logistics_remarks">${frappe.utils.escape_html(row.logistics_remarks || "")}</textarea></td>` : `
+				<td class="readonly logistics-readonly">${frappe.utils.escape_html(row.logistics_reason || "")}</td>
+				<td class="readonly logistics-readonly number-cell">${row.logistics_proposed_qty == null ? "" : format_number(row.logistics_proposed_qty)}</td>
+				<td class="readonly logistics-readonly">${frappe.utils.escape_html(row.logistics_proposed_date || "")}</td>
+				<td><textarea data-field="logistics_remarks">${frappe.utils.escape_html(row.logistics_remarks || "")}</textarea></td>`;
 		const sales_cells = this.can_sales_approve() ? `
-				<td><input class="form-control input-xs" type="number" data-field="approved_qty" value="${final_qty ?? ""}"></td>
+				<td><button class="btn btn-default btn-xs" data-action="change-quantity">${format_number(row.qty)} · ${__("Change")}</button></td>
 				<td><select class="form-control input-xs" data-field="approved_date"><option value=""></option>${approved_date_options}</select></td>
 				<td class="text-center"><input class="delivery-check" type="checkbox" data-field="remove_item" ${remove_checked}></td>` : "";
 		return `
@@ -445,15 +446,13 @@ class DeliveryScheduleWorkbench {
 				<td>${frappe.utils.escape_html(row.warehouse || "")}</td>
 				<td class="number-cell">${format_number(row.qty)}</td>
 				<td class="number-cell">${format_number(row.actual_qty)}</td>
-				<td><select class="form-control input-xs" data-field="logistics_reason">${reason_options}</select></td>
-				<td><input class="form-control input-xs" type="number" data-field="logistics_proposed_qty" value="${row.logistics_proposed_qty ?? ""}" ${proposed_qty_disabled}></td>
-				<td><input class="form-control input-xs" type="date" data-field="logistics_proposed_date" value="${row.logistics_proposed_date || ""}" ${proposed_date_disabled}></td>
-				<td><textarea data-field="logistics_remarks">${frappe.utils.escape_html(row.logistics_remarks || "")}</textarea></td>
+				${logistics_cells}
 				${sales_cells}
 				<td class="save-state text-muted">${row.__save_status || ""}</td>
 			</tr>
 		`;
 	}
+
 
 	get_approved_date_options(row) {
 		return (row.available_reschedule_dates || "")
@@ -468,8 +467,40 @@ class DeliveryScheduleWorkbench {
 	}
 
 	bind_events() {
+		this.$tbody.find('[data-action="change-quantity"]').on("click", async event => {
+			const index = cint($(event.currentTarget).closest("tr").data("index"));
+			if (!(await this.flush_saves())) return;
+			const row = this.rows[index];
+			const dialog = new frappe.ui.Dialog({
+				title: __("Change DR Quantity"),
+				fields: [
+					{fieldname: "qty", label: __("New DR Quantity"), fieldtype: "Float", default: row.qty},
+					{fieldname: "move_date", label: __("Schedule balance on"), fieldtype: "Date", reqd: 1, description: __("The balance returns to Sales Order scheduling. No new DR is created.")},
+				],
+				primary_action_label: __("Apply"),
+				primary_action: async values => {
+					if (flt(values.qty) === 0) {
+						await this.confirm_whole_dr_move(row, values.move_date, dialog);
+						return;
+					}
+					const result = await frappe.call({method: "qcmc_logic.qcmc_logics.page.delivery_schedule_workbench.delivery_schedule_workbench.change_dr_quantity", args: {delivery_note: row.delivery_note, dn_detail: row.dn_detail, document_modified: row.document_modified, ...values}, freeze: true});
+					if (!result.exc) { dialog.hide(); this.refresh(); }
+				},
+			});
+			dialog.show();
+		});
 		this.$thead.find('[data-action="select-all"]').on("change", (event) => {
 			this.$tbody.find('[data-field="selected"]').prop("checked", event.currentTarget.checked);
+		});
+		this.$tbody.find('[data-field="selected"]').on("change", (event) => {
+			const index = cint($(event.currentTarget).closest("tr").data("index"));
+			const delivery_note = this.rows[index].delivery_note;
+			const checked = event.currentTarget.checked;
+			this.$tbody.find("tr").each((_, tr) => {
+				if (this.rows[cint($(tr).data("index"))].delivery_note === delivery_note) {
+					$(tr).find('[data-field="selected"]').prop("checked", checked);
+				}
+			});
 		});
 		this.$tbody.find("input, select, textarea").on("input change", (event) => {
 			const $field = $(event.currentTarget);
@@ -481,12 +512,6 @@ class DeliveryScheduleWorkbench {
 				this.rows[index].__sales_qty_touched = true;
 			}
 			this.rows[index][fieldname] = value;
-			if (fieldname === "logistics_reason" && event.type === "change") {
-				const meaning = this.reason_meanings[value];
-				const remarks = meaning ? `${value} - ${meaning}` : "";
-				this.rows[index].logistics_remarks = remarks;
-				$field.closest("tr").find('[data-field="logistics_remarks"]').val(remarks);
-			}
 			if (["logistics_reason", "logistics_proposed_qty", "logistics_proposed_date"].includes(fieldname)) {
 				this.apply_reason_state($field.closest("tr"), this.rows[index], fieldname);
 			}
@@ -504,6 +529,41 @@ class DeliveryScheduleWorkbench {
 			proposed_date_disabled: is_ok || is_qty_reason,
 			row_class: is_ok ? "logistics-ok" : is_qty_reason ? "logistics-qty-exception" : is_date_reason ? "logistics-date-exception" : "",
 		};
+	}
+
+	async confirm_whole_dr_move(row, move_date, quantity_dialog) {
+		const method = "qcmc_logic.qcmc_logics.page.delivery_schedule_workbench.delivery_schedule_workbench.";
+		const response = await frappe.call({method: method + "preview_whole_dr_move", args: {delivery_note: row.delivery_note}});
+		if (response.exc) return;
+		const preview = response.message;
+		const esc = value => frappe.utils.escape_html(String(value ?? ""));
+		const table = `<p>${esc(preview.name)} · ${esc(preview.customer)}</p>
+			<p>${__("Destination date")}: <strong>${esc(move_date)}</strong></p>
+			<table class="table table-bordered"><thead><tr><th>${__("Item")}</th><th>${__("Description")}</th><th>${__("DR Qty")}</th><th>${__("Current Date")}</th></tr></thead><tbody>
+			${preview.items.map(item => `<tr><td>${esc(item.item_code)}</td><td>${esc(item.item_name)}</td><td>${esc(format_number(item.qty))}</td><td>${esc(item.delivery_date)}</td></tr>`).join("")}</tbody></table>
+			<p>${__("Moving the whole DR keeps these quantities allocated and requires Logistics confirmation again.")}</p>`;
+		const dialog = new frappe.ui.Dialog({title: __("Move Whole DR to Another Date"), size: "large",
+			fields: [{fieldtype: "HTML", fieldname: "preview", options: table}],
+			primary_action_label: __("Move Whole DR"),
+			primary_action: async () => {
+				await submit("move_whole_dr", {delivery_note: row.delivery_note, move_date, document_modified: preview.document_modified});
+			},
+		});
+		let saving = false;
+		const submit = async (action, args) => {
+			if (saving) return;
+			saving = true;
+			try {
+				const result = await frappe.call({method: method + action, args, freeze: true});
+				if (!result.exc) {dialog.hide(); quantity_dialog.hide(); await this.refresh();}
+			} finally {saving = false;}
+		};
+		if (preview.items.length > 1) {
+			dialog.set_secondary_action_label(__("Move Only This Item"));
+			dialog.set_secondary_action(() => submit("change_dr_quantity", {delivery_note: row.delivery_note, dn_detail: row.dn_detail, qty: 0, move_date, document_modified: preview.document_modified}));
+		}
+		dialog.add_custom_action(__("Cancel"), () => dialog.hide());
+		dialog.show();
 	}
 
 	apply_reason_state($row, row, changed_fieldname) {
@@ -536,8 +596,15 @@ class DeliveryScheduleWorkbench {
 			$remove_item.prop("checked", false);
 			row.remove_item = 0;
 			if (changed_fieldname === "logistics_proposed_qty" || (changed_fieldname === "logistics_reason" && !row.__sales_qty_touched)) {
-				row.approved_qty = row.logistics_proposed_qty || "";
+				row.approved_qty = row.logistics_proposed_qty === "" || row.logistics_proposed_qty == null ? "" : row.logistics_proposed_qty;
 				$final_qty.val(row.approved_qty);
+				if (flt(row.logistics_proposed_qty) === 0) {
+					row.remove_item = 1;
+					$remove_item.prop("checked", true);
+				} else {
+					row.remove_item = 0;
+					$remove_item.prop("checked", false);
+				}
 			}
 		} else if (this.date_reason_codes.includes(reason)) {
 			if (reason === "ND" && !row.logistics_proposed_date) {
@@ -623,10 +690,18 @@ class DeliveryScheduleWorkbench {
 		if (!(await this.flush_saves())) return;
 		const rows = this.get_selected_rows();
 		if (!rows.length) return frappe.msgprint(__("Select at least one row."));
+		const selected_notes = [...new Set(rows.map(row => row.delivery_note))];
+		for (const name of selected_notes) {
+			const visible = this.rows.filter(row => row.delivery_note === name).length;
+			const total = cint(rows.find(row => row.delivery_note === name).dn_item_count);
+			if (total && visible < total) {
+				return frappe.msgprint(__("Delivery Note {0} has {1} items, but only {2} are visible. Clear the date or warehouse filter so all items can be reviewed before proceeding.", [name, total, visible]));
+			}
+		}
 		frappe.confirm(__("Proceed selected Delivery Note(s) to DR Printing?"), async () => {
 			if (!(await this.flush_saves())) return;
 			frappe.call({
-				method: "qcmc_logic.qcmc_logics.report.delivery_schedule_confirmation.delivery_schedule_confirmation.proceed_to_dr_printing_bulk",
+				method: "qcmc_logic.qcmc_logics.page.delivery_schedule_workbench.delivery_schedule_workbench.proceed_to_dr_printing",
 				args: {items: rows},
 				freeze: true,
 				freeze_message: __("Applying Sales-approved DR values..."),

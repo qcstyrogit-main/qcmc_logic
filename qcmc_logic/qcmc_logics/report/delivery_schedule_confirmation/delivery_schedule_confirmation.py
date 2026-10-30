@@ -52,6 +52,7 @@ def execute(filters=None):
 
 	rows = frappe.db.sql("""
 		SELECT dni.name AS dn_detail, dn.name AS delivery_note,
+			(SELECT COUNT(*) FROM `tabDelivery Note Item` all_items WHERE all_items.parent = dn.name) AS dn_item_count,
 			dni.against_sales_order AS sales_order, dn.customer_name,
 			dni.item_code, dni.item_name, dni.warehouse, dni.qty,
 			soi.qty AS so_qty, soi.delivered_qty, IFNULL(bin.actual_qty, 0) AS actual_qty,
@@ -311,9 +312,14 @@ def _validate_sales_decision_for_reason(item, decision):
 		return
 
 	if reason in ("SA", "CR", "TO", "SE"):
-		proposed_qty = frappe.utils.flt(item.get("custom_logistics_proposed_qty"))
-		if proposed_qty <= 0:
-			frappe.throw(_("{0} requires a Logistics Proposed Qty for item {1}.").format(reason, frappe.bold(item.item_code)))
+		proposed_value = item.get("custom_logistics_proposed_qty")
+		if proposed_value in (None, "") or frappe.utils.flt(proposed_value) < 0:
+			frappe.throw(_("{0} requires a Logistics Proposed Qty of zero or more for item {1}.").format(reason, frappe.bold(item.item_code)))
+		if frappe.utils.flt(proposed_value) == 0:
+			if not decision.get("approved_date"):
+				frappe.throw(_("Select a Sales Approved Reschedule Date for zero-quantity item {0}.").format(frappe.bold(item.item_code)))
+			if not frappe.utils.cint(decision.get("remove_item")):
+				frappe.throw(_("Mark zero-quantity item {0} for removal from this DR.").format(frappe.bold(item.item_code)))
 		return
 
 	if reason in ("OR", "ND"):
@@ -575,9 +581,26 @@ def _move_deferred_sales_order_qty(item, approved_qty, approved_date, delivery_n
 		return
 	target_detail = _get_existing_schedule_detail_for_date(item, approved_date)
 	if not target_detail:
-		frappe.throw(_(
-			"No existing Sales Order schedule was found for {0} on {1}. Select one of the existing reschedule dates for this item."
-		).format(frappe.bold(item.item_code), frappe.utils.formatdate(approved_date)))
+		frappe.db.sql("SELECT name FROM `tabSales Order` WHERE name = %s FOR UPDATE", (item.against_sales_order,))
+		target_detail = _get_existing_schedule_detail_for_date(item, approved_date)
+		if not target_detail:
+			source_row = frappe.get_doc("Sales Order Item", item.so_detail)
+			if frappe.utils.getdate(approved_date) == frappe.utils.getdate(source_row.delivery_date):
+				frappe.throw(_("Choose a different date for the deferred quantity."))
+			new_row = frappe.copy_doc(source_row)
+			new_row.name = None
+			new_row.parent = item.against_sales_order
+			new_row.parenttype = "Sales Order"
+			new_row.parentfield = "items"
+			new_row.docstatus = frappe.db.get_value("Sales Order", item.against_sales_order, "docstatus") or 0
+			new_row.delivery_date = approved_date
+			new_row.custom_next_scheduling_date = None
+			new_row.qty = 0
+			for field in ("delivered_qty", "billed_amt", "amount", "base_amount", "net_amount", "base_net_amount", "stock_qty", "returned_qty"):
+				new_row.set(field, 0)
+			new_row.idx = frappe.db.count("Sales Order Item", {"parent": item.against_sales_order}) + 1
+			new_row.db_insert()
+			target_detail = new_row.name
 
 	from qcmc_logic.qcmc_logics.report.sales_order_delivery_scheduling import (
 		sales_order_delivery_scheduling as scheduling,

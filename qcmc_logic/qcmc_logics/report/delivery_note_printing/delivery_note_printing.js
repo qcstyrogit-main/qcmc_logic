@@ -11,10 +11,6 @@ frappe.query_reports["Delivery Note Printing"] = {
 	},
 	formatter(value, row, column, data, default_formatter) {
 		value = default_formatter(value, row, column, data);
-		if (column.fieldname === "item_code" && data) {
-			const color = flt(data.actual_qty) >= flt(data.qty) ? "green" : "red";
-			return `<span class="indicator ${color}">${value}</span>`;
-		}
 		return value;
 	},
 	get_datatable_options(options) { options.checkboxColumn = true; return options; }
@@ -71,9 +67,57 @@ function submit_for_delivery(report) {
 function create_invoices(report) {
 	const delivery_notes = [...new Set(invoicing_selected_rows(report).map(row => row.delivery_note))];
 	if (!delivery_notes.length) return frappe.msgprint(__("Select at least one Delivery Note row."));
-	frappe.confirm(__("Create draft Sales Invoice(s) for the selected Delivery Note(s)?"), () => frappe.call({
-		method: "qcmc_logic.qcmc_logics.report.delivery_note_printing.delivery_note_printing.create_sales_invoices",
-		args: {delivery_notes}, freeze: true, freeze_message: __("Creating Sales Invoice(s)..."),
-		callback: response => { if (!response.exc) { frappe.msgprint(response.message); report.refresh(); } }
-	}));
+	if (delivery_notes.length !== 1) return frappe.msgprint(__("Create an invoice for exactly one Delivery Note at a time."));
+	const selected_row = invoicing_selected_rows(report).find(row => row.delivery_note === delivery_notes[0]);
+	if (!selected_row?.dr_number) return frappe.msgprint({title: __("DR Number Required"), message: __("Assign a DR Number before creating the Sales Invoice for {0}.", [delivery_notes[0]]), indicator: "orange"});
+	let preview = null;
+	let preview_started = false;
+	const dialog = new frappe.ui.Dialog({
+		title: __("Create Draft Invoice"),
+		fields: [{fieldname: "invoice_number", label: __("Invoice Number"), fieldtype: "Data", length: 10, reqd: 1}],
+		primary_action_label: __("Create and Preview"),
+		primary_action: values => {
+			const invoice_number = String(values.invoice_number || "").trim();
+			if (!invoice_number) return;
+			preview = window.open("about:blank", "_blank");
+			if (!preview) return frappe.msgprint({title: __("Popup blocked"), message: __("Allow popups for this ERPNext site, then click Create and Preview again. No invoice was created."), indicator: "orange"});
+			preview.document.write(`<title>${__("Preparing Invoice Preview")}</title><p style="font:16px sans-serif;padding:24px">${__("Creating and verifying the draft invoice…")}</p>`);
+			const verify_saved_invoice = candidate_invoice => {
+				frappe.call({
+					method: "qcmc_logic.qcmc_logics.report.delivery_note_printing.delivery_note_printing.verify_sales_invoice_for_preview",
+					args: {delivery_note: delivery_notes[0], sales_invoice: candidate_invoice, invoice_number},
+					callback: verification => {
+						report.refresh();
+						if (verification.exc || !verification.message?.verified || verification.message.invoice_number !== invoice_number || verification.message.dr_number !== selected_row.dr_number || (candidate_invoice && verification.message.sales_invoice !== candidate_invoice)) {
+							if (preview && !preview.closed) preview.close();
+							const invoice_name = verification.message?.sales_invoice || candidate_invoice;
+							const invoice_link = invoice_name ? `<br><a href="/app/sales-invoice/${encodeURIComponent(invoice_name)}">${frappe.utils.escape_html(invoice_name)}</a>` : "";
+							return frappe.msgprint({title: __("Invoice Not Verified"), message: __("No saved draft invoice with matching invoice and DR references could be verified. Print preview was not opened.{0}", [invoice_link]), indicator: "orange"});
+						}
+						dialog.hide();
+						preview_started = true;
+						preview.location.replace(`/printview?doctype=${encodeURIComponent("Sales Invoice")}&name=${encodeURIComponent(verification.message.sales_invoice)}&no_letterhead=0`);
+					},
+					error: () => {
+						if (preview && !preview.closed) preview.close();
+						frappe.msgprint({title: __("Invoice Not Verified"), message: __("The saved invoice could not be verified. Print preview was not opened."), indicator: "orange"});
+					}
+				});
+			};
+			frappe.call({
+				method: "qcmc_logic.qcmc_logics.report.delivery_note_printing.delivery_note_printing.create_sales_invoices",
+				args: {delivery_notes, invoice_number},
+				freeze: true,
+				freeze_message: __("Creating draft Sales Invoice…"),
+				callback: response => {
+					const result = response.message;
+					const candidate_invoice = !response.exc && result && result.delivery_note === delivery_notes[0] && result.invoice_number === invoice_number && result.dr_number === selected_row.dr_number ? result.sales_invoice : null;
+					verify_saved_invoice(candidate_invoice);
+				},
+				error: () => verify_saved_invoice(null)
+			});
+		}
+	});
+	dialog.$wrapper.on("hidden.bs.modal", () => {if (!preview_started && preview && !preview.closed) preview.close();});
+	dialog.show();
 }

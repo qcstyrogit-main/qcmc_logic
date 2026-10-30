@@ -36,6 +36,7 @@ def execute(filters=None):
 		return columns, [], _("Select a company and delivery date to view eligible Sales Orders."), None, []
 	conditions = ["so.company = %(company)s"]
 	values = {"delivery_date": filters.delivery_date, "company": filters.company}
+	date_operator = "<=" if frappe.utils.cint(filters.get("include_overdue")) else "="
 	if filters.get("warehouse"):
 		conditions.append("soi.warehouse = %(warehouse)s")
 		values["warehouse"] = filters.warehouse
@@ -64,10 +65,10 @@ def execute(filters=None):
 			AND so.custom_so_type IN ('FOB', 'FOB-DIRECT', 'REGULAR')
 			AND IFNULL(wh.custom_is_province, 0) = 0
 			AND (soi.qty - soi.delivered_qty - IFNULL(draft_dr.qty, 0)) > 0
-			AND COALESCE(soi.custom_next_scheduling_date, soi.delivery_date) <= %(delivery_date)s
+			AND COALESCE(soi.custom_next_scheduling_date, soi.delivery_date) {date_operator} %(delivery_date)s
 			AND {conditions}
 		ORDER BY available_from, so.name, soi.idx
-	""".format(conditions=" AND ".join(conditions)), values, as_dict=True)
+	""".format(conditions=" AND ".join(conditions), date_operator=date_operator), values, as_dict=True)
 	return columns, rows, _("{0} eligible item(s) found.").format(len(rows)), None, [
 		{"value": len({row.sales_order for row in rows}), "indicator": "Blue", "label": _("Sales Orders"), "datatype": "Int"},
 		{"value": len(rows), "indicator": "Green", "label": _("Schedules"), "datatype": "Int"},
@@ -343,8 +344,9 @@ def update_delivery_dates(so_details, delivery_date):
 		item = next((item for item in so.items if item.name == detail), None)
 		if not item or item.qty <= item.delivered_qty:
 			frappe.throw(_("Sales Order Item {0} has no undelivered quantity.").format(detail))
-		if frappe.utils.flt(item.delivered_qty) > 0 or _get_draft_delivery_note_qty(detail) > 0:
-			frappe.throw(_("Sales Order Item {0} already has delivered quantity or an active DR and cannot be moved to another date.").format(detail))
+		active_dr_qty = _get_draft_delivery_note_qty(detail)
+		if frappe.utils.flt(item.delivered_qty) > 0 and active_dr_qty <= 0:
+			frappe.throw(_("Sales Order Item {0} already has delivered quantity and cannot be moved to another date.").format(detail))
 		if item.warehouse and frappe.db.get_value("Warehouse", item.warehouse, "custom_is_province"):
 			frappe.throw(_("Sales Order Item {0} belongs to a provincial warehouse.").format(detail))
 		_validate_sales_coordinator_access(so, item, require_transact=True)
@@ -352,6 +354,41 @@ def update_delivery_dates(so_details, delivery_date):
 		if str(row.delivery_date or "") == str(delivery_date) and not target:
 			continue
 		before_docs.setdefault(row.parent, frappe.get_doc("Sales Order", row.parent))
+		if active_dr_qty > 0:
+			remaining_qty = frappe.utils.flt(item.qty) - frappe.utils.flt(item.delivered_qty) - active_dr_qty
+			if remaining_qty <= 0:
+				frappe.throw(_("Sales Order Item {0} has no remaining quantity to reschedule.").format(detail))
+			item.qty = frappe.utils.flt(item.delivered_qty) + active_dr_qty
+			item.stock_qty = item.qty * frappe.utils.flt(item.conversion_factor or 1)
+			_set_sales_order_item_amounts(item)
+			if target:
+				target.qty = frappe.utils.flt(target.qty) + remaining_qty
+				target.stock_qty = target.qty * frappe.utils.flt(target.conversion_factor or 1)
+				_set_sales_order_item_amounts(target)
+				_update_sales_order_schedule_quantities(so, {item.name: item.qty, target.name: target.qty})
+				merged_to = target.delivery_date
+			else:
+				new_item = frappe.copy_doc(item)
+				new_item.name = None
+				new_item.parent = so.name
+				new_item.parenttype = "Sales Order"
+				new_item.parentfield = "items"
+				new_item.docstatus = so.docstatus
+				new_item.qty = remaining_qty
+				new_item.delivered_qty = 0
+				new_item.delivery_date = delivery_date
+				new_item.custom_next_scheduling_date = None
+				new_item.stock_qty = remaining_qty * frappe.utils.flt(new_item.conversion_factor or 1)
+				_set_sales_order_item_amounts(new_item)
+				_update_sales_order_schedule_quantities(so, {item.name: item.qty})
+				new_item.idx = len(so.items) + 1
+				new_item.db_insert()
+				merged_to = None
+			for idx, so_item in enumerate(so.items, start=1):
+				so_item.idx = idx
+			so.run_method("calculate_taxes_and_totals")
+			changes.setdefault(row.parent, []).append({"item_code": item.item_code, "old_date": row.delivery_date, "new_date": delivery_date, "qty": remaining_qty, "active_dr_qty": active_dr_qty, "merged_to": merged_to})
+			continue
 		if target:
 			_validate_sales_coordinator_access(so, target, require_transact=True)
 			moved_qty = frappe.utils.flt(item.qty)
@@ -421,21 +458,108 @@ def _record_delivery_date_history(before_doc, after_doc, changes):
 
 
 @frappe.whitelist()
-def create_delivery_notes(so_details):
+def get_consolidation_candidates(so_details):
+	_validate_scheduling_role()
+	so_details = list(dict.fromkeys(frappe.parse_json(so_details)))
+	if not so_details:
+		return []
+	rows = frappe.db.sql(
+		"""
+		SELECT soi.name, soi.parent, soi.warehouse, COALESCE(soi.custom_next_scheduling_date, soi.delivery_date) AS delivery_date
+		FROM `tabSales Order Item` soi WHERE soi.name IN %(details)s
+		""",
+		{"details": tuple(so_details)},
+		as_dict=True,
+	)
+	if len(rows) != len(so_details):
+		frappe.throw(_("One or more selected schedules no longer exist."))
+	groups = {(row.parent, str(row.delivery_date)) for row in rows}
+	if len(groups) != 1:
+		return []
+	candidates = []
+	for sales_order, delivery_date in groups:
+		so = frappe.get_doc("Sales Order", sales_order)
+		_validate_sales_order(so, [row.name for row in rows if row.parent == sales_order and str(row.delivery_date) == delivery_date])
+		matches = frappe.db.sql(
+			"""
+			SELECT DISTINCT dn.name, dn.customer_name, dn.shipping_address_name,
+				dni.warehouse, COUNT(dni.name) AS item_count
+			FROM `tabDelivery Note` dn
+			JOIN `tabDelivery Note Item` dni ON dni.parent = dn.name
+			JOIN `tabSales Order Item` soi ON soi.name = dni.so_detail
+			WHERE dn.docstatus = 0 AND dn.workflow_state = 'For Stock Confirmation'
+				AND dni.against_sales_order = %s AND COALESCE(soi.custom_next_scheduling_date, soi.delivery_date) = %s
+			GROUP BY dn.name, dn.customer_name, dn.shipping_address_name, dni.warehouse
+			""",
+			(sales_order, delivery_date),
+			as_dict=True,
+		)
+		for match in matches:
+			candidate = frappe.get_doc("Delivery Note", match.name)
+			if not frappe.has_permission("Delivery Note", "write", doc=candidate):
+				continue
+			if candidate.company != so.company or candidate.customer != so.customer or candidate.shipping_address_name != so.shipping_address_name:
+				continue
+			if any(item.against_sales_order != sales_order for item in candidate.items):
+				continue
+			if all(row.warehouse == match.warehouse for row in rows if row.parent == sales_order and str(row.delivery_date) == delivery_date):
+				match.delivery_date = delivery_date
+				candidates.append(match)
+	return candidates
+
+
+@frappe.whitelist()
+def create_delivery_notes(so_details, consolidate_into=None):
 	_validate_scheduling_role()
 	so_details = list(dict.fromkeys(frappe.parse_json(so_details)))
 	if not so_details:
 		frappe.throw(_("Select at least one Sales Order item."))
 	locked_rows = _lock_sales_order_items(so_details)
-
-	details_by_sales_order = {}
-	for row in locked_rows:
-		detail = row.name
-		details_by_sales_order.setdefault(row.parent, []).append(detail)
+	selected_rows = frappe.db.sql(
+		"""
+		SELECT name, parent, item_code, warehouse,
+			COALESCE(custom_next_scheduling_date, delivery_date) AS effective_date
+		FROM `tabSales Order Item`
+		WHERE name IN %(details)s
+		""",
+		{"details": tuple(so_details)},
+		as_dict=True,
+	)
+	if len(selected_rows) != len(so_details):
+		# Preserve compatibility with mocked/legacy callers while real rows are always resolved above.
+		selected_rows = locked_rows
+	group_keys = {(row.parent, str(row.effective_date)) for row in selected_rows}
+	if consolidate_into and len(group_keys) != 1:
+		frappe.throw(_("Select schedules for one Sales Order and date when adding to an existing DR."))
+	details_by_group = {}
+	for parent, effective_date in group_keys:
+		siblings = frappe.db.sql(
+			"""
+			SELECT soi.name FROM `tabSales Order Item` soi
+			LEFT JOIN (
+				SELECT dni.so_detail, SUM(dni.qty) AS qty
+				FROM `tabDelivery Note Item` dni
+				JOIN `tabDelivery Note` dn ON dn.name = dni.parent
+				WHERE dn.docstatus = 0
+				GROUP BY dni.so_detail
+			) draft_dr ON draft_dr.so_detail = soi.name
+			WHERE soi.parent = %s
+				AND COALESCE(custom_next_scheduling_date, delivery_date) = %s
+				AND (soi.qty - soi.delivered_qty - IFNULL(draft_dr.qty, 0)) > 0
+			""",
+			(parent, effective_date),
+			as_dict=True,
+		)
+		if not siblings:
+			siblings = [row for row in selected_rows if row.parent == parent and str(row.effective_date) == effective_date]
+		details_by_group[(parent, effective_date)] = [row.name for row in siblings]
+	all_details = [detail for details in details_by_group.values() for detail in details]
+	if all_details:
+		_lock_sales_order_items(all_details)
 
 	created = []
 	from erpnext.selling.doctype.sales_order.sales_order import make_delivery_note
-	for name, selected_details in details_by_sales_order.items():
+	for (name, _effective_date), selected_details in details_by_group.items():
 		so = frappe.get_doc("Sales Order", name)
 		available_qty = _validate_sales_order(so, selected_details)
 		dn = make_delivery_note(name, kwargs={"filtered_children": selected_details})
@@ -449,11 +573,61 @@ def create_delivery_notes(so_details):
 		from erpnext.stock.doctype.packed_item.packed_item import make_packing_list
 		make_packing_list(dn)
 		dn.custom_sales_order = name
-		dn.workflow_state = "Draft"
-		dn.insert()
-		dn.db_set("workflow_state", "For Stock Confirmation")
-		created.append(dn.name)
+		if consolidate_into:
+			from qcmc_logic.qcmc_logics.report.delivery_schedule_confirmation.delivery_schedule_confirmation import _get_locked_delivery_note
+			target = _get_locked_delivery_note(consolidate_into)
+			target.check_permission("write")
+			if target.docstatus != 0 or target.workflow_state != "For Stock Confirmation":
+				frappe.throw(_("Delivery Note {0} is no longer available for consolidation.").format(target.name))
+			_validate_compatible_consolidation(target, dn, name, _effective_date)
+			for new_item in dn.items:
+				if new_item.meta.has_field("delivery_date"):
+					new_item.delivery_date = _effective_date
+				_reset_new_item_logistics_confirmation(new_item)
+				values = new_item.as_dict(no_nulls=True)
+				for field in ("name", "parent", "parenttype", "parentfield", "idx"):
+					values.pop(field, None)
+				target.append("items", values)
+			target.run_method("calculate_taxes_and_totals")
+			from erpnext.stock.doctype.packed_item.packed_item import make_packing_list
+			make_packing_list(target)
+			target.save()
+			target.add_comment("Info", _("Sales added scheduled item(s) for {0}; Logistics confirmation is required for the new item(s).").format(_effective_date))
+			created.append(target.name)
+		else:
+			dn.workflow_state = "Draft"
+			dn.insert()
+			dn.db_set("workflow_state", "For Stock Confirmation")
+			created.append(dn.name)
 	return _("Created Delivery Note(s): {0}").format(", ".join(created))
+
+
+def _validate_compatible_consolidation(target, incoming, sales_order, delivery_date):
+	if target.docstatus != 0 or target.workflow_state != "For Stock Confirmation":
+		frappe.throw(_("Only unreleased Delivery Notes awaiting stock confirmation can be consolidated."))
+	if target.company != incoming.company or target.customer != incoming.customer:
+		frappe.throw(_("The existing Delivery Note must have the same company and customer."))
+	if target.shipping_address_name != incoming.shipping_address_name:
+		frappe.throw(_("The existing Delivery Note must have the same delivery address."))
+	for field in ("currency", "conversion_rate", "selling_price_list", "taxes_and_charges", "tc_name", "terms", "customer_address"):
+		if target.get(field) != incoming.get(field):
+			frappe.throw(_("Delivery Note terms differ ({0}); create a separate DR.").format(field))
+	if target.get("is_return") or target.get("custom_dr_no") or frappe.db.exists("Sales Invoice Item", {"delivery_note": target.name, "docstatus": ["<", 2]}):
+		frappe.throw(_("A returned, numbered, or invoiced DR cannot receive additional items."))
+	if any(item.against_sales_order != sales_order for item in target.items):
+		frappe.throw(_("Consolidation is limited to Delivery Notes for the same Sales Order."))
+	if any(str(frappe.db.get_value("Sales Order Item", item.so_detail, "custom_next_scheduling_date") or frappe.db.get_value("Sales Order Item", item.so_detail, "delivery_date")) != str(delivery_date) for item in target.items):
+		frappe.throw(_("The existing Delivery Note must have the same scheduled delivery date."))
+	if {item.warehouse for item in target.items} != {item.warehouse for item in incoming.items}:
+		frappe.throw(_("The existing Delivery Note must use the same warehouse as the added items."))
+
+
+def _reset_new_item_logistics_confirmation(item):
+	for fieldname in ("custom_logistics_reason", "custom_logistics_remarks", "custom_logistics_proposed_date"):
+		if item.meta.has_field(fieldname):
+			item.set(fieldname, None)
+	if item.meta.has_field("custom_logistics_proposed_qty"):
+		item.custom_logistics_proposed_qty = 0
 
 
 def _validate_sales_order(so, selected_details):
