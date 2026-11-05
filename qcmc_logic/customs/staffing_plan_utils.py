@@ -92,11 +92,11 @@ def recalculate_staffing_plan(staffing_plan):
 		#         AND status = 'Approved' and total_leave_days >= 30
 		#     """)]
 
-                        SELECT employee
-                        FROM `tabLeave Application`
-                        WHERE CURRENT_DATE BETWEEN from_date AND to_date
-                        AND status = 'Approved' and total_leave_days >= 30
-                    """)]
+                    #     SELECT employee
+                    #     FROM `tabLeave Application`
+                    #     WHERE CURRENT_DATE BETWEEN from_date AND to_date
+                    #     AND status = 'Approved' and total_leave_days >= 30
+                    # """)]
 
                 }
             )
