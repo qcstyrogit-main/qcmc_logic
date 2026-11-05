@@ -46,6 +46,31 @@ excluded; retained documents from deleted user accounts still appear under
 their original user ID. Both the page and its data endpoint require System Manager access.
 The existing User Transaction Activity report remains available.
 
+**Management Charts** provides five starter charts: Using vs Not Using,
+transactions by module, most-used DocTypes, top users and monthly creation trend.
+Select **Add Chart** to choose a title, chart type, measure, grouping and Top 5,
+Top 10 or All. Each chart has **Edit**, **Remove**, **Export SVG** and a
+**View Chart Data** table. Bar, stacked bar, line, pie and donut charts use the
+installed Frappe Charts library. Line charts show creation counts by day/month;
+stacked bars compare Using vs Not Using. Pie/donut charts show transaction shares
+or overall adoption, avoiding misleading shares of overlapping user populations.
+Top-N transaction pie/donut charts include an **Other** slice.
+
+Charts follow the dashboard's dates, modules, DocTypes and users and summarize
+the full KPI scope. **Activity View** affects the grid only. Grouped usage counts
+distinct eligible users per module/DocType and calculates each percentage from
+that group's denominator. Historical transaction counts remain included.
+Daily trends allow up to 366 days and monthly trends up to 120 months.
+
+**Save Layout** keeps chart definitions in the current user's native Page
+settings; it does not store transaction data or fixed dates. Layouts are personal
+and load across that account's sessions. **Reset Defaults** restores starter
+charts locally until saved. Removing every chart and saving preserves an empty
+layout. **Print Management Report** opens a standalone snapshot with the date
+range, selected filters, generation time, KPIs, charts and their data tables.
+Use the browser's print dialog to print or save as PDF. Printing waits until all
+charts have loaded successfully; chart query errors leave the main grid usable.
+
 Deploy with the normal app migration, or sync this Page alone using
 `bench --site erp.qcstyro.local reload-doc qcmc_logics page user_transaction_dashboard`
 and clear the site's cache. This Page uses its standard script; no asset build

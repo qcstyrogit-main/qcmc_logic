@@ -1,0 +1,288 @@
+{
+    "actions": [],
+    "creation": "2026-10-26 10:02:11.395192",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "sortingno",
+        "location",
+        "section",
+        "position",
+        "machine",
+        "shift_schedule_section",
+        "day_shift_type",
+        "day_shift_employee",
+        "day_shift_ps",
+        "day_shift_nosched_code",
+        "day_shift_employee_name",
+        "day_shift_monday",
+        "day_shift_tuesday",
+        "day_shift_wednesday",
+        "day_shift_thursday",
+        "day_shift_friday",
+        "day_shift_saturday",
+        "day_shift_sunday",
+        "night_shift_column",
+        "night_shift_type",
+        "night_shift_employee",
+        "night_shift_ps",
+        "night_shift_nosched_code",
+        "night_shift_employee_name",
+        "night_shift_monday",
+        "night_shift_tuesday",
+        "night_shift_wednesday",
+        "night_shift_thursday",
+        "night_shift_friday",
+        "night_shift_saturday",
+        "night_shift_sunday"
+    ],
+    "fields": [
+        {
+            "columns": 1,
+            "fieldname": "location",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Location"
+        },
+        {
+            "columns": 1,
+            "fieldname": "section",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Section"
+        },
+        {
+            "columns": 1,
+            "fieldname": "position",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Position"
+        },
+        {
+            "columns": 1,
+            "fieldname": "machine",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Machine"
+        },
+        {
+            "fieldname": "shift_schedule_section",
+            "fieldtype": "Section Break",
+            "label": "Shift Schedule"
+        },
+        {
+            "columns": 2,
+            "fieldname": "day_shift_type",
+            "fieldtype": "Link",
+            "label": "Day Shift Schedule",
+            "options": "Shift Type"
+        },
+        {
+            "columns": 2,
+            "depends_on": "eval:!doc.day_shift_ps",
+            "fieldname": "day_shift_employee",
+            "fieldtype": "Link",
+            "label": "Day Employee Code",
+            "options": "Employee"
+        },
+        {
+            "columns": 1,
+            "default": "0",
+            "fieldname": "day_shift_ps",
+            "fieldtype": "Check",
+            "label": "PS (PLAN STOP)"
+        },
+        {
+            "columns": 2,
+            "default": "NOSCHED",
+            "depends_on": "eval:doc.day_shift_ps",
+            "fieldname": "day_shift_nosched_code",
+            "fieldtype": "Data",
+            "label": "Day Employee Code",
+            "read_only": 1
+        },
+        {
+            "columns": 2,
+            "depends_on": "eval:!doc.day_shift_ps",
+            "fetch_from": "day_shift_employee.employee_name",
+            "fieldname": "day_shift_employee_name",
+            "fieldtype": "Data",
+            "label": "Day Employee Name",
+            "read_only": 1
+        },
+        {
+            "columns": 1,
+            "default": "X",
+            "fieldname": "day_shift_monday",
+            "fieldtype": "Select",
+            "label": "Mon",
+            "options": "\nNW\nRD\nPW\nX"
+        },
+        {
+            "columns": 1,
+            "default": "X",
+            "fieldname": "day_shift_tuesday",
+            "fieldtype": "Select",
+            "label": "Tue",
+            "options": "\nNW\nRD\nPW\nX"
+        },
+        {
+            "columns": 1,
+            "default": "X",
+            "fieldname": "day_shift_wednesday",
+            "fieldtype": "Select",
+            "label": "Wed",
+            "options": "\nNW\nRD\nPW\nX"
+        },
+        {
+            "columns": 1,
+            "default": "X",
+            "fieldname": "day_shift_thursday",
+            "fieldtype": "Select",
+            "label": "Thu",
+            "options": "\nNW\nRD\nPW\nX"
+        },
+        {
+            "columns": 1,
+            "default": "X",
+            "fieldname": "day_shift_friday",
+            "fieldtype": "Select",
+            "label": "Fri",
+            "options": "\nNW\nRD\nPW\nX"
+        },
+        {
+            "columns": 1,
+            "default": "X",
+            "fieldname": "day_shift_saturday",
+            "fieldtype": "Select",
+            "label": "Sat",
+            "options": "\nNW\nRD\nPW\nX"
+        },
+        {
+            "columns": 1,
+            "default": "X",
+            "fieldname": "day_shift_sunday",
+            "fieldtype": "Select",
+            "label": "Sun",
+            "options": "\nNW\nRD\nPW\nX"
+        },
+        {
+            "fieldname": "night_shift_column",
+            "fieldtype": "Column Break"
+        },
+        {
+            "columns": 2,
+            "fieldname": "night_shift_type",
+            "fieldtype": "Link",
+            "label": "Night Shift Schedule",
+            "options": "Shift Type"
+        },
+        {
+            "columns": 2,
+            "depends_on": "eval:!doc.night_shift_ps",
+            "fieldname": "night_shift_employee",
+            "fieldtype": "Link",
+            "label": "Night Employee Code",
+            "options": "Employee"
+        },
+        {
+            "columns": 1,
+            "default": "0",
+            "fieldname": "night_shift_ps",
+            "fieldtype": "Check",
+            "label": "PS (PLAN STOP)"
+        },
+        {
+            "columns": 2,
+            "default": "NOSCHED",
+            "depends_on": "eval:doc.night_shift_ps",
+            "fieldname": "night_shift_nosched_code",
+            "fieldtype": "Data",
+            "label": "Night Employee Code",
+            "read_only": 1
+        },
+        {
+            "columns": 2,
+            "depends_on": "eval:!doc.night_shift_ps",
+            "fetch_from": "night_shift_employee.employee_name",
+            "fieldname": "night_shift_employee_name",
+            "fieldtype": "Data",
+            "label": "Night Employee Name",
+            "read_only": 1
+        },
+        {
+            "columns": 1,
+            "default": "X",
+            "fieldname": "night_shift_monday",
+            "fieldtype": "Select",
+            "label": "Mon",
+            "options": "\nNW\nRD\nPW\nX"
+        },
+        {
+            "columns": 1,
+            "default": "X",
+            "fieldname": "night_shift_tuesday",
+            "fieldtype": "Select",
+            "label": "Tue",
+            "options": "\nNW\nRD\nPW\nX"
+        },
+        {
+            "columns": 1,
+            "default": "X",
+            "fieldname": "night_shift_wednesday",
+            "fieldtype": "Select",
+            "label": "Wed",
+            "options": "\nNW\nRD\nPW\nX"
+        },
+        {
+            "columns": 1,
+            "default": "X",
+            "fieldname": "night_shift_thursday",
+            "fieldtype": "Select",
+            "label": "Thu",
+            "options": "\nNW\nRD\nPW\nX"
+        },
+        {
+            "columns": 1,
+            "default": "X",
+            "fieldname": "night_shift_friday",
+            "fieldtype": "Select",
+            "label": "Fri",
+            "options": "\nNW\nRD\nPW\nX"
+        },
+        {
+            "columns": 1,
+            "default": "X",
+            "fieldname": "night_shift_saturday",
+            "fieldtype": "Select",
+            "label": "Sat",
+            "options": "\nNW\nRD\nPW\nX"
+        },
+        {
+            "columns": 1,
+            "default": "X",
+            "fieldname": "night_shift_sunday",
+            "fieldtype": "Select",
+            "label": "Sun",
+            "options": "\nNW\nRD\nPW\nX"
+        },
+        {
+            "fieldname": "sortingno",
+            "fieldtype": "Data",
+            "label": "SortingNo"
+        }
+    ],
+    "istable": 1,
+    "links": [],
+    "modified": "2026-10-27 08:25:50.309481",
+    "modified_by": "Administrator",
+    "module": "QCMC Logics",
+    "name": "Weekly Manpower Schedule Detail",
+    "owner": "Administrator",
+    "permissions": [],
+    "row_format": "Dynamic",
+    "sort_field": "idx",
+    "sort_order": "ASC",
+    "states": []
+}
