@@ -48,8 +48,15 @@ async function main() {
             get_placeholder_text: () => df.placeholder, set_status(text) { this.status = text; },
             update_status() { this.set_status(value[0] || df.placeholder); }};
     }}};
+    const assetPaths = [];
+    context.frappe.require = path => {assetPaths.push(path); return new Promise(()=>{});};
     const constructed = new context.Dashboard({main: mainNode, set_primary_action() {}});
+    const assetContext = {frappe:{}};
+    vm.runInNewContext(fs.readFileSync(path.resolve(__dirname,"../../../frappe/frappe/public/js/frappe/assets.js"),"utf8"),assetContext);
+    assert.equal(assetContext.frappe.assets.extn(assetPaths[0]),"js", "Chart asset URL must be accepted by the installed Frappe loader");
     assert.match(mainNode.value, /Native toolbar/, "Dashboard construction preserves the connected native toolbar");
+    assert.match(mainNode.value, /MANAGEMENT INTELLIGENCE/, "Management reporting heading is present");
+    assert.match(mainNode.value, /utd-insights-host/, "Executive observations have a dedicated section");
     assert.deepEqual(controls.map(control => control.df.label),
         ["Date From", "Date To", "Modules", "Displayed DocTypes", "Displayed Users", "Activity View"]);
     assert.ok(controls.every(control => control.parent.parent.name.endsWith(".utd-filters")),
@@ -144,6 +151,7 @@ async function main() {
     assert.equal(filtered.summary.usage_rate, 33.3);
     assert.equal(filtered.summary.documents, 5);
     dashboard.render(filtered);
+    assert.match(dashboard.$results.value, /Employee transaction matrix/);
     assert.match(dashboard.$results.value, /Historical count; no current Create permission/);
     const savedUsage = dashboard.data;
     dashboard.data = {...usage, rows: usage.rows.map(row => ({...row, counts: {}}))};
@@ -233,7 +241,30 @@ async function main() {
     await empty;
     assert.match(dashboard.$status.value, /No users/);
     assert.ok(!dashboard.$results.value.includes("<table"));
-    console.log("PASS: automatic current-month load, permission-aware activity views and scope cards, zero versus no access, historical counts, searched selectors, escaped rendering, stale responses and empty states");
+    // The management print view is scoped to the active filters and escapes
+    // untrusted labels before inserting them into print-only HTML.
+    const printHost = element();
+    const printable = Object.create(context.Dashboard.prototype);
+    printable.$root = {find() { return printHost; }};
+    printable.date_from = {get_value: () => "2026-10-01"};
+    printable.date_to = {get_value: () => "2026-10-30"};
+    printable.modules = {get_value: () => []};
+    printable.doctypes = {get_value: () => []};
+    printable.users = {get_value: () => []};
+    printable.activity_view = {get_value: () => "All"};
+    printable.render_print_report({
+        summary: {using: 1, not_using: 1, usage_rate: 50, documents: 3},
+        doctypes: ["Purchase Order"], scope_doctypes: ["Purchase Order"],
+        rows: [{employee_name: "<script>bad()</script>", user: "employee@example.com", total: 3,
+            counts: {"Purchase Order": 3}}],
+        scope_rows: [{employee_name: "<script>bad()</script>", user: "employee@example.com", total: 3,
+            counts: {"Purchase Order": 3}}],
+    });
+    assert.match(printHost.value, /Executive overview/);
+    assert.match(printHost.value, /Detailed employee breakdown/);
+    assert.match(printHost.value, /&lt;script&gt;bad/);
+    assert.ok(!printHost.value.includes("<script>"), "Untrusted print report fields are escaped");
+    console.log("PASS: management print layout, scoped metrics, detail matrix, HTML escaping, and existing dashboard behavior");
 }
 
 main().catch(error => { console.error(error); process.exitCode = 1; });
