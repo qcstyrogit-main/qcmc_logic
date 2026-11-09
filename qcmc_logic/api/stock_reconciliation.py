@@ -717,6 +717,73 @@ def _group_entry_transactions(entry):
     return list(groups.values())
 
 
+def _validate_inventory_tag_location_ownership(reconciliation_id, normalized_entries, latest_rows):
+    """One Inventory Tag may identify only one Item within a Location.
+
+    A tag is allowed for another Item at another Location. Validate both
+    transactions in the incoming batch and tags previously saved by other
+    scanners, including retained audit transactions. The caller holds the
+    Stock Reconciliation row lock to serialize competing submissions.
+    """
+    owners = {}
+
+    def register(location, inventory_tag, item_code):
+        location = str(location or "").strip()
+        tag = normalize_inventory_tag(inventory_tag)
+        item = str(item_code or "").strip()
+        if not location or not tag or not item:
+            return
+        key = (location.upper(), tag.upper())
+        existing = owners.get(key)
+        if existing and existing.upper() != item.upper():
+            frappe.throw(
+                f"Inv Tag {tag} is already used for Item {existing} at Storage Location {location}. "
+                f"Cannot use it for Item {item}.",
+                frappe.ValidationError,
+            )
+        owners[key] = item
+
+    relevant_locations = {
+        str(entry.location or "").strip()
+        for entry in normalized_entries if str(entry.location or "").strip()
+    }
+    relevant_tags = {
+        _inventory_tag(transaction).upper()
+        for entry in normalized_entries for transaction in entry.transactions
+        if _inventory_tag(transaction)
+    }
+    if not relevant_tags:
+        return
+
+    for row in latest_rows.values():
+        location = str(row.get("location") or row.get("inventory_location") or "").strip()
+        tag = normalize_inventory_tag(row.get("inventory_tag"))
+        if location in relevant_locations and tag.upper() in relevant_tags:
+            register(location, tag, row.get("item_code"))
+
+    # Include previous submissions' audit history even if a result row was
+    # revised later. Restrict the query to the locations/tags in this request.
+    if relevant_locations:
+        historical = frappe.db.sql(
+            """
+            select distinct storage_location, inventory_tag, item_code
+            from `tabPhysical Count Scan Transaction`
+            where reconciliation = %s
+              and storage_location in %s
+              and upper(trim(inventory_tag)) in %s
+              and inventory_tag is not null and inventory_tag != ''
+            """,
+            (reconciliation_id, tuple(relevant_locations), tuple(relevant_tags)),
+            as_dict=True,
+        )
+        for row in historical:
+            register(row.storage_location, row.inventory_tag, row.item_code)
+
+    for entry in normalized_entries:
+        for transaction in entry.transactions:
+            register(entry.location, _inventory_tag(transaction), entry.item_code)
+
+
 def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
     savepoint = "physical_count_adjustment"
     frappe.db.savepoint(savepoint)
@@ -746,6 +813,9 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
         latest_rows = latest_physical_count_groups(
             doc.get("custom_physical_count_results") or []
         )
+        _validate_inventory_tag_location_ownership(
+            reconciliation_id, normalized, latest_rows
+        )
 
         planned = []
         for index, entry in enumerate(normalized, start=1):
@@ -761,18 +831,29 @@ def _submit_adjustment_entries(reconciliation_id, submission_id, entries, user):
                 entry.item_code, entry.warehouse, entry.location,
                 entry.batch_no, entry.serial_no,
             )
-            current = (
+            prior_baseline = (
                 _safe_float(location_rows[0].erp_quantity_before)
                 if location_rows else live_quantity
             )
             expected_baseline = (
                 entry.erp_baseline
                 if entry.erp_baseline is not None
-                else current if location_rows else entry.expected
+                else prior_baseline if location_rows else entry.expected
             )
             if not _quantities_equal(live_quantity, expected_baseline):
                 entry.expected = expected_baseline
                 raise PhysicalCountConflict(live_quantity, entry)
+
+            # A reviewed recount may carry a fresh ERP baseline after stock
+            # movements. Once it matches authoritative live stock, the new
+            # draft snapshot and variance must use that same baseline rather
+            # than the one saved by the first scan. Keep all Inventory Tag
+            # groups at this location aligned for later reconciliation.
+            current = live_quantity
+            if location_rows and not _quantities_equal(prior_baseline, current):
+                for row in location_rows:
+                    row.erp_quantity_before = current
+                    row.variance = _safe_float(row.physical_count) - current
 
             planned_groups = []
             for group in _group_entry_transactions(entry):

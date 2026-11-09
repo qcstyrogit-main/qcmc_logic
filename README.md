@@ -76,6 +76,23 @@ Deploy with the normal app migration, or sync this Page alone using
 and clear the site's cache. This Page uses its standard script; no asset build
 or additional dependencies are required.
 
+### Storage Location Summary
+
+Open **Storage Location Summary** from ERP search, or select a node in the
+Storage Location tree and choose **Stock Summary**. Select a Warehouse to view
+current items and stock quantities beneath the existing location hierarchy.
+Filter by a Storage Location branch or Item; enable **Show Empty Locations**
+to include locations without positive stock.
+
+Parent rows include their descendants and count distinct items. Quantities with
+different stock UOMs are listed separately under **Quantity by UOM**; the numeric
+parent quantity stays blank for mixed units. Parent and item rows must not be
+added together. The report uses current physical allocations, transfers and
+physical counts, with warehouse, location and item read access enforced.
+
+Register with `bench --site erp.qcstyro.local reload-doc qcmc_logics report storage_location_summary`
+and clear the site cache. No asset build is required.
+
 ### Resizable List Columns
 
 On desktop ERP List pages, drag the right edge of a column header to resize it.

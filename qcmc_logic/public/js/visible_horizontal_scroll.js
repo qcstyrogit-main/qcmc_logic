@@ -38,6 +38,13 @@
 
     function update() {
         if (!bar) return;
+        // Frappe's pencil editor shares this bar's stacking layer. Suspend
+        // background scrolling until its grid-row-open class is removed.
+        if (document.querySelector(".grid-row-open")) {
+            bar.hidden = true;
+            active = null;
+            return;
+        }
         let selected = null, area = 0;
         const height = window.innerHeight;
         targets.forEach((record, root) => {

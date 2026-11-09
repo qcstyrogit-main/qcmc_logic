@@ -12,6 +12,19 @@ frappe.treeview_settings["Storage Location"] = {
 	},
 	toolbar: [
 		{
+			label: __("Stock Summary"),
+			condition(node) {
+				return !node.is_root && Boolean(node.data?.value);
+			},
+			click(node) {
+				frappe.db.get_value("Storage Location", node.data.value, "custom_warehouse").then(response => {
+					frappe.route_options = {storage_location: node.data.value};
+					if (response.message?.custom_warehouse) frappe.route_options.warehouse = response.message.custom_warehouse;
+					frappe.set_route("query-report", "Storage Location Summary");
+				});
+			},
+		},
+		{
 			label: __("Edit"),
 			condition(node) {
 				return !node.is_root && frappe.model.can_write("Storage Location");
