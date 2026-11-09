@@ -664,7 +664,7 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 		{ fieldname: "cavs", label: __("Cavs"), fieldtype: "Int", read_only: 1, default: existing?.cavs },
 	];
 	if (!secondary) fields.push(numeric("paid_hrs", "PaidHrs", false, 24), numeric("vos", "VOS"), numeric("cm_co", "CM/CO"), numeric("stab", "Stab"), numeric("plan_hrs", "PlanHrs", true, 24));
-	fields.push(numeric("soph", "SOPH", true), numeric("std_weight_gm", "StdWt(gm)", true, 0, 4), numeric("daily_volume_qty", "Daily Vol Qty", secondary || !rowName), numeric("daily_volume_kgs", "DailyVolKgs", true), numeric(secondary ? "factor_rate" : "f_rate", secondary ? "FactorRate" : "F.Rate", secondary, 100), numeric("cycle_time", secondary ? "CycleTime" : "C.T.", secondary, 0, 4));
+	fields.push(numeric("soph", "SOPH", true), numeric("std_weight_gm", "StdWt(gm)", true, 0, 4), numeric("daily_volume_qty", "Daily Vol Qty", secondary), numeric("daily_volume_kgs", "DailyVolKgs", true), numeric(secondary ? "factor_rate" : "f_rate", secondary ? "FactorRate" : "F.Rate", secondary, 100), numeric("cycle_time", secondary ? "CycleTime" : "C.T.", secondary, 0, 4));
 	if (!secondary) fields.push(
 		{ fieldname: "remarks", label: __("Remarks"), fieldtype: "Small Text", default: existing?.remarks },
 		{ fieldname: "mat_type", label: __("MatType"), fieldtype: "Data", default: existing?.mat_type },
@@ -694,7 +694,7 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 			dialog.fields_dict[fieldname].df.onchange = () => calculate_dialog_plan_hours(dialog);
 		}
 	}
-	if (!secondary && rowName) {
+	if (!secondary) {
 		dialog.fields_dict.daily_volume_qty.df.onchange = () => calculate_dialog_paid_hours_from_volume(dialog);
 	}
 	if (dialog.fields_dict.fg1_product_code) dialog.fields_dict.fg1_product_code.df.onchange = () => calculate_dialog_volume(dialog, true, frm, scheduleRow);
