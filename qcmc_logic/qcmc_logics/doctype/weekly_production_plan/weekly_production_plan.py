@@ -141,6 +141,10 @@ class WeeklyProductionPlan(Document):
 		# Keep the planner's saved choices when validation rebuilds the generated
 		# machine/date matrix.  The live Sales Order candidates are deliberately
 		# not fields in the document and are fetched by the client when a row opens.
+		slot_totals = build_schedule_hour_totals(
+			self.get("extrusion_item_schedule") if is_extrusion_section(self.section) else self.get("item_1_schedule"),
+			extrusion=is_extrusion_section(self.section),
+		)
 		saved_slots = {}
 		for row in self.get("machine_schedule"):
 			if not row.machine or not row.plan_date:
@@ -158,11 +162,38 @@ class WeeklyProductionPlan(Document):
 				plan_date = add_days(self.start_date, day_offset)
 				saved_rows = saved_slots.get((workstation, getdate(plan_date))) or [{}]
 				for saved_row in saved_rows:
+					totals = slot_totals.get((workstation, getdate(plan_date)), default_schedule_hour_totals())
 					self.append("machine_schedule", {
 						"machine": workstation,
 						"plan_date": plan_date,
+						**totals,
 						**saved_row,
 					})
+
+
+def default_schedule_hour_totals() -> dict[str, float]:
+	return {
+		"total_paid_time_hrs": 24.0,
+		"total_planned_vos_hrs": 0.0,
+		"total_cm_co_hrs": 0.0,
+		"total_stabilization_hrs": 0.0,
+		"remaining_paid_hrs": 24.0,
+	}
+
+
+def build_schedule_hour_totals(rows, extrusion: bool = False) -> dict[tuple, dict[str, float]]:
+	totals = {}
+	for row in rows or []:
+		if not row.machine or not row.plan_date:
+			continue
+		key = (row.machine, getdate(row.plan_date))
+		values = totals.setdefault(key, default_schedule_hour_totals())
+		paid_hours = flt(row.paid_time if extrusion else row.paid_hrs)
+		values["total_planned_vos_hrs"] += flt(row.vos)
+		values["total_cm_co_hrs"] += flt(row.change_over if extrusion else row.cm_co)
+		values["total_stabilization_hrs"] += flt(row.stabilization if extrusion else row.stab)
+		values["remaining_paid_hrs"] = max(0.0, values["remaining_paid_hrs"] - paid_hours)
+	return totals
 
 
 def make_record_no(section: str, start_date: str) -> str:

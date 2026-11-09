@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan import (
+	build_schedule_hour_totals,
 	calculate_extrusion_values,
 	calculate_secondary_values,
 	extract_production_rows,
@@ -98,6 +99,24 @@ class TestWeeklyProductionPlan(unittest.TestCase):
 		self.assertEqual(values["plan_hours"], 18)
 		self.assertEqual(values["number_of_kgs"], 1800)
 		self.assertEqual(values["number_of_rolls"], 0)
+
+	def test_machine_schedule_hour_totals_for_fg_items(self):
+		rows = [
+			SimpleNamespace(
+				machine="AVM1", plan_date="2026-10-05", paid_hrs=16,
+				vos=2, cm_co=1, stab=0.5,
+			),
+			SimpleNamespace(
+				machine="AVM1", plan_date="2026-10-05", paid_hrs=8,
+				vos=1, cm_co=0.5, stab=0.25,
+			),
+		]
+		values = next(iter(build_schedule_hour_totals(rows).values()))
+		self.assertEqual(values["total_paid_time_hrs"], 24)
+		self.assertEqual(values["total_planned_vos_hrs"], 3)
+		self.assertEqual(values["total_cm_co_hrs"], 1.5)
+		self.assertEqual(values["total_stabilization_hrs"], 0.75)
+		self.assertEqual(values["remaining_paid_hrs"], 0)
 
 	def test_secondary_output_uses_parent_quantity_and_factor_rate(self):
 		self.assertEqual(

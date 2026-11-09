@@ -6,6 +6,11 @@
  "field_order": [
   "machine",
   "plan_date",
+  "total_paid_time_hrs",
+  "total_planned_vos_hrs",
+  "total_cm_co_hrs",
+  "total_stabilization_hrs",
+  "remaining_paid_hrs",
   "possible_sales_orders_section",
   "possible_sales_orders",
   "scheduled_items_section",
@@ -25,6 +30,56 @@
    "options": "Workstation",
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "columns": 1,
+   "default": "24",
+   "fieldname": "total_paid_time_hrs",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Total Paid Hrs",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "total_planned_vos_hrs",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Total Planned VOS",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "total_cm_co_hrs",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Total CM/CO Hrs",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "total_stabilization_hrs",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Total Stabilization Hrs",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "default": "24",
+   "fieldname": "remaining_paid_hrs",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Remaining Paid Hrs",
+   "precision": "2",
+   "read_only": 1
   },
   {
    "columns": 2,
