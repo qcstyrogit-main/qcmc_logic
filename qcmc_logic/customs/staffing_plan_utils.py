@@ -1,5 +1,11 @@
 import frappe
 
+
+def apply_vacancy_adjustment(vacancies, adjusted_count):
+    """Apply a manual vacancy correction without allowing negative vacancies."""
+    return max((vacancies or 0) + (adjusted_count or 0), 0)
+
+
 @frappe.whitelist()
 def recalculate_staffing_plan(staffing_plan):
     """Recalculate total current positions directly via SQL (works after submit)."""
@@ -157,7 +163,7 @@ def recalculate_staffing_plan(staffing_plan):
 
 
             if adjusted_count != 0:
-                vacancies = vacancies + adjusted_count
+                vacancies = apply_vacancy_adjustment(vacancies, adjusted_count)
                 number_of_positions = (vacancies + additional_count + current_count)
                 frappe.db.set_value("Staffing Plan Detail", d.name, "number_of_positions", number_of_positions)
             
@@ -167,6 +173,7 @@ def recalculate_staffing_plan(staffing_plan):
             frappe.db.set_value("Staffing Plan Detail", d.name, "number_of_positions", number_of_positions)
         
 
+        vacancies = max(vacancies or 0, 0)
         frappe.db.set_value("Staffing Plan Detail", d.name, 
                             {"vacancies": vacancies,
                             "current_openings": current_openings })

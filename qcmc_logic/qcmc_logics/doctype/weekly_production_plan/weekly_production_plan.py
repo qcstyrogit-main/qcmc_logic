@@ -82,7 +82,7 @@ class WeeklyProductionPlan(Document):
 		if is_extrusion_section(self.section):
 			for row in self.get("extrusion_item_schedule"):
 				details = get_item_production_details(row.roll_code, row.machine, check_permission=False)
-				row.std_weight_kg = details.get("std_weight_gm")
+				row.std_weight_kg = details.get("roll_standard_weight_gm")
 				row.roll_description = details.get("product_description")
 				row.trim_percent = details.get("trim_percent")
 				row.soph = details.get("soph")
@@ -513,7 +513,8 @@ def get_item_production_details(item_code: str, machine: str, check_permission: 
 			bom.custom_number_of_cavity as cavs,
 			bom.custom_soph as soph,
 			bom.custom_rate_per_minute as cycle_time,
-			bom.custom_roll_trimmings_ as trim_percent
+			bom.custom_roll_trimmings_ as trim_percent,
+			bom.custom_standard_weight_grams as standard_weight_gm
 		from `tabBOM` bom
 		where bom.item = %(item_code)s
 			and bom.docstatus = 1
@@ -545,6 +546,7 @@ def get_item_production_details(item_code: str, machine: str, check_permission: 
 		"cavs": bom[0].cavs,
 		"soph": bom[0].soph,
 		"std_weight_gm": item.get("weight_per_unit"),
+		"roll_standard_weight_gm": bom[0].standard_weight_gm or item.get("weight_per_unit"),
 		"cycle_time": bom[0].cycle_time,
 		"trim_percent": bom[0].trim_percent,
 	}

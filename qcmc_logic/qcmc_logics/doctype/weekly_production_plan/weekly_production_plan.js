@@ -716,18 +716,20 @@ function open_extrusion_item_dialog(frm, scheduleRow, rowName = null, initialPro
 		numeric("std_weight_kg", "StdWt", true, 0, 4),
 		{ fieldname: "roll_description", label: __("Rolldesc"), fieldtype: "Data", read_only: 1, default: existing?.roll_description },
 		{ fieldname: "used_for", label: __("Used For"), fieldtype: "Data", default: existing?.used_for },
-		numeric("paid_time", "PaidTim", false, 24), numeric("vos", "VOS"), numeric("change_over", "C.O."), numeric("stabilization", "Stab"), numeric("plan_hours", "PlanHrs", true, 24), numeric("trim_percent", "% Trim", true), numeric("soph", "SOPH", true), numeric("number_of_kgs", "NoofKgs", true), numeric("number_of_rolls", "NoofRolls", true),
+		numeric("paid_time", "PaidTim", false, 24), numeric("vos", "VOS"), numeric("change_over", "C.O."), numeric("stabilization", "Stab"), numeric("plan_hours", "PlanHrs", true, 24), numeric("trim_percent", "% Trim", true), numeric("soph", "SOPH", true), numeric("number_of_kgs", "NoofKgs"), numeric("number_of_rolls", "NoofRolls", true),
 		{ fieldname: "remarks", label: __("Remarks"), fieldtype: "Small Text", default: existing?.remarks },
 		{ fieldname: "color", label: __("Color"), fieldtype: "Data", default: existing?.color },
 		numeric("virgin", "Virgin"), numeric("reco", "Reco"), numeric("colorant", "Colorant"), numeric("additives", "Additives"),
 	];
 	dialog = new frappe.ui.Dialog({ title: __(rowName ? "Edit Extrusion Item" : "Add Extrusion Item"), size: "extra-large", fields: dialog_grid_fields(fields), primary_action_label: __("Save Row"), primary_action(values) {
+		if (!apply_extrusion_dialog_kgs(values)) return;
 		if (!validate_slot_paid_hours(frm, scheduleRow, tableField, "paid_time", values.paid_time, existing)) return;
 		const target = existing || frm.add_child(tableField);
 		Object.assign(target, values, { machine: scheduleRow.machine, plan_date: scheduleRow.plan_date });
 		frm.refresh_field(tableField); frm.dirty(); refresh_machine_schedule_totals(frm, scheduleRow); dialog.hide(); refresh_expanded_schedule_editor(frm, scheduleRow); keep_schedule_detail_open(frm, scheduleRow);
 	} });
 	for (const fieldname of ["paid_time", "vos", "change_over", "stabilization"]) dialog.fields_dict[fieldname].df.onchange = () => calculate_extrusion_dialog_output(dialog);
+	dialog.fields_dict.number_of_kgs.df.onchange = () => calculate_extrusion_dialog_paid_time_from_kgs(dialog);
 	dialog.show(); calculate_extrusion_dialog_output(dialog);
 	if (initialProduct) load_extrusion_dialog_details(dialog, scheduleRow.machine);
 }
@@ -736,7 +738,7 @@ async function load_extrusion_dialog_details(dialog, machine) {
 	const itemCode = dialog.get_value("roll_code"); if (!itemCode) return;
 	const response = await frappe.call({ method: "qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan.get_item_production_details", args: { item_code: itemCode, machine } });
 	const details = response.message || {};
-	dialog.set_value("std_weight_kg", details.std_weight_gm || 0);
+	dialog.set_value("std_weight_kg", details.roll_standard_weight_gm || 0);
 	dialog.set_value("roll_description", details.product_description || "");
 	dialog.set_value("trim_percent", details.trim_percent || 0);
 	dialog.set_value("soph", details.soph || 0);
@@ -746,9 +748,48 @@ async function load_extrusion_dialog_details(dialog, machine) {
 function calculate_extrusion_dialog_output(dialog) {
 	const planHours = calculate_net_paid_hours(dialog.get_value("paid_time"), dialog.get_value("vos"), dialog.get_value("change_over"), dialog.get_value("stabilization"));
 	const kgs = planHours * flt(dialog.get_value("soph"));
-	dialog.set_value("plan_hours", planHours);
-	dialog.set_value("number_of_kgs", kgs);
-	dialog.set_value("number_of_rolls", flt(dialog.get_value("std_weight_kg")) ? kgs / flt(dialog.get_value("std_weight_kg")) : 0);
+	dialog.fields_dict.plan_hours.set_input(planHours);
+	dialog.fields_dict.number_of_kgs.set_input(kgs);
+	dialog.fields_dict.number_of_rolls.set_input(flt(dialog.get_value("std_weight_kg")) ? kgs / flt(dialog.get_value("std_weight_kg")) : 0);
+}
+
+function calculate_extrusion_dialog_paid_time_from_kgs(dialog) {
+	const kgs = flt(dialog.get_value("number_of_kgs"));
+	const soph = flt(dialog.get_value("soph"));
+	if (kgs < 0 || soph <= 0) return;
+
+	const planHours = kgs / soph;
+	const paidTime = planHours
+		+ flt(dialog.get_value("vos"))
+		+ flt(dialog.get_value("change_over"))
+		+ flt(dialog.get_value("stabilization"));
+	const standardWeight = flt(dialog.get_value("std_weight_kg"));
+	dialog.fields_dict.plan_hours.set_input(planHours);
+	dialog.fields_dict.paid_time.set_input(paidTime);
+	dialog.fields_dict.number_of_rolls.set_input(standardWeight ? kgs / standardWeight : 0);
+}
+
+function apply_extrusion_dialog_kgs(values) {
+	const kgs = flt(values.number_of_kgs);
+	const soph = flt(values.soph);
+	if (kgs < 0 || soph <= 0) {
+		frappe.msgprint({
+			title: __("Invalid NoofKgs"),
+			indicator: "red",
+			message: kgs < 0
+				? __("NoofKgs cannot be negative.")
+				: __("NoofKgs requires an SOPH greater than zero."),
+		});
+		return false;
+	}
+
+	values.plan_hours = kgs / soph;
+	values.paid_time = values.plan_hours
+		+ flt(values.vos)
+		+ flt(values.change_over)
+		+ flt(values.stabilization);
+	values.number_of_rolls = flt(values.std_weight_kg) ? kgs / flt(values.std_weight_kg) : 0;
+	return true;
 }
 
 function keep_schedule_detail_open(frm, scheduleRow) {
@@ -884,7 +925,7 @@ async function populate_extrusion_item(frm, cdt, cdn) {
 	});
 	const details = response.message || {};
 	for (const [fieldname, value] of Object.entries({
-		std_weight_kg: details.std_weight_gm,
+		std_weight_kg: details.roll_standard_weight_gm,
 		roll_description: details.product_description,
 		trim_percent: details.trim_percent,
 		soph: details.soph,
