@@ -7,6 +7,7 @@ from qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_pla
 	calculate_extrusion_values,
 	calculate_secondary_values,
 	extract_production_rows,
+	get_item_production_details,
 	get_possible_sales_order_items,
 	is_extrusion_section,
 	make_record_no,
@@ -99,6 +100,33 @@ class TestWeeklyProductionPlan(unittest.TestCase):
 		self.assertEqual(values["plan_hours"], 18)
 		self.assertEqual(values["number_of_kgs"], 1800)
 		self.assertEqual(values["number_of_rolls"], 0)
+
+	def test_extrusion_rolls_discard_the_decimal_portion(self):
+		self.assertEqual(calculate_extrusion_values(13, 0, 0, 0, 100, 300)["number_of_rolls"], 4)
+		self.assertEqual(calculate_extrusion_values(13.5, 0, 0, 0, 100, 300)["number_of_rolls"], 4)
+
+	@patch("qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan.frappe")
+	def test_extrusion_standard_weight_uses_bom_standard_pack(self, frappe):
+		frappe.db.sql.return_value = [
+			SimpleNamespace(
+				name="BOM-ROLL-001",
+				cavs=1,
+				soph=100,
+				cycle_time=1,
+				trim_percent=5,
+				standard_pack=361.75,
+			)
+		]
+		frappe.db.get_value.return_value = {
+			"item_name": "Roll Item",
+			"description": "Roll Item",
+			"weight_per_unit": 20,
+		}
+
+		details = get_item_production_details("ROLL-001", "EXT-01", check_permission=False)
+
+		self.assertEqual(details["roll_standard_weight_gm"], 361.75)
+		self.assertIn("bom.custom_standard_pack as standard_pack", frappe.db.sql.call_args.args[0])
 
 	def test_machine_schedule_hour_totals_for_fg_items(self):
 		rows = [

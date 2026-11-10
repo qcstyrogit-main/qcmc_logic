@@ -261,7 +261,7 @@ def calculate_extrusion_values(
 	return {
 		"plan_hours": plan_hours,
 		"number_of_kgs": number_of_kgs,
-		"number_of_rolls": number_of_kgs / weight if weight else 0,
+		"number_of_rolls": int(number_of_kgs / weight) if weight else 0,
 	}
 
 
@@ -514,7 +514,7 @@ def get_item_production_details(item_code: str, machine: str, check_permission: 
 			bom.custom_soph as soph,
 			bom.custom_rate_per_minute as cycle_time,
 			bom.custom_roll_trimmings_ as trim_percent,
-			bom.custom_standard_weight_grams as standard_weight_gm
+			bom.custom_standard_pack as standard_pack
 		from `tabBOM` bom
 		where bom.item = %(item_code)s
 			and bom.docstatus = 1
@@ -546,7 +546,7 @@ def get_item_production_details(item_code: str, machine: str, check_permission: 
 		"cavs": bom[0].cavs,
 		"soph": bom[0].soph,
 		"std_weight_gm": item.get("weight_per_unit"),
-		"roll_standard_weight_gm": bom[0].standard_weight_gm or item.get("weight_per_unit"),
+		"roll_standard_weight_gm": bom[0].standard_pack,
 		"cycle_time": bom[0].cycle_time,
 		"trim_percent": bom[0].trim_percent,
 	}

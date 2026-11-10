@@ -543,7 +543,7 @@ function extrusion_items_html(frm, scheduleRow, expanded = false) {
 		<td>${escape(row.roll_code || "")}</td><td>${format_plan_number(row.std_weight_kg, 4)}</td><td>${escape(row.roll_description || "")}</td>
 		<td>${inline_schedule_input(row, "extrusion_item_schedule", "used_for", { text: true })}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "paid_time")}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "vos")}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "change_over")}</td>
 		<td>${inline_schedule_input(row, "extrusion_item_schedule", "stabilization")}</td><td>${format_plan_number(row.plan_hours)}</td><td>${format_plan_number(row.trim_percent)}</td><td>${format_plan_number(row.soph)}</td>
-		<td>${format_plan_number(row.number_of_kgs)}</td><td>${format_plan_number(row.number_of_rolls)}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "remarks", { text: true })}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "color", { text: true })}</td>
+		<td>${inline_schedule_input(row, "extrusion_item_schedule", "number_of_kgs")}</td><td>${format_plan_number(row.number_of_rolls, 0)}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "remarks", { text: true })}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "color", { text: true })}</td>
 		<td>${inline_schedule_input(row, "extrusion_item_schedule", "virgin")}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "reco")}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "colorant")}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "additives")}</td>
 		<td class="text-nowrap"><button type="button" class="btn btn-xs btn-default js-edit-scheduled-item" data-table="extrusion_item_schedule" data-name="${row.name}">${__("Edit")}</button> <button type="button" class="btn btn-xs btn-default js-delete-scheduled-item" data-table="extrusion_item_schedule" data-name="${row.name}">${__("Remove")}</button></td>
 	</tr>`).join("") : `<tr><td colspan="20" class="text-muted text-center">${__("No extrusion items added.")}</td></tr>`;
@@ -591,6 +591,25 @@ function bind_scheduled_item_actions(wrapper, frm, scheduleRow) {
 			}
 			await frappe.model.set_value(row.doctype, row.name, "paid_hrs", paidHours);
 			calculate_plan_hours(frm, row.doctype, row.name);
+			refresh_machine_schedule_totals(frm, scheduleRow);
+			frm.dirty();
+			refresh_expanded_schedule_editor(frm, scheduleRow);
+			return;
+		}
+		if (tableField === "extrusion_item_schedule" && fieldname === "number_of_kgs") {
+			const soph = flt(row.soph);
+			if (value < 0 || soph <= 0) {
+				frappe.show_alert({ message: __("NoofKgs requires SOPH greater than zero and cannot be negative."), indicator: "orange" });
+				this.value = format_plan_number(row.number_of_kgs);
+				return;
+			}
+			const paidTime = value / soph + flt(row.vos) + flt(row.change_over) + flt(row.stabilization);
+			if (!validate_slot_paid_hours(frm, scheduleRow, tableField, "paid_time", paidTime, row)) {
+				this.value = format_plan_number(row.number_of_kgs);
+				return;
+			}
+			await frappe.model.set_value(row.doctype, row.name, "paid_time", paidTime);
+			calculate_extrusion_output(frm, row.doctype, row.name);
 			refresh_machine_schedule_totals(frm, scheduleRow);
 			frm.dirty();
 			refresh_expanded_schedule_editor(frm, scheduleRow);
@@ -716,7 +735,7 @@ function open_extrusion_item_dialog(frm, scheduleRow, rowName = null, initialPro
 		numeric("std_weight_kg", "StdWt", true, 0, 4),
 		{ fieldname: "roll_description", label: __("Rolldesc"), fieldtype: "Data", read_only: 1, default: existing?.roll_description },
 		{ fieldname: "used_for", label: __("Used For"), fieldtype: "Data", default: existing?.used_for },
-		numeric("paid_time", "PaidTim", false, 24), numeric("vos", "VOS"), numeric("change_over", "C.O."), numeric("stabilization", "Stab"), numeric("plan_hours", "PlanHrs", true, 24), numeric("trim_percent", "% Trim", true), numeric("soph", "SOPH", true), numeric("number_of_kgs", "NoofKgs"), numeric("number_of_rolls", "NoofRolls", true),
+		numeric("paid_time", "PaidTim", false, 24), numeric("vos", "VOS"), numeric("change_over", "C.O."), numeric("stabilization", "Stab"), numeric("plan_hours", "PlanHrs", true, 24), numeric("trim_percent", "% Trim", true), numeric("soph", "SOPH", true), numeric("number_of_kgs", "NoofKgs"), numeric("number_of_rolls", "NoofRolls", true, 0, 0),
 		{ fieldname: "remarks", label: __("Remarks"), fieldtype: "Small Text", default: existing?.remarks },
 		{ fieldname: "color", label: __("Color"), fieldtype: "Data", default: existing?.color },
 		numeric("virgin", "Virgin"), numeric("reco", "Reco"), numeric("colorant", "Colorant"), numeric("additives", "Additives"),
@@ -750,7 +769,7 @@ function calculate_extrusion_dialog_output(dialog) {
 	const kgs = planHours * flt(dialog.get_value("soph"));
 	dialog.fields_dict.plan_hours.set_input(planHours);
 	dialog.fields_dict.number_of_kgs.set_input(kgs);
-	dialog.fields_dict.number_of_rolls.set_input(flt(dialog.get_value("std_weight_kg")) ? kgs / flt(dialog.get_value("std_weight_kg")) : 0);
+	dialog.fields_dict.number_of_rolls.set_input(flt(dialog.get_value("std_weight_kg")) ? Math.floor(kgs / flt(dialog.get_value("std_weight_kg"))) : 0);
 }
 
 function calculate_extrusion_dialog_paid_time_from_kgs(dialog) {
@@ -766,7 +785,7 @@ function calculate_extrusion_dialog_paid_time_from_kgs(dialog) {
 	const standardWeight = flt(dialog.get_value("std_weight_kg"));
 	dialog.fields_dict.plan_hours.set_input(planHours);
 	dialog.fields_dict.paid_time.set_input(paidTime);
-	dialog.fields_dict.number_of_rolls.set_input(standardWeight ? kgs / standardWeight : 0);
+	dialog.fields_dict.number_of_rolls.set_input(standardWeight ? Math.floor(kgs / standardWeight) : 0);
 }
 
 function apply_extrusion_dialog_kgs(values) {
@@ -788,7 +807,7 @@ function apply_extrusion_dialog_kgs(values) {
 		+ flt(values.vos)
 		+ flt(values.change_over)
 		+ flt(values.stabilization);
-	values.number_of_rolls = flt(values.std_weight_kg) ? kgs / flt(values.std_weight_kg) : 0;
+	values.number_of_rolls = flt(values.std_weight_kg) ? Math.floor(kgs / flt(values.std_weight_kg)) : 0;
 	return true;
 }
 
@@ -941,7 +960,7 @@ function calculate_extrusion_output(frm, cdt, cdn) {
 	const kgs = planHours * flt(row.soph);
 	frappe.model.set_value(cdt, cdn, "plan_hours", planHours);
 	frappe.model.set_value(cdt, cdn, "number_of_kgs", kgs);
-	frappe.model.set_value(cdt, cdn, "number_of_rolls", flt(row.std_weight_kg) ? kgs / flt(row.std_weight_kg) : 0);
+	frappe.model.set_value(cdt, cdn, "number_of_rolls", flt(row.std_weight_kg) ? Math.floor(kgs / flt(row.std_weight_kg)) : 0);
 }
 
 function calculate_daily_volume(frm, cdt, cdn) {
