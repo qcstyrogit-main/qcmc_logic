@@ -106,7 +106,7 @@
   "enabled": 1,
   "module": null,
   "name": "AM - Remove Transfer",
-  "script": "frappe.ui.form.on('Asset Movement', {\r\n    onload: function(frm) {\r\n        const allowed_options = [\r\n            \"\",\r\n            \"Issue\",\r\n            \"Receipt\",\r\n        ];\r\n        frm.set_df_property('purpose', 'options', allowed_options.join('\\n'));\r\n    }\r\n});",
+  "script": "frappe.ui.form.on('Asset Movement', {\r\n    onload: function(frm) {\r\n        const allowed_options = [\r\n            \"\",\r\n            \"Issue\",\r\n            \"Receipt\",\r\n            \"Transfer and Issue\",\r\n        ];\r\n        frm.set_df_property('purpose', 'options', allowed_options.join('\\n'));\r\n    }\r\n});",
   "view": "Form"
  },
  {
