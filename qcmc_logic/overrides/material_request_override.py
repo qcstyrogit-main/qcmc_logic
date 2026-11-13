@@ -3,18 +3,34 @@ from erpnext.stock.doctype.material_request.material_request import MaterialRequ
 
 class CustomMaterialRequest(MaterialRequest):
 
+    def before_update_after_submit(self):
+        from qcmc_logic.customs.purchase_request_evaluation import validate_evaluation
+        from qcmc_logic.customs.purchase_request_history import validate_history
+
+        validate_evaluation(self)
+        validate_history(self)
+        super().before_update_after_submit()
+
     def before_cancel(self):
         from qcmc_logic.customs.purchase_request_workflow import validate_decision
+        from qcmc_logic.customs.purchase_request_history import validate_history
 
         validate_decision(self)
+        validate_history(self)
         parent = getattr(super(), "before_cancel", None)
         if parent:
             parent()
 
     def validate(self):
         from qcmc_logic.customs.purchase_request_workflow import validate_decision
+        from qcmc_logic.customs.purchase_request_history import validate_history
 
         validate_decision(self)
+        validate_history(self)
+        # Older form metadata supplied this literal default, preventing
+        # ERPNext's normal first-three-items title from being generated.
+        if self.title == '{material_request_type}':
+            self.title = None
         super().validate()
 
     def validate_warehouse(self):

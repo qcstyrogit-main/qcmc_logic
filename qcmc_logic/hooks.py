@@ -160,6 +160,7 @@ doc_events = {
     "Maintenance Job Order": {
         "autoname": "qcmc_logic.customs.maintenance_job_order.autoname",
         "validate": "qcmc_logic.customs.maintenance_job_order.validate",
+        "before_update_after_submit": "qcmc_logic.customs.maintenance_job_order.validate",
     },
     "Machine Shop Repairs and Project": {
         "validate": "qcmc_logic.customs.machine_shop_repairs_and_project.validate",
@@ -222,6 +223,7 @@ doctype_js = {
 }
 
 doctype_list_js = {
+    "Material Request": "public/js/material_request_list.js",
     "Issue": "public/js/issue_list.js",
     "Warehouse Allocation": "qcmc_logics/doctype/warehouse_allocation/warehouse_allocation_list.js",
     "Weekly Manpower Schedule": "qcmc_logics/doctype/weekly_manpower_schedule/weekly_manpower_schedule_list.js",

@@ -1,6 +1,7 @@
 """Reason capture and server-side safeguards for Purchase request decisions."""
 import frappe
 from frappe.utils import escape_html
+from qcmc_logic.customs.purchase_request_evaluation import EVALUATORS, validate_evaluation
 
 DECISIONS = {'Cancel': 'Cancelled Before Submission'}
 TERMINAL_STATES = {'Rejected', 'Cancelled Before Submission', 'Cancelled'}
@@ -9,6 +10,7 @@ APPROVAL_STATES = {
     'Pending Logistics Manager Approval', 'Pending Approval',
     'Pending Machine Shop Supervisor Approval', 'Pending MIS Supervisor Approval',
 }
+APPROVAL_STATES.update(EVALUATORS)
 
 
 @frappe.whitelist()
@@ -16,6 +18,9 @@ def apply_workflow(doc, action):
     from frappe.model.workflow import apply_workflow as standard_apply_workflow
 
     data = frappe.parse_json(doc) if isinstance(doc, str) else doc
+    if data.get('doctype') == 'Maintenance Job Order':
+        from qcmc_logic.customs.maintenance_job_order import apply_workflow as maintenance_apply_workflow
+        return maintenance_apply_workflow(data, action)
     if data.get('doctype') != 'Material Request' or action not in DECISIONS:
         return standard_apply_workflow(doc, action)
     current = frappe.get_doc('Material Request', data.get('name'))
@@ -47,9 +52,10 @@ def apply_workflow(doc, action):
 
 
 def validate_decision(doc):
-    if doc.material_request_type != 'Purchase':
-        return
+    validate_evaluation(doc)
     old = doc.get_doc_before_save()
+    if doc.material_request_type != 'Purchase' and (not old or old.get('material_request_type') != 'Purchase'):
+        return
     if not old:
         return
     if old.workflow_state in TERMINAL_STATES:

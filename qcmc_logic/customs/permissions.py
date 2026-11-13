@@ -382,17 +382,30 @@ def material_request_permission_query(user=None):
     other_states = sorted(states - {"Draft"})
     if other_states:
         state_conditions.append(f"{table}.workflow_state IN ({_sql_list(other_states)})")
+    from qcmc_logic.customs.purchase_request_history import include_previous_approvals, history_condition
+
+    if include_previous_approvals(user):
+        state_conditions.append(f"({history_condition(user)})")
     allowed = " OR ".join(state_conditions) or "1=0"
     purchase_condition = (
         f"(COALESCE({table}.material_request_type, '') != 'Purchase' OR ({allowed}))"
     )
     if warehouse_condition:
-        return f"({warehouse_condition}) AND {purchase_condition}"
+        purchase_condition = f"({warehouse_condition}) AND {purchase_condition}"
+    from qcmc_logic.customs.provincial_purchase_request import ROLE, has_other_permission
+
+    if ROLE in frappe.get_roles(user) and not has_other_permission(None, 'read', user):
+        purchase_condition = f"({purchase_condition}) AND {table}.material_request_type = 'Purchase'"
     return purchase_condition
 
 
 def material_request_has_permission(doc, ptype=None, user=None):
     user = user or frappe.session.user
+    if doc:
+        from qcmc_logic.customs.provincial_purchase_request import restrict_provincial_permission
+
+        if restrict_provincial_permission(doc, ptype, user) is False:
+            return False
     if doc and doc.get("material_request_type") == "Purchase" and ptype in {
         "write", "delete", "submit", "cancel", "amend"
     }:
@@ -401,13 +414,20 @@ def material_request_has_permission(doc, ptype=None, user=None):
         state = frappe.db.get_value("Material Request", doc.name, "workflow_state") if doc.get("name") else None
         if state in {"Rejected", "Cancelled Before Submission", "Cancelled"} or (state == "Draft" and doc.get("owner") != user):
             return False
+        from qcmc_logic.customs.purchase_request_history import previously_approved
+
+        if doc.get('owner') != user and state not in _material_request_visible_states(user) and previously_approved(doc, user):
+            return False
     if doc and doc.get("material_request_type") == "Purchase" and ptype in {
         None, "read", "select", "print", "email", "export"
     }:
         states = _material_request_visible_states(user)
         state = doc.get("workflow_state") or "Draft"
         if doc.get("owner") != user and (state == "Draft" or state not in states):
-            return False
+            from qcmc_logic.customs.purchase_request_history import previously_approved
+
+            if not previously_approved(doc, user):
+                return False
     return warehouse_transaction_has_permission(doc, ptype=ptype, user=user)
 
 

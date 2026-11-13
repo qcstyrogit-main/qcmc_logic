@@ -11544,5 +11544,17 @@
   "share": 1,
   "submit": 1,
   "write": 0
+ },
+ {
+  "doctype": "Custom DocPerm",
+  "name": "qcmc-provincial-pr-owner",
+  "parent": "Material Request",
+  "role": "Provincial Stock User",
+  "permlevel": 0,
+  "read": 1,
+  "write": 1,
+  "create": 1,
+  "print": 1,
+  "if_owner": 1
  }
 ]

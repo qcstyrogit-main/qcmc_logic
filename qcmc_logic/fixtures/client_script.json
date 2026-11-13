@@ -713,10 +713,10 @@
   "docstatus": 0,
   "doctype": "Client Script",
   "dt": "Material Request",
-  "enabled": 1,
+  "enabled": 0,
   "module": null,
   "name": "MR ID",
-  "script": "frappe.listview_settings['Material Request'] = {\r\n    refresh(listview) {\r\n        setTimeout(() => {\r\n            move_id_column_left();\r\n        }, 500);\r\n    }\r\n};\r\n\r\nfunction move_id_column_left() {\r\n    $(\".list-row-container .list-row\").each(function () {\r\n        let row = $(this);\r\n\r\n        let id_col = row.find(\".list-row-col\").last();\r\n\r\n        if (id_col.length) {\r\n            let checkbox_col = row.find(\".list-row-col.checkbox-col\").first();\r\n\r\n            if (checkbox_col.length) {\r\n                id_col.insertAfter(checkbox_col);\r\n            } else {\r\n                row.prepend(id_col);\r\n            }\r\n        }\r\n    });\r\n}",
+  "script": "frappe.listview_settings['Material Request'] = Object.assign(frappe.listview_settings['Material Request'] || {}, {\r\n    refresh(listview) {\r\n        setTimeout(() => {\r\n            move_id_column_left();\r\n        }, 500);\r\n    }\r\n});\r\n\r\nfunction move_id_column_left() {\r\n    $(\".list-row-container .list-row\").each(function () {\r\n        let row = $(this);\r\n\r\n        let id_col = row.find(\".list-row-col\").last();\r\n\r\n        if (id_col.length) {\r\n            let checkbox_col = row.find(\".list-row-col.checkbox-col\").first();\r\n\r\n            if (checkbox_col.length) {\r\n                id_col.insertAfter(checkbox_col);\r\n            } else {\r\n                row.prepend(id_col);\r\n            }\r\n        }\r\n    });\r\n}",
   "view": "Form"
  },
  {

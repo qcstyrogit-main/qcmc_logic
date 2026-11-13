@@ -28123,5 +28123,16 @@
   "property_type": "Check",
   "row_name": null,
   "value": "0"
+ },
+ {
+  "doctype": "Property Setter",
+  "name": "Material Request-title-default",
+  "doc_type": "Material Request",
+  "doctype_or_field": "DocField",
+  "field_name": "title",
+  "property": "default",
+  "property_type": "Data",
+  "value": "",
+  "is_system_generated": 0
  }
 ]

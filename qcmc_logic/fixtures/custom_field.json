@@ -45818,5 +45818,75 @@
   "translatable": 0,
   "unique": 0,
   "width": null
+ },
+ {
+  "doctype": "Custom Field",
+  "dt": "Material Request",
+  "name": "Material Request-custom_pr_evaluation_required",
+  "fieldname": "custom_pr_evaluation_required",
+  "label": "Required PR Evaluation",
+  "fieldtype": "Data",
+  "insert_after": "custom_request_type",
+  "read_only": 1,
+  "no_copy": 1
+ },
+ {
+  "doctype": "Custom Field",
+  "dt": "Material Request",
+  "name": "Material Request-custom_pr_evaluated_by",
+  "fieldname": "custom_pr_evaluated_by",
+  "label": "PR Evaluated By",
+  "fieldtype": "Link",
+  "options": "User",
+  "insert_after": "custom_pr_evaluation_required",
+  "read_only": 1,
+  "no_copy": 1
+ },
+ {
+  "doctype": "Custom Field",
+  "dt": "Material Request",
+  "name": "Material Request-custom_pr_evaluated_on",
+  "fieldname": "custom_pr_evaluated_on",
+  "label": "PR Evaluated On",
+  "fieldtype": "Datetime",
+  "insert_after": "custom_pr_evaluated_by",
+  "read_only": 1,
+  "no_copy": 1
+ },
+ {
+  "doctype": "Custom Field",
+  "dt": "Material Request",
+  "name": "Material Request-custom_pr_original_creator",
+  "fieldname": "custom_pr_original_creator",
+  "label": "Original PR Creator",
+  "fieldtype": "Link",
+  "options": "User",
+  "read_only": 1,
+  "no_copy": 1,
+  "insert_after": "custom_request_type"
+ },
+ {
+  "doctype": "Custom Field",
+  "dt": "Material Request",
+  "name": "Material Request-custom_pr_provincial_creator",
+  "fieldname": "custom_pr_provincial_creator",
+  "label": "Provincial PR Creator",
+  "fieldtype": "Check",
+  "read_only": 1,
+  "no_copy": 1,
+  "default": "0",
+  "insert_after": "custom_pr_original_creator"
+ },
+ {
+  "doctype": "Custom Field",
+  "dt": "Material Request",
+  "name": "Material Request-custom_pr_previous_approvers",
+  "fieldname": "custom_pr_previous_approvers",
+  "label": "Previous PR Approvers",
+  "fieldtype": "Long Text",
+  "hidden": 1,
+  "read_only": 1,
+  "no_copy": 1,
+  "insert_after": "custom_pr_evaluated_on"
  }
 ]
