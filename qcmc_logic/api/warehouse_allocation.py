@@ -54,11 +54,11 @@ def _audit(event_type, allocation, row=None, request_id=None, reason=None, devic
 
 
 def _load_allocation(name, user, mutate=True, allow_closed=False):
-	if not name or not frappe.db.exists("Warehouse Allocation", name):
-		raise WorkflowError("ALLOCATION_NOT_FOUND", "Warehouse Allocation was not found.")
-	doc = frappe.get_doc("Warehouse Allocation", name)
+	if not name or not frappe.db.exists("Storage Allocation", name):
+		raise WorkflowError("ALLOCATION_NOT_FOUND", "Storage Allocation was not found.")
+	doc = frappe.get_doc("Storage Allocation", name)
 	if not allow_closed and (doc.status in {"Completed", "Cancelled"} or doc.docstatus == 2):
-		raise WorkflowError("ALLOCATION_INCOMPLETE", "Warehouse Allocation is no longer open.")
+		raise WorkflowError("ALLOCATION_INCOMPLETE", "Storage Allocation is no longer open.")
 	try:
 		ensure_scanner_warehouse_access(user, [doc.warehouse], require_transact=mutate)
 	except frappe.PermissionError:
@@ -144,97 +144,24 @@ def _response(doc, selected_row=None):
 
 
 def _lock_and_reload(name, user):
-	frappe.db.sql("select name from `tabWarehouse Allocation` where name=%s for update", name)
+	from qcmc_logic.warehouse_capacity import lock_warehouses
+	lock_warehouses([frappe.db.get_value("Storage Allocation", name, "warehouse")])
+	frappe.db.sql("select name from `tabStorage Allocation` where name=%s for update", name)
 	return _load_allocation(name, user)
 
 
 def _committed_location_quantities(item_code, warehouse, exclude_allocation=None, exclude_stock_entry=None):
-	"""Return location occupancy recorded by Warehouse Allocation plus draft reservations.
-
-	Submitted Stock Entries are created before putaway and therefore do not carry the
-	final physical Storage Location. A completed Warehouse Allocation remains the
-	authoritative location occupancy and must continue consuming capacity.
-	"""
-	reserved = {}
-	allocation_rows = frappe.db.sql(
-		"""
-		select case when wal.status = 'VERIFIED'
-			then wal.actual_location else wal.suggested_location end as location,
-			sum(case when wal.status = 'VERIFIED'
-				then wal.actual_qty else wal.suggested_qty end) as qty
-		from `tabWarehouse Allocation Location` wal
-		inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
-		where wa.docstatus < 2 and wa.status != 'Cancelled'
-			and wal.item_code = %s and wa.warehouse = %s
-			and (%s = '' or wa.name != %s)
-		group by location
-		""",
-		(item_code, warehouse, exclude_allocation or "", exclude_allocation or ""),
-		as_dict=True,
-	)
-	for row in allocation_rows:
-		if row.location:
-			reserved[row.location] = float(_decimal(row.qty))
-
-	transfer_rows = frappe.db.sql(
-		"""
-		select location, sum(qty) as qty from (
-			select target_location as location, quantity as qty
-			from `tabLocation Transfer`
-			where docstatus = 1 and item_code = %s and warehouse = %s
-			union all
-			select source_location as location, -quantity as qty
-			from `tabLocation Transfer`
-			where docstatus = 1 and item_code = %s and warehouse = %s
-		) movements
-		group by location
-		""",
-		(item_code, warehouse, item_code, warehouse),
-		as_dict=True,
-	)
-	for row in transfer_rows:
-		if row.location:
-			reserved[row.location] = max(
-				reserved.get(row.location, 0) + float(Decimal(str(row.qty or 0))), 0,
-			)
-	count_rows = frappe.db.sql(
-		"""
-		select coalesce(nullif(pcr.location, ''), pcr.inventory_location) as location,
-			sum(pcr.variance) as qty
-		from `tabQCMC Physical Count Result` pcr
-		inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
-		where sr.docstatus = 1 and sr.custom_physical_count = 1
-			and pcr.item_code = %s and pcr.warehouse = %s
-		group by location
-		""",
-		(item_code, warehouse), as_dict=True,
-	)
-	for row in count_rows:
-		if row.location:
-			reserved[row.location] = max(
-				reserved.get(row.location, 0) + float(Decimal(str(row.qty or 0))), 0,
-			)
-
-	draft_rows = frappe.db.sql(
-		"""
-		select coalesce(nullif(sed.custom_actual_storage_location, ''),
-			nullif(sed.custom_recommended_storage_location, '')) as location,
-			sum(sed.transfer_qty) as qty
-		from `tabStock Entry Detail` sed
-		inner join `tabStock Entry` se on se.name = sed.parent
-		where se.docstatus = 0 and sed.item_code = %s and sed.t_warehouse = %s
-			and (%s = '' or se.name != %s)
-			and coalesce(nullif(sed.custom_actual_storage_location, ''),
-				nullif(sed.custom_recommended_storage_location, '')) is not null
-		group by location
-		""",
-		(item_code, warehouse, exclude_stock_entry or "", exclude_stock_entry or ""),
-		as_dict=True,
-	)
-	for row in draft_rows:
-		if row.location:
-			reserved[row.location] = reserved.get(row.location, 0) + float(_decimal(row.qty))
-	return reserved
+	"""Physical location stock plus open scanner/WRR reservations, once each."""
+	from qcmc_logic.warehouse_capacity import get_physical_quantities, get_reserved_quantities
+	quantities = get_physical_quantities(warehouse)
+	reserved = get_reserved_quantities(warehouse, exclude_allocation=exclude_allocation,
+		exclude_stock_entry=exclude_stock_entry)
+	result = {}
+	for source in (quantities, reserved):
+		for (item, location, _uom), quantity in source.items():
+			if item == item_code:
+				result[location] = result.get(location, 0) + quantity
+	return result
 
 
 def _live_location_capacity(doc, row, location):
@@ -262,19 +189,20 @@ def _live_location_capacity(doc, row, location):
 	if rule.get("custom_no_item_restriction"):
 		# Shared rules already derive free space from authoritative occupancy
 		# across every item at the location.
-		available = Decimal(str(
-			get_available_dimension_putaway_capacity(rule, item_code=row.item_code)
-		))
+		from qcmc_logic.warehouse_capacity import get_committed_totals
+		available = _decimal(rule.stock_capacity) - Decimal(str(get_committed_totals(
+			doc.warehouse, exclude_allocation=doc.name,
+			exclude_stock_entry=row.source_document).get(location.name, 0)))
 	else:
 		# Item-specific Stock Ledger dimensions may be absent or negative because
-		# Warehouse Allocation is the authoritative physical-location ledger.
+		# Storage Allocation is the authoritative physical-location ledger.
 		reserved = _committed_location_quantities(
 			row.item_code, doc.warehouse, exclude_allocation=doc.name,
 			exclude_stock_entry=row.source_document,
 		)
 		available = _decimal(rule.stock_capacity) - _decimal(reserved.get(location.name, 0))
 	for other in doc.locations:
-		if other.allocation_id == row.allocation_id or other.item_code != row.item_code:
+		if other.allocation_id == row.allocation_id or (not rule.get("custom_no_item_restriction") and other.item_code != row.item_code):
 			continue
 		other_location = other.actual_location if other.status == "VERIFIED" else other.suggested_location
 		if other_location == location.name:
@@ -352,8 +280,16 @@ def _reallocate_remainder(doc, changed_row, exclude_changed_location=True):
 		{changed_row.actual_location or changed_row.suggested_location}
 		if exclude_changed_location else set()
 	)
+	from qcmc_logic.warehouse_capacity import get_committed_totals
+	shared_capacity = get_committed_totals(doc.warehouse, exclude_allocation=doc.name,
+		exclude_stock_entry=changed_row.source_document)
+	for other in doc.locations:
+		other_location = other.actual_location if other.status == "VERIFIED" else other.suggested_location
+		if other_location:
+			shared_capacity[other_location] = shared_capacity.get(other_location, 0) + float(_allocated_quantity(other))
 	for suggested in _putaway_allocations(
 		source, allocation_row, reserved_capacity=reserved_capacity,
+		shared_reserved_capacity=shared_capacity,
 		excluded_locations=excluded_locations,
 		preferred_location=changed_row.actual_location or changed_row.suggested_location,
 	):
@@ -499,7 +435,7 @@ def _refresh_item_progress(allocation):
 
 def backfill_allocation_summary(name):
 	"""Repair summary tables on allocations created by older scanner code."""
-	allocation = frappe.get_doc("Warehouse Allocation", name)
+	allocation = frappe.get_doc("Storage Allocation", name)
 	_populate_summary_tables(allocation)
 	allocation.save(ignore_permissions=True)
 	frappe.db.commit()
@@ -521,8 +457,10 @@ def create_draft(batch_id, handover_token, transaction_type, warehouse, posting_
 		}, user)
 		if request.replay is not None:
 			return request.replay
+		from qcmc_logic.warehouse_capacity import lock_warehouses
+		lock_warehouses([warehouse])
 		batch = _get_batch(batch_id, user, token=handover_token, mutate=True)
-		existing_allocation = frappe.db.get_value("Warehouse Allocation", {"handover": batch.name}, "name")
+		existing_allocation = frappe.db.get_value("Storage Allocation", {"handover": batch.name}, "name")
 		if existing_allocation:
 			allocation = _load_allocation(existing_allocation, user, mutate=False)
 			response = _response(allocation)
@@ -537,14 +475,15 @@ def create_draft(batch_id, handover_token, transaction_type, warehouse, posting_
 		except frappe.PermissionError:
 			raise WorkflowError("WAREHOUSE_PERMISSION_DENIED", "Warehouse permission denied.", status=403)
 		allocation = frappe.get_doc({
-			"doctype": "Warehouse Allocation", "company": batch.company, "warehouse": warehouse,
+			"doctype": "Storage Allocation", "company": batch.company, "warehouse": warehouse,
 			"posting_date": getdate(posting_date), "posting_time": get_time(posting_time) if posting_time else None,
 			"status": "Draft", "handover": batch.name,
 			"transaction_type": transaction_type, "picker": picker.name, "checker": batch.checker_employee,
 			"device_id": device_id,
 		})
 		reserved_by_item = {}
-		shared_reserved_capacity = {}
+		from qcmc_logic.warehouse_capacity import get_committed_totals
+		shared_reserved_capacity = get_committed_totals(warehouse)
 		for source in batch.source_stock_entries:
 			stock_entry = _source_stock_entry(source.stock_entry, user, mutate=False, docstatus=1)
 			if str(stock_entry.modified) != str(source.source_modified):
@@ -829,14 +768,14 @@ def get_device_completed_history(device_id, mobile_token=None):
 			raise WorkflowError("DEVICE_ID_REQUIRED", "Scanner Device ID is required.")
 
 		names = frappe.get_all(
-			"Warehouse Allocation",
+			"Storage Allocation",
 			filters={"device_id": device_id, "status": "Completed", "docstatus": 1},
 			pluck="name",
 			order_by="completed_at desc, modified desc",
 		)
 		history = []
 		for name in names:
-			doc = frappe.get_doc("Warehouse Allocation", name)
+			doc = frappe.get_doc("Storage Allocation", name)
 			try:
 				ensure_scanner_warehouse_access(user, [doc.warehouse], require_transact=False)
 			except frappe.PermissionError:
@@ -875,7 +814,7 @@ def complete(warehouse_allocation, request_id, device_id=None, mobile_token=None
 		}, user)
 		if request.replay is not None:
 			return request.replay
-		doc = _load_allocation(warehouse_allocation, user)
+		doc = _lock_and_reload(warehouse_allocation, user)
 		if doc.picker != picker.name and user != "Administrator":
 			raise WorkflowError("PICKER_NOT_AUTHORIZED", "This allocation belongs to another Picker.", status=403)
 		pending = [row.allocation_id for row in doc.locations if row.status != "VERIFIED" or not row.actual_location]
@@ -910,7 +849,7 @@ def complete(warehouse_allocation, request_id, device_id=None, mobile_token=None
 		doc.status = "Completed"
 		doc.completed_at = now_datetime()
 		# Completing the scanner workflow is also the formal submission of the
-		# Warehouse Allocation document. Source Stock Entries were already
+		# Storage Allocation document. Source Stock Entries were already
 		# submitted during Checker confirmation and remain immutable here.
 		doc.flags.ignore_permissions = True
 		doc.submit()

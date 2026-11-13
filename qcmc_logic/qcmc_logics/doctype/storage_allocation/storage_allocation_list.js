@@ -1,5 +1,15 @@
-frappe.listview_settings["Warehouse Allocation"] = {
-	add_fields: ["status"],
+frappe.listview_settings["Storage Allocation"] = {
+	add_fields: ["status", "source_doctype", "source_document_count"],
+	formatters: {
+		source_document(value, df, doc) {
+			if (doc.source_document_count > 1) {
+				const label = __("Multiple documents ({0})", [doc.source_document_count]);
+				return `<span>${frappe.utils.escape_html(label)}</span>`;
+			}
+			if (!value || !doc.source_doctype) return "";
+			return frappe.utils.get_form_link(doc.source_doctype, value, true, frappe.utils.escape_html(value));
+		},
+	},
 	has_indicator_for_draft: true,
 	has_indicator_for_cancelled: true,
 	onload(listview) {
@@ -13,14 +23,14 @@ frappe.listview_settings["Warehouse Allocation"] = {
 					doc => ["Cancelled", "Completed"].includes(doc.status)
 				);
 				frappe.msgprint(already_closed
-					? __("The selected Warehouse Allocation is already {0}.", [checked[0].status])
-					: __("Select at least one Draft or In Progress Warehouse Allocation."));
+					? __("The selected Storage Allocation is already {0}.", [checked[0].status])
+					: __("Select at least one Draft or In Progress Storage Allocation."));
 				return;
 			}
 			frappe.confirm(
-				__("Abandon {0} selected Warehouse Allocation(s)? Their location reservations will be released.", [selected.length]),
+				__("Abandon {0} selected Storage Allocation(s)? Their location reservations will be released.", [selected.length]),
 				() => Promise.all(selected.map(doc => frappe.call({
-					method: "qcmc_logic.qcmc_logics.doctype.warehouse_allocation.warehouse_allocation.abandon_allocation",
+					method: "qcmc_logic.qcmc_logics.doctype.storage_allocation.storage_allocation.abandon_allocation",
 					args: { name: doc.name },
 				}))).then(() => listview.refresh())
 			);

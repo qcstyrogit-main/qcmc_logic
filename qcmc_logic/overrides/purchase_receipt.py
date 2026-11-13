@@ -30,9 +30,46 @@ def make_purchase_invoice(source_name, target_doc=None, args=None):
 
 
 class CustomPurchaseReceipt(PurchaseReceipt):
+	@property
+	def custom_warehouse_allocation(self):
+		from qcmc_logic.wrr_allocation import get_allocation_grid_rows
+		return get_allocation_grid_rows(self)
+
 	def before_validate(self):
-		if self.get("items") and self.apply_putaway_rule and not self.get("is_return"):
-			apply_dimension_putaway_rule(self.doctype, self.get("items"), self.company)
+		from qcmc_logic.wrr_allocation import prepare_receipt
+		prepare_receipt(self)
 
 	def validate_putaway_capacity(self):
-		validate_dimension_putaway_capacity(self)
+		from qcmc_logic.wrr_allocation import uses_allocation
+		if not uses_allocation(self):
+			validate_dimension_putaway_capacity(self)
+
+	def on_update(self):
+		super().on_update()
+		if self.docstatus == 0:
+			from qcmc_logic.wrr_allocation import sync_allocations
+			sync_allocations(self)
+
+	def before_submit(self):
+		from qcmc_logic.wrr_allocation import sync_allocations
+		sync_allocations(self, require_complete=True)
+
+	def on_submit(self):
+		super().on_submit()
+		from qcmc_logic.wrr_allocation import submit_allocations
+		submit_allocations(self)
+
+	def before_cancel(self):
+		from qcmc_logic.warehouse_capacity import lock_warehouses
+		lock_warehouses(item.warehouse for item in self.items)
+		super().before_cancel()
+
+	def on_cancel(self):
+		from qcmc_logic.wrr_allocation import cancel_allocations
+		cancel_allocations(self)
+		super().on_cancel()
+
+	def on_trash(self):
+		from qcmc_logic.wrr_allocation import delete_draft_allocations
+		delete_draft_allocations(self)
+		super().on_trash()

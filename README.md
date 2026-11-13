@@ -76,6 +76,60 @@ Deploy with the normal app migration, or sync this Page alone using
 and clear the site's cache. This Page uses its standard script; no asset build
 or additional dependencies are required.
 
+### Putaway Rule Location Priority
+
+New Putaway Rules receive the next priority automatically within Company,
+Warehouse and Item. **No Item Restriction** rules have a separate sequence.
+Priority is read-only; edits retain it, while changing the grouping fields
+appends the rule to its destination group. Disabled rules reserve their positions.
+
+On a saved rule, choose **Manage Location Order**. Drag rows or select one row
+and use **Move Up / Move Down**, then **Save Order** to assign positions 1, 2, 3,
+and so on. The first row fills first. Existing priorities remain unchanged until
+you explicitly save an order. Save form changes before opening the ordering
+dialog. Stale orders are rejected so they cannot overwrite another user's changes.
+
+Deploy with the normal migration, or run
+`bench --site erp.qcstyro.local execute qcmc_logic.patches.add_putaway_priority_index.execute`
+and clear the site cache. No asset build is required.
+
+In WRR (Purchase Receipt), **Items** holds bulk quantities without storage
+locations. After saving, **Storage Allocation** displays location splits from
+linked Storage Allocation documents in a native read-only ERPNext table,
+one allocation document per accepted warehouse. The table is computed from the
+linked documents and does not store another copy of their rows. Saving again
+updates those same documents. **Apply Putaway Rule** is checked and unchecked
+manually. When unchecked, saving skips automatic allocation and releases any
+existing draft allocation reservations; checking it again rebuilds the plan.
+Item-specific rules take precedence over wildcard
+rules, then allocation follows rule priority and available capacity. Full
+locations are skipped; excess quantity remains **Unallocated** without reducing
+the bulk receipt quantity.
+
+Saved draft allocations reserve space across WRR and scanner putaway. When
+Apply Putaway Rule is checked, **Receive** rechecks live capacity and requires
+full allocation, then submits WRR and its
+allocations atomically. Cancel WRR cancels its allocations. Manage these
+allocations through WRR rather than editing or submitting them independently.
+Returns against these receipts reverse the original saved locations, subject to
+remaining returnable quantities and current physical stock.
+
+Submitted allocation rows supply the Storage Location tree, movement history,
+summary and used capacity. The native receipt posts bulk warehouse quantities
+without a second location contribution. Legacy submitted WRRs keep their
+existing locations and history. Physical counts replace earlier balances;
+subsequent completed allocations add to them.
+
+Deploy the WRR fields with the normal migration or reload the Warehouse
+Allocation, Warehouse Allocation Location and WRR Allocation Detail DocTypes, run
+`bench --site erp.qcstyro.local execute qcmc_logic.patches.set_wrr_allocation_native_table.execute`,
+and clear cache. No asset build is required.
+
+The allocation parent DocType is **Storage Allocation**. The pre-model-sync
+rename patch preserves existing `WA-...` record numbers, child rows and links.
+Scanner API endpoints and response keys retain their existing names for
+compatibility. The child DocTypes retain their internal names.
+
 ### Storage Location Summary
 
 Open **Storage Location Summary** from ERP search, or select a node in the
@@ -87,8 +141,16 @@ to include locations without positive stock.
 Parent rows include their descendants and count distinct items. Quantities with
 different stock UOMs are listed separately under **Quantity by UOM**; the numeric
 parent quantity stays blank for mixed units. Parent and item rows must not be
-added together. The report uses current physical allocations, transfers and
-physical counts, with warehouse, location and item read access enforced.
+added together. The report uses current physical allocations, transfers, WRR
+receipts and physical counts, with warehouse, location and item read access enforced.
+
+Location rows also show **Capacity**, **Used Capacity**, **Available Capacity**
+and **Use Percentage**, using the tree's Putaway Rule/location capacity settings.
+Capacity figures are shown only on individual storage locations; parent rows
+remain blank. Capacity usage reflects all stock, including items excluded by the
+Item filter. Unlimited capacity is marked **Unlimited**; unconfigured or mixed
+capacity units remain blank. Available capacity stops at zero, while usage may
+exceed 100% for overfilled locations.
 
 Register with `bench --site erp.qcstyro.local reload-doc qcmc_logics report storage_location_summary`
 and clear the site cache. No asset build is required.

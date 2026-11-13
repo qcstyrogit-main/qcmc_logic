@@ -132,9 +132,16 @@ def get_location_total_physical_balance(warehouse, location):
 			select item_code, sum(quantity) as quantity, max(counted_at) as counted_at
 			from ranked_groups where row_rank = 1 group by item_code
 		), movement as (
+			select sle.item_code, sle.actual_qty as quantity
+			from `tabStock Ledger Entry` sle
+			left join latest_counts lc on lc.item_code = sle.item_code
+			where sle.voucher_type = 'Purchase Receipt' and sle.is_cancelled = 0
+				and sle.warehouse = %(warehouse)s and sle.location = %(location)s
+				and (lc.counted_at is null or sle.posting_datetime > lc.counted_at)
+			union all
 			select wal.item_code, wal.actual_qty as quantity
 			from `tabWarehouse Allocation Location` wal
-			inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
+			inner join `tabStorage Allocation` wa on wa.name = wal.parent
 			where wa.docstatus = 1 and wa.status = 'Completed'
 				and wa.warehouse = %(warehouse)s and wal.status = 'VERIFIED'
 				and wal.actual_location = %(location)s
@@ -162,12 +169,18 @@ def get_location_total_physical_balance(warehouse, location):
 	)[0][0])
 
 
-def apply_dimension_putaway_rule(doctype, items, company, sync=None, purpose=None):
+@frappe.whitelist()
+def apply_dimension_putaway_rule(doctype, items, company, sync=None, purpose=None, stock_entry_type=None):
+	sync = frappe.sbool(sync)
 	if isinstance(items, str):
 		items = json.loads(items)
 
+	# WRR keeps purchasing rows bulk; its linked allocation is built on save.
+	if doctype == "Purchase Receipt" or (doctype == "Stock Entry" and stock_entry_type == "Material Receipt" and purpose == "Material Receipt"):
+		return items if sync else None
+
 	if doctype == "Stock Entry" and purpose not in RECEIVING_STOCK_ENTRY_PURPOSES:
-		return items if sync and json.loads(sync) else None
+		return items if sync else None
 
 	items_not_accommodated, updated_table = [], []
 	item_wise_rules = defaultdict(list)
@@ -258,7 +271,7 @@ def apply_dimension_putaway_rule(doctype, items, company, sync=None, purpose=Non
 		items[:] = updated_table
 		frappe.msgprint(_("Applied putaway rules."), alert=True)
 
-	if sync and json.loads(sync):
+	if sync:
 		return items
 
 
@@ -285,13 +298,17 @@ def get_item_rule_key(doctype, purpose, item_code, source_warehouse, item):
 	return (item_code, dimension_key)
 
 
-def get_ordered_dimension_putaway_rules(item_code, company, source_warehouse=None, item_dimensions=None):
+def get_ordered_dimension_putaway_rules(item_code, company, source_warehouse=None, item_dimensions=None, include_full=False, current=False, target_warehouse=None):
 	filters = {"company": company, "disable": 0}
-	if source_warehouse:
+	if target_warehouse:
+		if source_warehouse == target_warehouse:
+			return False, None
+		filters["warehouse"] = target_warehouse
+	elif source_warehouse:
 		filters.update({"warehouse": ["!=", source_warehouse]})
 
 	fields = [
-		"name", "item_code", "stock_capacity", "priority", "warehouse",
+		"name", "item_code", "stock_capacity", "stock_uom", "priority", "warehouse",
 		*get_rule_dimension_fields(),
 	]
 	no_item_field = "custom_no_item_restriction"
@@ -308,7 +325,10 @@ def get_ordered_dimension_putaway_rules(item_code, company, source_warehouse=Non
 		filters=filters,
 		or_filters=_get_item_restriction_filters(item_code) if has_no_item_field else {"item_code": item_code},
 		order_by="priority asc, capacity desc",
+		run=not current,
 	)
+	if current:
+		rules = frappe.db.sql(str(rules) + " for update", as_dict=True)
 	for rule in rules:
 		location = rule.get("location")
 		if not location:
@@ -330,10 +350,13 @@ def get_ordered_dimension_putaway_rules(item_code, company, source_warehouse=Non
 		dimensions = get_rule_dimension_values(rule)
 		if rule.get("custom_no_capacity_restriction"):
 			free_space = UNLIMITED_PUTAWAY_CAPACITY
+		elif include_full:
+			# The caller checks capacity against current locked movement rows.
+			free_space = flt(rule.stock_capacity)
 		else:
 			balance_qty = get_putaway_rule_balance(rule, item_code=item_code)
 			free_space = flt(rule.stock_capacity) - flt(balance_qty)
-		if free_space > 0:
+		if free_space > 0 or include_full:
 			rule["free_space"] = free_space
 			vacant_rules.append(rule)
 
@@ -398,7 +421,10 @@ def add_row(item, to_allocate, warehouse, updated_table, rule=None, rule_dimensi
 
 	for fieldname, value in (rule_dimensions or {}).items():
 		if frappe.get_meta(new_row.doctype).has_field(fieldname):
-			new_row.set(fieldname, value)
+			if isinstance(new_row, dict):
+				new_row[fieldname] = value
+			else:
+				new_row.set(fieldname, value)
 
 	if serial_nos:
 		new_row.serial_no = "\n".join(serial_nos[0 : cint(to_allocate)])

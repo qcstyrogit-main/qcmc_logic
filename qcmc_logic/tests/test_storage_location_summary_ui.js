@@ -21,6 +21,13 @@ async function main() {
     assert.equal(report.filters.find(filter => filter.fieldname === "warehouse").reqd, 1);
     assert.equal(report.formatter(0, {}, {fieldname: "stock_qty"}, {stock_qty: null}, () => "0"), "", "Mixed-UOM summaries must not display a false zero quantity");
     assert.equal(report.formatter(12, {}, {fieldname: "stock_qty"}, {stock_qty: 12}, value => String(value)), "12");
+    assert.equal(report.formatter(null, {}, {fieldname: "capacity"}, {capacity_unlimited: true}, () => "0"), "Unlimited");
+    assert.equal(report.formatter(null, {}, {fieldname: "available_capacity"}, {available_capacity: null}, () => "0"), "");
+    assert.equal(report.formatter(70, {}, {fieldname: "use_percentage"}, {use_percentage: 70}, value => String(value)), "70%");
+    assert.equal(report.formatter(null, {}, {fieldname: "use_percentage"}, {use_percentage: null}, () => "0"), "");
+    let expansions = 0;
+    report.after_datatable_render({rowmanager: {expandAllNodes() {expansions++;}}});
+    assert.equal(expansions, 1, "The report must continue opening fully expanded");
     report.onload({
         get_filter_value: () => "WH",
         page: {add_inner_button: (label, action) => buttons.push({label, action})},

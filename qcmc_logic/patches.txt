@@ -1,4 +1,5 @@
 [pre_model_sync]
+qcmc_logic.patches.rename_warehouse_allocation
 # Patches added in this section will be executed before doctypes are migrated
 # Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
 
@@ -141,6 +142,14 @@ qcmc_logic.patches.set_weekly_production_plan_active_status
 qcmc_logic.patches.rename_weekly_manpower_schedule_ns_fields
 qcmc_logic.patches.disable_legacy_delivery_reports
 qcmc_logic.patches.grant_invoicing_clerk_sales_invoice_access
+qcmc_logic.patches.add_putaway_priority_index
+qcmc_logic.patches.setup_wrr_allocation
+qcmc_logic.patches.set_wrr_allocation_native_table
+qcmc_logic.patches.set_storage_allocation_source
+qcmc_logic.patches.setup_warehouse_transfer_allocation
+qcmc_logic.patches.setup_wts_handover_doctype
+qcmc_logic.patches.setup_delivery_note_return_allocation
+qcmc_logic.patches.setup_material_receipt_allocation
 qcmc_logic.patches.add_purchase_request_evaluations
 qcmc_logic.patches.add_provincial_purchase_request_routes
 qcmc_logic.patches.fix_material_request_placeholder_titles

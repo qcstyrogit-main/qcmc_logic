@@ -15,6 +15,7 @@ frappe.ui.form.on("Stock Entry", {
     setup(frm) {
         qcmc_logic.stock_entry.setup_manufacture_row_lock(frm);
         qcmc_logic.stock_entry.apply_manufacturing_warehouse_queries(frm);
+        qcmc_logic.stock_entry.watch_manufacturing_pick_action(frm);
     },
 
     refresh(frm) {
@@ -23,6 +24,9 @@ frappe.ui.form.on("Stock Entry", {
         qcmc_logic.stock_entry.add_job_card_button(frm);
         qcmc_logic.stock_entry.refresh_manufacture_row_locks(frm);
         qcmc_logic.stock_entry.refresh_warehouse_code(frm);
+        qcmc_logic.stock_entry.add_manufacturing_pick_action(frm);
+        qcmc_logic.stock_entry.set_manufacturing_connection_visibility(frm);
+        qcmc_logic.stock_entry.add_material_issue_source_attribution(frm);
     },
 
     company(frm) {
@@ -39,16 +43,144 @@ frappe.ui.form.on("Stock Entry", {
         qcmc_logic.stock_entry.add_job_card_button(frm);
         qcmc_logic.stock_entry.refresh_manufacture_row_locks(frm);
         qcmc_logic.stock_entry.refresh_warehouse_code(frm);
+        qcmc_logic.stock_entry.add_manufacturing_pick_action(frm);
+        qcmc_logic.stock_entry.set_manufacturing_connection_visibility(frm);
     },
 
     stock_entry_type(frm) {
         qcmc_logic.stock_entry.apply_job_card_field_rules(frm);
+        qcmc_logic.stock_entry.add_manufacturing_pick_action(frm);
+        qcmc_logic.stock_entry.set_manufacturing_connection_visibility(frm);
     },
 
     to_warehouse(frm) {
         qcmc_logic.stock_entry.refresh_warehouse_code(frm);
     },
 });
+
+qcmc_logic.stock_entry.is_manufacturing_pick = function(frm) {
+    return frm.doc.stock_entry_type === "Material Transfer for Manufacture"
+        && frm.doc.purpose === "Material Transfer for Manufacture";
+};
+
+qcmc_logic.stock_entry.is_material_issue_pick = function(frm) {
+    return frm.doc.stock_entry_type === "Material Issue"
+        && frm.doc.purpose === "Material Issue";
+};
+
+qcmc_logic.stock_entry.is_supported_pick = function(frm) {
+    return qcmc_logic.stock_entry.is_manufacturing_pick(frm)
+        || qcmc_logic.stock_entry.is_material_issue_pick(frm);
+};
+
+qcmc_logic.stock_entry.set_manufacturing_connection_visibility = function(frm) {
+    const link = frm.dashboard?.transactions_area?.find('.document-link[data-doctype="Pick List"]');
+    if (link?.length) link.toggle(qcmc_logic.stock_entry.is_supported_pick(frm));
+};
+
+qcmc_logic.stock_entry.watch_manufacturing_pick_action = function(frm) {
+    if (frm.__qcmc_manufacturing_pick_watched) return;
+    frm.__qcmc_manufacturing_pick_watched = true;
+    // Frappe rebuilds its Actions menu when opening from List View or
+    // editing an unsaved document. Reapply after both lifecycle events.
+    $(frm.wrapper).on("render_complete.qcmc_manufacturing_pick", () => {
+        frappe.after_ajax(() => {
+            if (frm.doctype === "Stock Entry") {
+                qcmc_logic.stock_entry.add_manufacturing_pick_action(frm);
+                qcmc_logic.stock_entry.add_material_issue_source_attribution(frm);
+                qcmc_logic.stock_entry.set_manufacturing_connection_visibility(frm);
+            }
+        });
+    });
+    $(frm.wrapper).on("dirty.qcmc_manufacturing_pick", () => {
+        setTimeout(() => qcmc_logic.stock_entry.add_manufacturing_pick_action(frm), 0);
+    });
+};
+
+qcmc_logic.stock_entry.add_manufacturing_pick_action = function(frm) {
+    if (frm.is_new() || frm.doc.docstatus !== 0 || !qcmc_logic.stock_entry.is_supported_pick(frm)) return;
+    if (!(frm.doc.items || []).some(row => flt(row.qty) > 0)) return;
+    frm.page.add_action_item(__("Create Pick List"), async () => {
+        if (frm.is_dirty()) {
+            frappe.msgprint(__("Save the Stock Entry before creating its Pick List."));
+            return;
+        }
+        try {
+            const method = qcmc_logic.stock_entry.is_material_issue_pick(frm)
+                ? "qcmc_logic.stock_entry_material_issue_pick_list.create_pick_list_from_material_issue"
+                : "qcmc_logic.stock_entry_manufacture_pick_list.create_pick_list_from_stock_entry";
+            const result = await frappe.xcall(method, {stock_entry: frm.doc.name});
+            if (result?.name) frappe.set_route("Form", "Pick List", result.name);
+        } catch (error) {
+            console.error("Manufacturing Pick List creation failed", error);
+        }
+    });
+};
+
+qcmc_logic.stock_entry.add_material_issue_source_attribution = function(frm) {
+    if (frm.doc.docstatus !== 1 || !qcmc_logic.stock_entry.is_material_issue_pick(frm) ||
+        frm.doc.pick_list) return;
+    frm.page.add_action_item(__("Restore Verified Pick List"), () => {
+        frappe.prompt({
+            fieldname: "pick_list", fieldtype: "Link", options: "Pick List",
+            label: __("Original Submitted Pick List"), reqd: 1
+        }, async values => {
+            await frappe.xcall(
+                "qcmc_logic.stock_entry_material_issue_pick_list.restore_submitted_material_issue_pick_list",
+                {stock_entry: frm.doc.name, pick_list: values.pick_list}
+            );
+            frappe.show_alert({message: __("Verified Pick List restored."), indicator: "green"}, 8);
+            frm.reload_doc();
+        }, __("Restore Original Pick List"), __("Restore"));
+    });
+    const rows = (frm.doc.items || []).filter(row => flt(row.qty) > 0 &&
+        row.s_warehouse && !row.custom_actual_storage_location);
+    if (!rows.length) return;
+    frm.page.add_action_item(__("Record Source Location"), () => {
+        const dialog = new frappe.ui.Dialog({
+            title: __("Confirm historical Material Issue source"),
+            fields: [
+                {
+                    fieldname: "item_row", fieldtype: "Select", reqd: 1,
+                    label: __("Issued Item Row"),
+                    options: rows.map(row => row.name).join("\n"),
+                    default: rows[0].name,
+                    description: rows.map(row =>
+                        `${row.name}: ${row.item_code} — ${format_number(row.transfer_qty || row.qty)} ${row.stock_uom || row.uom}`
+                    ).join(" | ")
+                },
+                {
+                    fieldname: "storage_location", fieldtype: "Link",
+                    options: "Storage Location", reqd: 1,
+                    label: __("Actual Source Storage Location")
+                },
+                {
+                    fieldname: "confirmation", fieldtype: "Check", reqd: 1,
+                    label: __("I have verified that these items were physically issued from this Storage Location.")
+                }
+            ],
+            primary_action_label: __("Record Source"),
+            primary_action: async values => {
+                if (!values?.confirmation) {
+                    frappe.msgprint(__("Confirm the actual physical source location first."));
+                    return;
+                }
+                await frappe.xcall(
+                    "qcmc_logic.stock_entry_material_issue_pick_list.attribute_submitted_material_issue_source",
+                    {stock_entry: frm.doc.name, item_row: values.item_row,
+                        storage_location: values.storage_location}
+                );
+                dialog.hide();
+                frappe.show_alert({
+                    message: __("Source location recorded. Storage Location balances now include this OUT."),
+                    indicator: "green"
+                }, 8);
+                frm.reload_doc();
+            }
+        });
+        dialog.show();
+    });
+};
 
 qcmc_logic.stock_entry.apply_manufacturing_warehouse_queries = function(frm) {
     frm.set_query("work_order", () => ({
@@ -403,8 +535,18 @@ qcmc_logic.stock_entry.fetch_job_card_items = function(frm, dialog, job_card) {
                 dialog.hide();
 
                 if (!(frm.doc.items || []).length) {
-                    frappe.msgprint(__("No pending material was returned for the selected Job Card."));
+                    frappe.msgprint(__("No pending material was returned for the selected Work Order."));
                     return;
+                }
+
+                if (details.material_transfer_scope === "Work Order" &&
+                    frm.doc.purpose === "Material Transfer for Manufacture") {
+                    frappe.show_alert({
+                        message: __("Items were fetched from Work Order {0}. Review the quantities before saving; they are not limited to Job Card {1}.", [
+                            details.work_order, details.job_card
+                        ]),
+                        indicator: "blue"
+                    }, 12);
                 }
 
                 frm.refresh();
@@ -489,3 +631,43 @@ qcmc_logic.stock_entry.apply_manufacture_row_lock = function(frm, grid_row) {
         .find(".grid-delete-row, .grid-move-row, .grid-duplicate-row")
         .hide();
 };
+
+qcmc_logic.stock_entry.configure_storage_allocation = function(frm) {
+    const material_receipt = frm.doc.stock_entry_type === 'Material Receipt';
+    frm.set_df_property('custom_storage_allocation_section', 'hidden',
+        frm.is_new() || !material_receipt || !frm.doc.custom_storage_allocation_enabled || !frm.doc.apply_putaway_rule ? 1 : 0);
+    const grid = frm.fields_dict.items?.grid;
+    if (grid) {
+        grid._qcmc_receipt_storage_hidden ||= {};
+        for (const df of grid.docfields || []) {
+            if (df.options !== 'Storage Location' && df.fieldname !== 'putaway_rule') continue;
+            if (!(df.fieldname in grid._qcmc_receipt_storage_hidden)) {
+                grid._qcmc_receipt_storage_hidden[df.fieldname] = df.hidden || 0;
+            }
+            grid.update_docfield_property(df.fieldname, 'hidden', material_receipt ? 1 : grid._qcmc_receipt_storage_hidden[df.fieldname]);
+        }
+    }
+    frm.refresh_field('custom_storage_allocation');
+
+    // Native checkbox handling calls this function before custom field handlers.
+    // Keep Material Receipt bulk and preserve native behavior for every other type.
+    if (typeof erpnext !== 'undefined' && erpnext.apply_putaway_rule && !erpnext.apply_putaway_rule._qcmc_material_receipt) {
+        const original = erpnext.apply_putaway_rule;
+        const wrapped = function(form, ...args) {
+            if (form.doc.doctype === 'Stock Entry' && form.doc.stock_entry_type === 'Material Receipt') {
+                return;
+            }
+            return original.call(this, form, ...args);
+        };
+        wrapped._qcmc_material_receipt = true;
+        erpnext.apply_putaway_rule = wrapped;
+    }
+};
+
+frappe.ui.form.on('Stock Entry', {
+    setup: qcmc_logic.stock_entry.configure_storage_allocation,
+    refresh: qcmc_logic.stock_entry.configure_storage_allocation,
+    stock_entry_type: qcmc_logic.stock_entry.configure_storage_allocation,
+    apply_putaway_rule: qcmc_logic.stock_entry.configure_storage_allocation,
+    after_save: qcmc_logic.stock_entry.configure_storage_allocation,
+});

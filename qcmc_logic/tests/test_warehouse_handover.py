@@ -179,20 +179,11 @@ class TestWarehouseHandoverContract(unittest.TestCase):
 		self.assertEqual(rows[0].original_qty, 30000)
 
 	def test_capacity_counts_completed_warehouse_allocations(self):
-		queries = []
-
-		def sql(query, *_args, **_kwargs):
-			queries.append(query)
-			if "tabWarehouse Allocation Location" in query:
-				return [frappe._dict(location="LOC-1", qty=10000)]
-			return []
-
-		with patch("qcmc_logic.api.warehouse_allocation.frappe.db.sql", side_effect=sql):
+		with patch("qcmc_logic.warehouse_capacity.get_physical_quantities", return_value={
+			("ITEM-A", "LOC-1", "PCS"): 10000,
+		}), patch("qcmc_logic.warehouse_capacity.get_reserved_quantities", return_value={}):
 			reserved = _committed_location_quantities("ITEM-A", "FG - Test")
-
 		self.assertEqual(reserved["LOC-1"], 10000)
-		self.assertIn("wa.docstatus < 2", queries[0])
-		self.assertIn("wa.status != 'Cancelled'", queries[0])
 
 	def test_partial_allocation_uses_exact_source_row_and_preserves_remainder(self):
 		source = SimpleNamespace(items=[

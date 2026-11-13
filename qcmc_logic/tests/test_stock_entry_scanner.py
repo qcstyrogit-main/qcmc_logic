@@ -132,8 +132,11 @@ class TestStockEntryScannerContract(unittest.TestCase):
 	def test_create_draft_requires_pull_out_slip(self):
 		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="Administrator"), patch(
 			"frappe.db.exists", return_value=True
-		):
-			result = create_manufacture_receive_draft("PO-JOB00001", "")
+		), patch("frappe.db.get_value", return_value=None):
+			result = create_manufacture_receive_draft(
+				"PO-JOB00001", "", custom_actual_weight_per_item=1.25,
+				request_id="550e8400-e29b-41d4-a716-446655440000",
+			)
 		self.assertEqual(result["error_code"], "PULL_OUT_SLIP_REQUIRED")
 
 	def test_create_draft_remains_draft_and_returns_allocations(self):
@@ -171,9 +174,15 @@ class TestStockEntryScannerContract(unittest.TestCase):
 			return_value={"success": True, "stock_entry_id": "STE-1", "docstatus": 0, "status": "Draft"},
 		), patch(
 			"qcmc_logic.api.stock_entry_scanner._audit_manufacture_draft"
+		), patch(
+			"qcmc_logic.api.warehouse_workflow.finish_request", side_effect=lambda request, response: response
 		):
 			meta.return_value.has_field.return_value = True
-			result = create_manufacture_receive_draft("ITEM;10;PC;WO-1;PO-JOB00001", "POS-1")
+			result = create_manufacture_receive_draft(
+				"ITEM;10;PC;WO-1;PO-JOB00001", "POS-1",
+				custom_actual_weight_per_item=1.25,
+				request_id="550e8400-e29b-41d4-a716-446655440000",
+			)
 		self.assertTrue(result["success"], result)
 		self.assertEqual((result["docstatus"], result["status"]), (0, "Draft"))
 		self.assertFalse(result["existing_draft"])
@@ -310,7 +319,7 @@ class TestStockEntryScannerContract(unittest.TestCase):
 			{"allocation_id":"A1", "inventory_location":"R1"},
 			{"allocation_id":"A2", "inventory_location":"R2"},
 		]
-		with patch("qcmc_logic.api.stock_entry_scanner._putaway_allocations", return_value=allocations):
+		with patch("qcmc_logic.api.stock_entry_scanner._plan_finished_allocations", return_value={"ROW": allocations}):
 			with self.assertRaises(ScannerAPIError) as duplicate:
 				_split_finished_rows(doc, [row], [
 					{"stock_entry_row":"ROW", "allocation_id":"A1"},
@@ -669,9 +678,24 @@ class TestStockEntryScannerContract(unittest.TestCase):
 
 	def test_quantity_validation_rejects_zero_and_negative(self):
 		"""Requirement 3: Quantity must be greater than zero."""
+		job_card = frappe._dict(name="PO-JOB00001", work_order="WO-1")
+		work_order = frappe._dict(name="WO-1")
 		with patch("qcmc_logic.api.stock_entry_scanner._auth", return_value="Administrator"), patch(
 			"frappe.db.exists", return_value=True
+		), patch("frappe.db.get_value", return_value=None), patch(
+			"frappe.get_meta"
+		) as meta, patch("frappe.get_doc", return_value=job_card), patch(
+			"qcmc_logic.api.stock_entry_scanner._scanner_employee", return_value=None
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner.user_can_transact_job_card", return_value=True
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._get_work_order", return_value=work_order
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._can_use_job_card_for_purpose", return_value=True
+		), patch(
+			"qcmc_logic.api.stock_entry_scanner._pending_qty", return_value=10
 		):
+			meta.return_value.has_field.return_value = True
 			for qty in [0, -1, -100]:
 				result = create_manufacture_receive_draft(
 					"PO-JOB00001",

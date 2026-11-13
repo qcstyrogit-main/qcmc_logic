@@ -25,6 +25,12 @@ doc_events = {
         ]
     },
     "Warehouse Transfer": {   # 👈 name of your GUI Doctype
+        "onload": "qcmc_logic.warehouse_transfer_allocation.on_load",
+        "before_validate": "qcmc_logic.warehouse_transfer_allocation.before_validate",
+        "on_update": "qcmc_logic.warehouse_transfer_allocation.on_update",
+        "before_submit": "qcmc_logic.warehouse_transfer_allocation.before_submit",
+        "before_update_after_submit": "qcmc_logic.warehouse_transfer_allocation.before_update_after_submit",
+        "before_cancel": "qcmc_logic.warehouse_transfer_allocation.before_cancel",
         "validate": "qcmc_logic.customs.warehouse_transfer_events.validate_transfer_type_rules",
         "on_submit": "qcmc_logic.customs.warehouse_transfer_events.on_submit",
         "on_update_after_submit": "qcmc_logic.customs.warehouse_transfer_events.on_update_after_submit",
@@ -38,7 +44,10 @@ doc_events = {
         "before_validate": [
             "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
             "qcmc_logic.customs.sales_transaction_territory.populate_mapped_transaction_territory",
+            "qcmc_logic.delivery_note_pick_list.repair_delivery_note_pick_references",
         ],
+        "on_submit": "qcmc_logic.delivery_note_pick_list.sync_delivery_pick_list_progress",
+        "on_cancel": "qcmc_logic.delivery_note_pick_list.sync_delivery_pick_list_progress",
     },
     "POS Invoice": {
         "before_validate": "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
@@ -100,6 +109,7 @@ doc_events = {
             "qcmc_logic.customs.manufacturing_warehouse_access.validate_stock_entry_bom_company",
         ],
         "before_submit": [
+            "qcmc_logic.stock_entry_material_issue_pick_list.validate_material_issue_picking",
             "qcmc_logic.customs.stock_entry.validate_final_job_card_time_log",
         ],
         "on_submit": [
@@ -191,7 +201,14 @@ after_request = [
     "qcmc_logic.overrides.oauth_override.normalize_fac_oauth_challenge",
 ]
 
+override_doctype_dashboards = {
+    "Pick List": "qcmc_logic.pick_list_dashboard.get_data",
+    "Warehouse Transfer": "qcmc_logic.warehouse_transfer_connections.get_data",
+    "Stock Entry": "qcmc_logic.stock_entry_dashboard.get_data",
+}
+
 doctype_js = {
+    "Purchase Receipt": "public/js/purchase_receipt.js",
     "BOM": "public/js/bom.js",
     "Delivery Note": "public/js/delivery_note.js",
     "Item": "public/js/item.js",
@@ -208,7 +225,7 @@ doctype_js = {
     "Maintenance Job Order": "public/js/maintenance_job_order.js",
     "Payment Entry": "public/js/payment_entry.js",
     "Warehouse Transfer": "public/js/warehouse_transfer.js",
-    "Warehouse Allocation": "qcmc_logics/doctype/warehouse_allocation/warehouse_allocation.js",
+    "Storage Allocation": "qcmc_logics/doctype/storage_allocation/storage_allocation.js",
     "Overtime Slip": "public/js/overtime_slip.js",
     "Batch Other Adjustment Entry": "public/js/batch_other_adjustment_entry.js",
     "Payroll Entry": "public/js/payroll_entry.js",
@@ -225,12 +242,12 @@ doctype_js = {
 doctype_list_js = {
     "Material Request": "public/js/material_request_list.js",
     "Issue": "public/js/issue_list.js",
-    "Warehouse Allocation": "qcmc_logics/doctype/warehouse_allocation/warehouse_allocation_list.js",
+    "Storage Allocation": "qcmc_logics/doctype/storage_allocation/storage_allocation_list.js",
     "Weekly Manpower Schedule": "qcmc_logics/doctype/weekly_manpower_schedule/weekly_manpower_schedule_list.js",
 }
 
 # override_doctype_class = {
-    
+
 #    # ,"Stock Entry": "qcmc_logic.overrides.stock_entry_override.CustomStockEntry"
 # }
 
@@ -281,6 +298,7 @@ override_doctype_class = {
     "Material Request":"qcmc_logic.overrides.material_request_override.CustomMaterialRequest",
     "Stock Reconciliation": "qcmc_logic.overrides.stock_reconciliation.CustomStockReconciliation",
     "Putaway Rule": "qcmc_logic.overrides.putaway_rule.CustomPutawayRule",
+    "Delivery Note": "qcmc_logic.overrides.delivery_note_override.CustomDeliveryNote",
     "Purchase Receipt": "qcmc_logic.overrides.purchase_receipt.CustomPurchaseReceipt",
     "Stock Entry": "qcmc_logic.overrides.stock_entry.CustomStockEntry",
     "Job Card": "qcmc_logic.overrides.job_card.CustomJobCard",
@@ -409,9 +427,11 @@ fixtures = [
                 ],
             ],
         ],
-    },    
+    },
     {
-        "doctype": "Print Format"
+        "doctype": "Print Format",
+        # Warehouse Transfer Slip is deployed from source, never from fixtures.
+        "filters": [["name", "!=", "Warehouse Transfer Slip"]],
     },
     "Letter Head",
     {
@@ -429,6 +449,7 @@ before_migrate = [
 ]
 
 after_migrate = [
+    "qcmc_logic.warehouse_transfer_connections.ensure_connections_fields",
     "qcmc_logic.patches.update_purchase_request_attention.execute",
     "qcmc_logic.patches.ensure_daily_job_schedule_permissions.execute",
     "qcmc_logic.patches.restore_daily_job_schedule_navigation.execute",
@@ -442,6 +463,8 @@ after_migrate = [
     "qcmc_logic.patches.add_manufacturing_details_to_delivery_receipt_pr.execute",
     "qcmc_logic.patches.format_gaisano_customer_on_charge_invoices.execute",
     "qcmc_logic.patches.remove_retired_location_inventory_dimensions.execute",
+    # Apply last: any legacy Print Format fixture must not undo our QR template.
+    "qcmc_logic.warehouse_transfer_print_format.ensure_warehouse_transfer_slip",
 ]
 
 # # Or ensure it loads at boot
@@ -536,6 +559,8 @@ jinja = {
     "methods": [
         "qcmc_logic.api.hmo_print.get_hmo_plan_year_history",
         "qcmc_logic.customs.sales_order_print.get_sales_order_slip_items",
+        "qcmc_logic.wts_barcode.get_wts_code128_svg",
+        "qcmc_logic.wts_qr.get_wts_qr_svg",
     ],
 }
 

@@ -50,3 +50,57 @@ def make_delivery_trip(source_name, target_doc=None, kwargs=None):
     )
 
     return doclist
+
+
+from erpnext.stock.doctype.delivery_note.delivery_note import DeliveryNote
+from qcmc_logic import delivery_note_return_allocation as allocation
+
+
+class CustomDeliveryNote(DeliveryNote):
+    def extend(self, key, value):
+        if key == 'custom_storage_allocation':
+            # Frappe's lazy append reads the computed property again. Populate
+            # this virtual table directly to avoid recursive property loading.
+            from frappe.model.base_document import BaseDocument
+            for row in value:
+                BaseDocument.append(self, key, row)
+            return
+        return super().extend(key, value)
+
+    @property
+    def custom_storage_allocation(self):
+        return allocation.get_allocation_grid_rows(self)
+
+    def before_validate(self):
+        allocation.prepare_return(self)
+
+    def validate(self):
+        super().validate()
+        allocation.clear_bulk_storage_locations(self)
+
+    def on_update(self):
+        super().on_update()
+        if self.docstatus == 0:
+            allocation.sync_allocations(self)
+
+    def before_submit(self):
+        allocation.prepare_return(self)
+        allocation.sync_allocations(self, require_complete=True)
+
+    def on_submit(self):
+        super().on_submit()
+        allocation.submit_allocations(self)
+
+    def before_cancel(self):
+        from qcmc_logic.warehouse_capacity import lock_warehouses
+        lock_warehouses([row.warehouse for row in self.items + (self.get('packed_items') or [])]
+                        + [a.warehouse for a in allocation.linked_allocations(self.name)])
+        super().before_cancel()
+
+    def on_cancel(self):
+        allocation.cancel_allocations(self)
+        super().on_cancel()
+
+    def on_trash(self):
+        allocation.delete_draft_allocations(self)
+        super().on_trash()

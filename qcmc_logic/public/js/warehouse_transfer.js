@@ -3,14 +3,34 @@ frappe.provide("qcmc_logic.warehouse_transfer");
 frappe.ui.form.on("Warehouse Transfer", {
     setup(frm) {
         qcmc_logic.warehouse_transfer.set_queries(frm);
+        qcmc_logic.warehouse_transfer.watch_pick_list_action(frm);
+        qcmc_logic.warehouse_transfer.watch_pick_list_render(frm);
+    },
+
+    onload_post_render(frm) {
+        // Standard form toolbar actions may be rebuilt after refresh handlers.
+        qcmc_logic.warehouse_transfer.add_pick_list_action(frm);
     },
 
     refresh(frm) {
+        qcmc_logic.warehouse_transfer.configure_allocation(frm);
         qcmc_logic.warehouse_transfer.set_queries(frm);
         qcmc_logic.warehouse_transfer.apply_default_source_warehouse(frm);
         qcmc_logic.warehouse_transfer.configure_receiving_state(frm);
         qcmc_logic.warehouse_transfer.toggle_shipping_details(frm);
         qcmc_logic.warehouse_transfer.add_get_items_buttons(frm);
+        qcmc_logic.warehouse_transfer.add_pick_list_action(frm);
+        // Existing Pick Lists are now shown in the native Connections tab.
+        frm.dashboard.parent.find(".qcmc-linked-pick-lists").remove();
+        qcmc_logic.warehouse_transfer.render_pick_list_connections(frm);
+    },
+
+    custom_apply_putaway_rule(frm) {
+        qcmc_logic.warehouse_transfer.configure_allocation(frm);
+    },
+
+    after_save(frm) {
+        frm.refresh_field("custom_storage_allocation");
     },
 
     source_warehouse(frm) {
@@ -31,6 +51,109 @@ frappe.ui.form.on("Warehouse Transfer", {
         qcmc_logic.warehouse_transfer.configure_receiving_state(frm);
     },
 });
+
+qcmc_logic.warehouse_transfer.render_pick_list_connections = async function(frm) {
+    const tab = (frm.layout?.tabs || []).find(t => t.df?.fieldname === "connections_tab");
+    if (!tab?.wrapper) return;
+    // Frappe hides an empty custom tab during form refresh.
+    // Keep this relationship tab visible even without ordinary data fields.
+    tab.toggle(true);
+    frm.layout.tab_link_container?.show();
+    // Warehouse Transfer uses a custom DocType whose existing allocation
+    // sections were appended after the newly added Tab Break. Keep all
+    // existing fields in Details and reserve Connections for relationships.
+    const details = (frm.layout?.tabs || []).find(t =>
+        t.df?.fieldname === "__details" || t.df?.label === "Details"
+    );
+    if (details?.wrapper) {
+        tab.wrapper.children(".form-section").appendTo(details.wrapper);
+    }
+    const target = tab.wrapper;
+    target.find(".qcmc-pick-connection-card").remove();
+    if (frm.is_new()) return;
+    const name = frm.doc.name;
+    try {
+        const links = await frappe.xcall(
+            "qcmc_logic.overrides.pick_list.get_linked_pick_lists",
+            {warehouse_transfer: name}
+        );
+        if (frm.doc.name !== name) return;
+        // Render Frappe's own form_links template, CSS classes and count badge.
+        // No hand-built card styling and no duplicate document link below it.
+        // Frappe's form_links styles are scoped under .form-links, and its
+        // dashboard sections wrap the transactions in .section-body.
+        const container = $('<div class="qcmc-pick-connection-card form-dashboard-section form-links visible-section"></div>');
+        const section_body = $('<div class="section-body"></div>').appendTo(container);
+        const content = $('<div class="transactions"></div>').appendTo(section_body);
+        const dashboard_data = {
+            transactions: [{label: __("Inventory"), items: ["Pick List"]}],
+            internal_links: {"Pick List": ["custom_warehouse_transfer"]},
+            frm: frm,
+        };
+        $(frappe.render_template("form_links", dashboard_data)).appendTo(content);
+        const doc_link = content.find('.document-link[data-doctype="Pick List"]');
+        doc_link.find(".count").removeClass("hidden")
+            .text(links.length).attr("title", __("Count of linked documents"));
+        // Native Frappe connection navigation opens the linked document list,
+        // filtered to this Warehouse Transfer, rather than an unrelated record.
+        doc_link.find(".badge-link").on("click", event => {
+            event.preventDefault();
+            frappe.route_options = {custom_warehouse_transfer: name};
+            frappe.set_route("List", "Pick List", "List");
+        });
+        target.prepend(container);
+        tab.toggle(true);
+        if (details) details.toggle(true);
+        frm.layout.tab_link_container?.show();
+    } catch (error) {
+        console.warn("Warehouse Transfer connections lookup failed", error);
+    }
+};
+
+qcmc_logic.warehouse_transfer.watch_pick_list_render = function(frm) {
+    if (frm.__qcmc_pick_render_watched) return;
+    frm.__qcmc_pick_render_watched = true;
+    // Record navigation uses an asynchronous form render; toolbar and doc
+    // children can settle after the first refresh handler has run.
+    $(frm.wrapper).on("render_complete.qcmc_pick_menu", () => {
+        frappe.after_ajax(() => {
+            if (frm.doctype === "Warehouse Transfer") {
+                qcmc_logic.warehouse_transfer.add_pick_list_action(frm);
+            }
+        });
+    });
+};
+
+qcmc_logic.warehouse_transfer.watch_pick_list_action = function(frm) {
+    if (frm.__qcmc_pick_menu_watched) return;
+    frm.__qcmc_pick_menu_watched = true;
+    $(frm.wrapper).on("dirty.qcmc_pick_menu", () => {
+        // Toolbar clears the menu on dirty; restore only our native action.
+        setTimeout(() => qcmc_logic.warehouse_transfer.add_pick_list_action(frm), 0);
+    });
+};
+
+qcmc_logic.warehouse_transfer.add_pick_list_action = function(frm) {
+    if (frm.is_new() || frm.doc.docstatus !== 0 || frm.doc.transfer_status !== "Draft") return;
+    if (!["Warehouse Transfer"].includes(frm.doc.transfer_type)) return;
+    if (!(frm.doc.transfer_items || []).some(row => flt(row.issued_qty) > 0)) return;
+    // Add to the built-in black Actions menu, not a new custom button group.
+    // This avoids a second grey "Actions" dropdown.
+    frm.remove_custom_button(__("Create Pick List"), __("Actions"));
+    frm.remove_custom_button(__("Create Pick List"));
+    frm.page.add_action_item(__("Create Pick List"), async () => {
+        if (frm.is_dirty()) {
+            frappe.msgprint(__("Save the Warehouse Transfer before creating its Pick List."));
+            return;
+        }
+        const result = await frappe.xcall("qcmc_logic.overrides.pick_list.create_pick_list_from_warehouse_transfer", {
+            warehouse_transfer: frm.doc.name,
+        });
+        if (result && result.name) {
+            frappe.set_route("Form", "Pick List", result.name);
+        }
+    });
+};
 
 qcmc_logic.warehouse_transfer.shipping_detail_fields = [
     "custom_etd",
@@ -428,4 +551,13 @@ qcmc_logic.warehouse_transfer.apply_receiving_rows = function(frm, dialog) {
 
     frm.refresh_field("transfer_items");
     return frm.save("Update");
+};
+
+qcmc_logic.warehouse_transfer.configure_allocation = function(frm) {
+    const closed = frm.doc.docstatus === 2 || frm.doc.transfer_status === "Received"
+        || (frm.doc.docstatus === 1 && !frm.doc.custom_storage_allocation_enabled);
+    frm.set_df_property("custom_apply_putaway_rule", "read_only", closed ? 1 : 0);
+    frm.set_df_property("custom_storage_allocation_section", "hidden",
+        frm.is_new() || !frm.doc.custom_storage_allocation_enabled || !frm.doc.custom_apply_putaway_rule ? 1 : 0);
+    frm.refresh_field("custom_storage_allocation");
 };

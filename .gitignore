@@ -5,3 +5,6 @@
 tags
 node_modules
 __pycache__
+
+# Local Warehouse Transfer print-format backups
+/.wts_print_format_backups/

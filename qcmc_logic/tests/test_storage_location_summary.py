@@ -88,15 +88,81 @@ class TestStorageLocationSummary(unittest.TestCase):
 
     def test_execute_applies_item_permissions_before_parent_totals(self):
         report = module()
+        # Load real schema before mocking get_list for permission-filtered rows.
+        frappe.get_meta("Storage Location")
         with (
             patch.object(frappe, "has_permission", return_value=True),
             patch.object(report, "check_warehouse_access", return_value=True),
             patch.object(report, "get_balances", return_value=self.balances()),
+            patch.object(report, "get_capacity_rules", return_value=[]),
             patch.object(frappe, "get_list", side_effect=lambda doctype, **kwargs: self.locations() if doctype == "Storage Location" else ["ITEM-B"]),
         ):
             columns, rows, message = report.execute(dict(warehouse="WH"))
         self.assertEqual((rows[0]["stock_qty"], rows[0]["item_count"]), (5, 1))
         self.assertFalse(any(row["entry"] == "ITEM-A" for row in rows))
+
+    def capacity_rows(self, **filters):
+        locations = self.locations()
+        for row in locations:
+            row["custom_storage_capacity"] = {"RACK-2": 10, "RACK-10": 20, "EMPTY": 5}.get(row["name"], 0)
+        return module().build_tree(locations, self.balances(), dict(warehouse="WH", **filters))
+
+    def test_capacity_is_blank_on_parent_and_preserved_on_leaf_locations(self):
+        rows = self.capacity_rows()
+        root = rows[0]
+        for field in ("capacity", "used_capacity", "available_capacity", "use_percentage"):
+            self.assertIsNone(root[field])
+        self.assertEqual(root["capacity_uom"], "")
+        self.assertFalse(root["capacity_unlimited"])
+        rack = next(row for row in rows if row["entry"] == "RACK-2")
+        self.assertEqual((rack["capacity"], rack["used_capacity"], rack["available_capacity"], rack["use_percentage"]), (10, 7, 3, 70))
+        self.assertTrue(all(row["capacity"] is None for row in rows if row["entry_type"] == "Item"))
+
+    def test_item_filter_does_not_make_occupied_capacity_available(self):
+        rows = self.capacity_rows(item_code="ITEM-B")
+        rack = next(row for row in rows if row["entry"] == "RACK-10")
+        self.assertEqual(rack["stock_qty"], 5)
+        self.assertEqual((rack["used_capacity"], rack["available_capacity"]), (8, 12))
+        self.assertIsNone(rows[0]["used_capacity"])
+
+    def test_parent_with_explicit_unlimited_rule_still_has_blank_capacity(self):
+        rules = [dict(name="UNLIMITED", location="BUILDING", custom_no_capacity_restriction=1)]
+        rows = module().build_tree(self.locations(), self.balances(), dict(warehouse="WH"), capacity_rules=rules)
+        self.assertIsNone(rows[0]["capacity"])
+        self.assertFalse(rows[0]["capacity_unlimited"])
+
+    def test_putaway_capacity_overrides_location_field_and_overfill_is_visible(self):
+        rules = [dict(name="RULE", location="RACK-2", stock_capacity=5, stock_uom="PCS")]
+        rows = module().build_tree(self.locations(), self.balances(), dict(warehouse="WH"), capacity_rules=rules)
+        rack = next(row for row in rows if row["entry"] == "RACK-2")
+        self.assertEqual((rack["capacity"], rack["available_capacity"], rack["use_percentage"]), (5, 0, 140))
+
+    def test_unlimited_capacity_has_no_false_zero_or_percentage(self):
+        rules = [dict(name="UNLIMITED", location="RACK-2", custom_no_capacity_restriction=1)]
+        rows = module().build_tree(self.locations(), self.balances(), dict(warehouse="WH"), capacity_rules=rules)
+        rack = next(row for row in rows if row["entry"] == "RACK-2")
+        self.assertTrue(rack["capacity_unlimited"])
+        self.assertEqual(rack["used_capacity"], 7)
+        self.assertIsNone(rack["capacity"])
+        self.assertIsNone(rack["available_capacity"])
+        self.assertIsNone(rack["use_percentage"])
+
+    def test_capacity_columns_survive_rate_guard(self):
+        from rate_guard.overrides import _remove_financial_columns
+        result = {"columns": module().get_columns(), "result": []}
+        _remove_financial_columns(result)
+        fields = {row["fieldname"] for row in result["columns"]}
+        self.assertTrue({"capacity", "used_capacity", "available_capacity", "use_percentage"} <= fields)
+
+    def test_capacity_unit_remains_visible_when_stock_filter_has_a_different_unit(self):
+        self.assertIn("capacity_uom", {column["fieldname"] for column in module().get_columns()})
+        rules = [dict(name="RULE", location="RACK-10", stock_capacity=100, stock_uom="PCS")]
+        balances = self.balances()
+        balances[2]["stock_uom"] = "KG"
+        rows = module().build_tree(self.locations(), balances, dict(warehouse="WH", item_code="ITEM-B"), capacity_rules=rules)
+        rack = next(row for row in rows if row["entry"] == "RACK-10")
+        self.assertEqual((rack["capacity_uom"], rack["stock_uom"]), ("PCS", "KG"))
+        self.assertIsNone(rack["used_capacity"])
 
 
 def run_tests():

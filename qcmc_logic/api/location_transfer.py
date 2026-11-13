@@ -123,7 +123,7 @@ def _source_balance(item, warehouse, location, batch_no="", serials=None):
 	allocation_state = frappe.db.sql("""
 		select coalesce(sum(wal.actual_qty), 0) as quantity, count(*) as row_count
 		from `tabWarehouse Allocation Location` wal
-		inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
+		inner join `tabStorage Allocation` wa on wa.name = wal.parent
 		where wa.docstatus = 1 and wa.status = 'Completed'
 			and wa.warehouse = %s and wal.item_code = %s
 			and wal.actual_location = %s and wal.status = 'VERIFIED'
@@ -208,16 +208,21 @@ def _destination_capacity(item, company, warehouse, target, quantity):
 			f"{item.name} is not allowed in target location {target.name}.",
 		)
 	if rule:
-		available = Decimal(str(get_available_dimension_putaway_capacity(rule, item_code=item.name)))
-		reserved = _committed_location_quantities(item.name, warehouse)
-		available -= Decimal(str(reserved.get(target.name, 0)))
+		rule_doc = frappe.get_cached_doc("Putaway Rule", rule)
+		if rule_doc.get("custom_no_capacity_restriction"):
+			return
+		if rule_doc.get("custom_no_item_restriction"):
+			from qcmc_logic.warehouse_capacity import get_committed_totals
+			occupied = get_committed_totals(warehouse).get(target.name, 0)
+		else:
+			occupied = _committed_location_quantities(item.name, warehouse).get(target.name, 0)
+		available = Decimal(str(rule_doc.stock_capacity)) - Decimal(str(occupied))
 	else:
 		capacity = Decimal(str(target.get("custom_storage_capacity") or target.get("storage_capacity") or 0))
 		if capacity <= 0:
 			return
-		occupied = Decimal(str(get_dimension_stock_balance(item.name, warehouse, {"location": target.name})))
-		reserved = Decimal(str(_committed_location_quantities(item.name, warehouse).get(target.name, 0)))
-		available = capacity - occupied - reserved
+		occupied = _committed_location_quantities(item.name, warehouse).get(target.name, 0)
+		available = capacity - Decimal(str(occupied))
 	if quantity > max(available, Decimal("0")):
 		remaining = max(available, Decimal("0"))
 		raise WorkflowError(
@@ -429,6 +434,8 @@ def create_location_transfer(item_code, source_location, target_location, quanti
 			raise WorkflowError("SOURCE_TARGET_SAME", "Source and Destination Locations must be different.")
 		if source.custom_warehouse != target.custom_warehouse:
 			raise WorkflowError("WAREHOUSE_MISMATCH", "Source and Destination Locations must belong to the same Warehouse.")
+		from qcmc_logic.warehouse_capacity import lock_warehouses
+		lock_warehouses([source.custom_warehouse])
 		item = _item(payload["item_code"])
 		_validate_tracking(item, source.custom_warehouse, source, quantity, payload["batch_no"], serials)
 		initial_balance = _source_balance(item, source.custom_warehouse, source, payload["batch_no"], serials)

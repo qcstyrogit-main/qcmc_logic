@@ -213,7 +213,7 @@ def _can_use_job_card_for_purpose(job_card, work_order, purpose):
 
     if purpose == "Material Transfer for Manufacture":
         return bool(
-            work_order.transfer_material_against == "Job Card"
+            work_order.transfer_material_against in ("Job Card", "Work Order")
             and not cint(job_card.skip_material_transfer)
             and not cint(job_card.backflush_from_wip_warehouse)
             and job_card.items
@@ -363,22 +363,13 @@ def get_job_card_details_for_stock_entry(job_card, purpose, work_order=None):
             )
         )
 
-    wo = _get_work_order(jc.work_order, ignore_permissions=ignore_permissions)
+    wo = _get_work_order(jc.work_order)
 
     if work_order and work_order != jc.work_order:
         frappe.throw(
             _("Selected Job Card {0} belongs to Work Order {1}, not {2}.").format(
                 frappe.bold(jc.name), frappe.bold(jc.work_order), frappe.bold(work_order)
             )
-        )
-
-    if wo.transfer_material_against != "Job Card":
-        frappe.msgprint(
-            _(
-                "Work Order {0} is not configured to transfer material against Job Card. "
-                "Items may not be limited to this Job Card."
-            ).format(frappe.bold(wo.name)),
-            indicator="orange",
         )
 
     if not _can_use_job_card_for_purpose(jc, wo, purpose):
@@ -411,6 +402,9 @@ def get_job_card_details_for_stock_entry(job_card, purpose, work_order=None):
         "to_warehouse": to_warehouse,
         "production_item": jc.production_item,
         "remaining_qty": pending_qty,
+        "material_transfer_scope": (
+            "Work Order" if wo.transfer_material_against == "Work Order" else "Job Card"
+        ),
     }
 
 

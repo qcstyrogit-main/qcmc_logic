@@ -5,7 +5,7 @@
   {"fieldname":"event_id","label":"Event ID","fieldtype":"Data","reqd":1,"unique":1,"in_list_view":1},
   {"fieldname":"event_type","label":"Event Type","fieldtype":"Data","reqd":1,"in_list_view":1},
   {"fieldname":"handover","label":"Handover","fieldtype":"Link","options":"Scanner Warehouse Handover","in_list_view":1},
-  {"fieldname":"warehouse_allocation","label":"Warehouse Allocation","fieldtype":"Link","options":"Warehouse Allocation"},
+  {"fieldname":"warehouse_allocation","label":"Storage Allocation","fieldtype":"Link","options":"Storage Allocation"},
   {"fieldname":"allocation_id","label":"Allocation ID","fieldtype":"Data"},
   {"fieldname":"source_doctype","label":"Source DocType","fieldtype":"Link","options":"DocType"},
   {"fieldname":"source_document","label":"Source Document","fieldtype":"Dynamic Link","options":"source_doctype"},

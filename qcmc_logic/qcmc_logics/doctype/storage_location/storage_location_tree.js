@@ -287,25 +287,30 @@ function show_storage_location_item_balances(storage_location) {
 					.map(
 						(row) => {
 							const is_count = row.movement_type === "Physical Count";
-							const reference_doctype = {
-								"Warehouse Allocation": "Warehouse Allocation",
-								"Location Transfer": "Location Transfer",
-								"Physical Count": "Stock Reconciliation",
-							}[row.movement_type];
-							const reference_url = reference_doctype && row.reference_name
-								? frappe.utils.get_form_link(reference_doctype, row.reference_name)
-								: "";
-							const reference_display = reference_url
-								? `<a href="${escape(reference_url)}" target="_blank" rel="noopener noreferrer"><strong>${escape(row.reference_name)}</strong></a>`
-								: escape(row.reference_name || "—");
+
 							const quantity_display = is_count
 								? `<strong>${__("Confirmed {0}", [escape(quantity(row.counted_quantity))])}</strong> ${escape(row.uom)}<br>${physical_count_adjustment_display(row.quantity, row.uom)}`
 								: `<strong class="${Number(row.quantity) < 0 ? "text-danger" : "text-success"}">${Number(row.quantity) > 0 ? "+" : ""}${escape(quantity(row.quantity))}</strong> ${escape(row.uom)}`;
+							const source = row.source_location
+								? escape(row.source_location)
+								: row.source_warehouse
+									? `${escape(row.source_warehouse)} <small class="text-muted">(${__("Source Warehouse")})</small>`
+									: row.source_label
+										? escape(row.source_label)
+										: `<small class="text-muted">${__("Source not recorded")}</small>`;
+							const destination = row.target_location
+								? escape(row.target_location)
+								: row.target_warehouse
+									? `${escape(row.target_warehouse)} <small class="text-muted">(${__("Warehouse — destination bin not yet recorded")})</small>`
+									: row.target_label
+										? escape(row.target_label)
+										: `<small class="text-muted">${__("Destination not recorded")}</small>`;
+							const movement_route = `${source} → ${destination}`;
 							return `<tr>
 							<td><strong>${escape(row.item_code)}</strong><br><small>${escape(row.item_name)}</small></td>
 							<td class="text-right">${quantity_display}</td>
-							<td><strong>${escape(row.movement_type)}</strong><br><small>${reference_display}</small></td>
-							<td>${escape(row.source_location || "—")} → ${escape(row.target_location || "—")}</td>
+							<td>${location_movement_reference_display(row)}</td>
+							<td>${movement_route}</td>
 							<td>${escape(row.performed_by || "—")}<br><small>${escape(row.device_id || "")}</small></td>
 							<td>${escape(datetime(row.movement_time))}</td>
 						</tr>`;
@@ -439,4 +444,29 @@ function show_storage_location_rename_dialog(node) {
 			});
 			dialog.show();
 		});
+}
+
+function location_movement_reference_display(row) {
+    const escape = value => frappe.utils.escape_html(String(value ?? ''));
+    const link = (doctype, name) => doctype && name
+        ? `<a href="${escape(frappe.utils.get_form_link(doctype, name))}" target="_blank" rel="noopener noreferrer"><strong>${escape(name)}</strong></a>`
+        : escape(name || '—');
+    if (row.movement_type === 'Storage Allocation' && row.source_doctype && row.source_document) {
+        const label = {
+            'Purchase Receipt': 'Warehouse Receiving Report',
+            'Delivery Note': 'Delivery Note Return',
+        }[row.source_doctype] || row.source_doctype;
+        return `<strong>${escape(__(label))}</strong><br><small>${link(row.source_doctype, row.source_document)}</small>`
+            + `<br><small>${escape(__('Storage Allocation'))}: ${link('Storage Allocation', row.reference_name)}</small>`;
+    }
+    const doctype = {
+        'Storage Allocation': 'Storage Allocation',
+        'Warehouse Receiving Report': 'Purchase Receipt',
+        'Location Transfer': 'Location Transfer',
+        'Physical Count': 'Stock Reconciliation',
+        'Physical Count Scan': 'Stock Reconciliation',
+        'Warehouse Transfer OUT': 'Warehouse Transfer',
+        'Delivery Note OUT': 'Delivery Note',
+    }[row.movement_type];
+    return `<strong>${escape(__(row.movement_type))}</strong><br><small>${link(doctype, row.reference_name)}</small>`;
 }
