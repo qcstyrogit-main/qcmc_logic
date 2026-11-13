@@ -23,6 +23,7 @@ frappe.ui.form.on("Weekly Production Plan", {
 
 	refresh(frm) {
 		set_grid_read_only(frm);
+		refresh_all_machine_schedule_totals(frm);
 		set_weekly_plan_row_editor_size(frm);
 		setup_machine_schedule_editor_launcher(frm);
 		sync_production_plan_import_controls(frm);
@@ -398,6 +399,29 @@ function format_plan_number(value, precision = 2) {
 	return flt(value).toFixed(precision);
 }
 
+function dialog_grid_fields(fields, columnCount = 4) {
+	const fieldsPerColumn = Math.ceil(fields.length / columnCount);
+	const result = [{ fieldtype: "Section Break" }];
+	for (let column = 0; column < columnCount; column += 1) {
+		const columnFields = fields.slice(column * fieldsPerColumn, (column + 1) * fieldsPerColumn);
+		if (!columnFields.length) break;
+		if (column) result.push({ fieldtype: "Column Break" });
+		result.push(...columnFields);
+	}
+	return result;
+}
+
+function inline_schedule_input(row, tableField, fieldname, options = {}) {
+	const { text = false, precision = 2 } = options;
+	const value = text
+		? frappe.utils.escape_html(row[fieldname] || "")
+		: format_plan_number(row[fieldname], precision);
+	return `<input class="form-control input-xs js-inline-schedule-value"
+		data-table="${tableField}" data-name="${row.name}" data-field="${fieldname}"
+		data-value-type="${text ? "text" : "number"}" value="${value}"
+		style="min-width: ${text ? "120px" : "72px"}; height: 28px; padding: 3px 6px">`;
+}
+
 function schedule_hours_summary_html(frm, scheduleRow, extrusion = false) {
 	const totalPaidTime = 24;
 	const rows = rows_for_schedule(
@@ -429,6 +453,49 @@ function schedule_hours_summary_html(frm, scheduleRow, extrusion = false) {
 	</div>`;
 }
 
+function schedule_hour_totals(frm, scheduleRow, extrusion = false) {
+	const rows = rows_for_schedule(
+		frm,
+		extrusion ? "extrusion_item_schedule" : "item_1_schedule",
+		scheduleRow,
+	);
+	const totals = rows.reduce((result, row) => {
+		result.paid += flt(extrusion ? row.paid_time : row.paid_hrs);
+		result.vos += flt(row.vos);
+		result.cmCo += flt(extrusion ? row.change_over : row.cm_co);
+		result.stab += flt(extrusion ? row.stabilization : row.stab);
+		return result;
+	}, { paid: 0, vos: 0, cmCo: 0, stab: 0 });
+	return { ...totals, remaining: Math.max(0, 24 - totals.paid) };
+}
+
+function refresh_machine_schedule_totals(frm, scheduleRow) {
+	const totals = schedule_hour_totals(frm, scheduleRow, is_extrusion_section(frm.doc.section));
+	Object.assign(scheduleRow, {
+		total_paid_time_hrs: 24,
+		total_planned_vos_hrs: totals.vos,
+		total_cm_co_hrs: totals.cmCo,
+		total_stabilization_hrs: totals.stab,
+		remaining_paid_hrs: totals.remaining,
+	});
+	frm.refresh_field("machine_schedule");
+}
+
+function refresh_all_machine_schedule_totals(frm) {
+	const extrusion = is_extrusion_section(frm.doc.section);
+	for (const scheduleRow of frm.doc.machine_schedule || []) {
+		const totals = schedule_hour_totals(frm, scheduleRow, extrusion);
+		Object.assign(scheduleRow, {
+			total_paid_time_hrs: 24,
+			total_planned_vos_hrs: totals.vos,
+			total_cm_co_hrs: totals.cmCo,
+			total_stabilization_hrs: totals.stab,
+			remaining_paid_hrs: totals.remaining,
+		});
+	}
+	frm.refresh_field("machine_schedule");
+}
+
 function scheduled_items_html(frm, scheduleRow, expanded = false) {
 	const escape = frappe.utils.escape_html;
 	const hasFg1Item = rows_for_schedule(frm, "item_1_schedule", scheduleRow)
@@ -440,20 +507,21 @@ function scheduled_items_html(frm, scheduleRow, expanded = false) {
 			<tr>
 				${secondary ? `<td>${escape(row.fg1_product_code || "")}</td>` : ""}<td>${escape(row.product_code || "")}</td><td>${escape(row.product_description || "")}</td>
 				<td>${row.cavs || 0}</td>
-				${secondary ? "" : `<td>${format_plan_number(row.paid_hrs)}</td><td>${format_plan_number(row.vos)}</td><td>${format_plan_number(row.cm_co)}</td><td>${format_plan_number(row.stab)}</td><td>${format_plan_number(row.plan_hrs)}</td>`}
-				<td>${format_plan_number(row.soph)}</td><td>${format_plan_number(row.std_weight_gm, 4)}</td><td>${format_plan_number(row.daily_volume_qty)}</td><td>${format_plan_number(row.daily_volume_kgs)}</td>
-				<td>${format_plan_number(secondary ? row.factor_rate : row.f_rate)}</td><td>${format_plan_number(row.cycle_time, 4)}</td>
-				${secondary ? "" : `<td>${escape(row.remarks || "")}</td><td>${escape(row.mat_type || "")}</td><td>${format_plan_number(row.steam_regmt)}</td>`}
-				<td class="text-nowrap"><button class="btn btn-xs btn-default js-edit-scheduled-item" data-table="${tableField}" data-name="${row.name}">${__("Edit")}</button> <button class="btn btn-xs btn-default js-delete-scheduled-item" data-table="${tableField}" data-name="${row.name}">${__("Remove")}</button></td>
+				${secondary ? "" : `<td>${inline_schedule_input(row, tableField, "paid_hrs")}</td><td>${inline_schedule_input(row, tableField, "vos")}</td><td>${inline_schedule_input(row, tableField, "cm_co")}</td><td>${inline_schedule_input(row, tableField, "stab")}</td><td>${format_plan_number(row.plan_hrs)}</td>`}
+				<td>${format_plan_number(row.soph)}</td><td>${format_plan_number(row.std_weight_gm, 4)}</td><td>${secondary ? format_plan_number(row.daily_volume_qty) : inline_schedule_input(row, tableField, "daily_volume_qty")}</td><td>${format_plan_number(row.daily_volume_kgs)}</td>
+				<td>${secondary ? format_plan_number(row.factor_rate) : inline_schedule_input(row, tableField, "f_rate")}</td><td>${secondary ? format_plan_number(row.cycle_time, 4) : inline_schedule_input(row, tableField, "cycle_time", { precision: 4 })}</td>
+				${secondary ? "" : `<td>${inline_schedule_input(row, tableField, "remarks", { text: true })}</td><td>${inline_schedule_input(row, tableField, "mat_type", { text: true })}</td><td>${inline_schedule_input(row, tableField, "steam_regmt")}</td>`}
+				<td class="text-nowrap"><button type="button" class="btn btn-xs btn-default js-edit-scheduled-item" data-table="${tableField}" data-name="${row.name}">${__("Edit")}</button> <button type="button" class="btn btn-xs btn-default js-delete-scheduled-item" data-table="${tableField}" data-name="${row.name}">${__("Remove")}</button></td>
 			</tr>`).join("");
 	};
 	const table = (title, tableField, secondary = false) => {
-		const addDisabled = secondary && !hasFg1Item;
+		const noRemainingHours = !secondary && schedule_hour_totals(frm, scheduleRow).remaining <= 0.000001;
+		const addDisabled = (secondary && !hasFg1Item) || noRemainingHours;
 		const disabledAttributes = addDisabled
-			? ` disabled aria-disabled="true" title="${__("Add at least one FG 1 item first.")}"`
+			? ` disabled aria-disabled="true" title="${noRemainingHours ? __("No paid hours remain for this machine and date.") : __("Add at least one FG 1 item first.")}"`
 			: "";
 		return `
-		<div style="margin-top: 15px"><div class="flex justify-between align-center"><strong>${__(title)}</strong><button class="btn btn-xs btn-primary js-add-scheduled-item" data-table="${tableField}"${disabledAttributes}>${__("Add Row")}</button></div>
+		<div style="margin-top: 15px"><div class="flex justify-between align-center"><strong>${__(title)}</strong><button type="button" class="btn btn-xs btn-primary js-add-scheduled-item" data-table="${tableField}"${disabledAttributes}>${__("Add Row")}</button></div>
 		<div class="table-responsive"><table class="table table-bordered table-condensed qcmc-scheduled-resizable-table" data-resize-key="${tableField}" style="margin-top: 6px; white-space: nowrap"><thead><tr>
 		${secondary ? `<th>${__("FG 1 Item")}</th>` : ""}<th>${__("Prodcode")}</th><th>${__("Proddesc")}</th><th>${__("Cavs")}</th>
 		${secondary ? "" : `<th>${__("PaidHrs")}</th><th>${__("VOS")}</th><th>${__("CM/CO")}</th><th>${__("Stab")}</th><th>${__("PlanHrs")}</th>`}
@@ -473,15 +541,17 @@ function extrusion_items_html(frm, scheduleRow, expanded = false) {
 	const rows = rows_for_schedule(frm, "extrusion_item_schedule", scheduleRow);
 	const body = rows.length ? rows.map((row) => `<tr>
 		<td>${escape(row.roll_code || "")}</td><td>${format_plan_number(row.std_weight_kg, 4)}</td><td>${escape(row.roll_description || "")}</td>
-		<td>${escape(row.used_for || "")}</td><td>${format_plan_number(row.paid_time)}</td><td>${format_plan_number(row.vos)}</td><td>${format_plan_number(row.change_over)}</td>
-		<td>${format_plan_number(row.stabilization)}</td><td>${format_plan_number(row.plan_hours)}</td><td>${format_plan_number(row.trim_percent)}</td><td>${format_plan_number(row.soph)}</td>
-		<td>${format_plan_number(row.number_of_kgs)}</td><td>${format_plan_number(row.number_of_rolls)}</td><td>${escape(row.remarks || "")}</td><td>${escape(row.color || "")}</td>
-		<td>${format_plan_number(row.virgin)}</td><td>${format_plan_number(row.reco)}</td><td>${format_plan_number(row.colorant)}</td><td>${format_plan_number(row.additives)}</td>
-		<td class="text-nowrap"><button class="btn btn-xs btn-default js-edit-scheduled-item" data-table="extrusion_item_schedule" data-name="${row.name}">${__("Edit")}</button> <button class="btn btn-xs btn-default js-delete-scheduled-item" data-table="extrusion_item_schedule" data-name="${row.name}">${__("Remove")}</button></td>
+		<td>${inline_schedule_input(row, "extrusion_item_schedule", "used_for", { text: true })}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "paid_time")}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "vos")}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "change_over")}</td>
+		<td>${inline_schedule_input(row, "extrusion_item_schedule", "stabilization")}</td><td>${format_plan_number(row.plan_hours)}</td><td>${format_plan_number(row.trim_percent)}</td><td>${format_plan_number(row.soph)}</td>
+		<td>${inline_schedule_input(row, "extrusion_item_schedule", "number_of_kgs")}</td><td>${format_plan_number(row.number_of_rolls, 0)}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "remarks", { text: true })}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "color", { text: true })}</td>
+		<td>${inline_schedule_input(row, "extrusion_item_schedule", "virgin")}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "reco")}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "colorant")}</td><td>${inline_schedule_input(row, "extrusion_item_schedule", "additives")}</td>
+		<td class="text-nowrap"><button type="button" class="btn btn-xs btn-default js-edit-scheduled-item" data-table="extrusion_item_schedule" data-name="${row.name}">${__("Edit")}</button> <button type="button" class="btn btn-xs btn-default js-delete-scheduled-item" data-table="extrusion_item_schedule" data-name="${row.name}">${__("Remove")}</button></td>
 	</tr>`).join("") : `<tr><td colspan="20" class="text-muted text-center">${__("No extrusion items added.")}</td></tr>`;
 	const expandButton = expanded ? "" : `<button class="btn btn-sm btn-default js-expand-schedule-editor">${__("Expand Schedule Editor")}</button>`;
+	const noRemainingHours = schedule_hour_totals(frm, scheduleRow, true).remaining <= 0.000001;
+	const disabledAttributes = noRemainingHours ? ` disabled aria-disabled="true" title="${__("No paid hours remain for this machine and date.")}"` : "";
 	return `<div class="scheduled-items-editor"><div class="flex justify-between align-center">${schedule_hours_summary_html(frm, scheduleRow, true)}${expandButton}</div><h6 style="margin-top: 18px">${__("Extrusion Items for {0} on {1}", [scheduleRow.machine, frappe.datetime.str_to_user(scheduleRow.plan_date)])}</h6>
-		<div class="flex justify-between align-center"><strong>${__("Extrusion Item List")}</strong><button class="btn btn-xs btn-primary js-add-scheduled-item" data-table="extrusion_item_schedule">${__("Add Row")}</button></div>
+		<div class="flex justify-between align-center"><strong>${__("Extrusion Item List")}</strong><button type="button" class="btn btn-xs btn-primary js-add-scheduled-item" data-table="extrusion_item_schedule"${disabledAttributes}>${__("Add Row")}</button></div>
 		<div class="table-responsive"><table class="table table-bordered table-condensed qcmc-scheduled-resizable-table" data-resize-key="extrusion_item_schedule" style="margin-top: 6px; white-space: nowrap"><thead><tr>
 		<th>${__("Rollcode")}</th><th>${__("StdWt")}</th><th>${__("Rolldesc")}</th><th>${__("Used For")}</th><th>${__("PaidTim")}</th><th>${__("VOS")}</th><th>${__("C.O.")}</th><th>${__("Stab")}</th><th>${__("PlanHrs")}</th><th>${__("% Trim")}</th><th>${__("SOPH")}</th><th>${__("NoofKgs")}</th><th>${__("NoofRolls")}</th><th>${__("Remarks")}</th><th>${__("Color")}</th><th>${__("Virgin")}</th><th>${__("Reco")}</th><th>${__("Colorant")}</th><th>${__("Additives")}</th><th>${__("Action")}</th>
 		</tr></thead><tbody>${body}</tbody></table></div></div>`;
@@ -491,13 +561,74 @@ function bind_scheduled_item_actions(wrapper, frm, scheduleRow) {
 	wrapper.find(".js-expand-schedule-editor").on("click", function() {
 		open_expanded_schedule_editor(frm, scheduleRow);
 	});
-	wrapper.find(".js-add-scheduled-item").on("click", function() {
+	wrapper.find(".js-add-scheduled-item").on("click", function(event) {
+		event.preventDefault();
+		event.stopPropagation();
 		open_scheduled_item_dialog(frm, scheduleRow, this.dataset.table);
 	});
-	wrapper.find(".js-edit-scheduled-item").on("click", function() {
+	wrapper.find(".js-edit-scheduled-item").on("click", function(event) {
+		event.preventDefault();
+		event.stopPropagation();
 		open_scheduled_item_dialog(frm, scheduleRow, this.dataset.table, this.dataset.name);
 	});
-	wrapper.find(".js-delete-scheduled-item").on("click", function() {
+	wrapper.find(".js-inline-schedule-value").on("change", async function() {
+		const tableField = this.dataset.table;
+		const row = locals[frm.fields_dict[tableField].df.options]?.[this.dataset.name];
+		if (!row) return;
+		const fieldname = this.dataset.field;
+		const value = this.dataset.valueType === "number" ? flt(this.value) : this.value;
+		const hoursField = tableField === "extrusion_item_schedule" ? "paid_time" : "paid_hrs";
+		if (tableField === "item_1_schedule" && fieldname === "daily_volume_qty") {
+			if (value < 0 || flt(row.soph) <= 0) {
+				frappe.show_alert({ message: __("Daily Vol Qty requires an SOPH greater than zero and cannot be negative."), indicator: "orange" });
+				this.value = format_plan_number(row.daily_volume_qty);
+				return;
+			}
+			const paidHours = value / flt(row.soph) + flt(row.vos) + flt(row.cm_co) + flt(row.stab);
+			if (!validate_slot_paid_hours(frm, scheduleRow, tableField, "paid_hrs", paidHours, row)) {
+				this.value = format_plan_number(row.daily_volume_qty);
+				return;
+			}
+			await frappe.model.set_value(row.doctype, row.name, "paid_hrs", paidHours);
+			calculate_plan_hours(frm, row.doctype, row.name);
+			refresh_machine_schedule_totals(frm, scheduleRow);
+			frm.dirty();
+			refresh_expanded_schedule_editor(frm, scheduleRow);
+			return;
+		}
+		if (tableField === "extrusion_item_schedule" && fieldname === "number_of_kgs") {
+			const soph = flt(row.soph);
+			if (value < 0 || soph <= 0) {
+				frappe.show_alert({ message: __("NoofKgs requires SOPH greater than zero and cannot be negative."), indicator: "orange" });
+				this.value = format_plan_number(row.number_of_kgs);
+				return;
+			}
+			const paidTime = value / soph + flt(row.vos) + flt(row.change_over) + flt(row.stabilization);
+			if (!validate_slot_paid_hours(frm, scheduleRow, tableField, "paid_time", paidTime, row)) {
+				this.value = format_plan_number(row.number_of_kgs);
+				return;
+			}
+			await frappe.model.set_value(row.doctype, row.name, "paid_time", paidTime);
+			calculate_extrusion_output(frm, row.doctype, row.name);
+			refresh_machine_schedule_totals(frm, scheduleRow);
+			frm.dirty();
+			refresh_expanded_schedule_editor(frm, scheduleRow);
+			return;
+		}
+		if (fieldname === hoursField && !validate_slot_paid_hours(frm, scheduleRow, tableField, hoursField, value, row)) {
+			this.value = format_plan_number(row[fieldname]);
+			return;
+		}
+		await frappe.model.set_value(row.doctype, row.name, fieldname, value);
+		if (tableField === "extrusion_item_schedule") calculate_extrusion_output(frm, row.doctype, row.name);
+		else calculate_plan_hours(frm, row.doctype, row.name);
+		refresh_machine_schedule_totals(frm, scheduleRow);
+		frm.dirty();
+		refresh_expanded_schedule_editor(frm, scheduleRow);
+	});
+	wrapper.find(".js-delete-scheduled-item").on("click", function(event) {
+		event.preventDefault();
+		event.stopPropagation();
 		const deletedRow = locals[frm.fields_dict[this.dataset.table].df.options]?.[this.dataset.name];
 		if (this.dataset.table === "item_1_schedule" && deletedRow) {
 			for (const secondaryRow of rows_for_schedule(frm, "item_2_schedule", scheduleRow)) {
@@ -510,12 +641,22 @@ function bind_scheduled_item_actions(wrapper, frm, scheduleRow) {
 		frappe.model.clear_doc(frm.fields_dict[this.dataset.table].df.options, this.dataset.name);
 		frm.refresh_field(this.dataset.table);
 		frm.dirty();
+		refresh_machine_schedule_totals(frm, scheduleRow);
 		render_possible_sales_orders(frm, scheduleRow.doctype, scheduleRow.name);
 		refresh_expanded_schedule_editor(frm, scheduleRow);
 	});
 }
 
 function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null, initialProduct = null) {
+	const extrusion = tableField === "extrusion_item_schedule";
+	const consumesPaidHours = extrusion || tableField === "item_1_schedule";
+	if (!rowName && consumesPaidHours && schedule_hour_totals(frm, scheduleRow, extrusion).remaining <= 0.000001) {
+		frappe.show_alert({
+			message: __("No paid hours remain for this machine and date."),
+			indicator: "orange",
+		});
+		return;
+	}
 	if (tableField === "extrusion_item_schedule") {
 		open_extrusion_item_dialog(frm, scheduleRow, rowName, initialProduct);
 		return;
@@ -542,13 +683,14 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 		{ fieldname: "cavs", label: __("Cavs"), fieldtype: "Int", read_only: 1, default: existing?.cavs },
 	];
 	if (!secondary) fields.push(numeric("paid_hrs", "PaidHrs", false, 24), numeric("vos", "VOS"), numeric("cm_co", "CM/CO"), numeric("stab", "Stab"), numeric("plan_hrs", "PlanHrs", true, 24));
-	fields.push(numeric("soph", "SOPH", true), numeric("std_weight_gm", "StdWt(gm)", true, 0, 4), numeric("daily_volume_qty", "Daily Vol Qty", true), numeric("daily_volume_kgs", "DailyVolKgs", true), numeric(secondary ? "factor_rate" : "f_rate", secondary ? "FactorRate" : "F.Rate", secondary, 100), numeric("cycle_time", secondary ? "CycleTime" : "C.T.", secondary, 0, 4));
+	fields.push(numeric("soph", "SOPH", true), numeric("std_weight_gm", "StdWt(gm)", true, 0, 4), numeric("daily_volume_qty", "Daily Vol Qty", secondary), numeric("daily_volume_kgs", "DailyVolKgs", true), numeric(secondary ? "factor_rate" : "f_rate", secondary ? "FactorRate" : "F.Rate", secondary, 100), numeric("cycle_time", secondary ? "CycleTime" : "C.T.", secondary, 0, 4));
 	if (!secondary) fields.push(
 		{ fieldname: "remarks", label: __("Remarks"), fieldtype: "Small Text", default: existing?.remarks },
 		{ fieldname: "mat_type", label: __("MatType"), fieldtype: "Data", default: existing?.mat_type },
 		numeric("steam_regmt", "SteamRegmt"),
 	);
-	dialog = new frappe.ui.Dialog({ title: __(rowName ? "Edit {0}" : "Add {0}", [secondary ? "FG 2" : "FG 1"]), fields, primary_action_label: __("Save Row"), primary_action(values) {
+	dialog = new frappe.ui.Dialog({ title: __(rowName ? "Edit {0}" : "Add {0}", [secondary ? "FG 2" : "FG 1"]), size: "extra-large", fields: dialog_grid_fields(fields), primary_action_label: __("Save Row"), primary_action(values) {
+		if (!secondary && !apply_dialog_daily_volume(values)) return;
 		if (!secondary && !validate_slot_paid_hours(frm, scheduleRow, tableField, "paid_hrs", values.paid_hrs, existing)) return;
 		const target = existing || frm.add_child(tableField);
 		const previousProductCode = target.product_code;
@@ -561,11 +703,19 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 		if (!secondary) update_linked_secondary_rows(frm, target);
 		frm.refresh_field(tableField);
 		frm.dirty();
+		refresh_machine_schedule_totals(frm, scheduleRow);
 		dialog.hide();
 		refresh_expanded_schedule_editor(frm, scheduleRow);
 		keep_schedule_detail_open(frm, scheduleRow);
 	} });
-	for (const fieldname of ["paid_hrs", "vos", "cm_co", "stab"]) if (dialog.fields_dict[fieldname]) dialog.fields_dict[fieldname].df.onchange = () => calculate_dialog_plan_hours(dialog);
+	for (const fieldname of ["paid_hrs", "vos", "cm_co", "stab"]) {
+		if (dialog.fields_dict[fieldname]) {
+			dialog.fields_dict[fieldname].df.onchange = () => calculate_dialog_plan_hours(dialog);
+		}
+	}
+	if (!secondary) {
+		dialog.fields_dict.daily_volume_qty.df.onchange = () => calculate_dialog_paid_hours_from_volume(dialog);
+	}
 	if (dialog.fields_dict.fg1_product_code) dialog.fields_dict.fg1_product_code.df.onchange = () => calculate_dialog_volume(dialog, true, frm, scheduleRow);
 	dialog.show();
 	if (secondary) calculate_dialog_volume(dialog, true, frm, scheduleRow);
@@ -585,18 +735,20 @@ function open_extrusion_item_dialog(frm, scheduleRow, rowName = null, initialPro
 		numeric("std_weight_kg", "StdWt", true, 0, 4),
 		{ fieldname: "roll_description", label: __("Rolldesc"), fieldtype: "Data", read_only: 1, default: existing?.roll_description },
 		{ fieldname: "used_for", label: __("Used For"), fieldtype: "Data", default: existing?.used_for },
-		numeric("paid_time", "PaidTim", false, 24), numeric("vos", "VOS"), numeric("change_over", "C.O."), numeric("stabilization", "Stab"), numeric("plan_hours", "PlanHrs", true, 24), numeric("trim_percent", "% Trim", true), numeric("soph", "SOPH", true), numeric("number_of_kgs", "NoofKgs", true), numeric("number_of_rolls", "NoofRolls", true),
+		numeric("paid_time", "PaidTim", false, 24), numeric("vos", "VOS"), numeric("change_over", "C.O."), numeric("stabilization", "Stab"), numeric("plan_hours", "PlanHrs", true, 24), numeric("trim_percent", "% Trim", true), numeric("soph", "SOPH", true), numeric("number_of_kgs", "NoofKgs"), numeric("number_of_rolls", "NoofRolls", true, 0, 0),
 		{ fieldname: "remarks", label: __("Remarks"), fieldtype: "Small Text", default: existing?.remarks },
 		{ fieldname: "color", label: __("Color"), fieldtype: "Data", default: existing?.color },
 		numeric("virgin", "Virgin"), numeric("reco", "Reco"), numeric("colorant", "Colorant"), numeric("additives", "Additives"),
 	];
-	dialog = new frappe.ui.Dialog({ title: __(rowName ? "Edit Extrusion Item" : "Add Extrusion Item"), fields, primary_action_label: __("Save Row"), primary_action(values) {
+	dialog = new frappe.ui.Dialog({ title: __(rowName ? "Edit Extrusion Item" : "Add Extrusion Item"), size: "extra-large", fields: dialog_grid_fields(fields), primary_action_label: __("Save Row"), primary_action(values) {
+		if (!apply_extrusion_dialog_kgs(values)) return;
 		if (!validate_slot_paid_hours(frm, scheduleRow, tableField, "paid_time", values.paid_time, existing)) return;
 		const target = existing || frm.add_child(tableField);
 		Object.assign(target, values, { machine: scheduleRow.machine, plan_date: scheduleRow.plan_date });
-		frm.refresh_field(tableField); frm.dirty(); dialog.hide(); refresh_expanded_schedule_editor(frm, scheduleRow); keep_schedule_detail_open(frm, scheduleRow);
+		frm.refresh_field(tableField); frm.dirty(); refresh_machine_schedule_totals(frm, scheduleRow); dialog.hide(); refresh_expanded_schedule_editor(frm, scheduleRow); keep_schedule_detail_open(frm, scheduleRow);
 	} });
 	for (const fieldname of ["paid_time", "vos", "change_over", "stabilization"]) dialog.fields_dict[fieldname].df.onchange = () => calculate_extrusion_dialog_output(dialog);
+	dialog.fields_dict.number_of_kgs.df.onchange = () => calculate_extrusion_dialog_paid_time_from_kgs(dialog);
 	dialog.show(); calculate_extrusion_dialog_output(dialog);
 	if (initialProduct) load_extrusion_dialog_details(dialog, scheduleRow.machine);
 }
@@ -605,7 +757,7 @@ async function load_extrusion_dialog_details(dialog, machine) {
 	const itemCode = dialog.get_value("roll_code"); if (!itemCode) return;
 	const response = await frappe.call({ method: "qcmc_logic.qcmc_logics.doctype.weekly_production_plan.weekly_production_plan.get_item_production_details", args: { item_code: itemCode, machine } });
 	const details = response.message || {};
-	dialog.set_value("std_weight_kg", details.std_weight_gm || 0);
+	dialog.set_value("std_weight_kg", details.roll_standard_weight_gm || 0);
 	dialog.set_value("roll_description", details.product_description || "");
 	dialog.set_value("trim_percent", details.trim_percent || 0);
 	dialog.set_value("soph", details.soph || 0);
@@ -615,9 +767,48 @@ async function load_extrusion_dialog_details(dialog, machine) {
 function calculate_extrusion_dialog_output(dialog) {
 	const planHours = calculate_net_paid_hours(dialog.get_value("paid_time"), dialog.get_value("vos"), dialog.get_value("change_over"), dialog.get_value("stabilization"));
 	const kgs = planHours * flt(dialog.get_value("soph"));
-	dialog.set_value("plan_hours", planHours);
-	dialog.set_value("number_of_kgs", kgs);
-	dialog.set_value("number_of_rolls", flt(dialog.get_value("std_weight_kg")) ? kgs / flt(dialog.get_value("std_weight_kg")) : 0);
+	dialog.fields_dict.plan_hours.set_input(planHours);
+	dialog.fields_dict.number_of_kgs.set_input(kgs);
+	dialog.fields_dict.number_of_rolls.set_input(flt(dialog.get_value("std_weight_kg")) ? Math.floor(kgs / flt(dialog.get_value("std_weight_kg"))) : 0);
+}
+
+function calculate_extrusion_dialog_paid_time_from_kgs(dialog) {
+	const kgs = flt(dialog.get_value("number_of_kgs"));
+	const soph = flt(dialog.get_value("soph"));
+	if (kgs < 0 || soph <= 0) return;
+
+	const planHours = kgs / soph;
+	const paidTime = planHours
+		+ flt(dialog.get_value("vos"))
+		+ flt(dialog.get_value("change_over"))
+		+ flt(dialog.get_value("stabilization"));
+	const standardWeight = flt(dialog.get_value("std_weight_kg"));
+	dialog.fields_dict.plan_hours.set_input(planHours);
+	dialog.fields_dict.paid_time.set_input(paidTime);
+	dialog.fields_dict.number_of_rolls.set_input(standardWeight ? Math.floor(kgs / standardWeight) : 0);
+}
+
+function apply_extrusion_dialog_kgs(values) {
+	const kgs = flt(values.number_of_kgs);
+	const soph = flt(values.soph);
+	if (kgs < 0 || soph <= 0) {
+		frappe.msgprint({
+			title: __("Invalid NoofKgs"),
+			indicator: "red",
+			message: kgs < 0
+				? __("NoofKgs cannot be negative.")
+				: __("NoofKgs requires an SOPH greater than zero."),
+		});
+		return false;
+	}
+
+	values.plan_hours = kgs / soph;
+	values.paid_time = values.plan_hours
+		+ flt(values.vos)
+		+ flt(values.change_over)
+		+ flt(values.stabilization);
+	values.number_of_rolls = flt(values.std_weight_kg) ? Math.floor(kgs / flt(values.std_weight_kg)) : 0;
+	return true;
 }
 
 function keep_schedule_detail_open(frm, scheduleRow) {
@@ -650,8 +841,8 @@ function calculate_dialog_volume(dialog, secondary, frm = null, scheduleRow = nu
 		dialog.set_value("factor_rate", factorRate);
 		dialog.set_value("cycle_time", flt(parent?.cycle_time));
 		const quantity = flt(parent?.daily_volume_qty) * factorRate / 100;
-		dialog.set_value("daily_volume_qty", quantity);
-		dialog.set_value("daily_volume_kgs", flt(dialog.get_value("std_weight_gm")) * quantity / 1000);
+		dialog.fields_dict.daily_volume_qty.set_input(quantity);
+		dialog.fields_dict.daily_volume_kgs.set_input(flt(dialog.get_value("std_weight_gm")) * quantity / 1000);
 		return;
 	}
 	const hours = calculate_net_paid_hours(
@@ -661,8 +852,8 @@ function calculate_dialog_volume(dialog, secondary, frm = null, scheduleRow = nu
 		dialog.get_value("stab"),
 	);
 	const quantity = hours * flt(dialog.get_value("soph"));
-	dialog.set_value("daily_volume_qty", quantity);
-	dialog.set_value("daily_volume_kgs", flt(dialog.get_value("std_weight_gm")) * quantity / 1000);
+	dialog.fields_dict.daily_volume_qty.set_input(quantity);
+	dialog.fields_dict.daily_volume_kgs.set_input(flt(dialog.get_value("std_weight_gm")) * quantity / 1000);
 }
 
 function calculate_dialog_plan_hours(dialog) {
@@ -672,8 +863,48 @@ function calculate_dialog_plan_hours(dialog) {
 		dialog.get_value("cm_co"),
 		dialog.get_value("stab"),
 	);
-	dialog.set_value("plan_hrs", planHours);
+	dialog.fields_dict.plan_hrs.set_input(planHours);
 	calculate_dialog_volume(dialog, false);
+}
+
+function calculate_dialog_paid_hours_from_volume(dialog) {
+	const quantity = flt(dialog.get_value("daily_volume_qty"));
+	const soph = flt(dialog.get_value("soph"));
+	if (quantity < 0 || soph <= 0) return;
+
+	const planHours = quantity / soph;
+	const paidHours = planHours
+		+ flt(dialog.get_value("vos"))
+		+ flt(dialog.get_value("cm_co"))
+		+ flt(dialog.get_value("stab"));
+	dialog.fields_dict.plan_hrs.set_input(planHours);
+	dialog.fields_dict.paid_hrs.set_input(paidHours);
+	dialog.fields_dict.daily_volume_kgs.set_input(
+		flt(dialog.get_value("std_weight_gm")) * quantity / 1000,
+	);
+}
+
+function apply_dialog_daily_volume(values) {
+	const quantity = flt(values.daily_volume_qty);
+	const soph = flt(values.soph);
+	if (quantity < 0 || soph <= 0) {
+		frappe.msgprint({
+			title: __("Invalid Daily Volume Qty"),
+			indicator: "red",
+			message: quantity < 0
+				? __("Daily Vol Qty cannot be negative.")
+				: __("Daily Vol Qty requires an SOPH greater than zero."),
+		});
+		return false;
+	}
+
+	values.plan_hrs = quantity / soph;
+	values.paid_hrs = values.plan_hrs
+		+ flt(values.vos)
+		+ flt(values.cm_co)
+		+ flt(values.stab);
+	values.daily_volume_kgs = flt(values.std_weight_gm) * quantity / 1000;
+	return true;
 }
 
 async function add_scheduled_item(frm, tableField, scheduleRow, productCode) {
@@ -687,6 +918,7 @@ async function add_scheduled_item(frm, tableField, scheduleRow, productCode) {
 	});
 	await populate_production_item(frm, row.doctype, row.name);
 	frm.refresh_field(tableField);
+	refresh_machine_schedule_totals(frm, scheduleRow);
 }
 
 async function populate_production_item(frm, cdt, cdn) {
@@ -712,7 +944,7 @@ async function populate_extrusion_item(frm, cdt, cdn) {
 	});
 	const details = response.message || {};
 	for (const [fieldname, value] of Object.entries({
-		std_weight_kg: details.std_weight_gm,
+		std_weight_kg: details.roll_standard_weight_gm,
 		roll_description: details.product_description,
 		trim_percent: details.trim_percent,
 		soph: details.soph,
@@ -728,7 +960,7 @@ function calculate_extrusion_output(frm, cdt, cdn) {
 	const kgs = planHours * flt(row.soph);
 	frappe.model.set_value(cdt, cdn, "plan_hours", planHours);
 	frappe.model.set_value(cdt, cdn, "number_of_kgs", kgs);
-	frappe.model.set_value(cdt, cdn, "number_of_rolls", flt(row.std_weight_kg) ? kgs / flt(row.std_weight_kg) : 0);
+	frappe.model.set_value(cdt, cdn, "number_of_rolls", flt(row.std_weight_kg) ? Math.floor(kgs / flt(row.std_weight_kg)) : 0);
 }
 
 function calculate_daily_volume(frm, cdt, cdn) {

@@ -424,6 +424,14 @@
   "workflow_state_name": "Pending Approval"
  },
  {
+  "doctype": "Workflow State",
+  "name": "Pending Asset Management Evaluation",
+  "workflow_state_name": "Pending Asset Management Evaluation",
+  "style": "Warning",
+  "docstatus": 0,
+  "icon": ""
+ },
+ {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
@@ -486,6 +494,14 @@
   "name": "Pending Machine Shop Supervisor Approval",
   "style": "",
   "workflow_state_name": "Pending Machine Shop Supervisor Approval"
+ },
+ {
+  "doctype": "Workflow State",
+  "name": "Pending Network Admin Evaluation",
+  "workflow_state_name": "Pending Network Admin Evaluation",
+  "style": "Warning",
+  "docstatus": 0,
+  "icon": ""
  },
  {
   "docstatus": 0,

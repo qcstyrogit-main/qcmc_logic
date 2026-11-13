@@ -30,7 +30,18 @@ async function main() {
             this.foreignRow = new Element(); this.foreignRow.closest = () => new Element();
             this.foreignCell = new Element(77); this.foreignCell.setAttribute('data-fieldname', 'item_code');
             this.foreignRow.appendChild(this.foreignCell);
-            root.querySelectorAll = () => [...this.groups, this.foreignRow];
+            // Frappe search cells have no data-fieldname attribute; the grid
+            // exposes their field mapping through header_search.search_columns.
+            this.filterRow = new Element(); this.filterRow.closest = () => root;
+            this.filterRow.appendChild(new Element(31));
+            this.filterRow.appendChild(new Element(40));
+            const search_columns = {};
+            ['item_code', 'qty'].forEach(field => {
+                const cell = new Element(140);
+                this.filterRow.appendChild(cell); search_columns[field] = [cell];
+            });
+            this.header_search = {row: [this.filterRow], search_columns};
+            root.querySelectorAll = () => [...this.groups, this.filterRow, this.foreignRow];
             this.form_grid = [root]; this.wrapper = [root];
             this.header_row = {row: [this.groups[0]]};
         }
@@ -68,7 +79,12 @@ async function main() {
     assert.equal(grid.groups[0].children[0].children.length, 0, 'Checkbox has no resize handle');
     assert.equal(grid.groups[0].children[1].children.length, 0, 'Row number has no resize handle');
     assert.equal(grid.groups[0].children.at(-1).children.length, 0, 'Row-edit button has no resize handle');
+    assert.equal(grid.filterRow.children[2].getBoundingClientRect().width, 180, 'Filter matches the initial header width');
     handle.fire('pointerdown'); handle.fire('pointermove', {clientX: 170}); handle.fire('pointerup'); await flush();
+    assert.equal(grid.filterRow.children[2].getBoundingClientRect().width, 250, 'Dragging the header resizes its filter field');
+    assert.equal(grid.filterRow.children[3].getBoundingClientRect().width, 100, 'Other filters match their own header widths');
+    assert.equal(grid.filterRow.children[0].getBoundingClientRect().width, 31, 'Filter checkbox spacing stays fixed');
+    assert.equal(grid.filterRow.children[1].getBoundingClientRect().width, 40, 'Row-index filter spacing stays fixed');
     grid.groups.forEach(group => {
         assert.equal(group.children[2].getBoundingClientRect().width, 250);
         assert.equal(group.children[3].getBoundingClientRect().width, 100, 'Other columns retain their widths');
@@ -83,6 +99,7 @@ async function main() {
     grid.visible_columns[0][0].sticky = 0;
     events.get('form-refresh')({}, frm); await flush();
     assert.equal(grid.refresh(), 17); await flush();
+    assert.equal(grid.filterRow.children[2].getBoundingClientRect().width, 250, 'Rebuilt filters restore saved header widths');
     grid.groups.forEach(group => assert.equal(group.children[2].getBoundingClientRect().width, 250));
     const drag = grid.groups[0].children[2].querySelector();
     const savedCount = saves.length;
@@ -97,6 +114,7 @@ async function main() {
     assert.equal(saves.at(-1).widths['field:item_code'], 420);
     grid.groups[0].children[2].querySelector().fire('keydown', {key: 'Home'}); await flush();
     assert.equal(grid.groups[0].children[2].getBoundingClientRect().width, 180);
+    assert.equal(grid.filterRow.children[2].getBoundingClientRect().width, 180, 'Reset restores filter alignment');
     assert.equal(saves.at(-1).widths['field:item_code'], null);
     const other = new Grid(frm, 'scrap_items'); frm.grids.push({grid: other});
     events.get('form-refresh')({}, frm); await flush();

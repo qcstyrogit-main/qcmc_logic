@@ -58,6 +58,23 @@ def run_cost_acct_cnt_tests():
 	return {"tests_run": result.testsRun, "successful": True}
 
 
+def run_recount_baseline_tests():
+	"""Verify reviewed recounts without running unrelated ERP reconciliation tests."""
+	names = (
+		"test_adjustment_exact_location_and_conflict",
+		"test_adjustment_uses_signed_delta_with_positive_final_quantity",
+		"test_recount_uses_reviewed_live_baseline_and_preserves_audit",
+	)
+	suite = unittest.TestSuite(TestStockReconciliationIncrement(name) for name in names)
+	result = unittest.TextTestRunner(verbosity=2).run(suite)
+	if not result.wasSuccessful():
+		raise AssertionError(
+			f"Recount baseline tests failed: {len(result.failures)} failures, "
+			f"{len(result.errors)} errors"
+		)
+	return {"tests_run": result.testsRun, "successful": True}
+
+
 def run_inventory_tag_tests():
 	"""Run Inventory Tag coverage without unrelated reconciliation tests."""
 	names = (
@@ -65,6 +82,10 @@ def run_inventory_tag_tests():
 		"test_adjustment_inventory_tags_remain_per_transaction_and_searchable",
 		"test_adjustment_without_inventory_tag_remains_compatible",
 		"test_increment_inventory_tag_is_saved_on_its_audit_transaction",
+		"test_same_location_inventory_tag_rejects_different_item",
+		"test_inventory_tag_allows_same_item_and_different_location",
+		"test_existing_submitted_inventory_tag_blocks_different_item_same_location",
+		"test_existing_result_group_blocks_different_item_same_location",
 	)
 	suite = unittest.TestSuite(TestStockReconciliationIncrement(name) for name in names)
 	result = unittest.TextTestRunner(verbosity=2).run(suite)
@@ -131,6 +152,55 @@ def run_stock_reconciliation_increment_tests():
 
 
 class TestStockReconciliationIncrement(FrappeTestCase):
+	def test_same_location_inventory_tag_rejects_different_item(self):
+		entries = [
+			frappe._dict(item_code="ITEM-A", location="LOC-A", transactions=[{"inventoryTag": "INV-001"}]),
+			frappe._dict(item_code="ITEM-B", location="LOC-A", transactions=[{"inventoryTag": "inv-001 "}]),
+		]
+		with patch.object(stock_reconciliation_api.frappe.db, "sql", return_value=[]):
+			with self.assertRaisesRegex(frappe.ValidationError, "(?i)inv-001.*ITEM-A.*LOC-A"):
+				stock_reconciliation_api._validate_inventory_tag_location_ownership(
+					"MAT-RECO-TEST", entries, {}
+				)
+
+	def test_inventory_tag_allows_same_item_and_different_location(self):
+		entries = [
+			frappe._dict(item_code="ITEM-A", location="LOC-A", transactions=[{"inventoryTag": "INV-001"}]),
+			frappe._dict(item_code="ITEM-A", location="LOC-A", transactions=[{"inventoryTag": "INV-001"}]),
+			frappe._dict(item_code="ITEM-B", location="LOC-B", transactions=[{"inventoryTag": "INV-001"}]),
+		]
+		with patch.object(stock_reconciliation_api.frappe.db, "sql", return_value=[]):
+			stock_reconciliation_api._validate_inventory_tag_location_ownership(
+					"MAT-RECO-TEST", entries, {}
+				)
+
+	def test_existing_submitted_inventory_tag_blocks_different_item_same_location(self):
+		entries = [frappe._dict(
+			item_code="ITEM-B", location="LOC-A", transactions=[{"inventoryTag": "INV-001"}]
+		)]
+		previous = [frappe._dict(
+			storage_location="LOC-A", item_code="ITEM-A", inventory_tag="INV-001"
+		)]
+		with patch.object(stock_reconciliation_api.frappe.db, "sql", return_value=previous) as sql:
+			with self.assertRaisesRegex(frappe.ValidationError, "INV-001.*ITEM-A.*LOC-A"):
+				stock_reconciliation_api._validate_inventory_tag_location_ownership(
+					"MAT-RECO-TEST", entries, {}
+				)
+			self.assertEqual(sql.call_args.args[1][0], "MAT-RECO-TEST")
+
+	def test_existing_result_group_blocks_different_item_same_location(self):
+		entries = [frappe._dict(
+			item_code="ITEM-B", location="LOC-A", transactions=[{"inventoryTag": "INV-001"}]
+		)]
+		existing = {"old-row": frappe._dict(
+			location="LOC-A", item_code="ITEM-A", inventory_tag="INV-001"
+		)}
+		with patch.object(stock_reconciliation_api.frappe.db, "sql", return_value=[]):
+			with self.assertRaisesRegex(frappe.ValidationError, "INV-001.*ITEM-A.*LOC-A"):
+				stock_reconciliation_api._validate_inventory_tag_location_ownership(
+					"MAT-RECO-TEST", entries, existing
+				)
+
 	def test_physical_count_result_has_inventory_tag_group_field(self):
 		meta = frappe.get_meta("QCMC Physical Count Result")
 		field = meta.get_field("inventory_tag")
@@ -1040,6 +1110,58 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 				self._adjust(reconciliation, [self._adjustment_entry(0, 1, self.locations[0])])
 		self.assertEqual(conflict.exception.current_quantity, 5)
 
+	def test_recount_uses_reviewed_live_baseline_and_preserves_audit(self):
+		reconciliation = self._new_reconciliation()
+		first = self._adjustment_entry(
+			0, 5,
+			transactions=[self._transaction("ADD", 5, 5)],
+		)
+		self._adjust(reconciliation, [first])
+		# Stock changed after the original draft count; an unreviewed
+		# recount must still fail rather than silently overwrite that stock.
+		unreviewed = self._adjustment_entry(
+			5, -2,
+			physicalCount=3,
+			transactions=[self._transaction("DEDUCT", -2, 3)],
+			expectedERPQuantity=0,
+		)
+		with patch(
+			"qcmc_logic.api.stock_reconciliation._current_inventory_quantity",
+			return_value=10,
+		):
+			with self.assertRaises(PhysicalCountConflict):
+				self._adjust(reconciliation, [unreviewed])
+
+		# After the operator refreshes/reviews the live ERP quantity, save
+		# the corrected physical count, not the original baseline or 5+3.
+		reviewed = self._adjustment_entry(
+			5, -2,
+			physicalCount=3,
+			transactions=[self._transaction("DEDUCT", -2, 3)],
+			expectedERPQuantity=10,
+		)
+		with patch(
+			"qcmc_logic.api.stock_reconciliation._current_inventory_quantity",
+			return_value=10,
+		):
+			result = self._adjust(reconciliation, [reviewed])
+		self.assertEqual(result["results"][0]["physical_count"], 3)
+		self.assertEqual(result["results"][0]["erp_quantity_before"], 10)
+		self.assertEqual(result["results"][0]["variance"], -7)
+		doc = frappe.get_doc("Stock Reconciliation", reconciliation)
+		self.assertEqual(self._summary_quantity(reconciliation), 3)
+		self.assertEqual(float(doc.custom_physical_count_results[-1].erp_quantity_before), 10)
+		# The response variance is physical-vs-ERP (-7). The child row's
+		# variance is separately maintained by Cost Accounting validation as
+		# effective-count minus scanner-count, so no Cost Acct override means 0.
+		self.assertEqual(float(doc.custom_physical_count_results[-1].variance), 0)
+		self.assertEqual(
+			frappe.db.count("Physical Count Scan Transaction", {
+				"reconciliation": reconciliation,
+				"action": ["in", ["ADD", "DEDUCT"]],
+			}), 2
+		)
+
 	def test_adjustment_does_not_add_erp_baseline_to_first_physical_count(self):
 		reconciliation = self._new_reconciliation()
 		entry = self._adjustment_entry(
@@ -1295,7 +1417,12 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 		self.assertEqual(
 			frappe.db.count(
 				"Physical Count Scan Transaction",
-				{"inventory_tag": "INV-002", "action": "ADD"},
+				{
+					"reconciliation": reconciliation,
+					"submission_id": submission_id,
+					"inventory_tag": "INV-002",
+					"action": "ADD",
+				},
 			),
 			1,
 		)

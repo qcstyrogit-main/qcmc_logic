@@ -41,7 +41,7 @@
   {"columns":1,"fieldname":"trim_percent","fieldtype":"Percent","in_list_view":1,"label":"% Trim","precision":"2","read_only":1},
   {"columns":1,"fieldname":"soph","fieldtype":"Float","in_list_view":1,"label":"SOPH","precision":"2","read_only":1},
   {"columns":1,"fieldname":"number_of_kgs","fieldtype":"Float","in_list_view":1,"label":"NoofKgs","precision":"2","read_only":1},
-  {"columns":1,"fieldname":"number_of_rolls","fieldtype":"Float","in_list_view":1,"label":"NoofRolls","precision":"2","read_only":1},
+  {"columns":1,"fieldname":"number_of_rolls","fieldtype":"Float","in_list_view":1,"label":"NoofRolls","precision":"0","read_only":1},
   {"columns":2,"fieldname":"remarks","fieldtype":"Small Text","in_list_view":1,"label":"Remarks"},
   {"columns":1,"fieldname":"color","fieldtype":"Data","in_list_view":1,"label":"Color"},
   {"columns":1,"default":"0","fieldname":"virgin","fieldtype":"Float","in_list_view":1,"label":"Virgin","precision":"2"},

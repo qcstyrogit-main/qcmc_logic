@@ -160,6 +160,7 @@ doc_events = {
     "Maintenance Job Order": {
         "autoname": "qcmc_logic.customs.maintenance_job_order.autoname",
         "validate": "qcmc_logic.customs.maintenance_job_order.validate",
+        "before_update_after_submit": "qcmc_logic.customs.maintenance_job_order.validate",
     },
     "Machine Shop Repairs and Project": {
         "validate": "qcmc_logic.customs.machine_shop_repairs_and_project.validate",
@@ -222,6 +223,7 @@ doctype_js = {
 }
 
 doctype_list_js = {
+    "Material Request": "public/js/material_request_list.js",
     "Issue": "public/js/issue_list.js",
     "Warehouse Allocation": "qcmc_logics/doctype/warehouse_allocation/warehouse_allocation_list.js",
     "Weekly Manpower Schedule": "qcmc_logics/doctype/weekly_manpower_schedule/weekly_manpower_schedule_list.js",
@@ -475,9 +477,9 @@ app_include_js = [
     "/assets/qcmc_logic/js/announcement_comments.js?v=20261015-10",
     "/assets/qcmc_logic/js/login_notices.js?v=20261015-celebration-launcher-16",
     "/assets/qcmc_logic/js/desk_notifications.js?v=20261016-6",
-    "/assets/qcmc_logic/js/visible_horizontal_scroll.js?v=20261015-2",
+    "/assets/qcmc_logic/js/visible_horizontal_scroll.js?v=20261109-1",
     "/assets/qcmc_logic/js/list_column_resize.js?v=20261015-7",
-    "/assets/qcmc_logic/js/grid_column_resize.js?v=20261015-3",
+    "/assets/qcmc_logic/js/grid_column_resize.js?v=20261109-1",
     "/assets/qcmc_logic/js/document_sidebar_toggle.js?v=20261015-22"
 ]
 

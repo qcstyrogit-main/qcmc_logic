@@ -30,7 +30,7 @@ class TestPurchaseRequestWorkflow(TestCase):
     def test_actions_exist_only_at_approval_states_and_preserve_targets(self):
         decisions = [r for r in self.workflow['transitions'] if r['action'] in DECISIONS]
         self.assertEqual({r['state'] for r in decisions}, APPROVAL_STATES | {'To Receive', 'Received', 'Submitted'})
-        self.assertEqual(len(decisions), 10)
+        self.assertEqual(len(decisions), 12)
         self.assertFalse(any(r["action"] == "Return for Correction" for r in self.workflow["transitions"]))
         for row in decisions:
             self.assertEqual(row['next_state'], 'Cancelled' if row['state'] == 'Submitted' else 'Cancelled Before Submission')

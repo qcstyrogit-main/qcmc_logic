@@ -3,15 +3,16 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const {Element} = require('./test_list_column_resize_ui');
 
-const frames = [], events = new Map(), observers = [];
+const frames = [], events = new Map(), observers = [], mutations = [];
+let openRow = null;
 const body = new Element(), head = new Element();
 const context = {
-    document: {body, head, createElement: () => new Element(), addEventListener: (event, handler) => events.set(event, handler)},
+    document: {body, head, createElement: () => new Element(), querySelector: selector => selector === '.grid-row-open' ? openRow : null, addEventListener: (event, handler) => events.set(event, handler)},
     window: {innerHeight: 800, innerWidth: 1200, addEventListener: (event, handler) => events.set(event, handler), matchMedia: () => ({matches: false})},
     frappe: {}, __: text => text, getComputedStyle: () => ({direction: 'ltr'}),
     requestAnimationFrame: callback => frames.push(callback),
     ResizeObserver: class {constructor(callback) {this.callback = callback; observers.push(this);} observe() {} disconnect() {}},
-    MutationObserver: class {constructor(callback) {this.callback = callback;} observe() {} disconnect() {}},
+    MutationObserver: class {constructor(callback) {this.callback = callback; mutations.push(this);} observe() {} disconnect() {}},
     $: () => ({on: (event, handler) => events.set(event, handler)}),
 };
 vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname, '../public/js/visible_horizontal_scroll.js'), 'utf8'), context);
@@ -35,6 +36,15 @@ root.scrollWidth = 900; observers[0].callback(); flush();
 assert.equal(bar.hidden, true, 'Hide when columns fit');
 root.scrollWidth = 1700; observers[0].callback(); flush();
 assert.equal(bar.hidden, false, 'Resizing a column restores the scrollbar');
+openRow = new Element(); mutations[0].callback(); flush();
+assert.equal(bar.hidden, true, 'Opening the pencil row editor hides the background table scrollbar');
+bar.scrollLeft = 600; bar.fire('scroll');
+assert.equal(root.scrollLeft, 400, 'Hidden scrollbar must not move the background table while editing');
+events.get('resize')(); flush();
+assert.equal(bar.hidden, true, 'Viewport changes must not restore the scrollbar over the editor');
+openRow = null; mutations[0].callback(); flush();
+assert.equal(bar.hidden, false, 'Closing the row editor restores the table scrollbar');
+assert.equal(bar.scrollLeft, 400, 'Closing the editor preserves the table scroll position');
 rect = {...rect, bottom: 650}; events.get('scroll')(); flush();
 assert.equal(bar.hidden, false, 'Keep scrollbar visible when the table or list panel ends inside the viewport');
 assert.equal(bar.style.getPropertyValue('top'), '634px', 'Place scrollbar above the list footer');

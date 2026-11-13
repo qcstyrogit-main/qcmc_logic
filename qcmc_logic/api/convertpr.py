@@ -1,6 +1,8 @@
 import frappe
 from frappe.utils import nowdate
 import json
+from qcmc_logic.customs.purchase_request_evaluation import EVIDENCE, required_evaluation
+from qcmc_logic.customs.provincial_purchase_request import ROLE, provincial_destination
 
 @frappe.whitelist()
 def convert_pr_to_partner(source_pr, target_company,target_warehouse, selected_items=None):
@@ -24,11 +26,28 @@ def convert_pr_to_partner(source_pr, target_company,target_warehouse, selected_i
     frappe.logger().info(f"Parsed selected_items_list: {selected_items_list}")
 
     source = frappe.get_doc("Material Request", source_pr)
+    if ROLE in frappe.get_roles():
+        source.check_permission('read')
+        source.check_permission('write')
+    evaluation_required = source.get('custom_pr_evaluation_required')
+    provincial = provincial_destination(source)
+    if provincial:
+        source.check_permission('read')
+        source.check_permission('write')
+        if source.docstatus != 1:
+            frappe.throw('Submit the approved provincial request before converting it.')
+    if evaluation_required or required_evaluation(source):
+        source.check_permission('read')
+        source.check_permission('write')
+        if not source.get('custom_pr_evaluated_by'):
+            frappe.throw('Complete PR evaluation before converting this request.')
 
     if source.company == target_company:
         frappe.throw("Target Company must be different from the source company.")
 
     new_pr = frappe.copy_doc(source)
+    for fieldname in EVIDENCE:
+        new_pr.set(fieldname, None)
     new_pr.company = target_company
     new_pr.set_warehouse = target_warehouse
     new_pr.name = None
@@ -70,8 +89,11 @@ def convert_pr_to_partner(source_pr, target_company,target_warehouse, selected_i
     new_pr.flags.ignore_permissions = True
     new_pr.flags.ignore_workflow = True
     
-    new_pr.db_set("docstatus", 1)
-    new_pr.db_set("workflow_state", source.workflow_state)
+    # An evaluated request cannot lend its approvals to another company.
+    # Such partner requests remain Draft and follow their own approval route.
+    if not evaluation_required and not provincial and not provincial_destination(new_pr):
+        new_pr.db_set("docstatus", 1)
+        new_pr.db_set("workflow_state", source.workflow_state)
  
 
     # Mark converted items in source

@@ -14,7 +14,14 @@
                 header: () => grid.header_row?.row?.[0],
                 groups: () => Array.from(view.$result[0].querySelectorAll(".grid-heading-row .data-row, .grid-body .data-row"))
                     .filter(row => row.closest(".form-grid") === view.$result[0]),
-                cells: row => view.columns.map(column => Array.from(row.children).find(cell => cell.getAttribute("data-fieldname") === column.df.fieldname)),
+                cells: row => view.columns.map(column => {
+                    // Frappe's filter cells lack data-fieldname. Use its own
+                    // mapping so filters follow drag, reset and saved widths.
+                    if (row === grid.header_search?.row?.[0]) {
+                        return grid.header_search.search_columns?.[column.df.fieldname]?.[0];
+                    }
+                    return Array.from(row.children).find(cell => cell.getAttribute("data-fieldname") === column.df.fieldname);
+                }),
                 defaultWidth: index => view.nativeWidths[index],
                 onRestore: () => {
                     stickyDefaults.forEach((value, cell) => {
