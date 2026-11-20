@@ -14,6 +14,12 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "name": "Activate",
+  "workflow_action_name": "Activate"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "name": "Active",
   "workflow_action_name": "Active"
  },
