@@ -28,7 +28,10 @@ doc_events = {
         "onload": "qcmc_logic.warehouse_transfer_allocation.on_load",
         "before_validate": "qcmc_logic.warehouse_transfer_allocation.before_validate",
         "on_update": "qcmc_logic.warehouse_transfer_allocation.on_update",
-        "before_submit": "qcmc_logic.warehouse_transfer_allocation.before_submit",
+        "before_submit": [
+            "qcmc_logic.customs.warehouse_transfer_events.require_submitted_pick_list_before_transfer",
+            "qcmc_logic.warehouse_transfer_allocation.before_submit",
+        ],
         "before_update_after_submit": "qcmc_logic.warehouse_transfer_allocation.before_update_after_submit",
         "before_cancel": "qcmc_logic.warehouse_transfer_allocation.before_cancel",
         "validate": "qcmc_logic.customs.warehouse_transfer_events.validate_transfer_type_rules",
@@ -46,8 +49,15 @@ doc_events = {
             "qcmc_logic.customs.sales_transaction_territory.populate_mapped_transaction_territory",
             "qcmc_logic.delivery_note_pick_list.repair_delivery_note_pick_references",
         ],
-        "on_submit": "qcmc_logic.delivery_note_pick_list.sync_delivery_pick_list_progress",
-        "on_cancel": "qcmc_logic.delivery_note_pick_list.sync_delivery_pick_list_progress",
+        "on_update": "qcmc_logic.picking_status.sync_source",
+        "on_submit": [
+            "qcmc_logic.delivery_note_pick_list.sync_delivery_pick_list_progress",
+            "qcmc_logic.picking_status.sync_source",
+        ],
+        "on_cancel": [
+            "qcmc_logic.delivery_note_pick_list.sync_delivery_pick_list_progress",
+            "qcmc_logic.picking_status.sync_source",
+        ],
     },
     "POS Invoice": {
         "before_validate": "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
@@ -102,7 +112,13 @@ doc_events = {
         "after_insert": "qcmc_logic.customs.issue_kanban.sync_issue_kanban_image",
         "on_trash": "qcmc_logic.customs.issue_kanban.replace_deleted_issue_kanban_image",
     },
+    "Pick List": {
+        "on_update": "qcmc_logic.picking_status.sync_pick_list",
+        "on_submit": "qcmc_logic.picking_status.sync_pick_list",
+        "on_cancel": "qcmc_logic.picking_status.sync_pick_list",
+    },
     "Stock Entry": {
+        "on_update": "qcmc_logic.picking_status.sync_source",
         "before_validate": [
             "qcmc_logic.customs.stock_entry.set_manufacture_actual_weight_uom",
             "qcmc_logic.customs.stock_entry.set_stock_entry_warehouse_code",
@@ -110,13 +126,16 @@ doc_events = {
         ],
         "before_submit": [
             "qcmc_logic.stock_entry_material_issue_pick_list.validate_material_issue_picking",
+            "qcmc_logic.stock_entry_manufacture_pick_list.validate_manufacturing_transfer_pick_list",
             "qcmc_logic.customs.stock_entry.validate_final_job_card_time_log",
         ],
         "on_submit": [
             "qcmc_logic.customs.stock_entry.update_final_job_card_time_log_on_submit",
+            "qcmc_logic.picking_status.sync_source",
         ],
         "on_cancel": [
             "qcmc_logic.customs.stock_entry.update_final_job_card_time_log_on_cancel",
+            "qcmc_logic.picking_status.sync_source",
         ],
     },
     "Job Card": {
@@ -203,6 +222,7 @@ after_request = [
 
 override_doctype_dashboards = {
     "Pick List": "qcmc_logic.pick_list_dashboard.get_data",
+    "Delivery Note": "qcmc_logic.delivery_note_dashboard.get_data",
     "Warehouse Transfer": "qcmc_logic.warehouse_transfer_connections.get_data",
     "Stock Entry": "qcmc_logic.stock_entry_dashboard.get_data",
 }
@@ -240,6 +260,8 @@ doctype_js = {
 }
 
 doctype_list_js = {
+    "Delivery Note": "public/js/picking_status_list.js",
+    "Stock Entry": "public/js/picking_status_list.js",
     "Material Request": "public/js/material_request_list.js",
     "Issue": "public/js/issue_list.js",
     "Storage Allocation": "qcmc_logics/doctype/storage_allocation/storage_allocation_list.js",
@@ -449,6 +471,7 @@ before_migrate = [
 ]
 
 after_migrate = [
+    "qcmc_logic.picking_status.ensure_fields",
     "qcmc_logic.warehouse_transfer_connections.ensure_connections_fields",
     "qcmc_logic.patches.update_purchase_request_attention.execute",
     "qcmc_logic.patches.ensure_daily_job_schedule_permissions.execute",

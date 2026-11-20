@@ -6,6 +6,62 @@ from frappe import _
 from frappe.utils import flt
 
 
+def validate_delivery_pick_list_ready(doc):
+    """Require active submitted picking for every outbound stock item."""
+    if doc.is_return:
+        return
+    stock_rows = [
+        row for row in (doc.get("items") or [])
+        if flt(row.qty) > 0 and frappe.get_cached_value("Item", row.item_code, "is_stock_item")
+    ]
+    if not stock_rows:
+        return
+    missing = [str(row.idx) for row in stock_rows if not row.get("against_pick_list")]
+    if missing:
+        frappe.throw(_("Create and submit a Pick List before stock confirmation. Missing on item rows: {0}.").format(", ".join(missing)))
+
+    required = defaultdict(float)
+    for row in stock_rows:
+        name = row.against_pick_list
+        status = frappe.db.get_value("Pick List", name, ["docstatus", "company", "purpose"], as_dict=True)
+        if not status or status.docstatus != 1 or status.company != doc.company or status.purpose != "Delivery":
+            frappe.throw(_("Row {0}: Pick List {1} must be a submitted Delivery Pick List for this company.").format(row.idx, name))
+        key = (name, row.item_code, row.warehouse, row.get("so_detail") or "", row.get("batch_no") or "")
+        required[key] += flt(row.get("stock_qty") or (flt(row.qty) * flt(row.conversion_factor or 1)))
+
+    for (name, item, warehouse, so_detail, batch_no), qty in required.items():
+        locations = frappe.get_all("Pick List Item", filters={
+            "parent": name, "item_code": item, "warehouse": warehouse,
+        }, fields=["picked_qty", "delivered_qty", "sales_order_item", "batch_no"])
+        available = sum(max(flt(loc.picked_qty) - flt(loc.delivered_qty), 0)
+            for loc in locations
+            if (loc.sales_order_item or "") == so_detail
+            and (loc.batch_no or "") == batch_no)
+        if available + 1e-6 < qty:
+            frappe.throw(_("Pick List {0}: picked quantity for item {1} is {2}, but Delivery Note needs {3}.").format(
+                name, item, available, qty))
+
+
+@frappe.whitelist()
+def get_delivery_note_action_state(delivery_note):
+    doc = frappe.get_doc("Delivery Note", delivery_note)
+    doc.check_permission("read")
+    if doc.is_return or doc.docstatus != 0:
+        return {"managed": False}
+    positive = [row for row in doc.items if flt(row.qty) > 0]
+    if not positive:
+        return {"managed": True, "stage": "empty"}
+    linked = {row.against_pick_list for row in positive if row.get("against_pick_list")
+              and _active_link(row.against_pick_list)}
+    if not linked:
+        return {"managed": True, "stage": "pick"}
+    try:
+        validate_delivery_pick_list_ready(doc)
+    except (frappe.ValidationError, frappe.DoesNotExistError):
+        return {"managed": True, "stage": "pending"}
+    return {"managed": True, "stage": "confirm"}
+
+
 def _active_link(name):
     return bool(name and frappe.db.exists("Pick List", {"name": name, "docstatus": ["!=", 2]}))
 
@@ -123,6 +179,8 @@ def create_pick_list_from_delivery_note(delivery_note):
         frappe.db.set_value("Delivery Note Item", source.name,
             {"against_pick_list": pick.name, "pick_list_item": target.name},
             update_modified=False)
+    from qcmc_logic.picking_status import sync_linked_reference
+    sync_linked_reference("Delivery Note", dn.name)
     return {"name": pick.name, "existing": False}
 
 

@@ -64,7 +64,32 @@ def create_pick_list_from_material_issue(stock_entry):
 
     pick.insert()
     frappe.db.set_value("Stock Entry", entry.name, "pick_list", pick.name, update_modified=False)
+    from qcmc_logic.picking_status import sync_linked_reference
+    sync_linked_reference("Stock Entry", entry.name)
     return {"name": pick.name, "existing": False}
+
+
+@frappe.whitelist()
+def get_material_issue_action_state(stock_entry):
+    """Read-only eligibility for the Material Issue Actions dropdown."""
+    entry = frappe.get_doc("Stock Entry", stock_entry)
+    entry.check_permission("read")
+    if entry.stock_entry_type != "Material Issue" or entry.purpose != "Material Issue":
+        return {"managed": False}
+    if entry.docstatus != 0:
+        return {"managed": True, "stage": "submitted"}
+    if not any(flt(row.qty) > 0 for row in entry.items):
+        return {"managed": True, "stage": "empty"}
+    linked = entry.pick_list and frappe.db.get_value(
+        "Pick List", entry.pick_list, "docstatus"
+    )
+    if linked is None or linked == 2:
+        return {"managed": True, "stage": "pick"}
+    try:
+        validate_material_issue_picking(entry)
+    except (frappe.ValidationError, frappe.DoesNotExistError):
+        return {"managed": True, "stage": "pending"}
+    return {"managed": True, "stage": "submit"}
 
 
 def validate_material_issue_picking(doc, method=None):

@@ -84,6 +84,9 @@ class CustomDeliveryNote(DeliveryNote):
             allocation.sync_allocations(self)
 
     def before_submit(self):
+        if not self.is_return:
+            from qcmc_logic.delivery_note_pick_list import validate_delivery_pick_list_ready
+            validate_delivery_pick_list_ready(self)
         allocation.prepare_return(self)
         allocation.sync_allocations(self, require_complete=True)
 

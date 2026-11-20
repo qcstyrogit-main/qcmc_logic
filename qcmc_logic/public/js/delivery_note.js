@@ -130,12 +130,29 @@ function configure_delivery_note_return_allocation(frm) {
 frappe.ui.form.on('Delivery Note', {
     refresh(frm) {
         configure_delivery_note_return_allocation(frm);
-        qcmc_delivery_pick_list.setup(frm);
+        frappe.require("/assets/qcmc_logic/js/picking_status_form.js", () => {
+            qcmc_logic.picking_status.refresh(frm);
+        });
         qcmc_delivery_pick_list.add_action(frm);
         qcmc_delivery_pick_list.watch_action_menu(frm);
+        qcmc_delivery_pick_list.refresh_stage(frm);
     },
     onload_post_render(frm) {
         qcmc_delivery_pick_list.add_action(frm);
+        qcmc_delivery_pick_list.refresh_stage(frm);
+    },
+    async before_workflow_action(frm) {
+        if (frm.selected_workflow_action !== "Submit for Stock Confirmation" || frm.doc.is_return) return;
+        if (frm.is_dirty() || frm.is_new()) {
+            frappe.throw(__("Save the Delivery Note before stock confirmation."));
+        }
+        const state = await frappe.xcall(
+            "qcmc_logic.delivery_note_pick_list.get_delivery_note_action_state",
+            {delivery_note: frm.doc.name}
+        );
+        if (state?.stage !== "confirm") {
+            frappe.throw(__("Submit the linked Delivery Pick List with sufficient picked quantities before stock confirmation."));
+        }
     },
     is_return: configure_delivery_note_return_allocation,
     custom_apply_putaway_rule: configure_delivery_note_return_allocation,
@@ -143,14 +160,62 @@ frappe.ui.form.on('Delivery Note', {
 });
 
 const qcmc_delivery_pick_list = {
+    apply_stage(frm) {
+        if (frm.doc.is_return || frm.doc.docstatus !== 0) return;
+        const stage = frm.__qcmc_delivery_pick_stage || "loading";
+        const $actions = frm.page?.actions;
+        if (!$actions?.length) return;
+        const shown = {
+            "Create Pick List": stage === "pick",
+            "Submit for Stock Confirmation": stage === "confirm" && !frm.is_dirty(),
+            // Activation is the final workflow step, never an initial draft action.
+            "Tag To Active": false,
+        };
+        $actions.find("li > a.dropdown-item").each(function() {
+            const $link = $(this);
+            const label = $link.find(".menu-item-label").first().text().trim();
+            if (Object.prototype.hasOwnProperty.call(shown, label)) {
+                $link.closest("li").toggle(shown[label]);
+            }
+        });
+    },
+    async refresh_stage(frm) {
+        if (frm.doc.is_return || frm.doc.docstatus !== 0) return;
+        const token = (frm.__qcmc_delivery_stage_token || 0) + 1;
+        frm.__qcmc_delivery_stage_token = token;
+        frm.__qcmc_delivery_pick_stage = "loading";
+        this.apply_stage(frm);
+        if (frm.is_new() || frm.is_dirty()) return;
+        const name = frm.doc.name;
+        try {
+            const result = await frappe.xcall(
+                "qcmc_logic.delivery_note_pick_list.get_delivery_note_action_state",
+                {delivery_note: name});
+            if (frm.doc.name !== name || token !== frm.__qcmc_delivery_stage_token) return;
+            frm.__qcmc_delivery_pick_stage = result?.managed ? result.stage : "unmanaged";
+        } catch (error) {
+            console.warn("Delivery Note picking state lookup failed", error);
+            frm.__qcmc_delivery_pick_stage = "loading";
+        }
+        this.apply_stage(frm);
+    },
     watch_action_menu(frm) {
         // Frappe Toolbar.clear_actions_menu() runs when a document becomes dirty.
         // Re-register after that event so the action stays available (the click
         // handler still requires saving the document before creating a Pick List).
         if (frm.__qcmc_pick_menu_watched) return;
         frm.__qcmc_pick_menu_watched = true;
+        const actionsNode = frm.page?.actions?.[0];
+        if (actionsNode && !frm.__qcmc_delivery_stage_observer) {
+            const observer = new MutationObserver(() => qcmc_delivery_pick_list.apply_stage(frm));
+            observer.observe(actionsNode, {childList: true, subtree: true});
+            frm.__qcmc_delivery_stage_observer = observer;
+        }
         $(frm.wrapper).on("dirty.qcmc_pick_menu", () => {
-            setTimeout(() => qcmc_delivery_pick_list.add_action(frm), 0);
+            setTimeout(() => {
+                qcmc_delivery_pick_list.add_action(frm);
+                qcmc_delivery_pick_list.apply_stage(frm);
+            }, 0);
         });
         // When entering a Delivery Note from List View, the form's toolbar
         // finishes rendering asynchronously. Register again after rendering
@@ -159,6 +224,7 @@ const qcmc_delivery_pick_list = {
             frappe.after_ajax(() => {
                 if (frm.doctype === "Delivery Note") {
                     qcmc_delivery_pick_list.add_action(frm);
+                    qcmc_delivery_pick_list.refresh_stage(frm);
                 }
             });
         });
@@ -179,29 +245,5 @@ const qcmc_delivery_pick_list = {
             if (result?.name) frappe.set_route("Form", "Pick List", result.name);
         });
     },
-    setup(frm) {
-        frm.dashboard.parent.find(".qcmc-dn-linked-picks").remove();
-        if (frm.is_new()) return;
-        const name = frm.doc.name;
-        frappe.xcall("qcmc_logic.delivery_note_pick_list.get_linked_pick_lists",
-            {delivery_note: name}).then(links => {
-                if (frm.doc.name !== name || !links?.length) return;
-                const content = links.map(link =>
-                    '<div class="mb-2"><a class="qcmc-dn-pick-link" href="#">' +
-                    frappe.utils.escape_html(link.name) + '</a> <span class="text-muted">(' +
-                    frappe.utils.escape_html(link.status || "Draft") + ')</span></div>'
-                ).join("");
-                frm.dashboard.add_section(content, __("Linked Pick Lists"), "qcmc-dn-linked-picks");
-                frm.dashboard.parent.find(".qcmc-dn-linked-picks .qcmc-dn-pick-link")
-                    .each((i, element) => $(element).on("click", event => {
-                        event.preventDefault();
-                        frappe.set_route("Form", "Pick List", links[i].name);
-                    }));
-                for (const link of links) {
-                    frm.page.add_inner_button(__("Pick List") + ": " + link.name,
-                        () => frappe.set_route("Form", "Pick List", link.name), __("View"));
-                }
-                frm.dashboard.show();
-            }).catch(error => console.warn("Delivery Note Pick List lookup failed", error));
-    },
 };
+

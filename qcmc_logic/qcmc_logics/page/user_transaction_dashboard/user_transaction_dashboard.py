@@ -19,10 +19,10 @@ def get_data(date_from=None, date_to=None):
     employees = {}
     for employee in frappe.get_all(
         "Employee", filters={"user_id": ["is", "set"]},
-        fields=["user_id", "employee_name"], order_by="status asc, name asc",
+        fields=["user_id", "employee_name", "department"], order_by="status asc, name asc",
     ):
         if employee.employee_name:
-            employees.setdefault(employee.user_id, employee.employee_name)
+            employees.setdefault(employee.user_id, employee)
     rows = {}
     permission_groups = {}
     for user in frappe.get_all(
@@ -42,7 +42,8 @@ def get_data(date_from=None, date_to=None):
             can_create = permission_groups[role_key]
         rows[user.name] = {
             "user": user.name,
-            "employee_name": employees.get(user.name) or user.full_name or user.name,
+            "employee_name": (employees[user.name].employee_name if user.name in employees else None) or user.full_name or user.name,
+            "department": (employees[user.name].department if user.name in employees else None) or "",
             "enabled": bool(user.enabled),
             "user_type": user.user_type,
             "monitored": monitored,
@@ -66,6 +67,7 @@ def get_data(date_from=None, date_to=None):
                 row = rows[entry.owner] = {
                     "user": entry.owner,
                     "employee_name": entry.owner or _("Unknown User"),
+                    "department": "",
                     "enabled": False,
                     "user_type": None,
                     "monitored": False,

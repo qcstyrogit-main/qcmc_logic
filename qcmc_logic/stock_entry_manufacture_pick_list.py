@@ -7,6 +7,57 @@ from frappe import _
 from frappe.utils import flt
 
 
+def validate_manufacturing_transfer_pick_list(doc, method=None):
+    """Validate the actual picked source quantities before manufacturing transfer."""
+    if (doc.stock_entry_type != "Material Transfer for Manufacture"
+            or doc.purpose != "Material Transfer for Manufacture"):
+        return
+    if not doc.pick_list:
+        frappe.throw(_("Create and submit a Pick List before transferring manufacturing materials."))
+    pick = frappe.get_doc("Pick List", doc.pick_list)
+    if (pick.docstatus != 1 or pick.purpose != "Material Transfer for Manufacture"
+            or pick.company != doc.company or pick.work_order != doc.work_order):
+        frappe.throw(_("A submitted Pick List for the same company and Work Order is required."))
+
+    from collections import defaultdict
+    expected, picked = defaultdict(float), defaultdict(float)
+    for row in doc.items:
+        if flt(row.qty) > 0:
+            expected[(row.item_code, row.s_warehouse)] += flt(
+                row.transfer_qty or flt(row.qty) * flt(row.conversion_factor or 1))
+    if not expected:
+        frappe.throw(_("Add material items before transferring."))
+    for row in pick.locations:
+        if flt(row.picked_qty) <= 0 or not row.location:
+            frappe.throw(_("All Pick List rows must have a source Storage Location and positive picked quantity."))
+        if frappe.db.get_value("Storage Location", row.location, "custom_warehouse") != row.warehouse:
+            frappe.throw(_("Pick List location {0} does not belong to warehouse {1}.").format(row.location, row.warehouse))
+        picked[(row.item_code, row.warehouse)] += flt(row.picked_qty)
+    if set(expected) != set(picked) or any(abs(expected[key] - picked[key]) > 1e-6 for key in expected):
+        frappe.throw(_("Manufacturing Pick List items, warehouses and picked quantities must match the Stock Entry."))
+
+
+@frappe.whitelist()
+def get_manufacturing_transfer_action_state(stock_entry):
+    entry = frappe.get_doc("Stock Entry", stock_entry)
+    entry.check_permission("read")
+    if (entry.stock_entry_type != "Material Transfer for Manufacture"
+            or entry.purpose != "Material Transfer for Manufacture"):
+        return {"managed": False}
+    if entry.docstatus != 0:
+        return {"managed": True, "stage": "submitted"}
+    if not any(flt(row.qty) > 0 for row in entry.items):
+        return {"managed": True, "stage": "empty"}
+    if not entry.pick_list or not frappe.db.exists("Pick List", {
+        "name": entry.pick_list, "docstatus": ["!=", 2]}):
+        return {"managed": True, "stage": "pick"}
+    try:
+        validate_manufacturing_transfer_pick_list(entry)
+    except (frappe.ValidationError, frappe.DoesNotExistError):
+        return {"managed": True, "stage": "pending"}
+    return {"managed": True, "stage": "submit"}
+
+
 @frappe.whitelist(methods=["POST"])
 def create_pick_list_from_stock_entry(stock_entry):
     entry = frappe.get_doc("Stock Entry", stock_entry)
@@ -67,4 +118,6 @@ def create_pick_list_from_stock_entry(stock_entry):
     # Stock Entry already has the native Link field used for Pick List references.
     # Update only that link: all material rows remain untouched.
     frappe.db.set_value("Stock Entry", entry.name, "pick_list", pick.name, update_modified=False)
+    from qcmc_logic.picking_status import sync_linked_reference
+    sync_linked_reference("Stock Entry", entry.name)
     return {"name": pick.name, "existing": False}

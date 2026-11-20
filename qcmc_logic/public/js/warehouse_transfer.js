@@ -5,11 +5,13 @@ frappe.ui.form.on("Warehouse Transfer", {
         qcmc_logic.warehouse_transfer.set_queries(frm);
         qcmc_logic.warehouse_transfer.watch_pick_list_action(frm);
         qcmc_logic.warehouse_transfer.watch_pick_list_render(frm);
+        qcmc_logic.warehouse_transfer.watch_transfer_action(frm);
     },
 
     onload_post_render(frm) {
         // Standard form toolbar actions may be rebuilt after refresh handlers.
         qcmc_logic.warehouse_transfer.add_pick_list_action(frm);
+        qcmc_logic.warehouse_transfer.refresh_transfer_action(frm);
     },
 
     refresh(frm) {
@@ -20,9 +22,24 @@ frappe.ui.form.on("Warehouse Transfer", {
         qcmc_logic.warehouse_transfer.toggle_shipping_details(frm);
         qcmc_logic.warehouse_transfer.add_get_items_buttons(frm);
         qcmc_logic.warehouse_transfer.add_pick_list_action(frm);
+        qcmc_logic.warehouse_transfer.refresh_transfer_action(frm);
         // Existing Pick Lists are now shown in the native Connections tab.
         frm.dashboard.parent.find(".qcmc-linked-pick-lists").remove();
         qcmc_logic.warehouse_transfer.render_pick_list_connections(frm);
+    },
+
+    async before_workflow_action(frm) {
+        if (frm.selected_workflow_action !== "Transfer" ||
+            frm.doc.transfer_type !== "Warehouse Transfer") return;
+        if (frm.is_dirty() || frm.is_new()) {
+            frappe.throw(__("Save the Warehouse Transfer before transferring."));
+        }
+        const eligible = await frappe.xcall(
+            "qcmc_logic.customs.warehouse_transfer_events.can_transfer_with_pick_list",
+            {warehouse_transfer: frm.doc.name});
+        if (!eligible) {
+            frappe.throw(__("Transfer requires a submitted Pick List covering every issued item. Complete the Pick List first."));
+        }
     },
 
     custom_apply_putaway_rule(frm) {
@@ -51,6 +68,58 @@ frappe.ui.form.on("Warehouse Transfer", {
         qcmc_logic.warehouse_transfer.configure_receiving_state(frm);
     },
 });
+
+// Keep the native Frappe Actions menu aligned with the actual stock workflow.
+// Frappe renders items as <li><a class="dropdown-item"><span>Label</span></a></li>.
+qcmc_logic.warehouse_transfer.apply_transfer_visibility = function(frm) {
+    if (frm.doc.transfer_type !== "Warehouse Transfer") return;
+    const state = frm.__qcmc_transfer_stage || "loading";
+    const $actions = frm.page?.actions;
+    if (!$actions?.length) return;
+    const visible = {
+        "Create Pick List": state === "pick",
+        "Transfer": state === "transfer" && !frm.is_dirty(),
+        "Receive": state === "receive",
+    };
+    $actions.find("li > a.dropdown-item").each(function() {
+        const $link = $(this);
+        const label = $link.find(".menu-item-label").first().text().trim();
+        if (Object.prototype.hasOwnProperty.call(visible, label)) {
+            $link.closest("li").toggle(visible[label]);
+        }
+    });
+};
+
+qcmc_logic.warehouse_transfer.watch_transfer_action = function(frm) {
+    if (frm.__qcmc_transfer_observer) return;
+    const node = frm.page?.actions?.[0];
+    if (!node) return;
+    const observer = new MutationObserver(() =>
+        qcmc_logic.warehouse_transfer.apply_transfer_visibility(frm));
+    observer.observe(node, {childList: true, subtree: true});
+    frm.__qcmc_transfer_observer = observer;
+};
+
+qcmc_logic.warehouse_transfer.refresh_transfer_action = async function(frm) {
+    if (frm.doc.transfer_type !== "Warehouse Transfer") return;
+    const token = (frm.__qcmc_transfer_check_token || 0) + 1;
+    frm.__qcmc_transfer_check_token = token;
+    frm.__qcmc_transfer_stage = "loading";
+    qcmc_logic.warehouse_transfer.apply_transfer_visibility(frm);
+    if (frm.is_new() || frm.is_dirty()) return;
+    const name = frm.doc.name;
+    try {
+        const state = await frappe.xcall(
+            "qcmc_logic.customs.warehouse_transfer_events.get_transfer_action_state",
+            {warehouse_transfer: name});
+        if (frm.doc.name !== name || frm.__qcmc_transfer_check_token !== token) return;
+        frm.__qcmc_transfer_stage = state?.managed ? state.stage : "unmanaged";
+    } catch (error) {
+        frm.__qcmc_transfer_stage = "loading";
+        console.warn("Warehouse Transfer action check failed", error);
+    }
+    qcmc_logic.warehouse_transfer.apply_transfer_visibility(frm);
+};
 
 qcmc_logic.warehouse_transfer.render_pick_list_connections = async function(frm) {
     const tab = (frm.layout?.tabs || []).find(t => t.df?.fieldname === "connections_tab");
@@ -119,6 +188,7 @@ qcmc_logic.warehouse_transfer.watch_pick_list_render = function(frm) {
         frappe.after_ajax(() => {
             if (frm.doctype === "Warehouse Transfer") {
                 qcmc_logic.warehouse_transfer.add_pick_list_action(frm);
+                qcmc_logic.warehouse_transfer.refresh_transfer_action(frm);
             }
         });
     });

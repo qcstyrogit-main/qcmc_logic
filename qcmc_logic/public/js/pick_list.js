@@ -36,9 +36,15 @@ frappe.ui.form.on("Pick List", {
 			frm.add_custom_button(__("Suggest Picking Locations"), () =>
 				qcmc_logic.pick_list.suggest_locations(frm)
 			);
-			// Delivery Note-created Pick Lists start with item rows but no bins.
-			// Suggest once on opening the draft, without saving or posting stock.
-			const needs_suggestion = frm.doc.purpose === "Delivery" &&
+			// Pick Lists created from Warehouse Transfer, Delivery Note, Material
+			// Issue or Material Transfer for Manufacture automatically suggest
+			// source bins the first time a completely unassigned draft is opened.
+			// Suggestions stay editable and are never treated as physically picked.
+			const auto_purposes = [
+				"Warehouse Transfer", "Delivery", "Material Issue",
+				"Material Transfer for Manufacture",
+			];
+			const needs_suggestion = auto_purposes.includes(frm.doc.purpose) &&
 				(frm.doc.locations || []).length > 0 &&
 				frm.doc.locations.some(row => !row.location && flt(row.stock_qty) > 0) &&
 				frm.doc.locations.every(row => !row.location && !flt(row.picked_qty));

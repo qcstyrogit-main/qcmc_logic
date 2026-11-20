@@ -16,9 +16,13 @@ frappe.ui.form.on("Stock Entry", {
         qcmc_logic.stock_entry.setup_manufacture_row_lock(frm);
         qcmc_logic.stock_entry.apply_manufacturing_warehouse_queries(frm);
         qcmc_logic.stock_entry.watch_manufacturing_pick_action(frm);
+        qcmc_logic.stock_entry.watch_material_issue_stage(frm);
     },
 
     refresh(frm) {
+        frappe.require("/assets/qcmc_logic/js/picking_status_form.js", () => {
+            qcmc_logic.picking_status.refresh(frm);
+        });
         qcmc_logic.stock_entry.apply_manufacturing_warehouse_queries(frm);
         qcmc_logic.stock_entry.apply_job_card_field_rules(frm);
         qcmc_logic.stock_entry.add_job_card_button(frm);
@@ -27,6 +31,7 @@ frappe.ui.form.on("Stock Entry", {
         qcmc_logic.stock_entry.add_manufacturing_pick_action(frm);
         qcmc_logic.stock_entry.set_manufacturing_connection_visibility(frm);
         qcmc_logic.stock_entry.add_material_issue_source_attribution(frm);
+        qcmc_logic.stock_entry.refresh_material_issue_stage(frm);
     },
 
     company(frm) {
@@ -56,7 +61,95 @@ frappe.ui.form.on("Stock Entry", {
     to_warehouse(frm) {
         qcmc_logic.stock_entry.refresh_warehouse_code(frm);
     },
+    after_save(frm) {
+        qcmc_logic.stock_entry.refresh_material_issue_stage(frm);
+    },
 });
+
+// Material Issue and Material Transfer for Manufacture use a staged menu: Pick -> Submit, then no
+// draft actions after stock has been issued. Other Stock Entry types are untouched.
+qcmc_logic.stock_entry.apply_material_issue_stage = function(frm) {
+    if (!qcmc_logic.stock_entry.is_supported_pick(frm)) return;
+    const stage = frm.__qcmc_material_issue_stage || "loading";
+    const $actions = frm.page?.actions;
+    const ready = stage === "submit" && frm.doc.docstatus === 0;
+    if ($actions?.length) {
+        const has_submit = $actions.find("li > a.dropdown-item .menu-item-label")
+            .filter(function() { return $(this).text().trim() === __("Submit"); }).length > 0;
+        if (ready && !has_submit) {
+            // Use the native Frappe confirmation and before_submit hooks.
+            frm.page.add_action_item(__("Submit"), () => {
+                if (frm.is_dirty()) {
+                    frappe.msgprint(__("Save your changes before submitting this Stock Entry."));
+                    return;
+                }
+                return frm.savesubmit();
+            });
+        }
+        $actions.find("li > a.dropdown-item").each(function() {
+            const $link = $(this);
+            const label = $link.find(".menu-item-label").first().text().trim();
+            if (label === __("Create Pick List")) {
+                $link.closest("li").toggle(stage === "pick" && !frm.is_dirty());
+            } else if (label === __("Submit")) {
+                $link.closest("li").toggle(ready);
+            }
+        });
+    }
+    // Both supported Stock Entry types use one Actions dropdown for Submit and Cancel.
+    // Preserve Frappe's own permissions, confirmation and linked-document checks.
+    if (frm.doc.docstatus === 0 && frm.page?.btn_primary?.length) {
+        const $primary = frm.page.btn_primary;
+        if ($primary.text().trim() === __("Submit")) $primary.addClass("hide");
+    }
+    if (frm.doc.docstatus === 1 && frm.page?.btn_secondary?.length) {
+        const $cancel = frm.page.btn_secondary;
+        if ($cancel.text().trim() === __("Cancel") &&
+            !$cancel.hasClass("hide") && $cancel.is(":visible")) {
+            const $existing = $actions?.find("li > a.dropdown-item .menu-item-label")
+                .filter(function() { return $(this).text().trim() === __("Cancel"); });
+            if (!$existing?.length) {
+                frm.page.add_action_item(__("Cancel"), () => $cancel.trigger("click"));
+            }
+            $cancel.addClass("hide");
+        }
+    }
+};
+
+qcmc_logic.stock_entry.watch_material_issue_stage = function(frm) {
+    if (frm.__qcmc_issue_menu_observer) return;
+    const menuNode = frm.page?.actions?.[0];
+    const toolbarNode = frm.page?.standard_actions?.[0];
+    if (!menuNode || !toolbarNode) return;
+    const observer = new MutationObserver(() =>
+        qcmc_logic.stock_entry.apply_material_issue_stage(frm));
+    observer.observe(menuNode, {subtree: true, childList: true});
+    observer.observe(toolbarNode, {subtree: true, childList: true});
+    frm.__qcmc_issue_menu_observer = observer;
+};
+
+qcmc_logic.stock_entry.refresh_material_issue_stage = async function(frm) {
+    if (!qcmc_logic.stock_entry.is_supported_pick(frm)) return;
+    const token = (frm.__qcmc_issue_stage_token || 0) + 1;
+    frm.__qcmc_issue_stage_token = token;
+    frm.__qcmc_material_issue_stage = "loading";
+    qcmc_logic.stock_entry.apply_material_issue_stage(frm);
+    if (frm.is_new()) return;
+    const name = frm.doc.name;
+    try {
+        const result = await frappe.xcall(
+            (qcmc_logic.stock_entry.is_manufacturing_pick(frm)
+                ? "qcmc_logic.stock_entry_manufacture_pick_list.get_manufacturing_transfer_action_state"
+                : "qcmc_logic.stock_entry_material_issue_pick_list.get_material_issue_action_state"),
+            {stock_entry: name});
+        if (frm.doc.name !== name || frm.__qcmc_issue_stage_token !== token) return;
+        frm.__qcmc_material_issue_stage = result?.managed ? result.stage : "unmanaged";
+    } catch (error) {
+        frm.__qcmc_material_issue_stage = "loading";
+        console.warn("Material Issue picking state check failed", error);
+    }
+    qcmc_logic.stock_entry.apply_material_issue_stage(frm);
+};
 
 qcmc_logic.stock_entry.is_manufacturing_pick = function(frm) {
     return frm.doc.stock_entry_type === "Material Transfer for Manufacture"
@@ -89,11 +182,15 @@ qcmc_logic.stock_entry.watch_manufacturing_pick_action = function(frm) {
                 qcmc_logic.stock_entry.add_manufacturing_pick_action(frm);
                 qcmc_logic.stock_entry.add_material_issue_source_attribution(frm);
                 qcmc_logic.stock_entry.set_manufacturing_connection_visibility(frm);
+                qcmc_logic.stock_entry.refresh_material_issue_stage(frm);
             }
         });
     });
     $(frm.wrapper).on("dirty.qcmc_manufacturing_pick", () => {
-        setTimeout(() => qcmc_logic.stock_entry.add_manufacturing_pick_action(frm), 0);
+        setTimeout(() => {
+            qcmc_logic.stock_entry.add_manufacturing_pick_action(frm);
+            qcmc_logic.stock_entry.refresh_material_issue_stage(frm);
+        }, 0);
     });
 };
 

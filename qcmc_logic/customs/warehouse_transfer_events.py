@@ -130,6 +130,72 @@ def _validate_material_request_references(doc):
             )
 
 
+@frappe.whitelist()
+def get_transfer_action_state(warehouse_transfer):
+    """Read-only menu state: draft pick, ready to transfer, then receive."""
+    doc = frappe.get_doc("Warehouse Transfer", warehouse_transfer)
+    doc.check_permission("read")
+    if doc.transfer_type != "Warehouse Transfer":
+        return {"managed": False}
+    if doc.docstatus == 1 and doc.transfer_status == "Transferred":
+        return {"managed": True, "stage": "receive"}
+    if doc.docstatus != 0 or doc.transfer_status != "Draft":
+        return {"managed": True, "stage": "closed"}
+
+    linked = {row.against_pick_list for row in (doc.get("transfer_items") or [])
+              if row.get("against_pick_list")
+              and frappe.db.exists("Pick List", {"name": row.against_pick_list, "docstatus": ["!=", 2]})}
+    if not linked:
+        return {"managed": True, "stage": "pick"}
+
+    # A draft Pick List is not sufficient to issue inventory.
+    try:
+        require_submitted_pick_list_before_transfer(doc)
+    except (frappe.ValidationError, frappe.DoesNotExistError):
+        return {"managed": True, "stage": "pending"}
+    return {"managed": True, "stage": "transfer", "pick_list": sorted(linked)[0]}
+
+
+@frappe.whitelist()
+def can_transfer_with_pick_list(warehouse_transfer):
+    """Read-only eligibility check for the Warehouse Transfer action menu."""
+    doc = frappe.get_doc("Warehouse Transfer", warehouse_transfer)
+    doc.check_permission("read")
+    if doc.docstatus != 0 or doc.transfer_status != "Draft":
+        return False
+    if doc.transfer_type != "Warehouse Transfer":
+        return True
+    try:
+        require_submitted_pick_list_before_transfer(doc)
+    except (frappe.ValidationError, frappe.DoesNotExistError):
+        return False
+    return True
+
+
+def require_submitted_pick_list_before_transfer(doc, method=None):
+    """Do not issue warehouse stock until all positive issued quantities are picked.
+
+    Drafts remain editable so a Pick List can be created and submitted first.
+    Enforced server-side for workflow submission and API submission alike.
+    """
+    if doc.transfer_type != "Warehouse Transfer":
+        return
+
+    issued_rows = [row for row in (doc.get("transfer_items") or []) if flt(row.issued_qty) > 0]
+    missing = [str(row.idx) for row in issued_rows if not row.get("against_pick_list")]
+    if not issued_rows or missing:
+        detail = " (item rows: {0})".format(", ".join(missing)) if missing else ""
+        frappe.throw(
+            "Cannot Transfer: a submitted Pick List is required for every issued item{0}. "
+            "Save this draft, use Actions > Create Pick List, complete picking and submit "
+            "the Pick List before transferring.".format(detail)
+        )
+
+    # Existing reference validator checks submitted status, matching source
+    # warehouse, quantities and that no quantities have already been issued.
+    validate_pick_list_references(doc)
+
+
 def validate_transfer_type_rules(doc, method=None):
     _set_company_fields(doc)
 
@@ -192,6 +258,8 @@ def validate_transfer_type_rules(doc, method=None):
         _validate_source_warehouse_access(doc)
     _validate_material_request_references(doc)
     validate_pick_list_references(doc)
+    if doc.docstatus == 0 and doc.transfer_status == "Transferred":
+        require_submitted_pick_list_before_transfer(doc)
 
 
 def validate_update_after_submit(doc, method):
@@ -281,6 +349,7 @@ def on_submit(doc, method=None):
     is intentionally based on docstatus and guarded by existing SLE checks.
     """
     if doc.docstatus == 1:
+        require_submitted_pick_list_before_transfer(doc)
         create_source_stock_entry(doc.name)
         update_material_request_progress(doc.name)
         update_pick_list_progress(doc.name)
