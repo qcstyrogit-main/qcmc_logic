@@ -79,9 +79,11 @@ def get_rows(filters):
     refs=frappe.db.sql("""
     SELECT r.parent,r.reference_doctype,r.reference_name,r.allocated_amount,
     s.posting_date AS doc_date,s.base_grand_total AS doc_amount,
-    COALESCE(NULLIF(s.payment_terms_template, ''),
-      (SELECT ps.payment_term FROM `tabPayment Schedule` ps
+    COALESCE(NULLIF(TRIM(r.payment_term), ''),
+      NULLIF(TRIM(s.payment_terms_template), ''),
+      (SELECT NULLIF(TRIM(ps.payment_term), '') FROM `tabPayment Schedule` ps
        WHERE ps.parent=s.name AND ps.parenttype='Sales Invoice'
+         AND ps.payment_term IS NOT NULL AND ps.payment_term <> ''
        ORDER BY ps.idx LIMIT 1)) AS payment_terms
     FROM `tabPayment Entry Reference` r
     LEFT JOIN `tabSales Invoice` s ON r.reference_doctype='Sales Invoice' AND s.name=r.reference_name
