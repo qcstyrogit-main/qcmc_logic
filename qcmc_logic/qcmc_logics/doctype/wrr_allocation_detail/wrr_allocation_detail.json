@@ -1,0 +1,111 @@
+{
+ "doctype": "DocType",
+ "name": "WRR Allocation Detail",
+ "module": "QCMC Logics",
+ "istable": 1,
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_code",
+  "location",
+  "stock_quantity",
+  "stock_uom",
+  "priority",
+  "putaway_rule",
+  "status",
+  "warehouse",
+  "warehouse_allocation",
+  "source_row"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_code",
+   "label": "Item",
+   "fieldtype": "Link",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2,
+   "options": "Item"
+  },
+  {
+   "fieldname": "location",
+   "label": "Location",
+   "fieldtype": "Link",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2,
+   "options": "Storage Location"
+  },
+  {
+   "fieldname": "stock_quantity",
+   "label": "Stock Quantity",
+   "fieldtype": "Float",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 2,
+   "precision": "3"
+  },
+  {
+   "fieldname": "stock_uom",
+   "label": "Stock UOM",
+   "fieldtype": "Link",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 1,
+   "options": "UOM"
+  },
+  {
+   "fieldname": "priority",
+   "label": "Priority",
+   "fieldtype": "Int",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 1
+  },
+  {
+   "fieldname": "putaway_rule",
+   "label": "Putaway Rule",
+   "fieldtype": "Link",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 1,
+   "options": "Putaway Rule"
+  },
+  {
+   "fieldname": "status",
+   "label": "Status",
+   "fieldtype": "Select",
+   "read_only": 1,
+   "in_list_view": 1,
+   "columns": 1,
+   "options": "Reserved\nAllocated\nUnallocated"
+  },
+  {
+   "fieldname": "warehouse",
+   "label": "Warehouse",
+   "fieldtype": "Link",
+   "read_only": 1,
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "warehouse_allocation",
+   "label": "Storage Allocation",
+   "fieldtype": "Link",
+   "read_only": 1,
+   "options": "Storage Allocation"
+  },
+  {
+   "fieldname": "source_row",
+   "label": "Source Item Row",
+   "fieldtype": "Data",
+   "read_only": 1,
+   "hidden": 1
+  }
+ ],
+ "permissions": [],
+ "actions": [],
+ "links": [],
+ "states": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

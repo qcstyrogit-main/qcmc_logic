@@ -5,12 +5,20 @@ from frappe.utils import flt
 from erpnext.stock.doctype.inventory_dimension.inventory_dimension import get_inventory_dimensions
 from erpnext.stock.doctype.putaway_rule.putaway_rule import PutawayRule
 from qcmc_logic.overrides.putaway_rule_dimension import get_putaway_rule_balance
+from qcmc_logic.putaway_priority import assign_priority, lock_rule_warehouses
 
 
 class CustomPutawayRule(PutawayRule):
+	def check_if_latest(self):
+		# Frappe locks the rule during its latest-version check. Lock the
+		# warehouse(s) first so inserts, edits and reordering share lock order.
+		lock_rule_warehouses(self)
+		return super().check_if_latest()
+
 	def validate(self):
 		self.normalize_item_restriction()
 		self.normalize_capacity_restriction()
+		assign_priority(self)
 		self.validate_duplicate_rule()
 		self.validate_warehouse_and_company()
 		self.validate_storage_location_warehouse()

@@ -212,7 +212,7 @@ class CustomStockReconciliation(StockReconciliation):
 
         # A completed warehouse count covers the warehouse, not merely the SKUs
         # that happened to be scanned. Physical locations are authoritative in
-        # completed Warehouse Allocations, Location Transfers, and prior counts;
+        # completed Storage Allocations, Location Transfers, and prior counts;
         # Stock Ledger Entry.location is an accounting dimension in this system.
         balances = _get_physical_location_balances(warehouse)
         for balance in balances:

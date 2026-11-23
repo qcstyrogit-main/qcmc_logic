@@ -491,9 +491,12 @@ def confirm_checker(batch_id, checker_qr, request_id, mobile_token=None, device_
 		for source in batch.source_stock_entries:
 			source_doc = _source_stock_entry(source.stock_entry, user, mutate=False)
 			checker_warehouses.extend(row.t_warehouse for row in (source_doc.get("items") or []) if row.is_finished_item and row.t_warehouse)
-		if checker:
-			if not checker.user_id:
-				raise WorkflowError("CHECKER_NOT_AUTHORIZED", "The Checker Employee must have an ERPNext User ID.", status=403)
+		# The scanned Assign Checker may be an agency Employee without an
+		# ERPNext User ID. The authenticated scanner operator has already been
+		# authorized for the handover warehouses by _get_batch(mutate=True).
+		# When the checker *does* have a linked ERPNext User, keep the
+		# additional user-specific warehouse access check.
+		if checker and checker.user_id:
 			try:
 				ensure_scanner_warehouse_access(checker.user_id, checker_warehouses, require_transact=False)
 			except frappe.PermissionError:
@@ -540,7 +543,7 @@ def confirm_checker(batch_id, checker_qr, request_id, mobile_token=None, device_
 			doc.save(ignore_permissions=True)
 			try:
 				# Putaway/location allocation occurs after Checker confirmation when
-				# the Picker creates the Warehouse Allocation. Bypass only that
+				# the Picker creates the Storage Allocation. Bypass only that
 				# validation for this controlled submission call.
 				doc.flags.skip_putaway_capacity_for_handover = True
 				doc.submit()
@@ -607,7 +610,7 @@ def get_picker_context(batch_id, token, mobile_token=None):
 			raise WorkflowError("CHECKER_VERIFICATION_REQUIRED", "Checker Verification and Stock Entry submission are required.")
 		for stock_entry_id in dict.fromkeys(row.stock_entry for row in batch.source_stock_entries):
 			_source_stock_entry(stock_entry_id, user, docstatus=1)
-		existing_allocation = frappe.db.get_value("Warehouse Allocation", {"handover": batch.name}, "name")
+		existing_allocation = frappe.db.get_value("Storage Allocation", {"handover": batch.name}, "name")
 		response.update({
 			# Scanner v2.06 treats CHECKED as the verification state. Preserve the
 			# actual lifecycle status separately after allocation has been created.

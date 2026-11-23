@@ -203,10 +203,13 @@ def _putaway_allocations(
 	preferred_location=None, shared_reserved_capacity=None,
 ):
 	"""Return authoritative priority/capacity allocations for one finished row."""
-	reserved_capacity = reserved_capacity if reserved_capacity is not None else {}
-	shared_reserved_capacity = (
-		shared_reserved_capacity if shared_reserved_capacity is not None else {}
-	)
+	if reserved_capacity is None:
+		from qcmc_logic.api.warehouse_allocation import _committed_location_quantities
+		reserved_capacity = _committed_location_quantities(row.item_code, row.t_warehouse,
+			exclude_stock_entry=doc.name)
+	if shared_reserved_capacity is None:
+		from qcmc_logic.warehouse_capacity import get_committed_totals
+		shared_reserved_capacity = get_committed_totals(row.t_warehouse, exclude_stock_entry=doc.name)
 	excluded_locations = {str(value or "").strip() for value in (excluded_locations or [])}
 	excluded_locations.discard("")
 	# Once a scanner submission has split a row, retain its authoritative
@@ -247,7 +250,8 @@ def _putaway_allocations(
 			"requires_serial_number": bool(frappe.db.get_value("Item", row.item_code, "has_serial_no")),
 		}]
 	at_capacity, rules = get_ordered_dimension_putaway_rules(
-		row.item_code, doc.company, source_warehouse=row.s_warehouse
+		row.item_code, doc.company, source_warehouse=row.s_warehouse,
+		include_full=True, current=True, target_warehouse=row.t_warehouse,
 	)
 	rules = [rule for rule in (rules or []) if rule.warehouse == row.t_warehouse]
 	pending_stock_qty = flt(row.transfer_qty) or flt(row.qty) * (flt(row.conversion_factor) or 1)
@@ -289,11 +293,7 @@ def _putaway_allocations(
 			pending_stock_qty
 			if unlimited_capacity
 			else max(
-				(
-					flt(rule.free_space)
-					if rule.get("custom_no_item_restriction")
-					else flt(rule.stock_capacity)
-				) - reserved_qty,
+				flt(rule.stock_capacity) - reserved_qty,
 				0,
 			)
 		)
@@ -328,12 +328,8 @@ def _putaway_allocations(
 			"requires_batch": bool(item.get("has_batch_no")),
 			"requires_serial_number": bool(item.get("has_serial_no")),
 		})
-		if rule.get("custom_no_item_restriction"):
-			shared_reserved_capacity[location.name] = (
-				flt(shared_reserved_capacity.get(location.name)) + stock_qty
-			)
-		else:
-			reserved_capacity[location.name] = flt(reserved_capacity.get(location.name)) + stock_qty
+		shared_reserved_capacity[location.name] = flt(shared_reserved_capacity.get(location.name)) + stock_qty
+		reserved_capacity[location.name] = flt(reserved_capacity.get(location.name)) + stock_qty
 		pending_stock_qty -= stock_qty
 	if pending_stock_qty > 1e-9:
 		fallback_exclusions = allocations + [
@@ -553,16 +549,33 @@ def get_storage_location_details(inventory_location_id=None, location_id=None, m
 		return _error("ERP_VALIDATION_FAILED", str(exc))
 
 
+def _plan_finished_allocations(doc, finished):
+	"""Share each location's request occupancy across all bulk source rows."""
+	from qcmc_logic.api.warehouse_allocation import _committed_location_quantities
+	from qcmc_logic.warehouse_capacity import get_committed_totals
+	by_item, shared, result = {}, {}, {}
+	for row in finished:
+		key = (row.item_code, row.t_warehouse)
+		if key not in by_item:
+			by_item[key] = _committed_location_quantities(row.item_code, row.t_warehouse,
+				exclude_stock_entry=doc.name)
+		if row.t_warehouse not in shared:
+			shared[row.t_warehouse] = get_committed_totals(row.t_warehouse, exclude_stock_entry=doc.name)
+		result[row.name] = _putaway_allocations(doc, row, reserved_capacity=by_item[key],
+			shared_reserved_capacity=shared[row.t_warehouse])
+	return result
+
+
 def _manufacture_receive_context(doc, finished, include_putaway=True):
 	"""Return a receive context.
 
 	Putaway is deliberately opt-in here. Creating a manufacturing receipt Draft
 	must be a recording operation only; allocation is performed later by the
-	Warehouse Allocation workflow. ``get_manufacture_receive_context`` retains
+	Storage Allocation workflow. ``get_manufacture_receive_context`` retains
 	the legacy opt-in behavior for older scanner releases.
 	"""
 	allocations = (
-		[allocation for row in finished for allocation in _putaway_allocations(doc, row)]
+		[allocation for rows in _plan_finished_allocations(doc, finished).values() for allocation in rows]
 		if include_putaway else []
 	)
 	distribution_mode, distribution_parent = _parent_distribution(finished, allocations)
@@ -1134,7 +1147,7 @@ def _split_finished_rows(doc, finished, entries, distribution_parent_id=None):
 			{"stock_entry_rows": sorted(unknown_rows)},
 		)
 	new_finished = []
-	allocations_by_row = {row.name: _putaway_allocations(doc, row) for row in finished}
+	allocations_by_row = _plan_finished_allocations(doc, finished)
 	all_allocations = [allocation for allocations in allocations_by_row.values() for allocation in allocations]
 	allocation_owners = {
 		allocation["allocation_id"]: row_name
@@ -1248,6 +1261,8 @@ def _submit(stock_entry_id, submission_id, entries, user, distribution_parent_id
 		replay = _get_idempotent_replay(submission_id, request_hash)
 		if replay:
 			return replay
+		from qcmc_logic.warehouse_capacity import lock_warehouses
+		lock_warehouses(frappe.get_all("Stock Entry Detail", filters={"parent": stock_entry_id}, pluck="t_warehouse"))
 		frappe.db.sql("select name from `tabStock Entry` where name=%s for update", stock_entry_id)
 		# Recheck after waiting for the document lock so concurrent identical
 		# retries cannot both update the Draft document.

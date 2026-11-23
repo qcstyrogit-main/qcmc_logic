@@ -1,7 +1,13 @@
 frappe.provide("qcmc_logic.warehouse_allocation");
 
-frappe.ui.form.on("Warehouse Allocation", {
+frappe.ui.form.on("Storage Allocation", {
 	refresh(frm) {
+		if (frm.doc.purchase_receipt) {
+			frm.disable_save();
+			["items", "locations", "references"].forEach(field => frm.set_df_property(field, "read_only", 1));
+			frm.set_intro(__("Managed by WRR {0}. Save, Receive or Cancel that WRR to update this allocation.", [frm.doc.purchase_receipt]));
+			return;
+		}
 		qcmc_logic.warehouse_allocation.toggle_scanner_fields(frm);
 		qcmc_logic.warehouse_allocation.add_get_items_button(frm);
 		qcmc_logic.warehouse_allocation.add_abandon_button(frm);
@@ -13,15 +19,15 @@ qcmc_logic.warehouse_allocation.add_abandon_button = function(frm) {
 
 	frm.add_custom_button(__("Abandon Allocation"), () => {
 		frappe.confirm(
-			__("Abandon this Warehouse Allocation? Its location reservations will be released."),
+			__("Abandon this Storage Allocation? Its location reservations will be released."),
 			() => frappe.call({
-				method: "qcmc_logic.qcmc_logics.doctype.warehouse_allocation.warehouse_allocation.abandon_allocation",
+				method: "qcmc_logic.qcmc_logics.doctype.storage_allocation.storage_allocation.abandon_allocation",
 				args: { name: frm.doc.name },
 				freeze: true,
-				freeze_message: __("Abandoning Warehouse Allocation..."),
+				freeze_message: __("Abandoning Storage Allocation..."),
 				callback(r) {
 					if (r.message && r.message.success) {
-						frappe.show_alert({ message: __("Warehouse Allocation abandoned."), indicator: "orange" });
+						frappe.show_alert({ message: __("Storage Allocation abandoned."), indicator: "orange" });
 						frm.reload_doc();
 					}
 				},
@@ -107,7 +113,7 @@ qcmc_logic.warehouse_allocation.load_documents = function(frm, dialog) {
 	if (!source_doctype) return;
 
 	frappe.call({
-		method: "qcmc_logic.qcmc_logics.doctype.warehouse_allocation.warehouse_allocation.get_receiving_documents",
+		method: "qcmc_logic.qcmc_logics.doctype.storage_allocation.storage_allocation.get_receiving_documents",
 		args: {
 			source_doctype,
 			company: frm.doc.company,
@@ -157,7 +163,7 @@ qcmc_logic.warehouse_allocation.render_documents = function(dialog, documents) {
 
 qcmc_logic.warehouse_allocation.get_items = function(frm, dialog, source_doctype, documents) {
 	frappe.call({
-		method: "qcmc_logic.qcmc_logics.doctype.warehouse_allocation.warehouse_allocation.get_items_from_documents",
+		method: "qcmc_logic.qcmc_logics.doctype.storage_allocation.storage_allocation.get_items_from_documents",
 		args: {
 			source_doctype,
 			documents,

@@ -107,7 +107,7 @@
 
     function scope_description(scope) {
         const selected = scope.selections || {};
-        return `${__("Modules")}: ${(selected.modules || []).join(", ") || __("All")} · ${__("DocTypes")}: ${(selected.doctypes || []).join(", ") || __("All")} · ${__("Users")}: ${(selected.users || []).join(", ") || __("All")}`;
+        return `${__("Modules")}: ${(selected.modules || []).join(", ") || __("All")} · ${__("DocTypes")}: ${(selected.doctypes || []).join(", ") || __("All")} · ${__("Department")}: ${(selected.departments || []).map(d => d === "__unassigned__" ? __("Unassigned") : d).join(", ") || __("All")} · ${__("Users")}: ${(selected.users || []).join(", ") || __("All")}`;
     }
 
     function report_html(scope, charts, summary, generated) {
@@ -296,8 +296,10 @@
                     if (["day","month"].includes(config.group_by)) {
                         const interval = config.group_by;
                         if (!this.trends.has(interval)) {
-                            const request = frappe.call({method:API+"get_creation_trend",args:{date_from:scope.date_from,date_to:scope.date_to,
-                                doctypes:JSON.stringify(scope.doctypes),users:JSON.stringify(scope.selections.users),interval}}).then(response=>response.message);
+                            const request = scope.rows.length
+                                ? frappe.call({method:API+"get_creation_trend",args:{date_from:scope.date_from,date_to:scope.date_to,
+                                    doctypes:JSON.stringify(scope.doctypes),users:JSON.stringify(scope.rows.map(row => row.user)),interval}}).then(response=>response.message)
+                                : Promise.resolve({labels: [], values: []});
                             this.trends.set(interval,request);
                             request.catch(()=>{ if (this.trends.get(interval) === request) this.trends.delete(interval); });
                         }

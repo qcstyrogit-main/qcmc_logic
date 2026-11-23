@@ -159,7 +159,7 @@ def _ensure_pcount_open_for_scanning(doc):
 
 
 def _current_inventory_quantity(item_code, warehouse, storage_location, batch_no=None, serial_no=None):
-    """Authoritative physical-location balance from counts, allocations, and transfers."""
+    """Authoritative physical-location balance including direct WRR receipts."""
     item_code = str(item_code or "").strip()
     warehouse = str(warehouse or "").strip()
     storage_location = str(storage_location or "").strip()
@@ -198,7 +198,7 @@ def _current_inventory_quantity(item_code, warehouse, storage_location, batch_no
         """
         select coalesce(sum(wal.actual_qty), 0) as quantity, count(*) as row_count
         from `tabWarehouse Allocation Location` wal
-        inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
+        inner join `tabStorage Allocation` wa on wa.name = wal.parent
         where wa.docstatus = 1 and wa.status = 'Completed'
           and wa.warehouse = %s and wal.item_code = %s
           and wal.status = 'VERIFIED' and wal.actual_location = %s
@@ -217,16 +217,65 @@ def _current_inventory_quantity(item_code, warehouse, storage_location, batch_no
         """,
         (storage_location, storage_location, warehouse, item_code, cutoff, cutoff),
     )[0][0] or 0
-    if latest_count:
-        return _safe_float(latest_count[0].physical_count) + _safe_float(allocation) + _safe_float(movement)
-    if allocation_state.row_count:
-        return _safe_float(allocation) + _safe_float(movement)
+    from qcmc_logic.warehouse_transfer_out_balance import get_out_movements
+
+    outgoing = get_out_movements(
+        warehouse, location=storage_location, item_code=item_code, after=cutoff,
+    )
+    # Count/allocation baselines do not include source Warehouse Transfer
+    # postings. The legacy SLE fallback may already include dimensional
+    # entries when an actual Storage Location was written on the SLE.
+    out_from_baseline = sum(_safe_float(row["quantity"]) for row in outgoing)
+    out_from_legacy = sum(
+        _safe_float(row["quantity"]) for row in outgoing
+        if row.get("ledger_location") != storage_location
+    )
+    from qcmc_logic.delivery_note_pick_list import get_delivery_note_out_movements
+
+    delivery_out = get_delivery_note_out_movements(
+        warehouse, location=storage_location, item_code=item_code, after=cutoff
+    )
+    delivery_out_from_baseline = sum(_safe_float(row["quantity"]) for row in delivery_out)
+    delivery_out_from_legacy = sum(
+        _safe_float(row["quantity"]) for row in delivery_out
+        if row.get("ledger_location") != storage_location
+    )
+    from qcmc_logic.stock_entry_out_balance import get_out_movements as get_stock_entry_out_movements
+
+    manufacture_out = get_stock_entry_out_movements(
+        warehouse, location=storage_location, item_code=item_code, after=cutoff
+    )
+    manufacture_out_from_baseline = sum(_safe_float(row["quantity"]) for row in manufacture_out)
+    manufacture_out_from_legacy = sum(
+        _safe_float(row["quantity"]) for row in manufacture_out
+        if row.get("ledger_location") != storage_location
+    )
+    if latest_count or allocation_state.row_count:
+        # The legacy ledger fallback already includes receipts. Only add them
+        # explicitly when counts/allocations supply the physical baseline.
+        receipt = frappe.db.sql(
+            """
+            select coalesce(sum(actual_qty), 0)
+            from `tabStock Ledger Entry`
+            where voucher_type = 'Purchase Receipt' and is_cancelled = 0
+              and warehouse = %(warehouse)s and item_code = %(item)s
+              and location = %(location)s
+              and (%(cutoff)s is null or posting_datetime > %(cutoff)s)
+              and (%(batch)s = '' or batch_no = %(batch)s)
+              and (%(serial)s = '' or serial_no = %(serial)s)
+            """,
+            {"warehouse": warehouse, "item": item_code, "location": storage_location,
+             "cutoff": cutoff, "batch": str(batch_no or "").strip(),
+             "serial": str(serial_no or "").strip()},
+        )[0][0] or 0
+        baseline = latest_count[0].physical_count if latest_count else 0
+        return sum(_safe_float(value) for value in (baseline, allocation, movement, receipt, out_from_baseline, delivery_out_from_baseline, manufacture_out_from_baseline))
     legacy_balance = get_dimension_stock_balance(
         item_code, warehouse, {"location": storage_location},
         batch_no=str(batch_no or "").strip() or None,
         serial_no=str(serial_no or "").strip() or None,
     )
-    return _safe_float(legacy_balance) + _safe_float(movement)
+    return _safe_float(legacy_balance) + _safe_float(movement) + out_from_legacy + delivery_out_from_legacy + manufacture_out_from_legacy
 
 
 def _quantities_equal(left, right):
@@ -661,7 +710,7 @@ def _make_pcount_stock_entry(doc, purpose, rows, reconciliation_id):
             values["set_basic_rate_manually"] = 1
         else:
             values["allow_zero_valuation_rate"] = 1
-        # Physical locations are maintained by Warehouse Allocation, Location
+        # Physical locations are maintained by Storage Allocation, Location
         # Transfer, and the submitted count variance. The Stock Entry adjusts only
         # the ERP warehouse total so the same variance is not counted twice.
         if purpose == "Material Receipt":
@@ -2367,7 +2416,7 @@ def _get_physical_location_balances(warehouse):
         candidates as (
             select wal.item_code, wal.actual_location as location
             from `tabWarehouse Allocation Location` wal
-            inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
+            inner join `tabStorage Allocation` wa on wa.name = wal.parent
             where wa.docstatus = 1 and wa.status = 'Completed'
               and wa.warehouse = %(warehouse)s and wal.status = 'VERIFIED'
             union all
@@ -2380,6 +2429,10 @@ def _get_physical_location_balances(warehouse):
             where docstatus = 1 and warehouse = %(warehouse)s
             union all
             select item_code, location from latest_counts
+            union all
+            select item_code, location from `tabStock Ledger Entry`
+            where warehouse = %(warehouse)s
+              and voucher_type = 'Purchase Receipt' and is_cancelled = 0
         ),
         balance_state as (
             select distinct candidate.item_code, candidate.location,
@@ -2387,7 +2440,7 @@ def _get_physical_location_balances(warehouse):
                    + coalesce((
                        select sum(wal.actual_qty)
                        from `tabWarehouse Allocation Location` wal
-                       inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
+                       inner join `tabStorage Allocation` wa on wa.name = wal.parent
                        where wa.docstatus = 1 and wa.status = 'Completed'
                          and wa.warehouse = %(warehouse)s
                          and wal.item_code = candidate.item_code
@@ -2409,6 +2462,15 @@ def _get_physical_location_balances(warehouse):
                               or transfer.target_location = candidate.location)
                          and (latest.counted_at is null
                               or transfer.transferred_at > latest.counted_at)
+                   ), 0)
+                   + coalesce((
+                       select sum(sle.actual_qty)
+                       from `tabStock Ledger Entry` sle
+                       where sle.voucher_type = 'Purchase Receipt' and sle.is_cancelled = 0
+                         and sle.warehouse = %(warehouse)s
+                         and sle.item_code = candidate.item_code
+                         and sle.location = candidate.location
+                         and (latest.counted_at is null or sle.posting_datetime > latest.counted_at)
                    ), 0) as quantity
             from candidates candidate
             left join latest_counts latest

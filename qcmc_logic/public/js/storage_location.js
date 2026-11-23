@@ -1,5 +1,34 @@
+frappe.provide("qcmc_logic.storage_location");
+
+qcmc_logic.storage_location.open_item_balances = function(frm) {
+    if (frm.is_new() || frm.doc.is_group) return;
+    frappe.require("/assets/qcmc_logic/js/storage_location_item_balances.js", () => {
+        qcmc_logic.storage_location.show_item_balances(frm.doc.name);
+    });
+};
+
 frappe.ui.form.on("Storage Location", {
 	refresh(frm) {
+        if (!frm.is_new() && frappe.model.can_read("Storage Location")) {
+            if (!frm.doc.is_group) {
+                frm.add_custom_button(__("View Item Balances"), () => {
+                    qcmc_logic.storage_location.open_item_balances(frm);
+                }, __("View"));
+            }
+            frm.add_custom_button(__("Stock Summary"), () => {
+                const warehouse = frm.doc.custom_warehouse;
+                if (!warehouse) {
+                    frappe.msgprint(__("Assign a Warehouse to this Storage Location before opening Stock Summary."));
+                    return;
+                }
+                frappe.route_options = {
+                    warehouse,
+                    storage_location: frm.doc.name,
+                    show_empty_locations: 1,
+                };
+                frappe.set_route("query-report", "Storage Location Summary");
+            }, __("View"));
+        }
 		if (!frm.is_new() && frappe.model.can_create("Putaway Rule")) {
 			frm.add_custom_button(__("Create Putaway Rule"), async () => {
 				const warehouse = frm.doc.custom_warehouse;

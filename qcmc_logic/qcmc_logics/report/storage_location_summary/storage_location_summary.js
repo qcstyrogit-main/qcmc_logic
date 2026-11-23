@@ -29,6 +29,12 @@ frappe.query_reports["Storage Location Summary"] = {
         }
     },
     formatter(value, row, column, data, default_formatter) {
+        if (["capacity", "available_capacity"].includes(column.fieldname) && data?.capacity_unlimited) return __("Unlimited");
+        if (["capacity", "used_capacity", "available_capacity", "use_percentage"].includes(column.fieldname)) {
+            if (data?.[column.fieldname] == null) return "";
+            const formatted = default_formatter(value, row, column, data);
+            return column.fieldname === "use_percentage" ? `${formatted}%` : formatted;
+        }
         if (column.fieldname === "stock_qty" && data && data.stock_qty == null) return "";
         return default_formatter(value, row, column, data);
     },

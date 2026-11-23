@@ -130,6 +130,72 @@ def _validate_material_request_references(doc):
             )
 
 
+@frappe.whitelist()
+def get_transfer_action_state(warehouse_transfer):
+    """Read-only menu state: draft pick, ready to transfer, then receive."""
+    doc = frappe.get_doc("Warehouse Transfer", warehouse_transfer)
+    doc.check_permission("read")
+    if doc.transfer_type != "Warehouse Transfer":
+        return {"managed": False}
+    if doc.docstatus == 1 and doc.transfer_status == "Transferred":
+        return {"managed": True, "stage": "receive"}
+    if doc.docstatus != 0 or doc.transfer_status != "Draft":
+        return {"managed": True, "stage": "closed"}
+
+    linked = {row.against_pick_list for row in (doc.get("transfer_items") or [])
+              if row.get("against_pick_list")
+              and frappe.db.exists("Pick List", {"name": row.against_pick_list, "docstatus": ["!=", 2]})}
+    if not linked:
+        return {"managed": True, "stage": "pick"}
+
+    # A draft Pick List is not sufficient to issue inventory.
+    try:
+        require_submitted_pick_list_before_transfer(doc)
+    except (frappe.ValidationError, frappe.DoesNotExistError):
+        return {"managed": True, "stage": "pending"}
+    return {"managed": True, "stage": "transfer", "pick_list": sorted(linked)[0]}
+
+
+@frappe.whitelist()
+def can_transfer_with_pick_list(warehouse_transfer):
+    """Read-only eligibility check for the Warehouse Transfer action menu."""
+    doc = frappe.get_doc("Warehouse Transfer", warehouse_transfer)
+    doc.check_permission("read")
+    if doc.docstatus != 0 or doc.transfer_status != "Draft":
+        return False
+    if doc.transfer_type != "Warehouse Transfer":
+        return True
+    try:
+        require_submitted_pick_list_before_transfer(doc)
+    except (frappe.ValidationError, frappe.DoesNotExistError):
+        return False
+    return True
+
+
+def require_submitted_pick_list_before_transfer(doc, method=None):
+    """Do not issue warehouse stock until all positive issued quantities are picked.
+
+    Drafts remain editable so a Pick List can be created and submitted first.
+    Enforced server-side for workflow submission and API submission alike.
+    """
+    if doc.transfer_type != "Warehouse Transfer":
+        return
+
+    issued_rows = [row for row in (doc.get("transfer_items") or []) if flt(row.issued_qty) > 0]
+    missing = [str(row.idx) for row in issued_rows if not row.get("against_pick_list")]
+    if not issued_rows or missing:
+        detail = " (item rows: {0})".format(", ".join(missing)) if missing else ""
+        frappe.throw(
+            "Cannot Transfer: a submitted Pick List is required for every issued item{0}. "
+            "Save this draft, use Actions > Create Pick List, complete picking and submit "
+            "the Pick List before transferring.".format(detail)
+        )
+
+    # Existing reference validator checks submitted status, matching source
+    # warehouse, quantities and that no quantities have already been issued.
+    validate_pick_list_references(doc)
+
+
 def validate_transfer_type_rules(doc, method=None):
     _set_company_fields(doc)
 
@@ -172,9 +238,28 @@ def validate_transfer_type_rules(doc, method=None):
         if not target_is_province:
             frappe.throw("Provincial Warehouse Transfer requires a provincial target warehouse.")
 
-    _validate_source_warehouse_access(doc)
+    # A scanner-confirmed receiving operation is an update of a submitted
+    # WTS, not a new source issue. Its destination-warehouse transaction
+    # permission is checked by the scanner endpoint and by
+    # _validate_receiving_update; do not additionally require source
+    # warehouse transaction permission from the Picker.
+    scanner_receipt = (
+        doc.docstatus == 1 and doc.transfer_status == "Received"
+        and doc.flags.get("qcmc_wts_scanner_receipt")
+    )
+    # The WTS Checker records actual Received Qty while still Transferred.
+    # Authorization is enforced by the scanner endpoint, independent of
+    # stock-issue/receipt transaction permissions for this non-posting update.
+    scanner_check = (
+        doc.docstatus == 1 and doc.transfer_status == "Transferred"
+        and doc.flags.get("qcmc_wts_checker_sync")
+    )
+    if not (scanner_receipt or scanner_check):
+        _validate_source_warehouse_access(doc)
     _validate_material_request_references(doc)
     validate_pick_list_references(doc)
+    if doc.docstatus == 0 and doc.transfer_status == "Transferred":
+        require_submitted_pick_list_before_transfer(doc)
 
 
 def validate_update_after_submit(doc, method):
@@ -192,9 +277,13 @@ def _validate_receiving_update(doc, previous):
     if _skip_warehouse_access_checks():
         return
 
-    transact_whs = set(get_user_allowed_warehouses(frappe.session.user, require_transact=True))
-    if doc.target_warehouse not in transact_whs:
-        frappe.throw("You are not allowed to receive transfers for this target warehouse.")
+    # Scanner Checker may save only the physical receipt quantities before
+    # allocation/stock posting. The source warehouse access is checked by the
+    # scanner endpoint and the protected-row validation below remains active.
+    if not (doc.transfer_status == "Transferred" and doc.flags.get("qcmc_wts_checker_sync")):
+        transact_whs = set(get_user_allowed_warehouses(frappe.session.user, require_transact=True))
+        if doc.target_warehouse not in transact_whs:
+            frappe.throw("You are not allowed to receive transfers for this target warehouse.")
 
     if not previous:
         return
@@ -260,6 +349,7 @@ def on_submit(doc, method=None):
     is intentionally based on docstatus and guarded by existing SLE checks.
     """
     if doc.docstatus == 1:
+        require_submitted_pick_list_before_transfer(doc)
         create_source_stock_entry(doc.name)
         update_material_request_progress(doc.name)
         update_pick_list_progress(doc.name)
@@ -279,6 +369,10 @@ def on_update_after_submit(doc, method=None):
         ensure_date_received(doc)
         create_source_stock_entry(doc.name)
         create_target_stock_entry(doc.name)
+        from qcmc_logic.warehouse_transfer_allocation import submit_allocations, refresh_allocation_table
+        submit_allocations(doc)
+        if doc.get("custom_storage_allocation_enabled"):
+            refresh_allocation_table(doc, persist=True)
         update_material_request_progress(doc.name)
         update_pick_list_progress(doc.name)
         if doc.source_company != doc.target_company:
@@ -376,6 +470,11 @@ def create_source_stock_entry(docname):
             if qty <= 0:
                 continue
 
+            from qcmc_logic.warehouse_transfer_allocation import uses_allocation, stock_quantity
+            if uses_allocation(doc):
+                qty, stock_item = stock_quantity(item, qty)
+                if not stock_item.is_stock_item:
+                    continue
             # Build the SLE as a frappe._dict so code that uses row.warehouse works
             sle = frappe._dict({
                 "item_code": item.item_code,
@@ -438,12 +537,19 @@ def create_target_stock_entry(docname):
             if qty <= 0:
                 continue
 
-            putaway_rule = get_dimension_putaway_for_item(
-                item.item_code,
-                doc.target_company,
-                source_warehouse=doc.source_warehouse,
-                item_dimensions=get_dimension_values(item),
-            )
+            from qcmc_logic.warehouse_transfer_allocation import uses_allocation, stock_quantity
+            if uses_allocation(doc):
+                qty, stock_item = stock_quantity(item, qty)
+                if not stock_item.is_stock_item:
+                    continue
+                putaway_rule = None
+            else:
+                putaway_rule = get_dimension_putaway_for_item(
+                    item.item_code,
+                    doc.target_company,
+                    source_warehouse=doc.source_warehouse,
+                    item_dimensions=get_dimension_values(item),
+                )
             target_warehouse = putaway_rule.warehouse if putaway_rule else doc.target_warehouse
             # Build the SLE as a frappe._dict so code that uses row.warehouse works
             sle = frappe._dict({
@@ -804,6 +910,10 @@ def on_cancel(doc, method):
 
     try:
         frappe.db.savepoint(savepoint)
+        from qcmc_logic.warehouse_transfer_allocation import cancel_allocations, refresh_allocation_table
+        cancel_allocations(doc)
+        if doc.get("custom_storage_allocation_enabled"):
+            refresh_allocation_table(doc, persist=True)
         _reverse_warehouse_transfer_gl(doc)
         _reverse_warehouse_transfer_stock(doc)
         _set_cancelled_transfer_status(doc)
@@ -955,6 +1065,8 @@ def _set_cancelled_transfer_status(doc):
 
 
 def on_trash(doc, method):
+    from qcmc_logic.warehouse_transfer_allocation import delete_draft_allocations
+    delete_draft_allocations(doc)
     try:
         # Delete all GL Entries linked to this Warehouse Transfer
         gl_entries = frappe.get_all(

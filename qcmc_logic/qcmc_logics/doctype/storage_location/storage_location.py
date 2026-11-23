@@ -297,7 +297,7 @@ def get_storage_location_tree_nodes(doctype=None, parent="", include_disabled=Fa
 
 @frappe.whitelist()
 def get_storage_location_item_balances(storage_location):
-	"""Return completed Warehouse Allocation balances for one leaf location."""
+	"""Return completed Storage Allocation balances for one leaf location."""
 	from qcmc_logic.utils import check_warehouse_access
 
 	storage_location = str(storage_location or "").strip()
@@ -340,6 +340,10 @@ def get_storage_location_item_balances(storage_location):
 	movements = _get_location_movement_details(location.name, location.custom_warehouse)
 	for row in rows:
 		row.actual_qty = flt(row.actual_qty)
+		latest = next((move.movement_time for move in movements
+			if move.item_code == row.item_code), None)
+		if latest:
+			row.last_movement = latest
 	for row in details:
 		row.actual_qty = flt(row.actual_qty)
 	for row in movements:
@@ -352,7 +356,7 @@ def get_storage_location_item_balances(storage_location):
 		"location_name": location.location_name,
 		"warehouse": location.custom_warehouse,
 		"item_count": len({row.item_code for row in rows}),
-		"balance_source": "Warehouse Allocation + Location Transfer",
+		"balance_source": "Storage Allocation + Location Transfer + WRR + Physical Count",
 		"capacity_summary": capacity_summary,
 		"balances": rows,
 		"allocation_details": details,
@@ -379,10 +383,10 @@ def _get_storage_location_balance_fields():
 def _get_storage_location_capacity_summary(location, balances):
 	"""Return configured and free capacity for the item-balance popup."""
 	warehouse = location.custom_warehouse
-	used_capacity = (
-		get_location_total_physical_balance(warehouse, location.name)
-		if warehouse else sum(flt(row.actual_qty) for row in balances)
-	)
+	# Use the same current quantities shown in the Item Balance table.
+	# This includes posted Warehouse Transfer OUT through the balance API,
+	# avoiding a stale "Used Capacity" after picking stock out.
+	used_capacity = sum(flt(row.actual_qty) for row in balances)
 	capacity_uom = _get_single_balance_uom(balances)
 	capacity = None
 	available_capacity = None
@@ -494,17 +498,24 @@ def _get_warehouse_allocation_location_balances(storage_location, warehouse):
 			sum(movement.quantity) as actual_qty,
 			max(movement.movement_time) as last_movement
 		from (
+			select sle.item_code, sle.stock_uom as uom, sle.actual_qty as quantity,
+				sle.posting_datetime as movement_time
+			from `tabStock Ledger Entry` sle
+			where sle.voucher_type = 'Purchase Receipt' and sle.is_cancelled = 0
+				and sle.warehouse = %(warehouse)s and sle.location = %(storage_location)s
+			union all
 			select wal.item_code, wal.stock_uom as uom, wal.actual_qty as quantity,
 				coalesce(wa.completed_at, wa.modified) as movement_time
 			from `tabWarehouse Allocation Location` wal
-			inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
-			inner join `tabStock Entry` se
-				on se.name = wal.source_document
-				and wal.source_doctype = 'Stock Entry'
-				and se.docstatus = 1
+			inner join `tabStorage Allocation` wa on wa.name = wal.parent
+			left join `tabStock Entry` se
+				on se.name = wal.source_document and wal.source_doctype = 'Stock Entry' and se.docstatus = 1
+			left join `tabPurchase Receipt` pr
+				on pr.name = wa.purchase_receipt and wal.source_doctype = 'Purchase Receipt' and pr.docstatus = 1
 			where wa.docstatus = 1 and wa.status = 'Completed'
 				and wa.warehouse = %(warehouse)s and wal.status = 'VERIFIED'
 				and wal.actual_location = %(storage_location)s
+				and (se.name is not null or pr.name is not null)
 			union all
 			select item_code, uom, quantity, transferred_at
 			from `tabLocation Transfer`
@@ -569,11 +580,11 @@ def _get_warehouse_allocation_location_details(storage_location, warehouse):
 			wal.scan_time,
 			wa.completed_at
 		from `tabWarehouse Allocation Location` wal
-		inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
-		inner join `tabStock Entry` se
-			on se.name = wal.source_document
-			and wal.source_doctype = 'Stock Entry'
-			and se.docstatus = 1
+		inner join `tabStorage Allocation` wa on wa.name = wal.parent
+		left join `tabStock Entry` se
+			on se.name = wal.source_document and wal.source_doctype = 'Stock Entry' and se.docstatus = 1
+		left join `tabPurchase Receipt` pr
+			on pr.name = wa.purchase_receipt and wal.source_doctype = 'Purchase Receipt' and pr.docstatus = 1
 		left join `tabItem` item on item.name = wal.item_code
 		where wa.docstatus = 1
 			and wa.status = 'Completed'
@@ -581,6 +592,7 @@ def _get_warehouse_allocation_location_details(storage_location, warehouse):
 			and wal.status = 'VERIFIED'
 			and wal.actual_location = %(storage_location)s
 			and wal.actual_qty > 0
+			and (se.name is not null or pr.name is not null)
 		order by coalesce(wal.scan_time, wa.completed_at) desc,
 			wa.name desc, wal.idx asc
 		""",
@@ -591,12 +603,12 @@ def _get_warehouse_allocation_location_details(storage_location, warehouse):
 
 def _get_location_movement_details(storage_location, warehouse):
 	"""Return allocations and transfers as one signed, chronological history."""
-	return frappe.db.sql(
+	movements = frappe.db.sql(
 		"""
 		select * from (
 			select
 				coalesce(wa.completed_at, wa.modified) as movement_time,
-				'Warehouse Allocation' as movement_type,
+				'Storage Allocation' as movement_type,
 				wa.name as reference_name,
 				wal.item_code,
 				coalesce(item.item_name, wal.item_code) as item_name,
@@ -606,19 +618,34 @@ def _get_location_movement_details(storage_location, warehouse):
 				wal.actual_location as target_location,
 				coalesce(nullif(wal.user_full_name, ''), nullif(wal.user, ''), '') as performed_by,
 				coalesce(nullif(wal.scanner_id, ''), nullif(wa.device_id, ''), '') as device_id,
-				null as counted_quantity
+				null as counted_quantity,
+				coalesce(nullif(wal.source_doctype, ''), wa.source_doctype, '') as source_doctype,
+				coalesce(nullif(wal.source_document, ''), wa.source_document, '') as source_document
 			from `tabWarehouse Allocation Location` wal
-			inner join `tabWarehouse Allocation` wa on wa.name = wal.parent
+			inner join `tabStorage Allocation` wa on wa.name = wal.parent
 			left join `tabItem` item on item.name = wal.item_code
 			where wa.docstatus = 1 and wa.status = 'Completed'
 				and wa.warehouse = %(warehouse)s and wal.status = 'VERIFIED'
 				and wal.actual_location = %(storage_location)s
 			union all
 			select
+				sle.posting_datetime, 'Warehouse Receiving Report', sle.voucher_no,
+				sle.item_code, coalesce(item.item_name, sle.item_code),
+				sle.actual_qty, sle.stock_uom,
+				case when sle.actual_qty < 0 then sle.location else '' end,
+				case when sle.actual_qty > 0 then sle.location else '' end,
+				coalesce(nullif(usr.full_name, ''), sle.owner), '', null, '', ''
+			from `tabStock Ledger Entry` sle
+			left join `tabItem` item on item.name = sle.item_code
+			left join `tabUser` usr on usr.name = sle.owner
+			where sle.voucher_type = 'Purchase Receipt' and sle.is_cancelled = 0
+				and sle.warehouse = %(warehouse)s and sle.location = %(storage_location)s
+			union all
+			select
 				lt.transferred_at, 'Location Transfer', lt.name,
 				lt.item_code, coalesce(item.item_name, lt.item_code),
 				-lt.quantity, lt.uom, lt.source_location, lt.target_location,
-				coalesce(nullif(employee.employee_name, ''), lt.erpnext_user), lt.device_id, null
+				coalesce(nullif(employee.employee_name, ''), lt.erpnext_user), lt.device_id, null, '', ''
 			from `tabLocation Transfer` lt
 			left join `tabItem` item on item.name = lt.item_code
 			left join `tabEmployee` employee on employee.name = lt.employee
@@ -629,7 +656,7 @@ def _get_location_movement_details(storage_location, warehouse):
 				lt.transferred_at, 'Location Transfer', lt.name,
 				lt.item_code, coalesce(item.item_name, lt.item_code),
 				lt.quantity, lt.uom, lt.source_location, lt.target_location,
-				coalesce(nullif(employee.employee_name, ''), lt.erpnext_user), lt.device_id, null
+				coalesce(nullif(employee.employee_name, ''), lt.erpnext_user), lt.device_id, null, '', ''
 			from `tabLocation Transfer` lt
 			left join `tabItem` item on item.name = lt.item_code
 			left join `tabEmployee` employee on employee.name = lt.employee
@@ -646,7 +673,7 @@ def _get_location_movement_details(storage_location, warehouse):
 				sum(coalesce(
 					cast(nullif(nullif(trim(pcr.cost_acct_cnt), ''), '0.000000000') as decimal(21,9)),
 					pcr.physical_count
-				))
+				)), '', ''
 			from `tabQCMC Physical Count Result` pcr
 			inner join `tabStock Reconciliation` sr on sr.name = pcr.parent
 			left join `tabItem` item on item.name = pcr.item_code
@@ -664,7 +691,7 @@ def _get_location_movement_details(storage_location, warehouse):
 				tx.item_code, coalesce(item.item_name, tx.item_code), tx.quantity_change,
 				tx.uom, '', tx.storage_location,
 				coalesce(nullif(tx.scanner_full_name, ''), tx.scanner_user), tx.device_id,
-				tx.running_quantity
+				tx.running_quantity, '', ''
 			from `tabPhysical Count Scan Transaction` tx
 			inner join `tabStock Reconciliation` scan_sr
 				on scan_sr.name = tx.reconciliation
@@ -680,6 +707,106 @@ def _get_location_movement_details(storage_location, warehouse):
 		{"warehouse": warehouse, "storage_location": storage_location},
 		as_dict=True,
 	)
+	from qcmc_logic.warehouse_transfer_out_balance import get_out_movements
+	# Describe inbound origin from the source transaction where available.
+	# The source Warehouse is not a Storage Location; keep that distinction.
+	entry_refs = {m.source_document for m in movements
+		if m.movement_type == "Storage Allocation" and m.source_doctype == "Stock Entry"
+		and m.source_document}
+	source_warehouses = {}
+	if entry_refs:
+		for entry in frappe.db.get_all("Stock Entry Detail",
+			filters={"parent": ["in", sorted(entry_refs)]},
+			fields=["parent", "item_code", "s_warehouse"]):
+			if entry.s_warehouse:
+				source_warehouses.setdefault((entry.parent, entry.item_code), set()).add(entry.s_warehouse)
+	transfer_refs = {m.source_document for m in movements
+		if m.movement_type == "Storage Allocation"
+		and m.source_doctype == "Warehouse Transfer" and m.source_document}
+	transfer_sources = {}
+	if transfer_refs:
+		for transfer in frappe.db.get_all("Warehouse Transfer",
+			filters={"name": ["in", sorted(transfer_refs)], "docstatus": 1},
+			fields=["name", "source_warehouse", "target_warehouse"]):
+			# Only show the source of a transfer actually received at this warehouse.
+			if transfer.target_warehouse == warehouse and transfer.source_warehouse:
+				transfer_sources[transfer.name] = transfer.source_warehouse
+	for movement in movements:
+		if movement.movement_type == "Storage Allocation":
+			if movement.source_doctype == "Stock Entry":
+				sources = source_warehouses.get((movement.source_document, movement.item_code), set())
+				movement.source_warehouse = ", ".join(sorted(sources)) if sources else ""
+			elif movement.source_doctype == "Warehouse Transfer":
+				movement.source_warehouse = transfer_sources.get(movement.source_document, "")
+			elif movement.source_doctype == "Purchase Receipt":
+				movement.source_label = _("Supplier / External")
+		elif movement.movement_type == "Warehouse Receiving Report":
+			movement.source_label = _("Supplier / External") if flt(movement.quantity) > 0 else ""
+	for issue in get_out_movements(warehouse, location=storage_location):
+		movements.append(frappe._dict({
+			"movement_time": issue["movement_time"],
+			"movement_type": "Warehouse Transfer OUT",
+			"reference_name": issue["reference_name"],
+			"item_code": issue["item_code"],
+			"item_name": frappe.get_cached_value("Item", issue["item_code"], "item_name")
+				or issue["item_code"],
+			"quantity": issue["quantity"],
+			"uom": issue["uom"],
+			"source_location": storage_location,
+			"target_location": "",
+			"target_warehouse": issue["target_warehouse"],
+			"performed_by": issue["performed_by"],
+			"device_id": "",
+			"counted_quantity": None,
+			"source_doctype": "",
+			"source_document": "",
+		}))
+	from qcmc_logic.delivery_note_pick_list import get_delivery_note_out_movements
+	for issue in get_delivery_note_out_movements(warehouse, location=storage_location):
+		movements.append(frappe._dict({
+			"movement_time": issue["movement_time"],
+			"movement_type": "Delivery Note OUT",
+			"reference_name": issue["reference_name"],
+			"item_code": issue["item_code"],
+			"item_name": frappe.get_cached_value("Item", issue["item_code"], "item_name")
+				or issue["item_code"],
+			"quantity": issue["quantity"],
+			"uom": issue["uom"],
+			"source_location": storage_location,
+			"target_location": "",
+			"target_label": _("Customer / Delivery"),
+			"performed_by": issue["performed_by"],
+			"device_id": "",
+			"counted_quantity": None,
+			"source_doctype": "",
+			"source_document": "",
+		}))
+	from qcmc_logic.stock_entry_out_balance import get_out_movements as get_stock_entry_out_movements
+	for issue in get_stock_entry_out_movements(warehouse, location=storage_location):
+		movements.append(frappe._dict({
+			"movement_time": issue["movement_time"],
+			"movement_type": (
+                "Material Issue OUT" if issue["purpose"] == "Material Issue"
+                else "Material Transfer for Manufacture OUT"
+            ),
+			"reference_name": issue["reference_name"],
+			"item_code": issue["item_code"],
+			"item_name": frappe.get_cached_value("Item", issue["item_code"], "item_name")
+				or issue["item_code"],
+			"quantity": issue["quantity"],
+			"uom": issue["uom"],
+			"source_location": storage_location,
+			"target_location": "",
+			"target_warehouse": issue["target_warehouse"],
+			"target_label": _("Issued / External") if issue["purpose"] == "Material Issue" else "",
+			"performed_by": issue["performed_by"],
+			"device_id": "",
+			"counted_quantity": None,
+			"source_doctype": "Stock Entry",
+			"source_document": issue["reference_name"],
+			"pick_list": issue["pick_list"],
+		}))
+	return sorted(movements, key=lambda row: (str(row.movement_time or ""), str(row.reference_name or "")), reverse=True)
 
 
 # ============================================================

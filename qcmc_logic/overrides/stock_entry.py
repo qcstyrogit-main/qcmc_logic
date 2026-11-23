@@ -11,6 +11,54 @@ from qcmc_logic.overrides.putaway_rule_dimension import (
 
 
 class CustomStockEntry(StockEntry):
+	def extend(self, key, value):
+		if key == 'custom_storage_allocation':
+			from frappe.model.base_document import BaseDocument
+			for row in value:
+				BaseDocument.append(self, key, row)
+			return
+		return super().extend(key, value)
+
+	@property
+	def custom_storage_allocation(self):
+		from qcmc_logic.material_receipt_allocation import get_allocation_grid_rows
+		return get_allocation_grid_rows(self)
+
+	def on_update(self):
+		super().on_update()
+		if self.docstatus == 0:
+			from qcmc_logic.material_receipt_allocation import sync_allocations
+			sync_allocations(self)
+
+	def before_submit(self):
+		from qcmc_logic.material_receipt_allocation import prepare_receipt, sync_allocations
+		prepare_receipt(self)
+		sync_allocations(self, require_complete=True)
+
+	def on_submit(self):
+		super().on_submit()
+		from qcmc_logic.material_receipt_allocation import submit_allocations
+		submit_allocations(self)
+
+	def before_cancel(self):
+		from qcmc_logic.material_receipt_allocation import linked_allocations, uses_allocation
+		from qcmc_logic.warehouse_capacity import lock_warehouses
+		allocations = linked_allocations(self.name)
+		if uses_allocation(self) or allocations:
+			lock_warehouses([r.t_warehouse for r in self.items] + [r.s_warehouse for r in self.items]
+			                + [a.warehouse for a in allocations])
+		super().before_cancel()
+
+	def on_cancel(self):
+		from qcmc_logic.material_receipt_allocation import cancel_allocations
+		cancel_allocations(self)
+		super().on_cancel()
+
+	def on_trash(self):
+		from qcmc_logic.material_receipt_allocation import delete_draft_allocations
+		delete_draft_allocations(self)
+		super().on_trash()
+
 	def validate(self):
 		if not self.get("items"):
 			if self._action == "submit":
@@ -22,8 +70,12 @@ class CustomStockEntry(StockEntry):
 			self.set_purpose_for_stock_entry()
 			return
 		super().validate()
+		from qcmc_logic.material_receipt_allocation import clear_bulk_storage_locations
+		clear_bulk_storage_locations(self)
 
 	def before_validate(self):
+		from qcmc_logic.material_receipt_allocation import prepare_receipt, uses_allocation
+		prepare_receipt(self)
 		# Rows created or split by the scanner do not pass through the Desk Link
 		# field fetch that normally populates item_code.weight_uom. Populate it on
 		# the server so manual and scanner-created finished rows behave identically.
@@ -38,7 +90,7 @@ class CustomStockEntry(StockEntry):
 
 		apply_rule = self.apply_putaway_rule and self.purpose in RECEIVING_STOCK_ENTRY_PURPOSES
 
-		if self.get("items") and apply_rule:
+		if self.get("items") and apply_rule and not uses_allocation(self):
 			apply_dimension_putaway_rule(self.doctype, self.get("items"), self.company, purpose=self.purpose)
 
 		if self.project:
@@ -47,6 +99,9 @@ class CustomStockEntry(StockEntry):
 					item.project = self.project
 
 	def validate_putaway_capacity(self):
+		from qcmc_logic.material_receipt_allocation import uses_allocation
+		if uses_allocation(self):
+			return
 		# Receive Finished Goods starts from an existing Draft Manufacture Stock
 		# Entry. Its finished row is intentionally unallocated at draft creation;
 		# the scanner API later resolves all Putaway Rules, splits the row, locks the

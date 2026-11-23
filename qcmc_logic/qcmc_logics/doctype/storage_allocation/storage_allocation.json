@@ -14,6 +14,13 @@
   "posting_date",
   "posting_time",
   "status",
+  "source_doctype",
+  "source_document",
+  "source_document_count",
+  "purchase_receipt",
+  "warehouse_transfer",
+  "delivery_note",
+  "stock_entry",
   "handover",
   "transaction_type",
   "picker",
@@ -72,7 +79,12 @@
    "label": "Date",
    "reqd": 1
   },
-  {"fieldname":"posting_time","fieldtype":"Time","label":"Posting Time","hidden":1},
+  {
+   "fieldname": "posting_time",
+   "fieldtype": "Time",
+   "label": "Posting Time",
+   "hidden": 1
+  },
   {
    "default": "Draft",
    "fieldname": "status",
@@ -100,22 +112,47 @@
    "options": "Stock Entry\nWarehouse Transfer\nWarehouse Receiving Report\nDelivery Note\nSales Invoice",
    "read_only": 1
   },
-  {"fieldname":"picker","fieldtype":"Link","label":"Picker","options":"Employee","read_only":1,"hidden":1},
-  {"fieldname":"checker","fieldtype":"Link","label":"Checker","options":"Employee","read_only":1,"hidden":1},
-  {"fieldname":"device_id","fieldtype":"Data","label":"Device ID","read_only":1,"hidden":1},
-  {"fieldname":"completed_at","fieldtype":"Datetime","label":"Completed At","read_only":1,"hidden":1},
+  {
+   "fieldname": "picker",
+   "fieldtype": "Link",
+   "label": "Picker",
+   "options": "Employee",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "checker",
+   "fieldtype": "Link",
+   "label": "Checker",
+   "options": "Employee",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "device_id",
+   "fieldtype": "Data",
+   "label": "Device ID",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "completed_at",
+   "fieldtype": "Datetime",
+   "label": "Completed At",
+   "read_only": 1,
+   "hidden": 1
+  },
   {
    "fieldname": "reference_stock_entries_section",
    "fieldtype": "Section Break",
-   "hidden": 1,
-   "label": "Reference Stock Entries"
+   "label": "Source Documents"
   },
   {
    "fieldname": "references",
    "fieldtype": "Table",
-   "hidden": 1,
-   "label": "Reference Stock Entries",
-   "options": "Warehouse Allocation Reference"
+   "label": "Source Documents",
+   "options": "Warehouse Allocation Reference",
+   "read_only": 1
   },
   {
    "fieldname": "item_details_section",
@@ -138,13 +175,67 @@
    "fieldtype": "Table",
    "label": "Location Details",
    "options": "Warehouse Allocation Location"
+  },
+  {
+   "fieldname": "purchase_receipt",
+   "fieldtype": "Link",
+   "options": "Purchase Receipt",
+   "label": "Warehouse Receiving Report",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "source_doctype",
+   "fieldtype": "Link",
+   "options": "DocType",
+   "label": "Source DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_document",
+   "fieldtype": "Dynamic Link",
+   "options": "source_doctype",
+   "label": "Source Document",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "source_document_count",
+   "fieldtype": "Int",
+   "label": "Source Document Count",
+   "hidden": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "warehouse_transfer",
+   "fieldtype": "Link",
+   "options": "Warehouse Transfer",
+   "label": "Warehouse Transfer",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "delivery_note",
+   "fieldtype": "Link",
+   "options": "Delivery Note",
+   "label": "Delivery Note Return",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "stock_entry",
+   "fieldtype": "Link",
+   "options": "Stock Entry",
+   "label": "Material Receipt",
+   "hidden": 1,
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 0,
  "is_submittable": 1,
  "links": [],
  "module": "QCMC Logics",
- "name": "Warehouse Allocation",
+ "name": "Storage Allocation",
  "naming_rule": "By Naming Series",
  "permissions": [
   {
@@ -173,7 +264,14 @@
    "share": 1,
    "write": 1
   },
-  {"create":1,"read":1,"write":1,"report":1,"print":1,"role":"Warehouse Picker"},
+  {
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "print": 1,
+   "role": "Warehouse Picker"
+  },
   {
    "amend": 1,
    "cancel": 1,

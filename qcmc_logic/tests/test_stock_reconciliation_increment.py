@@ -1664,6 +1664,7 @@ class TestStockReconciliationIncrement(FrappeTestCase):
 			[frappe._dict(physical_count=2350, counted_at="2026-10-05")],
 			[frappe._dict(quantity=0, row_count=0)],
 			[(0,)],
+			[(0,)],
 		]) as sql:
 			quantity = _current_inventory_quantity("ITEM-A", "FG", "LOC")
 		self.assertEqual(quantity, 2350)

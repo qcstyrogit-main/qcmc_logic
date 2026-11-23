@@ -1,0 +1,139 @@
+{% set source_warehouse_name = frappe.db.get_value("Warehouse", doc.source_warehouse, "warehouse_name") if doc.source_warehouse else "" %}
+{% set target_warehouse_name = frappe.db.get_value("Warehouse", doc.target_warehouse, "warehouse_name") if doc.target_warehouse else "" %}
+{% set vehicle_plate = frappe.db.get_value("Vehicle", doc.truck_plate_no, "license_plate") if doc.truck_plate_no else "" %}
+{% set company_name = doc.source_company or "QC Styropackaging Corp." %}
+{% set document_title = doc.transfer_type or "Warehouse Transfer" %}
+{% set prior_print_count = frappe.db.count("Access Log", {"export_from": doc.doctype, "reference_document": doc.name, "method": "Print", "file_type": "PDF"}) %}
+
+{%- macro fdate(value) -%}
+  {%- if value -%}{{ frappe.utils.formatdate(value, "MM/dd/yyyy") }}{%- endif -%}
+{%- endmacro -%}
+
+{%- macro qty(value) -%}
+  {{ "{:,.2f}".format(value or 0) }}
+{%- endmacro -%}
+
+<style>
+@page { size: Letter portrait; margin: 10mm 12mm; }
+.print-format { padding: 0 !important; margin: 0 !important; }
+.wts-print { font-family: Arial, sans-serif; color: #000; font-size: 8pt; line-height: 1.15; width: 100%; }
+.header-table { width: 100%; border-collapse: collapse; border-bottom: 1px solid #000; }
+.header-table td { vertical-align: top; padding: 0 0 2px 0; }
+.company { font-size: 8.5pt; font-weight: 700; }
+.subtitle { font-size: 8pt; }
+.reprint { text-align: center; font-size: 15pt; font-weight: 700; letter-spacing: 1px; color: #444; padding-top: 12px; }
+.docno { text-align: right; font-size: 9pt; white-space: nowrap; }
+.wts-number { margin-top: 3px; font-size: 9pt; white-space: nowrap; }
+.meta-table { width: 100%; border-collapse: collapse; margin-top: 2px; }
+.meta-table td { vertical-align: top; padding: 0; }
+.wts-print .label { font-weight: 700 !important; background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; color: #000 !important; display: inline !important; font-size: inherit !important; line-height: inherit !important; }
+.right-meta { width: 220px; }
+.right-meta table { width: 100%; border-collapse: collapse; }
+.right-meta td { height: 13px; padding: 0; }
+.right-label { width: 82px; font-weight: 700; }
+.items { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 4px; }
+.items th, .items td { border: 1px solid #000; padding: 2px 5px; vertical-align: middle; }
+.items th { text-align: center; font-weight: 700; }
+.code { width: 14%; }
+.desc { width: 40%; }
+.uom { width: 8%; text-align: center; }
+.qty { width: 15%; text-align: right; }
+.sr { width: 13%; text-align: center; }
+.sign-labels, .sign-lines, .copy-list { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.sign-labels td { padding-top: 4px; font-size: 6.8pt; }
+.sign-lines td { padding: 24px 10px 0 10px; }
+.sign-line { border-top: 1px solid #000; text-align: center; padding-top: 2px; font-size: 6.8pt; }
+.copy-list { margin-top: 18px; }
+.copy-list td { font-size: 6.5pt; white-space: nowrap; text-align: center; }
+.note { margin-top: 18px; font-size: 8pt; }
+</style>
+
+<div class="wts-print">
+  <table class="header-table">
+    <tr>
+      <td style="width: 38%;">
+        <div class="company">{{ company_name }}</div>
+        <div class="subtitle">{{ document_title }}</div>
+        <div class="wts-number"><span class="label">WTS #:</span> {{ doc.name }}</div>
+      </td>
+      <td style="width: 24%;" class="reprint">{% if prior_print_count %}REPRINTED{% endif %}</td>
+      <td style="width: 38%;" class="docno"><div class="qcmc-wts-qr-container" style="display:flex;justify-content:flex-end;page-break-inside:avoid;">{{ get_wts_qr_svg(doc.name) }}</div></td>
+    </tr>
+  </table>
+
+  <table class="meta-table">
+    <tr>
+      <td>
+        <div><span class="label">From :</span> {{ source_warehouse_name or doc.source_warehouse or "" }}</div>
+        <div><span class="label">To :</span> {{ target_warehouse_name or doc.target_warehouse or "" }}</div>
+        {% if doc.get("custom_reference_document") %}
+        <div><span class="label">Reference Document No. :</span> {{ doc.get("custom_reference_document") or "" }}</div>
+        {% endif %}
+      </td>
+      <td class="right-meta">
+        <table>
+          <tr><td class="right-label">Print Date :</td><td>{{ frappe.utils.now_datetime().strftime("%m/%d/%y %I:%M %p") }}</td></tr>
+          <tr><td class="right-label">WTS Date :</td><td>{{ fdate(doc.date_transferred) }}</td></tr>
+          <tr><td class="right-label">Vehicle Plate# :</td><td>{{ vehicle_plate or doc.truck_plate_no or "" }}</td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <table class="items">
+    <thead>
+      <tr>
+        <th class="code">Code</th>
+        <th class="desc">Description</th>
+        <th class="uom">Unit</th>
+        <th class="qty">Qty Issued</th>
+        <th class="qty">Qty Receive</th>
+        <th class="sr">SR#</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in doc.transfer_items %}
+      <tr>
+        <td class="code">{{ row.item_code or "" }}</td>
+        <td class="desc">{{ row.item_name or "" }}</td>
+        <td class="uom">{{ row.uom or "" }}</td>
+        <td class="qty">{{ qty(row.issued_qty) }}</td>
+        <td class="qty">{{ qty(row.received_qty) }}</td>
+        <td class="sr">{{ row.reference_doc or "" }}</td>
+      </tr>
+      {% endfor %}
+      {% if not doc.transfer_items %}
+      <tr><td colspan="6" style="text-align: center; height: 24px;">No items</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <table class="sign-labels">
+    <tr>
+      <td>Prepared by:</td>
+      <td>Checked by:</td>
+      <td>Noted by:</td>
+      <td>Received by:</td>
+    </tr>
+  </table>
+
+  <table class="sign-lines">
+    <tr>
+      <td><div class="sign-line">Warehouseman</div></td>
+      <td><div class="sign-line">Delivery Checker</div></td>
+      <td><div class="sign-line">Warehouse Foreman</div></td>
+      <td><div class="sign-line">Warehouseman</div></td>
+    </tr>
+  </table>
+
+  <table class="copy-list">
+    <tr>
+      <td>1 Copy for Issuing WH (BLUE)</td>
+      <td>1 Copy for Rcving WH (YELLOW)</td>
+      <td>1 Copy for Cost Accounting (WHITE)</td>
+      <td>1 for File/Issuer's Copy (PINK)</td>
+    </tr>
+  </table>
+
+  <div class="note">Note: Please Sign over your Printed Name</div>
+</div>
