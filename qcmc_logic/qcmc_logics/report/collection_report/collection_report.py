@@ -5,7 +5,7 @@ from frappe.utils import flt, getdate
 FIELDS = [
 ("Salesman","salesman","Data",170),("Region","region","Data",110),("Area","area","Data",110),
 ("OR NO.","or_no","Link",170),("OR Date","or_date","Date",100),("Check NO.","check_no","Data",140),
-("Check Date","check_date","Date",105),("Customer","customer_name","Data",200),
+("Check Date","check_date","Date",105),("Customer","customer_name","Data",200),("Payment Terms","payment_terms","Data",140),
 ("Check","check_amount","Currency",120),("Unapply","unapplied","Currency",120),
 ("Doc NO.","doc_no","Data",130),("Doc Date","doc_date","Date",100),
 ("Doc Amt","doc_amount","Currency",120),("EWT (CWT)","ewt","Currency",115),
@@ -78,7 +78,11 @@ def get_rows(filters):
     names=[p.name for p in payments]
     refs=frappe.db.sql("""
     SELECT r.parent,r.reference_doctype,r.reference_name,r.allocated_amount,
-    s.posting_date AS doc_date,s.base_grand_total AS doc_amount
+    s.posting_date AS doc_date,s.base_grand_total AS doc_amount,
+    COALESCE(NULLIF(s.payment_terms_template, ''),
+      (SELECT ps.payment_term FROM `tabPayment Schedule` ps
+       WHERE ps.parent=s.name AND ps.parenttype='Sales Invoice'
+       ORDER BY ps.idx LIMIT 1)) AS payment_terms
     FROM `tabPayment Entry Reference` r
     LEFT JOIN `tabSales Invoice` s ON r.reference_doctype='Sales Invoice' AND s.name=r.reference_name
     WHERE r.parent IN %(names)s AND r.parenttype='Payment Entry' AND r.allocated_amount<>0
@@ -119,7 +123,8 @@ def get_rows(filters):
         base=dict(salesman=salesperson,region=p.territory or "UNASSIGNED",
                   area=p.territory or "UNASSIGNED",or_no=p.name,or_date=p.posting_date,
                   check_no=p.reference_no,check_date=p.reference_date,
-                  customer_name=p.customer_name or p.party_name,status="Cancelled" if cancelled else "Submitted")
+                  customer_name=p.customer_name or p.party_name,status="Cancelled" if cancelled else "Submitted",
+                  payment_terms=None)
         out.append(dict(base,check_amount=0 if cancelled else flt(p.base_received_amount),
             unapplied=0 if cancelled else max(0,flt(p.base_received_amount)-flt(p.base_total_allocated_amount)),
             doc_no=None,doc_date=None,doc_amount=None,ewt=0 if cancelled else cwt.get(p.name,0),
@@ -128,6 +133,7 @@ def get_rows(filters):
             for r in by_parent.get(p.name,[]):
                 out.append(dict(base,check_amount=None,unapplied=None,doc_no=r.reference_name,
                                 doc_date=r.doc_date,doc_amount=r.doc_amount,ewt=None,
+                                payment_terms=r.payment_terms,
                                 paid_amount=flt(r.allocated_amount),row_type="allocation"))
     return out
 

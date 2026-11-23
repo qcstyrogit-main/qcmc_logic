@@ -51,7 +51,8 @@ def render_print(rows, filters):
       font-size:9px;font-weight:800;border-bottom:1px solid var(--line);padding:9px 5px}
     td{border-bottom:1px solid #edf1f5;padding:7px 5px;vertical-align:top;overflow-wrap:anywhere}
     .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-    th.customer,td.customer{width:15%;text-align:left;white-space:normal;overflow-wrap:break-word}
+    th.customer,td.customer{width:13%;text-align:left;white-space:normal;overflow-wrap:break-word}
+    th.terms,td.terms{width:8%;text-align:left;white-space:normal;overflow-wrap:anywhere}
     .receipt td{background:#fff;font-weight:650}
     .allocation td{color:#516276;background:#fafbfd}
     .allocation td:first-child{padding-left:12px}
@@ -97,7 +98,7 @@ def render_print(rows, filters):
         html.append('<div class="empty"><strong>No collection records found.</strong><div>Try another company or reporting period.</div></div>')
 
     cols = [("OR No.", "or_no"), ("OR Date", "or_date"), ("Check No.", "check_no"),
-            ("Check Date", "check_date"), ("Customer", "customer_name"), ("Check", "check_amount"), ("Unapplied", "unapplied"),
+            ("Check Date", "check_date"), ("Customer", "customer_name"), ("Payment Terms", "payment_terms"), ("Check", "check_amount"), ("Unapplied", "unapplied"),
             ("Document No.", "doc_no"), ("Doc Date", "doc_date"), ("Doc Amt", "doc_amount"),
             ("EWT / CWT", "ewt"), ("Paid Amt", "paid_amount")]
     monetary = {"check_amount", "unapplied", "doc_amount", "ewt", "paid_amount"}
@@ -111,7 +112,7 @@ def render_print(rows, filters):
                      str(len(group_receipts)), ' receipts</small></div>',
                      '<table><thead><tr>'])
         for label, field in cols:
-            html.extend(['<th', ' class="num"' if field in monetary else (' class="customer"' if field == "customer_name" else ''), '>', esc(label), '</th>'])
+            html.extend(['<th', ' class="num"' if field in monetary else (' class="customer"' if field == "customer_name" else (' class="terms"' if field == "payment_terms" else '')), '>', esc(label), '</th>'])
         html.append('</tr></thead><tbody>')
         for r in items:
             receipt = r["row_type"] == "receipt"
@@ -127,10 +128,10 @@ def render_print(rows, filters):
                 # Invoice allocation rows are visually nested under their receipt.
                 if not receipt and field in {"or_no", "or_date", "check_no", "check_date", "customer_name"}:
                     displayed = '—'
-                html.extend(['<td', ' class="num"' if field in monetary else (' class="customer"' if field == "customer_name" else ''),
+                html.extend(['<td', ' class="num"' if field in monetary else (' class="customer"' if field == "customer_name" else (' class="terms"' if field == "payment_terms" else '')),
                              '>', displayed, '</td>'])
             html.append('</tr>')
-        html.extend(['<tr class="group-total"><td colspan="5">Group total · ',
+        html.extend(['<tr class="group-total"><td colspan="6">Group total · ',
                      str(len(group_receipts)), ' receipts</td><td class="num">', amount(subtotal),
                      '</td><td colspan="6"></td></tr></tbody></table></section>'])
     html.extend(['<div class="grand"><span>TOTAL COLLECTIONS · RECEIPTS ONLY</span><strong>',
