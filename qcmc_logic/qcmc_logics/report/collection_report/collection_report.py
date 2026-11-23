@@ -22,7 +22,7 @@ def get_rows(filters):
           "p.payment_type='Receive'","p.party_type='Customer'",
           "p.docstatus IN (1,2)" if int(f.get("include_cancelled") or 0) else "p.docstatus=1"]
     for k,c in [("customer","p.party"),("customer_group","c.customer_group"),
-                ("territory","c.territory"),("sales_manager","c.custom_sales_manager")]:
+                ("territory","c.territory")]:
         if f.get(k):cond.append(c+"=%("+k+")s")
     payments=frappe.db.sql("""
     SELECT p.name,p.company,p.posting_date,p.reference_no,p.reference_date,
@@ -51,13 +51,34 @@ def get_rows(filters):
     WHERE d.parent IN %(names)s AND UPPER(d.account) LIKE '%%CREDITABLE WITHHOLDING TAX%%'
     GROUP BY d.parent
     """,{"names":names},as_dict=True)
+    # Salesperson assignment is normally stored on Sales Invoice > Sales Team,
+    # not on the Customer custom_sales_manager field.
+    invoice_names=list({r.reference_name for r in refs if r.reference_doctype=="Sales Invoice"})
+    invoice_sales={}
+    if invoice_names:
+        teams=frappe.db.sql("""
+            SELECT parent,sales_person,allocated_percentage,idx
+            FROM `tabSales Team`
+            WHERE parenttype='Sales Invoice' AND parent IN %(invoices)s
+            ORDER BY parent,allocated_percentage DESC,idx
+        """,{"invoices":invoice_names},as_dict=True)
+        for t in teams:
+            invoice_sales.setdefault(t.parent,[]).append(t.sales_person)
     cwt={d.parent:flt(d.amount) for d in deductions}
     by_parent={}
     for r in refs:by_parent.setdefault(r.parent,[]).append(r)
     out=[]
     for p in payments:
+        assigned=[]
+        for r in by_parent.get(p.name,[]):
+            assigned.extend(invoice_sales.get(r.reference_name,[]))
+        assigned=list(dict.fromkeys(assigned))
+        salesperson=", ".join(assigned) if assigned else (p.custom_sales_manager or "UNASSIGNED")
+        selected=f.get("sales_manager")
+        if selected and selected not in assigned and selected!=p.custom_sales_manager:
+            continue
         cancelled=p.docstatus==2
-        base=dict(salesman=p.custom_sales_manager or "UNASSIGNED",region=p.territory or "UNASSIGNED",
+        base=dict(salesman=salesperson,region=p.territory or "UNASSIGNED",
                   area=p.territory or "UNASSIGNED",or_no=p.name,or_date=p.posting_date,
                   check_no=p.reference_no,check_date=p.reference_date,
                   customer_name=p.customer_name or p.party_name,status="Cancelled" if cancelled else "Submitted")
