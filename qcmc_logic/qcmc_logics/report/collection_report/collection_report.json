@@ -1,0 +1,22 @@
+{
+  "doctype": "Report",
+  "name": "Collection Report",
+  "report_name": "Collection Report",
+  "ref_doctype": "Payment Entry",
+  "module": "QCMC Logics",
+  "report_type": "Script Report",
+  "is_standard": "Yes",
+  "add_total_row": 0,
+  "prepared_report": 0,
+  "roles": [
+    {
+      "role": "Accounts User"
+    },
+    {
+      "role": "Accounts Manager"
+    },
+    {
+      "role": "System Manager"
+    }
+  ]
+}
