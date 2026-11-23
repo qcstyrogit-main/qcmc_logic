@@ -157,13 +157,15 @@ function set_weekly_plan_row_editor_size(frm, cdn) {
 		.qcmc-machine-schedule-detail { padding: 20px 15px 40px; }
 		.qcmc-machine-schedule-heading {
 			display: flex;
-			align-items: baseline;
+			align-items: end;
 			gap: 12px;
 			padding-bottom: 16px;
 			margin-bottom: 12px;
 			border-bottom: 1px solid var(--border-color);
 		}
-		.qcmc-machine-schedule-heading h3 { margin: 0; font-size: 18px; }
+		.qcmc-machine-schedule-selector { min-width: 180px; }
+		.qcmc-machine-schedule-selector label { display: block; margin-bottom: 4px; font-size: 11px; color: var(--text-muted); }
+		.qcmc-machine-schedule-selector .form-control { height: 32px; }
 		.qcmc-machine-schedule-heading .js-back-production-plan { margin-inline-start: auto; }
 		.qcmc-machine-schedule-detail .scheduled-items-editor { min-width: 100%; }
 		.qcmc-machine-schedule-detail .table-responsive { width: 100%; }
@@ -265,15 +267,32 @@ function open_expanded_schedule_editor(frm, scheduleRow) {
 	}
 
 	for (const [rowName, view] of expandedScheduleEditors) {
-		view.wrapper.remove();
+		view.container.remove();
 		expandedScheduleEditors.delete(rowName);
 	}
 	const formLayout = frm.$wrapper.find(".form-layout").first();
+	frm.$wrapper.find(".qcmc-machine-schedule-detail").remove();
+	const escape = frappe.utils.escape_html;
+	const scheduleRows = frm.doc.machine_schedule || [];
+	const machines = [...new Set(scheduleRows.map((row) => row.machine).filter(Boolean))];
+	const planDates = [...new Set(scheduleRows.map((row) => row.plan_date).filter(Boolean))].sort();
+	const machineOptions = machines.map((machine) =>
+		`<option value="${escape(machine)}"${machine === scheduleRow.machine ? " selected" : ""}>${escape(machine)}</option>`,
+	).join("");
+	const dateOptions = planDates.map((planDate) =>
+		`<option value="${escape(planDate)}"${planDate === scheduleRow.plan_date ? " selected" : ""}>${escape(frappe.datetime.str_to_user(planDate))}</option>`,
+	).join("");
 	const wrapper = $(`
 		<div class="qcmc-machine-schedule-detail">
 			<div class="qcmc-machine-schedule-heading">
-				<h3>${frappe.utils.escape_html(scheduleRow.machine || "")}</h3>
-				<span class="text-muted">${frappe.datetime.str_to_user(scheduleRow.plan_date)}</span>
+				<div class="qcmc-machine-schedule-selector">
+					<label>${__("Machine")}</label>
+					<select class="form-control input-sm js-schedule-machine">${machineOptions}</select>
+				</div>
+				<div class="qcmc-machine-schedule-selector">
+					<label>${__("Plan Date")}</label>
+					<select class="form-control input-sm js-schedule-plan-date">${dateOptions}</select>
+				</div>
 				<button type="button" class="btn btn-default js-back-production-plan">
 					${__("Back to Production Plan")}
 				</button>
@@ -283,6 +302,22 @@ function open_expanded_schedule_editor(frm, scheduleRow) {
 	`);
 	formLayout.hide().after(wrapper);
 	frm.$wrapper.addClass("qcmc-machine-schedule-detail-mode");
+	const switchSchedule = () => {
+		const machine = wrapper.find(".js-schedule-machine").val();
+		const planDate = wrapper.find(".js-schedule-plan-date").val();
+		const targetRow = scheduleRows.find((row) => row.machine === machine && row.plan_date === planDate);
+		if (targetRow) {
+			open_expanded_schedule_editor(frm, targetRow);
+			return;
+		}
+		frappe.show_alert({
+			message: __("No schedule is available for {0} on {1}.", [machine, frappe.datetime.str_to_user(planDate)]),
+			indicator: "orange",
+		});
+		wrapper.find(".js-schedule-machine").val(scheduleRow.machine);
+		wrapper.find(".js-schedule-plan-date").val(scheduleRow.plan_date);
+	};
+	wrapper.find(".js-schedule-machine, .js-schedule-plan-date").on("change", switchSchedule);
 	wrapper.find(".js-back-production-plan").on("click", () => close_machine_schedule_detail(frm));
 	expandedScheduleEditors.set(scheduleRow.name, {
 		wrapper: wrapper.find(".qcmc-machine-schedule-content"),
@@ -309,6 +344,9 @@ function close_machine_schedule_detail(frm) {
 		view.formLayout.show();
 		expandedScheduleEditors.delete(rowName);
 	}
+	// Remove stale containers created before machine/date switching cleanup was fixed.
+	frm.$wrapper.find(".qcmc-machine-schedule-detail").remove();
+	frm.$wrapper.find(".form-layout").first().show();
 	frm.$wrapper.removeClass("qcmc-machine-schedule-detail-mode");
 	frm.page.remove_inner_button(__("Back to Production Plan"));
 }
@@ -515,10 +553,9 @@ function scheduled_items_html(frm, scheduleRow, expanded = false) {
 			</tr>`).join("");
 	};
 	const table = (title, tableField, secondary = false) => {
-		const noRemainingHours = !secondary && schedule_hour_totals(frm, scheduleRow).remaining <= 0.000001;
-		const addDisabled = (secondary && !hasFg1Item) || noRemainingHours;
+		const addDisabled = secondary && !hasFg1Item;
 		const disabledAttributes = addDisabled
-			? ` disabled aria-disabled="true" title="${noRemainingHours ? __("No paid hours remain for this machine and date.") : __("Add at least one FG 1 item first.")}"`
+			? ` disabled aria-disabled="true" title="${__("Add at least one FG 1 item first.")}"`
 			: "";
 		return `
 		<div style="margin-top: 15px"><div class="flex justify-between align-center"><strong>${__(title)}</strong><button type="button" class="btn btn-xs btn-primary js-add-scheduled-item" data-table="${tableField}"${disabledAttributes}>${__("Add Row")}</button></div>
@@ -548,10 +585,8 @@ function extrusion_items_html(frm, scheduleRow, expanded = false) {
 		<td class="text-nowrap"><button type="button" class="btn btn-xs btn-default js-edit-scheduled-item" data-table="extrusion_item_schedule" data-name="${row.name}">${__("Edit")}</button> <button type="button" class="btn btn-xs btn-default js-delete-scheduled-item" data-table="extrusion_item_schedule" data-name="${row.name}">${__("Remove")}</button></td>
 	</tr>`).join("") : `<tr><td colspan="20" class="text-muted text-center">${__("No extrusion items added.")}</td></tr>`;
 	const expandButton = expanded ? "" : `<button class="btn btn-sm btn-default js-expand-schedule-editor">${__("Expand Schedule Editor")}</button>`;
-	const noRemainingHours = schedule_hour_totals(frm, scheduleRow, true).remaining <= 0.000001;
-	const disabledAttributes = noRemainingHours ? ` disabled aria-disabled="true" title="${__("No paid hours remain for this machine and date.")}"` : "";
 	return `<div class="scheduled-items-editor"><div class="flex justify-between align-center">${schedule_hours_summary_html(frm, scheduleRow, true)}${expandButton}</div><h6 style="margin-top: 18px">${__("Extrusion Items for {0} on {1}", [scheduleRow.machine, frappe.datetime.str_to_user(scheduleRow.plan_date)])}</h6>
-		<div class="flex justify-between align-center"><strong>${__("Extrusion Item List")}</strong><button type="button" class="btn btn-xs btn-primary js-add-scheduled-item" data-table="extrusion_item_schedule"${disabledAttributes}>${__("Add Row")}</button></div>
+		<div class="flex justify-between align-center"><strong>${__("Extrusion Item List")}</strong><button type="button" class="btn btn-xs btn-primary js-add-scheduled-item" data-table="extrusion_item_schedule">${__("Add Row")}</button></div>
 		<div class="table-responsive"><table class="table table-bordered table-condensed qcmc-scheduled-resizable-table" data-resize-key="extrusion_item_schedule" style="margin-top: 6px; white-space: nowrap"><thead><tr>
 		<th>${__("Rollcode")}</th><th>${__("StdWt")}</th><th>${__("Rolldesc")}</th><th>${__("Used For")}</th><th>${__("PaidTim")}</th><th>${__("VOS")}</th><th>${__("C.O.")}</th><th>${__("Stab")}</th><th>${__("PlanHrs")}</th><th>${__("% Trim")}</th><th>${__("SOPH")}</th><th>${__("NoofKgs")}</th><th>${__("NoofRolls")}</th><th>${__("Remarks")}</th><th>${__("Color")}</th><th>${__("Virgin")}</th><th>${__("Reco")}</th><th>${__("Colorant")}</th><th>${__("Additives")}</th><th>${__("Action")}</th>
 		</tr></thead><tbody>${body}</tbody></table></div></div>`;
@@ -650,12 +685,12 @@ function bind_scheduled_item_actions(wrapper, frm, scheduleRow) {
 function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null, initialProduct = null) {
 	const extrusion = tableField === "extrusion_item_schedule";
 	const consumesPaidHours = extrusion || tableField === "item_1_schedule";
-	if (!rowName && consumesPaidHours && schedule_hour_totals(frm, scheduleRow, extrusion).remaining <= 0.000001) {
+	const remainingPaidHours = schedule_hour_totals(frm, scheduleRow, extrusion).remaining;
+	if (!rowName && consumesPaidHours && remainingPaidHours <= 0.000001) {
 		frappe.show_alert({
-			message: __("No paid hours remain for this machine and date."),
+			message: __("Remaining paid hours are already 0 for this machine and date. You may add a row with 0 paid hours."),
 			indicator: "orange",
 		});
-		return;
 	}
 	if (tableField === "extrusion_item_schedule") {
 		open_extrusion_item_dialog(frm, scheduleRow, rowName, initialProduct);
@@ -682,7 +717,7 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 		{ fieldname: "product_description", label: __("Proddesc"), fieldtype: "Data", read_only: 1, default: existing?.product_description },
 		{ fieldname: "cavs", label: __("Cavs"), fieldtype: "Int", read_only: 1, default: existing?.cavs },
 	];
-	if (!secondary) fields.push(numeric("paid_hrs", "PaidHrs", false, 24), numeric("vos", "VOS"), numeric("cm_co", "CM/CO"), numeric("stab", "Stab"), numeric("plan_hrs", "PlanHrs", true, 24));
+	if (!secondary) fields.push(numeric("paid_hrs", "PaidHrs", false, remainingPaidHours), numeric("vos", "VOS"), numeric("cm_co", "CM/CO"), numeric("stab", "Stab"), numeric("plan_hrs", "PlanHrs", true, remainingPaidHours));
 	fields.push(numeric("soph", "SOPH", true), numeric("std_weight_gm", "StdWt(gm)", true, 0, 4), numeric("daily_volume_qty", "Daily Vol Qty", secondary), numeric("daily_volume_kgs", "DailyVolKgs", true), numeric(secondary ? "factor_rate" : "f_rate", secondary ? "FactorRate" : "F.Rate", secondary, 100), numeric("cycle_time", secondary ? "CycleTime" : "C.T.", secondary, 0, 4));
 	if (!secondary) fields.push(
 		{ fieldname: "remarks", label: __("Remarks"), fieldtype: "Small Text", default: existing?.remarks },
@@ -726,6 +761,7 @@ function open_scheduled_item_dialog(frm, scheduleRow, tableField, rowName = null
 function open_extrusion_item_dialog(frm, scheduleRow, rowName = null, initialProduct = null) {
 	const tableField = "extrusion_item_schedule";
 	const existing = rowName ? locals[frm.fields_dict[tableField].df.options]?.[rowName] : null;
+	const remainingPaidHours = schedule_hour_totals(frm, scheduleRow, true).remaining;
 	let dialog;
 	const numeric = (fieldname, label, read_only = false, defaultValue = 0, precision = 2) => ({ fieldname, label: __(label), fieldtype: "Float", read_only, default: existing?.[fieldname] ?? defaultValue, precision });
 	const fields = [
@@ -735,7 +771,7 @@ function open_extrusion_item_dialog(frm, scheduleRow, rowName = null, initialPro
 		numeric("std_weight_kg", "StdWt", true, 0, 4),
 		{ fieldname: "roll_description", label: __("Rolldesc"), fieldtype: "Data", read_only: 1, default: existing?.roll_description },
 		{ fieldname: "used_for", label: __("Used For"), fieldtype: "Data", default: existing?.used_for },
-		numeric("paid_time", "PaidTim", false, 24), numeric("vos", "VOS"), numeric("change_over", "C.O."), numeric("stabilization", "Stab"), numeric("plan_hours", "PlanHrs", true, 24), numeric("trim_percent", "% Trim", true), numeric("soph", "SOPH", true), numeric("number_of_kgs", "NoofKgs"), numeric("number_of_rolls", "NoofRolls", true, 0, 0),
+		numeric("paid_time", "PaidTim", false, remainingPaidHours), numeric("vos", "VOS"), numeric("change_over", "C.O."), numeric("stabilization", "Stab"), numeric("plan_hours", "PlanHrs", true, remainingPaidHours), numeric("trim_percent", "% Trim", true), numeric("soph", "SOPH", true), numeric("number_of_kgs", "NoofKgs"), numeric("number_of_rolls", "NoofRolls", true, 0, 0),
 		{ fieldname: "remarks", label: __("Remarks"), fieldtype: "Small Text", default: existing?.remarks },
 		{ fieldname: "color", label: __("Color"), fieldtype: "Data", default: existing?.color },
 		numeric("virgin", "Virgin"), numeric("reco", "Reco"), numeric("colorant", "Colorant"), numeric("additives", "Additives"),

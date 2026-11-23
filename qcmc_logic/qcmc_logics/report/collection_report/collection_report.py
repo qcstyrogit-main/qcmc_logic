@@ -120,11 +120,18 @@ def get_rows(filters):
         if selected and selected not in assigned and selected!=p.custom_sales_manager:
             continue
         cancelled=p.docstatus==2
+        # Display invoice payment terms on the receipt row as well as the
+        # allocation row. A receipt can settle invoices with different terms.
+        invoice_terms = list(dict.fromkeys(
+            str(r.payment_terms).strip() for r in by_parent.get(p.name, [])
+            if r.payment_terms and str(r.payment_terms).strip()
+        ))
+        receipt_terms = ", ".join(invoice_terms) if invoice_terms else None
         base=dict(salesman=salesperson,region=p.territory or "UNASSIGNED",
                   area=p.territory or "UNASSIGNED",or_no=p.name,or_date=p.posting_date,
                   check_no=p.reference_no,check_date=p.reference_date,
                   customer_name=p.customer_name or p.party_name,status="Cancelled" if cancelled else "Submitted",
-                  payment_terms=None)
+                  payment_terms=receipt_terms)
         out.append(dict(base,check_amount=0 if cancelled else flt(p.base_received_amount),
             unapplied=0 if cancelled else max(0,flt(p.base_received_amount)-flt(p.base_total_allocated_amount)),
             doc_no=None,doc_date=None,doc_amount=None,ewt=0 if cancelled else cwt.get(p.name,0),
