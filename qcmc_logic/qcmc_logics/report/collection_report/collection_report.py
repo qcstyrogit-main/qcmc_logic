@@ -12,6 +12,41 @@ FIELDS = [
 ("Paid Amt","paid_amount","Currency",120),("Status","status","Data",90)
 ]
 
+def territory_descendants(territory):
+    """Include leaf territories when a regional parent is selected."""
+    bounds = frappe.db.get_value("Territory", territory, ["lft", "rgt"], as_dict=True)
+    if not bounds:
+        return [territory]
+    return frappe.get_all("Territory",
+        filters={"lft": [">=", bounds.lft], "rgt": ["<=", bounds.rgt]},
+        pluck="name", limit_page_length=0) or [territory]
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def salesperson_query(doctype, txt, searchfield, start, page_len, filters):
+    """Link search restricted to Sales Person nodes under the selected Territory."""
+    if not frappe.has_permission("Sales Person", "read"):
+        return []
+    territory = (filters or {}).get("territory")
+    conditions = ["sp.enabled=1", "sp.is_group=0"]
+    params = {"txt": "%" + (txt or "") + "%", "start": int(start), "page_len": int(page_len)}
+    if territory:
+        # Both hierarchies use matching region/territory names in this installation.
+        names = territory_descendants(territory)
+        names.append(territory)
+        # Select sales people whose name or parent is in the chosen territory subtree.
+        # This includes leaf salespeople under a selected parent region.
+        conditions.append("(sp.name IN %(names)s OR sp.parent_sales_person IN %(names)s)")
+        params["names"] = tuple(set(names))
+    conditions.append("(sp.name LIKE %(txt)s OR sp.sales_person_name LIKE %(txt)s)")
+    return frappe.db.sql("""
+        SELECT sp.name, sp.parent_sales_person FROM `tabSales Person` sp
+        WHERE """ + " AND ".join(conditions) + """
+        ORDER BY sp.name LIMIT %(start)s, %(page_len)s
+    """, params)
+
+
 def get_rows(filters):
     f = frappe._dict(filters or {})
     if not f.get("company") or not f.get("from_date") or not f.get("to_date"):
@@ -21,9 +56,12 @@ def get_rows(filters):
     cond=["p.company=%(company)s","p.posting_date BETWEEN %(from_date)s AND %(to_date)s",
           "p.payment_type='Receive'","p.party_type='Customer'",
           "p.docstatus IN (1,2)" if int(f.get("include_cancelled") or 0) else "p.docstatus=1"]
-    for k,c in [("customer","p.party"),("customer_group","c.customer_group"),
-                ("territory","c.territory")]:
+    for k,c in [("customer","p.party"),("customer_group","c.customer_group")]:
         if f.get(k):cond.append(c+"=%("+k+")s")
+    if f.get("territory"):
+        territories = territory_descendants(f.territory)
+        cond.append("c.territory IN %(territories)s")
+        f.territories = tuple(territories)
     payments=frappe.db.sql("""
     SELECT p.name,p.company,p.posting_date,p.reference_no,p.reference_date,
     p.base_received_amount,p.base_total_allocated_amount,p.docstatus,p.party,p.party_name,
