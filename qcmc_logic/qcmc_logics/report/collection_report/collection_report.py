@@ -1,7 +1,6 @@
 import frappe
 from frappe import _
 from frappe.utils import flt, getdate
-from html import escape
 
 FIELDS = [
 ("Salesman","salesman","Data",170),("Region","region","Data",110),("Area","area","Data",110),
@@ -87,42 +86,10 @@ def print_report(company=None,from_date=None,to_date=None,sales_manager=None,ter
         frappe.throw(_("Not permitted"),frappe.PermissionError)
     filters=frappe._dict(locals())
     rows=get_rows(filters)
-    e=lambda x:escape(str(x)) if x is not None else ""
-    m=lambda x:"{:,.2f}".format(flt(x)) if x is not None else ""
-    columns=[("OR NO.","or_no"),("OR Date","or_date"),("Check NO.","check_no"),
-             ("Check Date","check_date"),("Check","check_amount"),("Unapply","unapplied"),
-             ("Doc NO.","doc_no"),("Doc Date","doc_date"),("Doc Amt","doc_amount"),
-             ("EWT","ewt"),("Paid Amt","paid_amount")]
-    amounts={"check_amount","unapplied","doc_amount","ewt","paid_amount"}
-    html=['<html><head><meta charset="utf-8"><style>',
-          '@page{size:A4 landscape;margin:12mm}body{font:9px Georgia,serif}h3,p{text-align:center;margin:3px}',
-          'table{width:100%;border-collapse:collapse}thead{display:table-header-group}tr{break-inside:avoid}',
-          'th{border-top:1px solid;border-bottom:1px solid;text-align:left}td,th{padding:3px}',
-          '.group td{font-weight:bold;padding-top:10px;border-top:1px solid #777}.num{text-align:right}',
-          '@media print{button{display:none}}',
-          '</style></head><body><button onclick="window.print()">Print / Save as PDF</button>',
-          '<h3>'+e(company)+'</h3><p><b>COLLECTION REPORT</b></p><p>From: '+e(from_date)+' To: '+e(to_date)+'</p>',
-          '<p>By Salesman / Region / Area</p><table><thead><tr>']
-    html.extend('<th>'+label+'</th>' for label,_ in columns)
-    html.append('</tr></thead><tbody>')
-    last=None
-    total=0
-    for row in rows:
-        group=(row["salesman"],row["region"],row["area"])
-        if group!=last:
-            html.append('<tr class="group"><td colspan="11">SALESMAN: '+e(group[0])+
-                        ' &nbsp; REGION: '+e(group[1])+' &nbsp; AREA: '+e(group[2])+'</td></tr>')
-            last=group
-        html.append('<tr>')
-        for _,field in columns:
-            value=m(row.get(field)) if field in amounts else e(row.get(field))
-            html.append('<td'+(' class="num"' if field in amounts else '')+'>'+value+'</td>')
-        html.append('</tr>')
-        if row["row_type"]=="receipt":total+=flt(row.get("check_amount"))
-    html.append('<tr><td colspan="10"><b>TOTAL RECEIPTS</b></td><td class="num"><b>'+m(total)+'</b></td></tr>')
-    html.append('</tbody></table><p>EWT = recorded Creditable Withholding Tax at receipt level. Area currently uses Territory.</p></body></html>')
+    from qcmc_logic.qcmc_logics.report.collection_report.print_layout import render_print
     frappe.local.response["type"] = "download"
     frappe.local.response["filename"] = "Collection_Report.html"
     frappe.local.response["content_type"] = "text/html; charset=utf-8"
     frappe.local.response["display_content_as"] = "inline"
-    frappe.local.response["filecontent"] = "".join(html)
+    frappe.local.response["filecontent"] = render_print(rows, filters)
+    return
