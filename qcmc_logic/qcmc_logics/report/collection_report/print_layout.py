@@ -42,7 +42,7 @@ def render_print(rows, filters):
     .stat{border:1px solid var(--line);border-radius:7px;padding:12px 14px}
     .stat label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
     .stat strong{display:block;font-size:17px;margin-top:5px;font-variant-numeric:tabular-nums}
-    .section{margin-top:20px;break-inside:avoid}
+    .section{margin-top:20px;break-inside:auto;page-break-inside:auto}
     .grouphead{background:var(--soft);padding:9px 12px;border-left:3px solid var(--blue);
       display:flex;justify-content:space-between;gap:12px;align-items:center}
     .grouphead strong{font-size:12px}.grouphead small{font-size:10px;color:var(--muted)}
@@ -67,7 +67,12 @@ def render_print(rows, filters):
       .toolbar{display:none!important}.sheet{max-width:none;margin:0;padding:0;box-shadow:none;border-radius:0}
       .top{padding-bottom:10px}h1{font-size:20px}.stats{margin:12px 0;gap:7px}
       .stat{padding:7px 9px}.stat strong{font-size:13px}
-      .section{margin-top:12px}.grouphead{padding:6px 9px}
+      /* Avoid Chromium treating a large section/table as a single printable block. */
+      .sheet{display:contents}
+      .section{display:contents;break-inside:auto;page-break-inside:auto}
+      .grouphead{display:block;margin-top:12px;padding:6px 9px;break-after:avoid;page-break-after:avoid}
+      table{break-before:auto;break-inside:auto;page-break-inside:auto}
+      tbody{break-inside:auto;page-break-inside:auto}
       table{font-size:8px}th{font-size:7px;padding:5px 3px}td{padding:4px 3px}
       thead{display:table-header-group}tr{break-inside:avoid}
       .grand{break-inside:avoid}
