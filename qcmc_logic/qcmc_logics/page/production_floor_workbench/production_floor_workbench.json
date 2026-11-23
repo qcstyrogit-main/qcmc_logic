@@ -1,0 +1,7 @@
+{
+ "content":null,"docstatus":0,"doctype":"Page","module":"QCMC Logics",
+ "name":"production-floor-workbench","page_name":"production-floor-workbench",
+ "roles":[{"role":"Manufacturing User"},{"role":"Manufacturing Manager"},{"role":"System Manager"}],
+ "script":null,"standard":"Yes","style":null,"system_page":0,
+ "title":"Production Floor Workbench"
+}

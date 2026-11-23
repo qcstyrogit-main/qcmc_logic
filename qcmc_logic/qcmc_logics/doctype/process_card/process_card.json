@@ -1,0 +1,31 @@
+{
+ "autoname": "naming_series:",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["naming_series", "company", "site", "workstation", "shift_date", "shift_type", "shift_start", "shift_end", "status", "remarks", "jobs"],
+ "fields": [
+  {"fieldname":"naming_series","fieldtype":"Select","label":"Series","options":"PC-.YYYY.-.#####","reqd":1},
+  {"fieldname":"company","fieldtype":"Link","in_list_view":1,"in_standard_filter":1,"label":"Company","options":"Company","reqd":1},
+  {"fieldname":"site","fieldtype":"Data","in_list_view":1,"label":"Site"},
+  {"fieldname":"workstation","fieldtype":"Link","in_list_view":1,"in_standard_filter":1,"label":"Workstation","options":"Workstation","reqd":1},
+  {"fieldname":"shift_date","fieldtype":"Date","in_list_view":1,"in_standard_filter":1,"label":"Shift Date","reqd":1},
+  {"fieldname":"shift_type","fieldtype":"Link","label":"Shift Type","options":"Shift Type","reqd":1},
+  {"fieldname":"shift_start","fieldtype":"Datetime","label":"Shift Start","reqd":1},
+  {"fieldname":"shift_end","fieldtype":"Datetime","label":"Shift End","reqd":1},
+  {"default":"Draft","fieldname":"status","fieldtype":"Select","in_list_view":1,"in_standard_filter":1,"label":"Status","options":"Draft\nIn Progress\nFor Approval\nApproved\nCancelled","read_only":1},
+  {"fieldname":"remarks","fieldtype":"Small Text","label":"Remarks"},
+  {"fieldname":"jobs","fieldtype":"Table","label":"Job Cards","options":"Process Card Job","reqd":1}
+ ],
+ "is_submittable":0,
+ "module":"QCMC Logics",
+ "name":"Process Card",
+ "permissions":[
+  {"create":1,"read":1,"write":1,"role":"Manufacturing User"},
+  {"create":1,"read":1,"write":1,"delete":1,"submit":0,"role":"Manufacturing Manager"},
+  {"create":1,"read":1,"write":1,"delete":1,"role":"System Manager"}
+ ],
+ "quick_entry":0,
+ "track_changes":1,
+ "sort_field":"modified",
+ "sort_order":"DESC"
+}

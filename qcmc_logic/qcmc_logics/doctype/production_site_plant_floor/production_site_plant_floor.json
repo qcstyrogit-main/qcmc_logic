@@ -1,0 +1,6 @@
+{
+ "doctype":"DocType","name":"Production Site Plant Floor","module":"QCMC Logics","engine":"InnoDB",
+ "istable":1,"editable_grid":1,"field_order":["plant_floor"],
+ "fields":[{"fieldname":"plant_floor","fieldtype":"Link","label":"Plant Floor","options":"Plant Floor","reqd":1,"unique":1,"in_list_view":1}],
+ "permissions":[]
+}

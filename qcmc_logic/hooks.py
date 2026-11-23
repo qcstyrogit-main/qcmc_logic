@@ -48,16 +48,19 @@ doc_events = {
             "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
             "qcmc_logic.customs.sales_transaction_territory.populate_mapped_transaction_territory",
             "qcmc_logic.delivery_note_pick_list.repair_delivery_note_pick_references",
+            "qcmc_logic.api.delivery_schedule_service.validate_delivery_note_item",
         ],
-        "on_update": "qcmc_logic.picking_status.sync_source",
         "on_submit": [
             "qcmc_logic.delivery_note_pick_list.sync_delivery_pick_list_progress",
+            "qcmc_logic.api.delivery_schedule_service.on_delivery_note_submit",
             "qcmc_logic.picking_status.sync_source",
         ],
         "on_cancel": [
             "qcmc_logic.delivery_note_pick_list.sync_delivery_pick_list_progress",
+            "qcmc_logic.api.delivery_schedule_service.on_delivery_note_cancel",
             "qcmc_logic.picking_status.sync_source",
         ],
+        "on_update": "qcmc_logic.picking_status.sync_source",
     },
     "POS Invoice": {
         "before_validate": "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
@@ -90,6 +93,8 @@ doc_events = {
             "qcmc_logic.customs.sales_order.set_customer_account_manager",
             "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
         ],
+        "validate": "qcmc_logic.api.delivery_schedule_service.validate_sales_order_plan",
+        "before_submit": "qcmc_logic.api.delivery_schedule_service.validate_sales_order_plan",
         "on_submit": "qcmc_logic.customs.sales_order.update_customer_item_history_on_submit",
         "on_cancel": "qcmc_logic.customs.sales_order.update_customer_item_history_on_cancel",
     },
@@ -139,11 +144,24 @@ doc_events = {
         ],
     },
     "Job Card": {
+        "before_validate": [
+            "qcmc_logic.customs.job_card.prevent_untracked_output_checkpoint_changes",
+            "qcmc_logic.customs.process_card_transactions.validate_job_card_participation",
+        ],
         "on_update": "qcmc_logic.customs.job_card.sync_non_final_operation_progress",
         "on_submit": "qcmc_logic.customs.job_card.sync_non_final_operation_progress",
         "on_cancel": "qcmc_logic.customs.job_card.sync_non_final_operation_progress",
         "on_update_after_submit": "qcmc_logic.customs.job_card.sync_non_final_operation_progress",
         "after_delete": "qcmc_logic.customs.job_card.sync_non_final_operation_progress",
+    },
+    "Downtime Entry": {
+        "validate": "qcmc_logic.customs.process_card_transactions.validate_downtime_entry",
+    },
+    "Asset Repair": {
+        "validate": "qcmc_logic.customs.process_card_transactions.validate_asset_repair",
+    },
+    "Quality Inspection": {
+        "validate": "qcmc_logic.customs.process_card_transactions.validate_quality_inspection",
     },
     "Salary Slip": {
         "validate": [
@@ -210,6 +228,40 @@ doc_events = {
     }
 }
 
+# Scheduling and allocation writers share a parent SO mutex. Append to existing
+# handlers so permission, warehouse and production hooks remain active.
+for _schedule_doctype in (
+    "Sales Order", "Sales Order Item", "Delivery Note", "Sales Invoice", "Work Order", "Purchase Order",
+    "Material Request", "Production Plan", "Pick List", "Stock Reservation Entry",
+    "Delivery Schedule Item",
+):
+    for _schedule_event in ("before_validate", "before_update_after_submit", "before_cancel"):
+        _schedule_handlers = doc_events.setdefault(_schedule_doctype, {}).get(_schedule_event, [])
+        if isinstance(_schedule_handlers, str):
+            _schedule_handlers = [_schedule_handlers]
+        doc_events[_schedule_doctype][_schedule_event] = [
+            "qcmc_logic.api.sales_order_schedule_split.lock_order_references",
+            *_schedule_handlers,
+        ]
+
+for _collaboration_doctype in ("Delivery Note", "Sales Order"):
+    for _collaboration_event in ("on_update", "on_update_after_submit", "on_cancel", "after_delete"):
+        _collaboration_handlers = doc_events.setdefault(_collaboration_doctype, {}).get(_collaboration_event, [])
+        if isinstance(_collaboration_handlers, str):
+            _collaboration_handlers = [_collaboration_handlers]
+        doc_events[_collaboration_doctype][_collaboration_event] = [
+            *_collaboration_handlers,
+            "qcmc_logic.api.delivery_workbench_collaboration.notify_change",
+        ]
+for _collaboration_event in ("before_validate", "before_update_after_submit", "before_cancel", "on_trash"):
+    _collaboration_handlers = doc_events["Delivery Note"].get(_collaboration_event, [])
+    if isinstance(_collaboration_handlers, str):
+        _collaboration_handlers = [_collaboration_handlers]
+    doc_events["Delivery Note"][_collaboration_event] = [
+        *_collaboration_handlers,
+        "qcmc_logic.api.delivery_workbench_collaboration.guard_edit",
+    ]
+
 before_request = [
     "qcmc_logic.patches.oauth_patch.ensure_fac_oauth_alias",
     "qcmc_logic.overrides.lms_inject.redirect_login_to_lms_login",
@@ -233,6 +285,7 @@ doctype_js = {
     "Delivery Note": "public/js/delivery_note.js",
     "Item": "public/js/item.js",
     "Job Card": "public/js/job_card.js",
+    "Process Card": "public/js/process_card.js",
     "Sales Order": "public/js/sales_order.js",
     "Stock Entry": "public/js/stock_entry.js",
     "Stock Reconciliation": "public/js/stock_reconciliation.js",
@@ -263,6 +316,7 @@ doctype_list_js = {
     "Delivery Note": "public/js/picking_status_list.js",
     "Stock Entry": "public/js/picking_status_list.js",
     "Material Request": "public/js/material_request_list.js",
+    "Item": "public/js/item_list.js",
     "Issue": "public/js/issue_list.js",
     "Storage Allocation": "qcmc_logics/doctype/storage_allocation/storage_allocation_list.js",
     "Weekly Manpower Schedule": "qcmc_logics/doctype/weekly_manpower_schedule/weekly_manpower_schedule_list.js",
@@ -513,6 +567,7 @@ after_migrate = [
 # include js, css files in header of desk.html
 # app_include_css = "/assets/qcmc_logic/css/qcmc_logic.css"
 app_include_js = [
+    "/assets/qcmc_logic/js/process_card_workbench_cache.js?v=20261110-2",
     "/assets/qcmc_logic/js/purchase_request_status.js",
     "/assets/qcmc_logic/js/hide_print_selection.js",
     "/assets/qcmc_logic/js/warehouse_access.js",
@@ -743,5 +798,8 @@ scheduler_events = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
-# Add the current login marker after cached boot data is loaded.
-extend_bootinfo = ["qcmc_logic.api.login_notices.extend_bootinfo"]
+# Apply navigation and login details after cached boot data is loaded.
+extend_bootinfo = [
+    "qcmc_logic.api.login_notices.extend_bootinfo",
+    "qcmc_logic.api.delivery_sidebar.hide_retired_reports",
+]

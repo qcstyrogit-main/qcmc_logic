@@ -1,12 +1,13 @@
 """Isolated printing checks; no site connection or database writes."""
 from copy import deepcopy
 import sys
+from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 import frappe
 
-from qcmc_logic.qcmc_logics.report.delivery_note_printing import delivery_note_printing as printing
+from qcmc_logic.api import delivery_printing_service as printing
 
 
 class TestPrintingPreview(TestCase):
@@ -86,3 +87,36 @@ class TestPrintingPreview(TestCase):
 			result = printing.create_sales_invoices('["DN-test"]', "INV-test")
 			self.assertTrue(result["verified"])
 			mapper.assert_not_called()
+
+	def test_duplicate_invoice_number_cannot_be_reused_for_another_delivery_note(self):
+		mapper = MagicMock()
+		with (
+			patch.object(printing.frappe, "db", MagicMock(get_value=MagicMock(return_value="SI-OTHER-DN"))),
+			patch.object(printing.frappe, "cache", MagicMock()),
+			patch.object(printing.frappe, "has_permission", return_value=True),
+			patch.object(printing.frappe, "get_meta", return_value=MagicMock(get_field=MagicMock(return_value=frappe._dict(length=10)))),
+			patch.object(printing, "verify_sales_invoice_for_preview", side_effect=frappe.ValidationError("invoice belongs to another DN")) as verify,
+			patch.dict(sys.modules, {"qcmc_logic.api.delivery_note": MagicMock(create_sales_invoice_from_draft_dn=mapper)}),
+		):
+			with self.assertRaisesRegex(frappe.ValidationError, "another DN"):
+				printing.create_sales_invoices('["DN-2"]', "INV-10")
+		verify.assert_called_once_with("DN-2", "INV-10", "SI-OTHER-DN")
+		mapper.assert_not_called()
+
+	def test_v2_printing_draft_uses_fields_present_on_sales_order_schema(self):
+		doc = SimpleNamespace(name="DN-v2", docstatus=0, workflow_state="Draft",
+			custom_sales_order="SO-v2", company="Company", customer="Customer", get=lambda field: {
+				"custom_sales_order": "SO-v2"}.get(field), items=[
+				frappe._dict(against_sales_order="SO-v2", so_detail="SOI-v2",
+					custom_so_delivery_schedule="SCHED-v2", item_code="ITEM", warehouse="WH")])
+		def get_value(doctype, name, fields=None, **kwargs):
+			if doctype == "Sales Order" and name == "SO-v2" and fields == ["company", "customer", "docstatus", "status"]:
+				return frappe._dict(company="Company", customer="Customer", docstatus=1, status="To Deliver and Bill")
+			if doctype == "SO Delivery Schedule":
+				return frappe._dict(sales_order="SO-v2", sales_order_item="SOI-v2",
+					item_code="ITEM", warehouse="WH", confirmation_status="Finalized")
+			if doctype == "Sales Order" and fields == "custom_delivery_schedule_v2_enabled":
+				return 1
+			return None
+		with patch.object(printing.frappe, "db", MagicMock(get_value=MagicMock(side_effect=get_value))):
+			self.assertTrue(printing._is_v2_printing_draft(doc))

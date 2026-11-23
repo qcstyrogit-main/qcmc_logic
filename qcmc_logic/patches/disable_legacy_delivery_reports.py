@@ -8,5 +8,7 @@ def execute():
 		"Sales Order Delivery Scheduling",
 	):
 		if frappe.db.exists("Report", report_name):
-			frappe.db.set_value("Report", report_name, "disabled", 1, update_modified=False)
+			report = frappe.get_doc("Report", report_name)
+			if not report.disabled:
+				report.toggle_disable(True)
 	frappe.clear_cache()

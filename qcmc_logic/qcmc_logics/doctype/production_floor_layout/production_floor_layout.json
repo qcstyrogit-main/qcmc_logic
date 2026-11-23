@@ -1,0 +1,18 @@
+{
+ "doctype":"DocType", "name":"Production Floor Layout", "module":"QCMC Logics",
+ "autoname":"format:PFL-SITE-{production_site}", "naming_rule":"Expression", "engine":"InnoDB",
+ "field_order":["company","production_site","plant_floor","layout_json","layout_version"],
+ "fields":[
+  {"fieldname":"company","fieldtype":"Link","label":"Company","options":"Company","reqd":1,"read_only":1},
+  {"fieldname":"production_site","fieldtype":"Link","label":"Production Site","options":"Production Site","unique":1,"read_only":1},
+  {"fieldname":"plant_floor","fieldtype":"Link","label":"Legacy Plant Floor","options":"Plant Floor","read_only":1,"hidden":1},
+  {"fieldname":"layout_json","fieldtype":"Long Text","label":"Layout JSON","hidden":1,"read_only":1},
+  {"fieldname":"layout_version","fieldtype":"Int","label":"Layout Version","default":0,"read_only":1}
+ ],
+ "permissions":[
+  {"role":"Manufacturing User","read":1},
+  {"role":"Manufacturing Manager","read":1,"create":1,"write":1},
+  {"role":"System Manager","read":1,"create":1,"write":1}
+ ],
+ "track_changes":1
+}

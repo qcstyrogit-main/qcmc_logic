@@ -111,7 +111,7 @@ def sync_draft_invoice_quantities_from_delivery_note(dn_name):
 	if doc.docstatus != 0 or doc.workflow_state != "To Deliver and Bill":
 		frappe.throw(frappe._("Only a draft Delivery Note in To Deliver and Bill can update linked draft invoices."))
 	for item in doc.items:
-		from qcmc_logic.qcmc_logics.report.delivery_note_printing import delivery_note_printing
+		from qcmc_logic.api import delivery_printing_service as delivery_note_printing
 		delivery_note_printing._validate_warehouse_access(item.warehouse, require_transact=True)
 	rows = frappe.db.sql("""
 		SELECT DISTINCT si.name, si.docstatus

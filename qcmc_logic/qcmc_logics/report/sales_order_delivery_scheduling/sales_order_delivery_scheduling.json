@@ -1,5 +1,6 @@
 {
   "doctype": "Report",
+  "disabled": 1,
   "name": "Sales Order Delivery Scheduling",
   "report_name": "Sales Order Delivery Scheduling",
   "ref_doctype": "Sales Order",

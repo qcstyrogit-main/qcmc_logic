@@ -1,17 +1,39 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
+from types import SimpleNamespace
 
 import frappe
 
-from qcmc_logic.qcmc_logics.report.delivery_schedule_confirmation import (
-	delivery_schedule_confirmation as logistics,
-)
-from qcmc_logic.qcmc_logics.report.sales_order_delivery_scheduling import (
-	sales_order_delivery_scheduling as scheduling,
-)
-from qcmc_logic.qcmc_logics.report.delivery_note_printing import (
-	delivery_note_printing as printing,
-)
+from qcmc_logic.api import delivery_confirmation_service as logistics
+from qcmc_logic.api import sales_order_scheduling_service as scheduling
+from qcmc_logic.api import delivery_printing_service as printing
+
+
+class SiteFreeSchedulingTestCase(TestCase):
+	"""Provide framework services explicitly; these tests never connect to a site."""
+
+	def setUp(self):
+		db = MagicMock()
+		db.sql.return_value = []
+		db.exists.return_value = False
+		db.table_exists.return_value = False
+		def fail(message, exc=frappe.ValidationError, **kwargs):
+			raise exc(message)
+		for patcher in (
+			patch.object(frappe, "db", db),
+			patch.object(frappe, "session", frappe._dict(user="unit-test@example.com")),
+			patch.object(frappe, "get_all", return_value=[]),
+			patch.object(frappe, "get_system_settings", return_value="Banker's Rounding"),
+			patch.object(frappe, "logger", return_value=MagicMock()),
+			patch.object(frappe, "throw", side_effect=fail),
+			patch.object(frappe, "msgprint"),
+			patch.object(frappe.utils, "formatdate", side_effect=str),
+			patch.object(scheduling, "_", side_effect=lambda value: value),
+			patch.object(logistics, "_", side_effect=lambda value: value),
+			patch.object(printing, "_", side_effect=lambda value: value),
+		):
+			patcher.start()
+			self.addCleanup(patcher.stop)
 
 
 class _CreateDeliveryNoteContext:
@@ -43,7 +65,7 @@ class _CreateDeliveryNoteContext:
 			patcher.stop()
 
 
-class TestSalesOrderDeliveryScheduling(TestCase):
+class TestSalesOrderDeliveryScheduling(SiteFreeSchedulingTestCase):
 	def test_rejects_user_without_sales_coordinator_role(self):
 		with (
 			patch.object(scheduling.frappe, "session", frappe._dict(user="other@example.com")),
@@ -125,6 +147,24 @@ class TestSalesOrderDeliveryScheduling(TestCase):
 		self.assertEqual(dn.grand_total, 580)
 		dn.db_set.assert_called_once_with("workflow_state", "For Stock Confirmation")
 
+	def test_requested_new_dr_quantity_is_applied_without_changing_so_schedule(self):
+		item = frappe._dict(so_detail="SOI-1", qty=10, rate=100, base_rate=100, amount=1000, base_amount=1000)
+		dn = self._mapped_delivery_note([item])
+		with self._create_delivery_note_context(dn, {"SOI-1": 10}):
+			scheduling.create_delivery_notes(["SOI-1"], requested_quantities='{"SOI-1": 4}')
+		self.assertEqual(item.qty, 4)
+		self.assertEqual(item.amount, 400)
+		self.assertEqual(item.base_amount, 400)
+		dn.insert.assert_called_once_with()
+
+	def test_requested_new_dr_quantity_cannot_exceed_current_remaining_qty(self):
+		item = frappe._dict(so_detail="SOI-1", qty=10, rate=100, base_rate=100, amount=1000, base_amount=1000)
+		dn = self._mapped_delivery_note([item])
+		with self._create_delivery_note_context(dn, {"SOI-1": 10}):
+			with self.assertRaises(frappe.ValidationError):
+				scheduling.create_delivery_notes(["SOI-1"], requested_quantities='{"SOI-1": 11}')
+		dn.insert.assert_not_called()
+
 	def test_selected_children_are_passed_to_standard_sales_order_mapper(self):
 		item = frappe._dict(so_detail="SOI-2", qty=5, rate=200, base_rate=200, amount=1000, base_amount=1000)
 		dn = self._mapped_delivery_note([item])
@@ -139,6 +179,11 @@ class TestSalesOrderDeliveryScheduling(TestCase):
 		dn.get.return_value = dn.items
 
 		def calculate_taxes_and_totals():
+			for item in dn.items:
+				item.amount = frappe.utils.flt(item.qty) * frappe.utils.flt(item.rate)
+				item.base_amount = frappe.utils.flt(item.qty) * frappe.utils.flt(item.base_rate)
+				item.net_amount = frappe.utils.flt(item.qty) * frappe.utils.flt(item.get("net_rate") or item.rate)
+				item.base_net_amount = frappe.utils.flt(item.qty) * frappe.utils.flt(item.get("base_net_rate") or item.base_rate)
 			dn.net_total = sum(item.amount for item in dn.items)
 			dn.grand_total = dn.net_total
 			dn.base_net_total = sum(item.base_amount for item in dn.items)
@@ -151,7 +196,7 @@ class TestSalesOrderDeliveryScheduling(TestCase):
 		return _CreateDeliveryNoteContext(dn, available_qty)
 
 
-class TestDeliveryNoteStockConfirmation(TestCase):
+class TestDeliveryNoteStockConfirmation(SiteFreeSchedulingTestCase):
 	def test_rejects_user_without_stock_confirm_role(self):
 		with (
 			patch.object(logistics.frappe, "session", frappe._dict(user="other@example.com")),
@@ -237,7 +282,7 @@ class TestDeliveryNoteStockConfirmation(TestCase):
 		self.assertFalse(options.startswith("TO"))
 
 
-class TestDeliveryNotePrinting(TestCase):
+class TestDeliveryNotePrinting(SiteFreeSchedulingTestCase):
 	def test_rejects_user_without_invoicing_clerk_role(self):
 		with (
 			patch.object(printing.frappe, "session", frappe._dict(user="other@example.com")),
@@ -265,6 +310,25 @@ class TestDeliveryNotePrinting(TestCase):
 		doc.save.assert_called_once_with()
 		self.assertEqual(result["print_format"], "Configured Default")
 
+	def test_duplicate_dr_number_is_rejected_before_saving(self):
+		doc = MagicMock()
+		doc.name = "DN-2"
+		doc.company = "QC Styropackaging Corporation"
+		doc.docstatus = 0
+		doc.workflow_state = "For DR Printing"
+		with (
+			patch.object(printing, "_validate_invoicing_role"),
+			patch.object(printing, "_get_locked_delivery_note", return_value=doc),
+			patch.object(printing, "_validate_delivery_note"),
+			patch.object(printing.frappe, "db", MagicMock(get_value=MagicMock(return_value="DN-1"))),
+			patch.object(printing.frappe, "cache", MagicMock()),
+			patch.object(printing, "_", side_effect=lambda value: value),
+			patch.object(printing.frappe, "throw", side_effect=lambda message, exc=frappe.ValidationError, **kwargs: (_ for _ in ()).throw(exc(message))),
+		):
+			with self.assertRaisesRegex(frappe.ValidationError, "already assigned"):
+				printing.assign_dr_number("DN-2", "DR-100")
+		doc.save.assert_not_called()
+
 	def test_submit_requires_dr_number(self):
 		doc = MagicMock()
 		doc.name = "DN-1"
@@ -281,17 +345,72 @@ class TestDeliveryNotePrinting(TestCase):
 		doc = MagicMock()
 		doc.name = "DN-1"
 		doc.custom_dr_number = "DR-100"
+		doc.as_json.return_value = '{"doctype":"Delivery Note","name":"DN-1"}'
+		released = MagicMock(docstatus=0, workflow_state="To Deliver and Bill")
 		with (
 			patch.object(printing, "_validate_invoicing_role"),
 			patch.object(printing, "_get_locked_delivery_note", return_value=doc),
 			patch.object(printing, "_validate_delivery_note"),
+			patch.object(printing, "_is_v2_printing_draft", return_value=True),
+			patch("frappe.model.workflow.apply_workflow", return_value=released) as apply_workflow,
 		):
 			printing.submit_for_delivery(["DN-1"])
+		apply_workflow.assert_called_once_with(doc.as_json.return_value, "Submit for Delivery")
+		doc.save.assert_not_called()
+		doc.db_set.assert_not_called()
+		self.assertEqual(released.docstatus, 0)
+		self.assertEqual(released.workflow_state, "To Deliver and Bill")
+
+	def test_legacy_printing_transition_keeps_compatibility_path(self):
+		doc = MagicMock()
+		doc.name = "LEGACY-DN"
+		doc.custom_dr_number = "DR-LEGACY"
+		with (
+			patch.object(printing, "_validate_invoicing_role"),
+			patch.object(printing, "_get_locked_delivery_note", return_value=doc),
+			patch.object(printing, "_validate_delivery_note"),
+			patch.object(printing, "_is_v2_printing_draft", return_value=False),
+		):
+			printing.submit_for_delivery(["LEGACY-DN"])
 		self.assertEqual(doc.workflow_state, "To Deliver and Bill")
 		self.assertEqual(doc.status, "To Deliver and Bill")
-		doc.save.assert_called_once_with(ignore_permissions=True)
+		doc.check_permission.assert_called_once_with("write")
+		doc.save.assert_called_once_with()
 
-	def test_sales_approval_applies_approved_quantity_and_date(self):
+	def test_v2_release_requires_finalized_qty_and_logistics_scope(self):
+		item = frappe._dict(name="DNI-1", custom_so_delivery_schedule="SCHED-1", qty=10,
+			warehouse="FG - Guyong", precision=lambda field: 0)
+		doc = SimpleNamespace(name="DN-V2", docstatus=0, workflow_state="To Deliver and Bill",
+			custom_dr_number="DR-100", items=[item], get=lambda field: getattr(doc, field, None))
+		schedule = frappe._dict(final_qty=10, confirmation_status="Finalized",
+			sales_confirmed_by="sales@example.com", logistics_confirmed_by="logistics@example.com")
+		with (
+			patch.object(printing.frappe, "get_roles", return_value=["Invoicing Clerk"]),
+			patch.object(printing, "_is_v2_printing_draft", return_value=True),
+			patch.object(printing.frappe.db, "get_value", return_value=schedule),
+			patch.object(printing, "_validate_warehouse_access") as warehouse_scope,
+		):
+			printing._validate_v2_release_transition(doc)
+		warehouse_scope.assert_called_once_with("FG - Guyong", require_transact=True)
+		self.assertEqual(doc.workflow_state, "To Deliver and Bill")
+
+	def test_v2_release_rejects_quantity_different_from_final_schedule(self):
+		item = frappe._dict(name="DNI-1", custom_so_delivery_schedule="SCHED-1", qty=9,
+			warehouse="FG - Guyong", precision=lambda field: 0)
+		doc = SimpleNamespace(name="DN-V2", docstatus=0, workflow_state="To Deliver and Bill",
+			custom_dr_number="DR-100", items=[item], get=lambda field: getattr(doc, field, None))
+		schedule = frappe._dict(final_qty=10, confirmation_status="Finalized",
+			sales_confirmed_by="sales@example.com", logistics_confirmed_by="logistics@example.com")
+		with (
+			patch.object(printing.frappe, "get_roles", return_value=["Invoicing Clerk"]),
+			patch.object(printing, "_is_v2_printing_draft", return_value=True),
+			patch.object(printing.frappe.db, "get_value", return_value=schedule),
+			patch.object(printing, "_validate_warehouse_access"),
+		):
+			with self.assertRaisesRegex(frappe.ValidationError, "must match its jointly finalized schedule"):
+				printing._validate_v2_release_transition(doc)
+
+	def test_proceed_ignores_unsaved_quantity_instructions_and_changes_workflow_only(self):
 		item = frappe._dict(
 			custom_logistics_reason="OK",
 			name="DNI-1", item_code="ITEM-1", item_name="Item 1", qty=10, rate=2, base_rate=2,
@@ -302,22 +421,38 @@ class TestDeliveryNotePrinting(TestCase):
 		doc.name = "DN-1"
 		doc.docstatus = 0
 		doc.workflow_state = "For Stock Confirmation"
+		source = frappe._dict(name="SOI-1", parent="SO-1", qty=10, delivered_qty=0)
 		with (
 			patch.object(logistics, "_validate_sales_approval_role"),
 			patch.object(logistics, "_get_locked_delivery_note", return_value=doc),
 			patch.object(logistics, "_validate_warehouse_access"),
-			patch.object(logistics, "_move_deferred_sales_order_qty") as move_deferred,
+			patch.object(frappe, "get_doc", return_value=source),
+			patch.object(scheduling, "_get_draft_delivery_note_qty", return_value=10),
 		):
 			logistics.proceed_to_dr_printing("DN-1", [{
 				"dn_detail": "DNI-1",
 				"approved_qty": 6,
 				"approved_date": "2026-09-12",
 			}])
-		self.assertEqual(item.qty, 6)
-		self.assertEqual(item.amount, 12)
+		self.assertEqual(item.qty, 10, "workflow progression never applies a submitted quantity proposal")
+		self.assertIsNone(item.get("amount"), "workflow progression does not recalculate or rewrite commercial amounts")
 		self.assertEqual(doc.workflow_state, "For DR Printing")
-		move_deferred.assert_called_once_with(item, 6, "2026-09-12", "DN-1", original_qty=10)
-		doc.save.assert_called_once_with(ignore_permissions=True)
+		doc.save.assert_called_once_with()
+
+	def test_v2_proceed_uses_schedule_date_when_dn_item_has_no_delivery_date_field(self):
+		item = frappe._dict(
+			name="DNI-1", item_code="ITEM-1", so_detail="SOI-1", against_sales_order="SO-1",
+			warehouse="WH-1", custom_so_delivery_schedule="SCHED-1",
+		)
+		linked = frappe._dict(
+			sales_order="SO-1", sales_order_item="SOI-1", item_code="ITEM-1",
+			warehouse="WH-1", delivery_date="2026-11-12",
+		)
+		self.assertTrue(logistics._validate_v2_delivery_schedule_link(item, linked, "2026-11-12"))
+		with self.assertRaises(frappe.ValidationError):
+			logistics._validate_v2_delivery_schedule_link(item, linked, "2026-11-13")
+		with self.assertRaises(frappe.ValidationError):
+			logistics._validate_v2_delivery_schedule_link(item, linked, None)
 
 	def test_sales_rejection_leaves_original_delivery_note_quantity(self):
 		item = frappe._dict(
@@ -330,17 +465,18 @@ class TestDeliveryNotePrinting(TestCase):
 		doc.name = "DN-1"
 		doc.docstatus = 0
 		doc.workflow_state = "For Stock Confirmation"
+		source = frappe._dict(name="SOI-1", parent="SO-1", qty=10, delivered_qty=0)
 		with (
 			patch.object(logistics, "_validate_sales_approval_role"),
 			patch.object(logistics, "_get_locked_delivery_note", return_value=doc),
 			patch.object(logistics, "_validate_warehouse_access"),
-			patch.object(logistics, "_move_deferred_sales_order_qty") as move_deferred,
+			patch.object(frappe, "get_doc", return_value=source),
+			patch.object(scheduling, "_get_draft_delivery_note_qty", return_value=10),
 		):
 			logistics.proceed_to_dr_printing("DN-1", [{"dn_detail": "DNI-1", "approved_qty": 10}])
 		self.assertEqual(item.qty, 10)
 		self.assertEqual(doc.workflow_state, "For DR Printing")
-		move_deferred.assert_not_called()
-		doc.save.assert_called_once_with(ignore_permissions=True)
+		doc.save.assert_called_once_with()
 
 	def test_release_rejects_partial_document_selection(self):
 		doc = MagicMock(items=[frappe._dict(name="A"), frappe._dict(name="B")])
@@ -352,6 +488,16 @@ class TestDeliveryNotePrinting(TestCase):
 	def test_release_requires_logistics_confirmation(self):
 		with self.assertRaises(frappe.ValidationError):
 			logistics._validate_sales_decision_for_reason(frappe._dict(item_code="ITEM"), {})
+
+	def test_status_only_progression_requires_persisted_logistics_commitment(self):
+		with self.assertRaises(frappe.ValidationError):
+			logistics._validate_saved_logistics_commitment(frappe._dict(
+				item_code="ITEM", custom_logistics_reason="SA", custom_logistics_proposed_qty=None))
+		with self.assertRaises(frappe.ValidationError):
+			logistics._validate_saved_logistics_commitment(frappe._dict(
+				item_code="ITEM", custom_logistics_reason="OR", custom_logistics_proposed_date=None))
+		logistics._validate_saved_logistics_commitment(frappe._dict(
+			item_code="ITEM", custom_logistics_reason="OK", custom_logistics_proposed_qty=None))
 
 	def test_stock_availability_allows_zero_with_sales_reschedule(self):
 		item = frappe._dict(item_code="EFB12", custom_logistics_reason="SA", custom_logistics_proposed_qty=0)
@@ -377,23 +523,6 @@ class TestDeliveryNotePrinting(TestCase):
 			with self.assertRaises(frappe.ValidationError):
 				logistics._approve_delivery_note_for_dr("DN", {"A": {"document_modified": "old-version"}})
 		doc.save.assert_not_called()
-
-	def test_defer_only_this_delivery_notes_reduction(self):
-		item = frappe._dict(so_detail="SOURCE", against_sales_order="SO", item_code="ITEM", warehouse="WH")
-		source = frappe._dict(name="SOURCE", qty=100, delivered_qty=20, item_code="ITEM", warehouse="WH")
-		target = frappe._dict(name="TARGET", qty=30, item_code="ITEM", warehouse="WH")
-		so = MagicMock(items=[source, target])
-		with (
-			patch.object(logistics, "_get_existing_schedule_detail_for_date", return_value="TARGET"),
-			patch.object(scheduling, "_lock_sales_order_items"),
-			patch.object(scheduling, "_get_draft_delivery_note_qty", return_value=50),
-			patch.object(scheduling, "_update_sales_order_schedule_quantities") as update,
-			patch.object(frappe, "get_doc", return_value=so),
-			patch.object(frappe, "new_doc", return_value=MagicMock()),
-			patch.object(frappe.utils, "formatdate", return_value="2026-10-20"),
-		):
-			logistics._move_deferred_sales_order_qty(item, 10, "2026-10-20", "DN", original_qty=40)
-		update.assert_called_once_with(so, {"SOURCE": 70, "TARGET": 60})
 
 	def test_sales_approval_cannot_exceed_logistics_committed_quantity(self):
 		item = frappe._dict(

@@ -66,7 +66,7 @@ class DeliveryNotePrintingWorkbench {
 		});
 		this.$grid.empty();
 		this.datatable = new frappe.DataTable(this.$grid[0], {
-			columns,
+			columns: columns.map(column => ({...column, editable: false, focusable: false})),
 			data,
 			layout: "fixed",
 			inlineFilters: true,
@@ -85,6 +85,15 @@ class DeliveryNotePrintingWorkbench {
 			if (button.attr("data-action") === "print") this.assign_and_print(name);
 			if (button.attr("data-action") === "invoice") this.create_invoice(name);
 			if (button.attr("data-action") === "deliver" && !button.prop("disabled")) this.submit_delivery(name);
+		});
+		// Native buttons emit click for Enter/Space, but the DataTable's cell focus
+		// handling can consume those keys before the browser activates the button.
+		// Preserve keyboard access without double-running pointer clicks.
+		this.$grid.off("keydown.dnActions", "[data-action]").on("keydown.dnActions", "[data-action]", event => {
+			if (event.key !== "Enter" && event.key !== " ") return;
+			event.preventDefault();
+			event.stopPropagation();
+			$(event.currentTarget).trigger("click");
 		});
 	}
 
@@ -161,7 +170,7 @@ class DeliveryNotePrintingWorkbench {
 							}
 							dialog.hide();
 							preview_started = true;
-							preview.location.replace(`/printview?doctype=${encodeURIComponent("Sales Invoice")}&name=${encodeURIComponent(verification.message.sales_invoice)}&no_letterhead=0`);
+							preview.location.replace(`/printview?doctype=${encodeURIComponent("Sales Invoice")}&name=${encodeURIComponent(verification.message.sales_invoice)}&format=${encodeURIComponent(verification.message.print_format)}&no_letterhead=0`);
 						},
 						error: () => {
 							if (preview && !preview.closed) preview.close();
@@ -196,7 +205,7 @@ class DeliveryNotePrintingWorkbench {
 			args: {delivery_note, sales_invoice: invoices[0].name},
 			callback: r => {
 				if (r.exc || !r.message?.verified) { preview.close(); return; }
-				preview.location.replace(`/printview?doctype=Sales%20Invoice&name=${encodeURIComponent(r.message.sales_invoice)}&no_letterhead=0`);
+				preview.location.replace(`/printview?doctype=Sales%20Invoice&name=${encodeURIComponent(r.message.sales_invoice)}&format=${encodeURIComponent(r.message.print_format)}&no_letterhead=0`);
 			},
 			error: () => preview.close()
 		});

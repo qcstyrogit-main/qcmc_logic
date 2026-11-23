@@ -41,6 +41,7 @@ function open_material_scanner_qr_dialog(frm) {
 				fieldname: "quantity",
 				fieldtype: "Float",
 				label: __("Quantity"),
+				default: frm.doc.custom_material_scanner_pack_qty,
 				reqd: 1,
 			},
 			{

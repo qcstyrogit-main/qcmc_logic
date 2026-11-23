@@ -1,0 +1,17 @@
+{
+ "doctype":"DocType",
+ "editable_grid":1,
+ "engine":"InnoDB",
+ "field_order":["job_card","work_order","operation","production_item"],
+ "fields":[
+  {"fieldname":"job_card","fieldtype":"Link","in_list_view":1,"label":"Job Card","options":"Job Card","reqd":1},
+  {"fieldname":"work_order","fieldtype":"Link","in_list_view":1,"label":"Work Order","options":"Work Order","read_only":1},
+  {"fieldname":"operation","fieldtype":"Link","in_list_view":1,"label":"Operation","options":"Operation","read_only":1},
+  {"fieldname":"production_item","fieldtype":"Link","in_list_view":1,"label":"Production Item","options":"Item","read_only":1}
+ ],
+ "istable":1,
+ "module":"QCMC Logics",
+ "name":"Process Card Job",
+ "permissions":[],
+ "track_changes":1
+}

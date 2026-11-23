@@ -431,3 +431,6 @@ clean-fixtures
 
 
 ### config test Git PUSH
+### Delivery scheduling architecture
+
+Delivery Scheduling uses the Sales Order Schedule Deliveries dialog, Delivery Schedule Workbench, and Delivery Note Printing Workbench. Approved open Regular SOs are eligible. Logistics edits autosave, and Sales creates Draft DN details from the confirmed quantities. See the [agreed workflow](docs/delivery_scheduling_architecture_v2.md), [manual acceptance](docs/delivery_scheduling_manual_acceptance.md), and [current checkpoint](docs/delivery_workbench_implementation_checkpoints.md).

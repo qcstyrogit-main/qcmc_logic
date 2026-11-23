@@ -6,6 +6,10 @@ from qcmc_logic.api.stock_entry import _get_final_operation
 
 def sync_non_final_operation_progress(doc, method=None):
 	"""Credit actual shift output without treating unfinished quantity as loss."""
+	# Workbench checkpoints are operational-only metadata on native Time Log rows.
+	# Their completed_qty is zero; do not run the official progressive Work Order sync.
+	if getattr(getattr(doc, "flags", None), "qcmc_operational_checkpoint_update", False):
+		return
 	if not doc.work_order or not doc.operation_id or doc.is_corrective_job_card:
 		return
 
@@ -102,3 +106,53 @@ def repair_shift_process_loss(job_card_name):
 		"operation_process_loss": flt(operation.process_loss_qty),
 		"operation_status": operation.status,
 	}
+
+
+_OPERATIONAL_OUTPUT_FIELDS = (
+	"qcmc_process_card",
+	"qcmc_good_qty",
+	"qcmc_rejected_qty",
+	"qcmc_output_remarks",
+	"qcmc_output_entered_at",
+	"qcmc_output_entered_by",
+	"qcmc_output_revision",
+	"qcmc_output_correction_history",
+)
+
+
+def _operational_output_state(row):
+	output_state = tuple(row.get(field) for field in _OPERATIONAL_OUTPUT_FIELDS)
+	meaningful = (
+		int(row.get("qcmc_output_revision") or 0) > 0
+		or any(value not in (None, "", 0, 0.0, "0", "[]") for value in output_state[1:])
+	)
+	state = output_state + (
+		row.get("from_time"),
+		row.get("to_time"),
+		row.get("completed_qty"),
+		row.get("employee"),
+	)
+	return state, meaningful
+
+
+def prevent_untracked_output_checkpoint_changes(doc, method=None):
+	"""Keep hidden native child fields writable only through the audited Workbench APIs."""
+	if getattr(getattr(doc, "flags", None), "qcmc_operational_checkpoint_update", False):
+		return
+	previous = doc.get_doc_before_save()
+	previous_rows = {}
+	if previous:
+		for row in previous.get("time_logs") or []:
+			state, meaningful = _operational_output_state(row)
+			if row.name and meaningful:
+				previous_rows[row.name] = state
+	current_rows = {}
+	for row in doc.get("time_logs") or []:
+		state, meaningful = _operational_output_state(row)
+		if not meaningful:
+			continue
+		if not row.name or row.name not in previous_rows or previous_rows[row.name] != state:
+			frappe.throw("Operational checkpoint data can only be changed through the Process Card Workbench.")
+		current_rows[row.name] = state
+	if any(name not in current_rows for name in previous_rows):
+		frappe.throw("Operational checkpoint rows cannot be removed. Use the audited correction action.")

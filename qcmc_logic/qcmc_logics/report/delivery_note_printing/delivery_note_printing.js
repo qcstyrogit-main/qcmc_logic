@@ -13,7 +13,11 @@ frappe.query_reports["Delivery Note Printing"] = {
 		value = default_formatter(value, row, column, data);
 		return value;
 	},
-	get_datatable_options(options) { options.checkboxColumn = true; return options; }
+	get_datatable_options(options) {
+		options.checkboxColumn = true;
+		options.columns = (options.columns || []).map(column => ({...column, editable: false, focusable: false}));
+		return options;
+	}
 };
 
 function invoicing_selected_rows(report) {

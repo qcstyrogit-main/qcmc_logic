@@ -1,0 +1,37 @@
+{
+ "doctype": "DocType",
+ "name": "Delivery Schedule Movement",
+ "module": "QCMC Logics",
+ "autoname": "hash",
+ "engine": "InnoDB",
+ "track_changes": 0,
+ "fields": [
+  {"fieldname":"operation_type","fieldtype":"Select","label":"Operation Type","options":"Initial Commitment\nQuantity Adjustment\nTransfer Out\nTransfer In\nSales Finalization Split Out\nSales Finalization Split In\nShort Delivery Reschedule\nCanceled DN Replacement","reqd":1,"in_list_view":1},
+  {"fieldname":"source_schedule","fieldtype":"Link","label":"Source Schedule","options":"SO Delivery Schedule","in_list_view":1,"search_index":1},
+  {"fieldname":"destination_schedule","fieldtype":"Link","label":"Destination Schedule","options":"SO Delivery Schedule","in_list_view":1,"search_index":1},
+  {"fieldname":"sales_order","fieldtype":"Link","label":"Sales Order","options":"Sales Order","reqd":1,"search_index":1},
+  {"fieldname":"sales_order_item","fieldtype":"Link","label":"Sales Order Item","options":"Sales Order Item","reqd":1,"search_index":1},
+  {"fieldname":"quantity","fieldtype":"Float","label":"Movement Quantity","reqd":1,"non_negative":1},
+  {"fieldname":"uom","fieldtype":"Link","label":"UOM","options":"UOM","reqd":1},
+  {"fieldname":"source_before","fieldtype":"Float","label":"Source Total Before"},
+  {"fieldname":"source_after","fieldtype":"Float","label":"Source Total After"},
+  {"fieldname":"destination_before","fieldtype":"Float","label":"Destination Total Before"},
+  {"fieldname":"destination_after","fieldtype":"Float","label":"Destination Total After"},
+  {"fieldname":"promise_date","fieldtype":"Date","label":"Original Promise Date","reqd":1,"search_index":1},
+  {"fieldname":"promise_commitment","fieldtype":"Link","label":"Original Promise Commitment","options":"SO Delivery Schedule","search_index":1},
+  {"fieldname":"promise_qty","fieldtype":"Float","label":"Attributed Promise Quantity","reqd":1,"non_negative":1},
+  {"fieldname":"reason","fieldtype":"Small Text","label":"Reason","reqd":1},
+  {"fieldname":"authorized_by","fieldtype":"Link","label":"Authorized By","options":"User","reqd":1},
+  {"fieldname":"authorized_at","fieldtype":"Datetime","label":"Authorized At","reqd":1},
+  {"fieldname":"related_delivery_note","fieldtype":"Link","label":"Related Delivery Note","options":"Delivery Note"},
+  {"fieldname":"related_dn_item","fieldtype":"Link","label":"Related Delivery Note Item","options":"Delivery Note Item"},
+  {"fieldname":"transaction_id","fieldtype":"Data","label":"Transaction ID","search_index":1},
+  {"fieldname":"idempotency_key","fieldtype":"Data","label":"Transaction Key","reqd":1,"unique":1,"search_index":1}
+ ],
+ "permissions": [
+  {"role":"Sales Coordinator","read":1},
+  {"role":"Stock Confirm User","read":1},
+  {"role":"Invoicing Clerk","read":1},
+  {"role":"System Manager","read":1,"report":1,"export":1}
+ ]
+}
