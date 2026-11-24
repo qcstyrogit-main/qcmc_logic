@@ -22,8 +22,7 @@ def execute(filters=None):
       ("PV Amt","pv_amount","Currency",None,125),
       ("Input Tax-EPS","input_tax_eps","Currency",None,130),
       ("Input Tax-PSP","input_tax_psp","Currency",None,130),
-      ("Input Tax-GEN","input_tax_gen","Currency",None,130),
-      ("Unclassified VAT","input_tax_unclassified","Currency",None,145)]
+      ("Input Tax-GEN","input_tax_gen","Currency",None,130)]
     columns=[dict(label=_(label),fieldname=field,fieldtype=kind,width=width,
                   **({"options":option} if option else {}))
              for label,field,kind,option,width in fields]
@@ -68,11 +67,7 @@ def execute(filters=None):
     for v in vat_rows:
         invoice_company=company_by_invoice.get(v.pv_no)
         cc=(v.cost_center or "").upper()
-        if not v.cost_center or v.cost_center_company != invoice_company or v.is_group:
-            category="input_tax_unclassified"
-        elif invoice_company not in ("Multiplast Corporation","QC Styropackaging Corporation"):
-            category="input_tax_unclassified"
-        elif "-EPS " in cc:
+        if "-EPS " in cc:
             category="input_tax_eps"
         elif "-PSP " in cc or "-PLS " in cc:
             category="input_tax_psp"
@@ -94,7 +89,7 @@ def execute(filters=None):
             existing.add((pv_no,account))
     for row in rows:
         row.tin_number=tins.get(row.supplier) or ""
-        for category in ("input_tax_eps","input_tax_psp","input_tax_gen","input_tax_unclassified"):
+        for category in ("input_tax_eps","input_tax_psp","input_tax_gen"):
             row[category]=allocated.get((row.pv_no,row.expense_account,category))
     rows.sort(key=lambda r:(r.expense_account or "",r.supplier_name or "",str(r.pv_date),r.pv_no))
     return columns, rows

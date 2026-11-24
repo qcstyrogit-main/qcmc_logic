@@ -31,14 +31,14 @@ def render_print(rows, filters):
     '</style></head><body><div class="toolbar"><b>Accounts Payable Voucher - VAT</b><button onclick="window.print()">Print / Save as PDF</button></div>',
     '<main class="paper"><header><div><strong>',esc(filters.get("company")),'</strong><div>GENERAL LEDGER</div><div class="sub">ACCOUNTS PAYABLE VOUCHER - VAT</div></div>',
     '<div class="meta">Generated ',esc(datetime.now().strftime("%m/%d/%Y %I:%M %p")),'<div>Period: ',esc(filters.get("from_date")),' to ',esc(filters.get("to_date")),'</div></div></header>',
-    '<table><colgroup><col style="width:25%"><col style="width:13%"><col style="width:12%"><col style="width:9%"><col style="width:11%"><col style="width:9%"><col style="width:9%"><col style="width:9%"><col style="width:10%"></colgroup>',
-    '<thead><tr><th>Supplier Name</th><th>Tin Number</th><th>PV NO.</th><th>PV Date</th><th class="num">PV Amt</th><th class="num">Input Tax-EPS</th><th class="num">Input Tax-PSP</th><th class="num">Input Tax-GEN</th><th class="num">Unclassified VAT</th></tr></thead><tbody>']
-    totals=[0,0,0,0,0]
+    '<table><colgroup><col style="width:25%"><col style="width:13%"><col style="width:12%"><col style="width:9%"><col style="width:11%"><col style="width:10%"><col style="width:10%"><col style="width:10%"></colgroup>',
+    '<thead><tr><th>Supplier Name</th><th>Tin Number</th><th>PV NO.</th><th>PV Date</th><th class="num">PV Amt</th><th class="num">Input Tax-EPS</th><th class="num">Input Tax-PSP</th><th class="num">Input Tax-GEN</th></tr></thead><tbody>']
+    totals=[0,0,0,0]
     for group,items in groups.items():
-        h+=['<tr class="group"><td colspan="9">',esc(group),'</td></tr>']
-        sums=[0,0,0,0,0]
+        h+=['<tr class="group"><td colspan="8">',esc(group),'</td></tr>']
+        sums=[0,0,0,0]
         for r in items:
-            vals=[r.get(k) for k in ("pv_amount","input_tax_eps","input_tax_psp","input_tax_gen","input_tax_unclassified")]
+            vals=[r.get(k) for k in ("pv_amount","input_tax_eps","input_tax_psp","input_tax_gen")]
             for i,v in enumerate(vals):
                 sums[i]+=flt(v);totals[i]+=flt(v)
             h+=['<tr><td>',esc(r.get("supplier_name")),'</td><td>',esc(r.get("tin_number")),'</td><td>',esc(r.get("pv_no")),'</td><td>',
@@ -52,5 +52,5 @@ def render_print(rows, filters):
     for n in totals:h+=['<td class="num">',money(n),'</td>']
     h+=['</tr></tbody></table>']
     if not rows:h+=['<p>No submitted Purchase Invoices match the selected filters.</p>']
-    h+=['<div class="notice">Input Tax-EPS / PSP / GEN show VAT Details amounts directly (already VAT). Classification follows company and Cost Center. Missing or invalid Cost Centers are shown under Unclassified VAT; missing amounts remain blank, not zero.</div></main></body></html>']
+    h+=['<div class="notice">Input Tax-EPS / PSP / GEN show VAT Details amounts directly (already VAT). Classification follows company and Cost Center. All Cost Centers other than EPS or PSP/PLS are classified as GEN; missing amounts remain blank, not zero.</div></main></body></html>']
     return "".join(h)
