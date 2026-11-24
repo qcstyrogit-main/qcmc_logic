@@ -5,12 +5,20 @@ Uses the existing Stock Entry.pick_list field; does not create or post stock.
 import frappe
 from frappe import _
 from frappe.utils import flt
+from qcmc_logic.warehouse_transfer_allocation import warehouse_has_storage_locations
+
+
+def requires_source_picking(doc):
+    return any(flt(row.qty) > 0 and warehouse_has_storage_locations(row.s_warehouse)
+               for row in (doc.get('items') or []))
 
 
 def validate_manufacturing_transfer_pick_list(doc, method=None):
     """Validate the actual picked source quantities before manufacturing transfer."""
     if (doc.stock_entry_type != "Material Transfer for Manufacture"
             or doc.purpose != "Material Transfer for Manufacture"):
+        return
+    if not doc.pick_list and not requires_source_picking(doc):
         return
     if not doc.pick_list:
         frappe.throw(_("Create and submit a Pick List before transferring manufacturing materials."))
@@ -21,16 +29,17 @@ def validate_manufacturing_transfer_pick_list(doc, method=None):
 
     from collections import defaultdict
     expected, picked = defaultdict(float), defaultdict(float)
+    linked_keys = {(row.item_code, row.warehouse) for row in pick.locations}
     for row in doc.items:
-        if flt(row.qty) > 0:
+        if flt(row.qty) > 0 and (warehouse_has_storage_locations(row.s_warehouse) or (row.item_code, row.s_warehouse) in linked_keys):
             expected[(row.item_code, row.s_warehouse)] += flt(
                 row.transfer_qty or flt(row.qty) * flt(row.conversion_factor or 1))
     if not expected:
         frappe.throw(_("Add material items before transferring."))
     for row in pick.locations:
-        if flt(row.picked_qty) <= 0 or not row.location:
+        if flt(row.picked_qty) <= 0 or (warehouse_has_storage_locations(row.warehouse) and not row.location):
             frappe.throw(_("All Pick List rows must have a source Storage Location and positive picked quantity."))
-        if frappe.db.get_value("Storage Location", row.location, "custom_warehouse") != row.warehouse:
+        if row.location and frappe.db.get_value("Storage Location", row.location, "custom_warehouse") != row.warehouse:
             frappe.throw(_("Pick List location {0} does not belong to warehouse {1}.").format(row.location, row.warehouse))
         picked[(row.item_code, row.warehouse)] += flt(row.picked_qty)
     if set(expected) != set(picked) or any(abs(expected[key] - picked[key]) > 1e-6 for key in expected):
@@ -48,6 +57,8 @@ def get_manufacturing_transfer_action_state(stock_entry):
         return {"managed": True, "stage": "submitted"}
     if not any(flt(row.qty) > 0 for row in entry.items):
         return {"managed": True, "stage": "empty"}
+    if not entry.pick_list and not requires_source_picking(entry):
+        return {"managed": True, "stage": "submit"}
     if not entry.pick_list or not frappe.db.exists("Pick List", {
         "name": entry.pick_list, "docstatus": ["!=", 2]}):
         return {"managed": True, "stage": "pick"}
@@ -83,7 +94,7 @@ def create_pick_list_from_stock_entry(stock_entry):
         # Stale/cancelled reference is replaced only for this draft.
         entry.pick_list = None
 
-    rows = [row for row in entry.items if flt(row.qty) > 0]
+    rows = [row for row in entry.items if flt(row.qty) > 0 and warehouse_has_storage_locations(row.s_warehouse)]
     if not rows:
         frappe.throw(_("Add materials with positive quantities before creating the Pick List."))
     if any(not row.item_code or not row.s_warehouse for row in rows):

@@ -1,0 +1,165 @@
+{
+ "doctype": "DocType",
+ "name": "SO Delivery Schedule",
+ "module": "QCMC Logics",
+ "engine": "InnoDB",
+ "autoname": "hash",
+ "title_field": "sales_order_item",
+ "search_fields": "sales_order,sales_order_item,item_code",
+ "sort_field": "delivery_date",
+ "sort_order": "ASC",
+ "track_changes": 1,
+ "fields": [
+  {
+   "fieldname": "sales_order",
+   "fieldtype": "Link",
+   "label": "Sales Order",
+   "options": "Sales Order",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "sales_order_item",
+   "fieldtype": "Link",
+   "label": "Sales Order Item",
+   "options": "Sales Order Item",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "Item",
+   "reqd": 1,
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "delivery_date",
+   "fieldtype": "Date",
+   "label": "Scheduled Delivery Date",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "planned_qty",
+   "fieldtype": "Float",
+   "label": "Planned Quantity",
+   "reqd": 1,
+   "non_negative": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "original_delivery_date",
+   "fieldtype": "Date",
+   "label": "Original Schedule Date",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "original_qty",
+   "fieldtype": "Float",
+   "label": "Original Schedule Quantity",
+   "read_only": 1,
+   "non_negative": 1
+  },
+  {
+   "fieldname": "quantity_changes",
+   "fieldtype": "Float",
+   "label": "Net Quantity Changes",
+   "read_only": 1
+  },
+  {
+   "fieldname": "current_total",
+   "fieldtype": "Float",
+   "label": "Current Scheduled Total",
+   "read_only": 1,
+   "non_negative": 1
+  },
+  {
+   "fieldname": "original_promise_date",
+   "fieldtype": "Date",
+   "label": "Original Customer Promise Date",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "original_promise_qty",
+   "fieldtype": "Float",
+   "label": "Original Customer Promise Quantity",
+   "read_only": 1,
+   "non_negative": 1
+  },
+  {
+   "fieldname": "history_status",
+   "fieldtype": "Select",
+   "label": "History Reconciliation Status",
+   "options": "Unreconciled\nVerified",
+   "default": "Unreconciled",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "label": "UOM",
+   "options": "UOM",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "conversion_factor",
+   "fieldtype": "Float",
+   "label": "Conversion Factor",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_audit",
+   "fieldtype": "Section Break",
+   "label": "Audit"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Reason / Remarks",
+   "reqd": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "Sales Coordinator",
+   "read": 1
+  },
+  {
+   "role": "Stock Confirm User",
+   "read": 1
+  },
+  {
+   "role": "Invoicing Clerk",
+   "read": 1
+  },
+  {
+   "role": "System Manager",
+   "read": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  }
+ ]
+}

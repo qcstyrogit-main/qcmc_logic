@@ -1,4 +1,32 @@
 frappe.ui.form.on("Delivery Note", {
+	refresh(frm) {
+		if (frm.doc.docstatus !== 1 || !(
+			frappe.user.has_role("Credit and Collection User") ||
+			frappe.user.has_role("Credit and Collection Section Head")
+		)) return;
+
+		const received = Boolean(frm.doc.custom_date_received);
+		frm.add_custom_button(received ? __("Unreceive") : __("Tag as Received"), () => {
+			frappe.call({
+				method: "frappe.client.set_value",
+				args: {
+					doctype: "Delivery Note",
+					name: frm.doc.name,
+					fieldname: "custom_date_received",
+					value: received ? null : frappe.datetime.now_datetime(),
+				},
+				freeze: true,
+				callback(response) {
+					if (response.exc) return;
+					frm.reload_doc();
+					frappe.msgprint(received
+						? __("Delivery Note untagged as received.")
+						: __("Delivery Note tagged as received."));
+				},
+			});
+		}, __("Actions"));
+	},
+
 	validate(frm) {
 		if (frm._qcmc_invoice_lookup_pending) {
 			frappe.throw(__("Wait for the linked invoice check to finish, then save again."));

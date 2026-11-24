@@ -1,0 +1,14 @@
+{
+ "doctype": "Page",
+ "module": "QCMC Logics",
+ "name": "process-card-workbench",
+ "page_name": "process-card-workbench",
+ "roles": [
+  {"role": "Manufacturing User"},
+  {"role": "Manufacturing Manager"},
+  {"role": "System Manager"}
+ ],
+ "standard": "Yes",
+ "system_page": 0,
+ "title": "Process Card Workbench"
+}

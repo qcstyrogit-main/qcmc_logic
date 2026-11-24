@@ -20,7 +20,11 @@ frappe.query_reports["Delivery Schedule Confirmation"] = {
 		}
 		return value;
 	},
-	get_datatable_options(options) { options.checkboxColumn = true; return options; }
+	get_datatable_options(options) {
+		options.checkboxColumn = true;
+		options.columns = (options.columns || []).map(column => ({...column, editable: false, focusable: false}));
+		return options;
+	}
 };
 
 function logistics_selected_rows(report) {
@@ -119,7 +123,7 @@ function proceed_to_dr(report) {
 					{
 						fieldname: "instructions",
 						fieldtype: "HTML",
-						options: `<p class="text-muted">${__("Review Logistics recommendations. Sales-approved quantity/date below is what will be applied to the Delivery Note. Use Remove only when Sales explicitly approves removing the item from this DR.")}</p>`
+						options: `<p class="text-muted">${__("Review persisted Logistics and Sales quantities. Complete quantity or date changes with the Delivery Schedule workbench before proceeding. This action changes workflow state only.")}</p>`
 					},
 					{
 						fieldname: "items",
@@ -142,9 +146,9 @@ function proceed_to_dr(report) {
 							{fieldname: "logistics_remarks", label: __("Remarks"), fieldtype: "Small Text", read_only: 1, in_list_view: 1, columns: 2},
 							{fieldname: "available_reschedule_dates", label: __("Existing Dates"), fieldtype: "Data", read_only: 1},
 							{fieldname: "approved_date_options", fieldtype: "Data", hidden: 1},
-							{fieldname: "approved_qty", label: __("Appr Qty"), fieldtype: "Float", in_list_view: 1, columns: 1},
-							{fieldname: "approved_date", label: __("Appr Date"), fieldtype: "Select", options: "\n" + reschedule_dates.join("\n"), in_list_view: 1, columns: 1},
-							{fieldname: "remove_item", label: __("Remove"), fieldtype: "Check", in_list_view: 1, columns: 1}
+							{fieldname: "approved_qty", label: __("Saved DR Qty"), fieldtype: "Float", read_only: 1, in_list_view: 1, columns: 1},
+							{fieldname: "approved_date", label: __("Saved Schedule Date"), fieldtype: "Data", read_only: 1, in_list_view: 1, columns: 1},
+							{fieldname: "remove_item", label: __("Removed"), fieldtype: "Check", read_only: 1, in_list_view: 1, columns: 1}
 						]
 					}
 				],
@@ -154,7 +158,7 @@ function proceed_to_dr(report) {
 						method: "qcmc_logic.qcmc_logics.report.delivery_schedule_confirmation.delivery_schedule_confirmation.proceed_to_dr_printing_bulk",
 						args: {items: values.items || []},
 						freeze: true,
-						freeze_message: __("Applying Sales-approved DR values..."),
+						freeze_message: __("Validating and progressing Delivery Note workflow..."),
 						callback: r => {
 							if (r.exc) return;
 							frappe.msgprint(r.message);

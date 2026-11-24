@@ -70,7 +70,8 @@ class TestTransferAllocation(unittest.TestCase):
         from qcmc_logic import warehouse_transfer_allocation as wt
         for checked in (0,1):
             doc=self.doc(custom_apply_putaway_rule=checked)
-            wt.prepare_transfer(doc)
+            with patch.object(wt, 'warehouse_has_storage_locations', return_value=True):
+                wt.prepare_transfer(doc)
             self.assertEqual(doc.custom_apply_putaway_rule,checked)
 
 

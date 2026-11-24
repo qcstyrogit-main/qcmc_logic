@@ -12,11 +12,129 @@ frappe.ui.form.on("Job Card", {
 			}, __("Create"));
 		}
 
+		if (!frm.doc.docstatus) {
+			frm.add_custom_button(__("Record Production Output"), () => {
+				qcmc_logic.job_card.record_process_card_output(frm);
+			}, __("Production"));
+			frm.add_custom_button(__("Correct Production Output"), () => {
+				qcmc_logic.job_card.correct_process_card_output(frm);
+			}, __("Production"));
+		}
+
 		frm.add_custom_button(__("Generate QR Code"), () => {
 			qcmc_logic.job_card.open_qr_dialog(frm);
 		}, __("Create"));
 	},
 });
+
+qcmc_logic.job_card.record_process_card_output = function(frm) {
+	const dialog = new frappe.ui.Dialog({
+		title: __("Record Production Output"),
+		fields: [
+			{
+				fieldname: "process_card",
+				fieldtype: "Link",
+				label: __("Process Card"),
+				options: "Process Card",
+				reqd: 1,
+				get_query: () => ({
+					filters: {
+						workstation: frm.doc.workstation,
+						status: ["in", ["Draft", "In Progress"]],
+					},
+				}),
+			},
+			{ fieldname: "from_time", fieldtype: "Datetime", label: __("From Time"), reqd: 1 },
+			{ fieldname: "to_time", fieldtype: "Datetime", label: __("To Time"), reqd: 1 },
+			{ fieldname: "good_qty", fieldtype: "Float", label: __("Good Qty"), default: 0 },
+			{ fieldname: "rejected_qty", fieldtype: "Float", label: __("Rejected Qty"), default: 0 },
+			{ fieldname: "remarks", fieldtype: "Small Text", label: __("Remarks") },
+		],
+		primary_action_label: __("Save Output"),
+		async primary_action(values) {
+			await frappe.call({
+				method: "qcmc_logic.api.job_card_time_log.save_process_card_output",
+				args: { ...values, job_card: frm.doc.name },
+				freeze: true,
+				freeze_message: __("Saving production output..."),
+			});
+			dialog.hide();
+			await frm.reload_doc();
+		},
+	});
+	dialog.show();
+};
+
+qcmc_logic.job_card.correct_process_card_output = async function(frm) {
+	const response = await frappe.call({
+		method: "qcmc_logic.api.job_card_time_log.get_process_card_output_entries",
+		args: { job_card_id: frm.doc.name },
+		freeze: true,
+		freeze_message: __("Loading production output..."),
+	});
+	const entries = response.message || [];
+	if (!entries.length) {
+		frappe.msgprint(__("This Job Card has no operational output entries to correct."));
+		return;
+	}
+
+	const process_cards = [...new Set(entries.map((entry) => entry.process_card))];
+	const entries_for_card = (process_card) => entries.filter((entry) => entry.process_card === process_card);
+	const update_entries = (dialog) => {
+		const matching = entries_for_card(dialog.get_value("process_card"));
+		dialog.fields_dict.time_log_id.df.options = matching.map((entry) => entry.time_log_id).join("\n");
+		dialog.fields_dict.time_log_id.refresh();
+		dialog.set_value("time_log_id", matching[0]?.time_log_id || "");
+	};
+	const dialog = new frappe.ui.Dialog({
+		title: __("Correct Production Output"),
+		fields: [
+			{
+				fieldname: "process_card",
+				fieldtype: "Select",
+				label: __("Process Card"),
+				options: process_cards.join("\n"),
+				default: process_cards[0],
+				change() {
+					update_entries(dialog);
+				},
+			},
+			{
+				fieldname: "time_log_id",
+				fieldtype: "Select",
+				label: __("Production Output Interval"),
+				options: "",
+				reqd: 1,
+				change() {
+					const entry = entries.find((row) => row.time_log_id === dialog.get_value("time_log_id"));
+					if (!entry) return;
+					dialog.set_value("expected_revision", entry.revision);
+					dialog.set_value("good_qty", entry.good_qty);
+					dialog.set_value("rejected_qty", entry.rejected_qty);
+					dialog.set_value("remarks", entry.remarks);
+				},
+			},
+			{ fieldname: "expected_revision", fieldtype: "Int", label: __("Expected Revision"), read_only: 1 },
+			{ fieldname: "good_qty", fieldtype: "Float", label: __("Good Qty"), default: 0 },
+			{ fieldname: "rejected_qty", fieldtype: "Float", label: __("Rejected Qty"), default: 0 },
+			{ fieldname: "remarks", fieldtype: "Small Text", label: __("Remarks") },
+			{ fieldname: "reason", fieldtype: "Small Text", label: __("Correction Reason"), reqd: 1 },
+		],
+		primary_action_label: __("Save Correction"),
+		async primary_action(values) {
+			await frappe.call({
+				method: "qcmc_logic.api.job_card_time_log.correct_process_card_output",
+				args: { ...values, job_card: frm.doc.name },
+				freeze: true,
+				freeze_message: __("Saving production output correction..."),
+			});
+			dialog.hide();
+			await frm.reload_doc();
+		},
+	});
+	dialog.show();
+	update_entries(dialog);
+};
 
 qcmc_logic.job_card.fix_final_product_stock_entry_action = function(frm) {
 	if (

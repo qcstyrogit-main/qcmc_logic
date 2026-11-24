@@ -135,7 +135,7 @@ def get_transfer_action_state(warehouse_transfer):
     """Read-only menu state: draft pick, ready to transfer, then receive."""
     doc = frappe.get_doc("Warehouse Transfer", warehouse_transfer)
     doc.check_permission("read")
-    if doc.transfer_type != "Warehouse Transfer":
+    if doc.transfer_type not in ("Warehouse Transfer", "Intercompany Warehouse Transfer", "Provincial Warehouse Transfer"):
         return {"managed": False}
     if doc.docstatus == 1 and doc.transfer_status == "Transferred":
         return {"managed": True, "stage": "receive"}
@@ -145,6 +145,9 @@ def get_transfer_action_state(warehouse_transfer):
     linked = {row.against_pick_list for row in (doc.get("transfer_items") or [])
               if row.get("against_pick_list")
               and frappe.db.exists("Pick List", {"name": row.against_pick_list, "docstatus": ["!=", 2]})}
+    from qcmc_logic.warehouse_transfer_allocation import warehouse_has_storage_locations
+    if not linked and not warehouse_has_storage_locations(doc.source_warehouse):
+        return {"managed": True, "stage": "transfer"}
     if not linked:
         return {"managed": True, "stage": "pick"}
 
@@ -163,7 +166,7 @@ def can_transfer_with_pick_list(warehouse_transfer):
     doc.check_permission("read")
     if doc.docstatus != 0 or doc.transfer_status != "Draft":
         return False
-    if doc.transfer_type != "Warehouse Transfer":
+    if doc.transfer_type not in ("Warehouse Transfer", "Intercompany Warehouse Transfer", "Provincial Warehouse Transfer"):
         return True
     try:
         require_submitted_pick_list_before_transfer(doc)
@@ -178,10 +181,15 @@ def require_submitted_pick_list_before_transfer(doc, method=None):
     Drafts remain editable so a Pick List can be created and submitted first.
     Enforced server-side for workflow submission and API submission alike.
     """
-    if doc.transfer_type != "Warehouse Transfer":
+    if doc.transfer_type not in ("Warehouse Transfer", "Intercompany Warehouse Transfer", "Provincial Warehouse Transfer"):
         return
 
     issued_rows = [row for row in (doc.get("transfer_items") or []) if flt(row.issued_qty) > 0]
+    from qcmc_logic.warehouse_transfer_allocation import warehouse_has_storage_locations
+    if not warehouse_has_storage_locations(doc.source_warehouse) and not any(
+        row.get('against_pick_list') for row in issued_rows
+    ):
+        return
     missing = [str(row.idx) for row in issued_rows if not row.get("against_pick_list")]
     if not issued_rows or missing:
         detail = " (item rows: {0})".format(", ".join(missing)) if missing else ""

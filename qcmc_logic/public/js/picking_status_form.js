@@ -19,6 +19,7 @@ qcmc_logic.picking_status.refresh = async function(frm) {
         const value = result?.status || "Not Started";
         const palette = {
             "Not Started": "grey",
+            "Not Required": "grey",
             "Pending Picking": "orange",
             "Picking Completed": "green",
             "Submitted": "blue",

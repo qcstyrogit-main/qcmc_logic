@@ -32,6 +32,15 @@ def calculate(doc):
         return "Submitted"
     names = _linked_names(doc)
     if not names:
+        from qcmc_logic.warehouse_transfer_allocation import warehouse_has_storage_locations
+        rows = [row for row in doc.items if flt(row.qty) > 0]
+        if doc.doctype == "Delivery Note":
+            rows = [row for row in rows if frappe.get_cached_value("Item", row.item_code, "is_stock_item")]
+        field = "warehouse" if doc.doctype == "Delivery Note" else "s_warehouse"
+        if rows and all(row.get(field) for row in rows) and not any(
+            warehouse_has_storage_locations(row.get(field)) for row in rows
+        ):
+            return "Not Required"
         return "Not Started"
     active = frappe.get_all("Pick List", filters={
         "name": ["in", sorted(names)], "docstatus": ["!=", 2],
@@ -97,7 +106,7 @@ def ensure_fields():
     from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
     spec = {
         "fieldname": FIELD, "label": "Picking Status", "fieldtype": "Select",
-        "options": "\nNot Started\nPending Picking\nPicking Completed\nSubmitted\nCancelled",
+        "options": "\nNot Required\nNot Started\nPending Picking\nPicking Completed\nSubmitted\nCancelled",
         "read_only": 1, "in_list_view": 1, "no_copy": 1,
         "allow_on_submit": 1, "insert_after": "docstatus",
         "description": "Read-only picking progress, independent of document workflow status.",

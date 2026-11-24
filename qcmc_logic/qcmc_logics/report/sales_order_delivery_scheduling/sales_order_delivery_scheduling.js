@@ -23,7 +23,19 @@ frappe.query_reports["Sales Order Delivery Scheduling"] = {
 		}
 		return value;
 	},
-	get_datatable_options(options) { options.checkboxColumn = true; return options; }
+	get_datatable_options(options) {
+		options.checkboxColumn = true;
+		// Reports are display-only. DataTable otherwise opens an inline editor on
+		// double-click and on keyboard input, even when no save path exists.
+		// Disable editing and focus for every data column while retaining the
+		// report's checkbox column, sorting, filtering, and link formatters.
+		options.columns = (options.columns || []).map(column => ({
+			...column,
+			editable: false,
+			focusable: false
+		}));
+		return options;
+	}
 };
 
 function selected_rows(report) {

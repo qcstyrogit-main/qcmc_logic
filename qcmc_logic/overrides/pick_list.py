@@ -261,7 +261,7 @@ def get_linked_warehouse_transfers(pick_list):
 
 @frappe.whitelist(methods=["POST"])
 def create_pick_list_from_warehouse_transfer(warehouse_transfer):
-	"""Create and link a draft Pick List to a draft same-company Warehouse Transfer.
+	"""Create and link a draft Pick List to a draft Warehouse Transfer.
 
 	One source Pick List Item is retained for each transfer item to keep the
 	existing pick_list_item foreign key accurate. Locations can be reviewed
@@ -272,13 +272,23 @@ def create_pick_list_from_warehouse_transfer(warehouse_transfer):
 	frappe.has_permission("Pick List", "create", throw=True)
 	if transfer.docstatus != 0 or transfer.transfer_status != "Draft":
 		frappe.throw(_("Only draft Warehouse Transfers can create a Pick List."))
-	if transfer.transfer_type != "Warehouse Transfer":
-		frappe.throw(_("This action currently supports Warehouse Transfer only."))
+	if transfer.transfer_type not in ("Warehouse Transfer", "Intercompany Warehouse Transfer", "Provincial Warehouse Transfer"):
+		frappe.throw(_("Unsupported Warehouse Transfer type."))
 	if not transfer.source_warehouse or not transfer.target_warehouse:
 		frappe.throw(_("Source and Target Warehouses are required."))
 	company = frappe.db.get_value("Warehouse", transfer.source_warehouse, "company")
-	if not company or company != frappe.db.get_value("Warehouse", transfer.target_warehouse, "company"):
+	target_company = frappe.db.get_value("Warehouse", transfer.target_warehouse, "company")
+	if not company or not target_company:
+		frappe.throw(_("Both warehouses must have a company."))
+	if transfer.transfer_type == "Warehouse Transfer" and company != target_company:
 		frappe.throw(_("Both warehouses must belong to the same company."))
+	if transfer.transfer_type == "Intercompany Warehouse Transfer" and company == target_company:
+		frappe.throw(_("Intercompany transfers require different companies."))
+	from qcmc_logic.warehouse_transfer_allocation import warehouse_has_storage_locations
+	if not warehouse_has_storage_locations(transfer.source_warehouse) and not any(
+		row.get("against_pick_list") for row in transfer.get("transfer_items") or []
+	):
+		frappe.throw(_("A Pick List is not required for this source warehouse."))
 
 	items = [item for item in transfer.get("transfer_items") or [] if flt(item.issued_qty) > 0]
 	if not items:

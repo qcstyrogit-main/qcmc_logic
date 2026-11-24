@@ -1,5 +1,6 @@
 {
   "doctype": "Report",
+  "disabled": 1,
   "name": "Delivery Schedule Confirmation",
   "report_name": "Delivery Schedule Confirmation",
   "ref_doctype": "Delivery Note",

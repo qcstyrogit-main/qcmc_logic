@@ -24,7 +24,7 @@
     settings.formatters.custom_picking_status = function(value) {
         if (!value) return '<span class="text-muted">—</span>';
         const color = {
-            "Not Started": "grey", "Pending Picking": "orange",
+            "Not Started": "grey", "Not Required": "grey", "Pending Picking": "orange",
             "Picking Completed": "green", "Submitted": "blue",
             "Cancelled": "red",
         }[value] || "grey";

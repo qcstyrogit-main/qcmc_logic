@@ -1,0 +1,282 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="qr-print-page">
+	<div class="print-toolbar">
+		<div>
+			<h1>{{ _("Material Scanner QR Labels") }}</h1>
+			<p>
+				{{ labels | length }} {{ _("item(s)") }}
+			</p>
+		</div>
+		<div class="print-actions">
+			<label for="qr-size">{{ _("QR Size") }}</label>
+			<select id="qr-size" class="qr-size-select">
+				<option value="small">{{ _("Small") }}</option>
+				<option value="medium" selected>{{ _("Medium") }}</option>
+				<option value="large">{{ _("Large") }}</option>
+			</select>
+			<button type="button" class="btn-print" onclick="printQRLabels()">
+				{{ _("Print Selected") }}
+			</button>
+		</div>
+	</div>
+
+	{% if labels %}
+	<div class="qr-label-grid size-medium">
+		{% for label in labels %}
+		<article class="qr-label">
+			<img class="qr-code" src="{{ label.qr | e }}" alt="QR code for {{ label.item_code | e }}">
+			<div class="label-details">
+				<div class="item-code">{{ label.item_code | e }}</div>
+				<div class="pack-quantity">{{ label.quantity | e }} {{ label.uom | e }}</div>
+			</div>
+		</article>
+		{% endfor %}
+	</div>
+	{% else %}
+	<div class="empty-state">
+		<h2>{{ _("No Items selected") }}</h2>
+		<p>{{ _("Select Items from the Item list to print their QR labels.") }}</p>
+	</div>
+	{% endif %}
+</div>
+
+<style>
+	.pack-quantity { font-size: 10px; line-height: 1.2; text-align: center; }
+	/* Some website themes lock the web-page shell to the viewport and hide its
+	   overflow. This page can contain an arbitrary number of labels, so let the
+	   document grow and use the browser's vertical scrollbar. */
+	@media screen {
+		html, body { height: auto !important; min-height: 100%; overflow-y: auto !important; }
+		.page-container, .page-content-wrapper, .web-page-content {
+			height: auto !important;
+			max-height: none !important;
+			overflow: visible !important;
+		}
+	}
+
+	.qr-print-page { max-width: 1100px; margin: 0 auto; padding: 24px 0 48px; color: #111827; }
+	.print-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+	.print-toolbar h1 { margin: 0 0 4px; font-size: 28px; font-weight: 700; }
+	.print-toolbar p { margin: 0; color: #64748b; }
+	.print-actions { display: flex; align-items: center; gap: 10px; }
+	.print-actions label { margin: 0; font-weight: 600; }
+	.qr-size-select { min-width: 110px; height: 38px; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; }
+	.btn-print { border: 0; border-radius: 8px; padding: 10px 18px; color: #fff; background: #2563eb; font-weight: 600; cursor: pointer; }
+	.qr-label-grid { display: block; }
+	.qr-label-sheet { display: grid; gap: 6px; margin-bottom: 6px; }
+	.size-small .qr-label-sheet { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+	.size-medium .qr-label-sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+	.size-large .qr-label-sheet { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+	.qr-label { box-sizing: border-box; display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center; align-items: center; min-height: 250px; padding: 4px; border: 0; border-radius: 0; background: transparent; break-inside: avoid; page-break-inside: avoid; }
+	.qr-code { display: block; width: 230px; height: 230px; min-width: 0; min-height: 0; max-width: 100%; max-height: 100%; object-fit: contain; image-rendering: pixelated; }
+	.label-details { width: 100%; min-width: 0; max-width: 100%; padding: 0; margin-top: 8px; justify-self: center; text-align: center; }
+	.item-code { width: 100%; max-width: 100%; white-space: nowrap; overflow: hidden; overflow-wrap: normal; font-size: 24px; line-height: 1.1; font-weight: 800; text-align: center; }
+	.size-small .qr-label { min-height: 180px; }
+	.size-small .qr-code { width: 130px; height: 130px; }
+	.size-small .item-code { font-size: 20px; }
+	.size-medium .qr-label { min-height: 240px; }
+	.size-medium .qr-code { width: 190px; height: 190px; }
+	.size-medium .item-code { font-size: 26px; }
+	.size-large .qr-label { min-height: 300px; }
+	.size-large .qr-code { width: 250px; height: 250px; }
+	.size-large .item-code { font-size: 32px; }
+	.empty-state { padding: 64px 24px; border: 1px dashed #cbd5e1; border-radius: 12px; text-align: center; }
+	.empty-state h2 { margin: 0 0 8px; }
+	.empty-state p { margin: 0; color: #64748b; }
+
+	@media (max-width: 767px) {
+		.qr-print-page { padding: 16px; }
+		.print-toolbar { align-items: flex-start; flex-direction: column; }
+		.print-actions { flex-wrap: wrap; }
+		.qr-label-sheet { grid-template-columns: 1fr; }
+	}
+
+	@page { size: A4 portrait; margin: 4mm; }
+	@media print {
+		header, footer, .navbar, .web-footer, .print-toolbar { display: none !important; }
+		html, body {
+			width: 202mm !important;
+			max-width: 202mm !important;
+			height: auto !important;
+			min-height: 0 !important;
+			overflow: visible !important;
+		}
+		body, main, .container, .page-container, .page-content-wrapper, .page_content, .web-page-content {
+			position: static !important;
+			display: block !important;
+			box-sizing: border-box !important;
+			width: 202mm !important;
+			max-width: 202mm !important;
+			height: auto !important;
+			min-height: 0 !important;
+			max-height: none !important;
+			margin: 0 !important;
+			padding: 0 !important;
+			background: #fff !important;
+			overflow: visible !important;
+			transform: none !important;
+		}
+		.page-breadcrumbs, .page-header-wrapper, .page-footer { display: none !important; }
+		.qr-print-page { position: static !important; width: 202mm; max-width: 202mm; margin: 0; padding: 0; transform: none !important; }
+		.qr-label-grid { display: block; width: 202mm; }
+		.qr-label-sheet {
+			display: grid;
+			align-content: start;
+			gap: 1mm;
+			box-sizing: border-box;
+			width: 202mm;
+			height: 289mm;
+			margin: 0;
+			position: relative;
+			overflow: visible;
+			break-after: page;
+			page-break-after: always;
+		}
+		.qr-label-sheet:last-child { break-after: auto; page-break-after: auto; }
+		.qr-label { position: static; display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center; align-items: center; width: 100%; min-height: 0; padding: 0; border: 0; border-radius: 0; background: transparent; overflow: hidden; text-align: center; }
+		.size-small .qr-label, .size-medium .qr-label, .size-large .qr-label { min-height: 0; }
+		.qr-label .qr-code { position: static; display: block; width: auto; height: 100%; min-height: 0; max-width: 100% !important; max-height: 100% !important; margin: 0 auto; object-fit: contain; transform: none; }
+		.label-details { position: static; padding: 0; margin: .5mm 0 0; text-align: center; }
+		.size-small .qr-label-sheet { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(9, 31.222mm); }
+		.size-small .item-code { font-size: 13pt; }
+		.size-medium .qr-label-sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(8, 35.25mm); }
+		.size-medium .item-code { font-size: 18pt; }
+		.size-large .qr-label-sheet { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, 71.5mm); }
+		.size-large .item-code { font-size: 24pt; }
+	}
+</style>
+
+<script>
+	function fitItemCodes(root) {
+		const view = root.defaultView || window;
+		root.querySelectorAll(".item-code").forEach((code) => {
+			const label = code.closest(".qr-label");
+			const details = code.closest(".label-details");
+			const qr = label.querySelector(".qr-code");
+			details.style.removeProperty("width");
+			const qrWidth = qr.getBoundingClientRect().width;
+			const labelWidth = label.getBoundingClientRect().width;
+			const alignedWidth = Math.floor(Math.min(qrWidth, labelWidth));
+			if (alignedWidth > 0) details.style.width = `${alignedWidth}px`;
+			code.style.removeProperty("font-size");
+			let fontSize = parseFloat(view.getComputedStyle(code).fontSize) || 16;
+			const minimumFontSize = 8;
+			while (code.scrollWidth > code.clientWidth && fontSize > minimumFontSize) {
+				fontSize = Math.max(minimumFontSize, fontSize - 0.5);
+				code.style.fontSize = `${fontSize}px`;
+			}
+		});
+	}
+
+	function printQRLabels() {
+		const grid = document.querySelector(".qr-label-grid");
+		const selector = document.querySelector("#qr-size");
+		if (!grid || !selector) return;
+
+		const size = selector.value;
+		const printWindow = window.open("", "_blank");
+		if (!printWindow) {
+			window.alert("Please allow pop-ups to print QR labels.");
+			return;
+		}
+
+		printWindow.document.open();
+		printWindow.document.write(`<!doctype html>
+		<html>
+		<head>
+			<meta charset="utf-8">
+			<title>Material Scanner QR Labels</title>
+			<style>
+				@page { size: A4 portrait; margin: 4mm; }
+				* { box-sizing: border-box; }
+                .pack-quantity { font-size: 8pt; line-height: 1.2; text-align: center; }
+				html, body { width: 202mm; margin: 0; padding: 0; background: #fff; font-family: Arial, sans-serif; }
+				.standalone-sheet-grid { display: block; width: 202mm; margin: 0; padding: 0; }
+				.qr-label-sheet {
+					display: grid;
+					width: 202mm;
+					height: 289mm;
+					margin: 0;
+					gap: 1mm;
+					break-after: page;
+					page-break-after: always;
+					overflow: hidden;
+				}
+				.qr-label-sheet:last-child { break-after: auto; page-break-after: auto; }
+				.qr-label {
+					display: grid;
+					grid-template-rows: minmax(0, 1fr) auto;
+					justify-items: center;
+					align-items: center;
+					min-width: 0;
+					min-height: 0;
+					overflow: hidden;
+					text-align: center;
+					break-inside: avoid;
+				}
+				.qr-code { display: block; width: auto; height: 100%; min-height: 0; max-width: 100%; max-height: 100%; margin: 0 auto; object-fit: contain; }
+				.label-details { width: 100%; min-width: 0; max-width: 100%; margin: .5mm 0 0; padding: 0; justify-self: center; text-align: center; }
+				.item-code { width: 100%; max-width: 100%; white-space: nowrap; overflow: hidden; overflow-wrap: normal; line-height: 1; font-weight: 800; text-align: center; }
+				.size-small .qr-label-sheet { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(9, 31.222mm); }
+				.size-small .item-code { font-size: 10pt; }
+				.size-medium .qr-label-sheet { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(8, 35.25mm); }
+				.size-medium .item-code { font-size: 12pt; }
+				.size-large .qr-label-sheet { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, 71.5mm); }
+				.size-large .item-code { font-size: 18pt; }
+			</style>
+		</head>
+		<body>
+			<main class="standalone-sheet-grid size-${size}">${grid.innerHTML}</main>
+		</body>
+		</html>`);
+		printWindow.document.close();
+
+		const images = Array.from(printWindow.document.images);
+		Promise.all(images.map((img) => img.complete
+			? Promise.resolve()
+			: new Promise((resolve) => {
+				img.onload = resolve;
+				img.onerror = resolve;
+			})
+		)).then(() => {
+			printWindow.requestAnimationFrame(() => {
+				fitItemCodes(printWindow.document);
+				printWindow.addEventListener("afterprint", () => printWindow.close(), { once: true });
+				printWindow.focus();
+				printWindow.print();
+			});
+		});
+	}
+
+	document.addEventListener("DOMContentLoaded", () => {
+		const grid = document.querySelector(".qr-label-grid");
+		const selector = document.querySelector("#qr-size");
+		if (!grid || !selector) return;
+
+		const labels = Array.from(grid.querySelectorAll(".qr-label"));
+		const perSheet = { small: 54, medium: 40, large: 12 };
+		const savedSize = localStorage.getItem("material-scanner-qr-size");
+		if (perSheet[savedSize]) selector.value = savedSize;
+
+		function rebuildSheets(size) {
+			grid.className = `qr-label-grid size-${size}`;
+			grid.innerHTML = "";
+			labels.forEach((label, index) => {
+				if (index % perSheet[size] === 0) {
+					grid.appendChild(document.createElement("section")).className = "qr-label-sheet";
+				}
+				grid.lastElementChild.appendChild(label);
+			});
+			localStorage.setItem("material-scanner-qr-size", size);
+			window.requestAnimationFrame(() => fitItemCodes(grid));
+		}
+
+		selector.addEventListener("change", () => rebuildSheets(selector.value));
+		rebuildSheets(selector.value);
+	});
+</script>
+{% endblock %}
