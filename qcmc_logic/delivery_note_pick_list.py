@@ -4,6 +4,7 @@ from collections import defaultdict
 import frappe
 from frappe import _
 from frappe.utils import flt
+from qcmc_logic.warehouse_transfer_allocation import warehouse_has_storage_locations
 
 
 def validate_delivery_pick_list_ready(doc):
@@ -13,6 +14,7 @@ def validate_delivery_pick_list_ready(doc):
     stock_rows = [
         row for row in (doc.get("items") or [])
         if flt(row.qty) > 0 and frappe.get_cached_value("Item", row.item_code, "is_stock_item")
+        and (row.get("against_pick_list") or warehouse_has_storage_locations(row.warehouse))
     ]
     if not stock_rows:
         return
@@ -53,6 +55,8 @@ def get_delivery_note_action_state(delivery_note):
         return {"managed": True, "stage": "empty"}
     linked = {row.against_pick_list for row in positive if row.get("against_pick_list")
               and _active_link(row.against_pick_list)}
+    if not linked and not any(warehouse_has_storage_locations(row.warehouse) for row in positive):
+        return {"managed": True, "stage": "confirm"}
     if not linked:
         return {"managed": True, "stage": "pick"}
     try:
@@ -127,7 +131,8 @@ def create_pick_list_from_delivery_note(delivery_note):
     frappe.has_permission("Pick List", "create", throw=True)
     if dn.docstatus != 0 or dn.is_return:
         frappe.throw(_("Only non-return draft Delivery Notes can create Pick Lists."))
-    lines = [row for row in dn.items if flt(row.qty) > 0]
+    lines = [row for row in dn.items if flt(row.qty) > 0 and warehouse_has_storage_locations(row.warehouse)
+             and frappe.get_cached_value('Item', row.item_code, 'is_stock_item')]
     if not lines:
         frappe.throw(_("Add positive-quantity items before creating a Pick List."))
     if any(not row.warehouse for row in lines):

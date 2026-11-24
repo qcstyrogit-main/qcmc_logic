@@ -231,6 +231,9 @@ def list_available_documents(kind, search="", mobile_token=None):
                 # Do not list inaccessible documents based solely on DocType access.
                 if not warehouses:
                     continue
+                from qcmc_logic.warehouse_transfer_allocation import warehouse_has_storage_locations
+                if not names and not any(warehouse_has_storage_locations(w) for w in warehouses):
+                    continue
                 ensure_scanner_warehouse_access(user, sorted(warehouses), require_transact=False)
                 pick = None
                 state = "setup_required"

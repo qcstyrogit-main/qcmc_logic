@@ -14,6 +14,12 @@ def get_item(item_code):
     return frappe.get_cached_doc('Item', item_code)
 
 
+def warehouse_has_storage_locations(warehouse):
+    return bool(warehouse and frappe.db.exists('Storage Location', {
+        'custom_warehouse': warehouse, 'disabled': 0, 'is_group': 0,
+    }))
+
+
 def uses_allocation(doc):
     return bool(doc.get('custom_storage_allocation_enabled'))
 
@@ -21,7 +27,9 @@ def uses_allocation(doc):
 def prepare_transfer(doc):
     # New transfers opt into the revised flow, but the checkbox stays manual.
     if doc.docstatus == 0:
-        doc.custom_storage_allocation_enabled = 1
+        doc.custom_storage_allocation_enabled = int(warehouse_has_storage_locations(doc.target_warehouse))
+        if not doc.custom_storage_allocation_enabled:
+            doc.custom_apply_putaway_rule = 0
     elif doc.docstatus == 1:
         previous = doc.get_doc_before_save()
         enabled = previous.get('custom_storage_allocation_enabled') if previous else frappe.db.get_value(
@@ -71,6 +79,8 @@ def linked_allocations(name):
 
 def sync_allocations(doc, require_complete=False):
     if not uses_allocation(doc):
+        if doc.docstatus == 0 or getattr(doc, '_action', None) == 'submit':
+            delete_draft_allocations(doc)
         return []
     existing = linked_allocations(doc.name)
     lock_warehouses([doc.target_warehouse] + [a.warehouse for a in existing])

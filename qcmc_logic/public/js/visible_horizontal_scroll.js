@@ -40,7 +40,7 @@
         if (!bar) return;
         // Frappe's pencil editor shares this bar's stacking layer. Suspend
         // background scrolling until its grid-row-open class is removed.
-        if (document.querySelector(".grid-row-open")) {
+        if (document.querySelector(".grid-row-open, .awesomplete > ul:not([hidden]):not(:empty), body > ul.qcmc-floating-link-list:not([hidden])")) {
             bar.hidden = true;
             active = null;
             return;

@@ -30,7 +30,7 @@ frappe.ui.form.on("Warehouse Transfer", {
 
     async before_workflow_action(frm) {
         if (frm.selected_workflow_action !== "Transfer" ||
-            frm.doc.transfer_type !== "Warehouse Transfer") return;
+            !["Warehouse Transfer", "Intercompany Warehouse Transfer", "Provincial Warehouse Transfer"].includes(frm.doc.transfer_type)) return;
         if (frm.is_dirty() || frm.is_new()) {
             frappe.throw(__("Save the Warehouse Transfer before transferring."));
         }
@@ -72,7 +72,7 @@ frappe.ui.form.on("Warehouse Transfer", {
 // Keep the native Frappe Actions menu aligned with the actual stock workflow.
 // Frappe renders items as <li><a class="dropdown-item"><span>Label</span></a></li>.
 qcmc_logic.warehouse_transfer.apply_transfer_visibility = function(frm) {
-    if (frm.doc.transfer_type !== "Warehouse Transfer") return;
+    if (!["Warehouse Transfer", "Intercompany Warehouse Transfer", "Provincial Warehouse Transfer"].includes(frm.doc.transfer_type)) return;
     const state = frm.__qcmc_transfer_stage || "loading";
     const $actions = frm.page?.actions;
     if (!$actions?.length) return;
@@ -101,7 +101,7 @@ qcmc_logic.warehouse_transfer.watch_transfer_action = function(frm) {
 };
 
 qcmc_logic.warehouse_transfer.refresh_transfer_action = async function(frm) {
-    if (frm.doc.transfer_type !== "Warehouse Transfer") return;
+    if (!["Warehouse Transfer", "Intercompany Warehouse Transfer", "Provincial Warehouse Transfer"].includes(frm.doc.transfer_type)) return;
     const token = (frm.__qcmc_transfer_check_token || 0) + 1;
     frm.__qcmc_transfer_check_token = token;
     frm.__qcmc_transfer_stage = "loading";
@@ -205,7 +205,7 @@ qcmc_logic.warehouse_transfer.watch_pick_list_action = function(frm) {
 
 qcmc_logic.warehouse_transfer.add_pick_list_action = function(frm) {
     if (frm.is_new() || frm.doc.docstatus !== 0 || frm.doc.transfer_status !== "Draft") return;
-    if (!["Warehouse Transfer"].includes(frm.doc.transfer_type)) return;
+    if (!["Warehouse Transfer", "Intercompany Warehouse Transfer", "Provincial Warehouse Transfer"].includes(frm.doc.transfer_type)) return;
     if (!(frm.doc.transfer_items || []).some(row => flt(row.issued_qty) > 0)) return;
     // Add to the built-in black Actions menu, not a new custom button group.
     // This avoids a second grey "Actions" dropdown.

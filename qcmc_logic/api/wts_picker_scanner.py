@@ -17,7 +17,7 @@ from qcmc_logic.api.warehouse_workflow import (
 from qcmc_logic.api.warehouse_transfer_scanner import _clean_wts, _wts_fingerprint
 from qcmc_logic.utils import ensure_scanner_warehouse_access
 from qcmc_logic.warehouse_capacity import lock_warehouses
-from qcmc_logic.warehouse_transfer_allocation import linked_allocations, stock_quantity, uses_allocation
+from qcmc_logic.warehouse_transfer_allocation import linked_allocations, stock_quantity, uses_allocation, warehouse_has_storage_locations
 from qcmc_logic.api.warehouse_allocation import _validate_location, _live_location_capacity
 from qcmc_logic import wrr_allocation as wrr
 
@@ -32,6 +32,13 @@ def _number(value):
     if not result.is_finite() or result <= 0:
         raise WorkflowError("INVALID_QUANTITY", "Quantity must be greater than zero.")
     return result
+
+
+def allocation_not_required(doc):
+    # Never bypass an existing allocation or a configured destination.
+    return (not uses_allocation(doc)
+            and not warehouse_has_storage_locations(doc.target_warehouse)
+            and not any(a.locations or a.docstatus == 1 for a in linked_allocations(doc.name)))
 
 
 def _load_handover(handover_qr, user, mutation=False, allow_completed=False):
@@ -60,7 +67,7 @@ def _load_handover(handover_qr, user, mutation=False, allow_completed=False):
     transfer = frappe.get_doc("Warehouse Transfer", name)
     if transfer.docstatus != 1 or (transfer.transfer_status != "Transferred" and not (allow_completed and handover.status == "COMPLETED" and transfer.transfer_status == "Received")):
         raise WorkflowError("WTS_NOT_OPEN", "WTS must be submitted and Transferred, not Received.")
-    if not uses_allocation(transfer) or not transfer.get("custom_apply_putaway_rule"):
+    if not allocation_not_required(transfer) and (not uses_allocation(transfer) or not transfer.get("custom_apply_putaway_rule")):
         raise WorkflowError("ALLOCATION_NOT_ENABLED", "Enable WTS Storage Allocation and Apply Putaway Rule before scanning.")
     if handover.status != "COMPLETED" and _wts_fingerprint(transfer) != handover.source_fingerprint:
         raise WorkflowError("SOURCE_DOCUMENT_CHANGED", "WTS changed after Checker verification. Review it in ERPNext.")
@@ -104,13 +111,14 @@ def _allocation_result(transfer):
             "name": a.name, "status": a.status, "warehouse": a.warehouse,
             "rows": [_row_response(a, r) for r in a.locations],
         } for a in allocations],
-        "allocation_ready": bool([a for a in allocations if a.status != "Cancelled"]) and all(
+        "allocation_required": not allocation_not_required(transfer),
+        "allocation_ready": allocation_not_required(transfer) or (bool([a for a in allocations if a.status != "Cancelled"]) and all(
             a.locations and all(
                 r.status == "VERIFIED" and r.actual_location
                 and abs(Decimal(str(r.actual_qty or 0)) - Decimal(str(r.suggested_qty or 0))) <= EPSILON
                 for r in a.locations
             ) for a in allocations if a.status != "Cancelled"
-        ),
+        )),
     }
 
 
@@ -120,6 +128,8 @@ def validate_scanner_allocations(doc):
     Ensure all authoritative stock rows and physically verified allocation
     quantities agree; no allocations may disappear or be regenerated.
     """
+    if allocation_not_required(doc):
+        return []
     if not uses_allocation(doc):
         raise WorkflowError("ALLOCATION_NOT_ENABLED", "WTS has no storage allocation.")
     expected = {}
@@ -282,7 +292,7 @@ def complete_allocation(handover_qr, transaction_id, mobile_token=None):
         doc.transfer_status = "Received"
         # Only this explicit scanner-confirmed save bypasses the WTS hook that
         # would otherwise reset physically checked rows from Putaway suggestions.
-        doc.flags.qcmc_wts_scanner_receipt = True
+        doc.flags.qcmc_wts_scanner_receipt = not allocation_not_required(doc)
         doc.save(ignore_permissions=True)
         handover.status = "COMPLETED"
         handover.picker = picker.name if picker.name != "Administrator" else ""
