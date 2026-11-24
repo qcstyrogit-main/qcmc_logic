@@ -578,7 +578,7 @@ after_migrate = [
 # app_include_css = "/assets/qcmc_logic/css/qcmc_logic.css"
 app_include_js = [
     "/assets/qcmc_logic/js/process_card_workbench_cache.js?v=20261110-2",
-    "/assets/qcmc_logic/js/dynamic_reorder.js?v=20261124-4",
+    "/assets/qcmc_logic/js/dynamic_reorder.js?v=20261124-6",
     "/assets/qcmc_logic/js/purchase_request_status.js",
     "/assets/qcmc_logic/js/hide_print_selection.js",
     "/assets/qcmc_logic/js/warehouse_access.js",
