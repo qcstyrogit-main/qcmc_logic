@@ -114,6 +114,40 @@ def _validate_job_card_participation(doc):
 			frappe.throw(_("Participation cannot be removed or changed after the Process Card is submitted for approval."))
 
 	_validate_participation_overlaps(doc, cards)
+	_validate_cross_card_participation(doc, cards, previous_rows)
+
+
+def _validate_cross_card_participation(doc, cards, previous_rows):
+	"""Serialize changed employee intervals across Process Cards, including hidden records."""
+	changed = [row for row in (doc.get("time_logs") or [])
+		if row.get("qcmc_process_card") and row.get("employee")
+		and int(row.get("qcmc_output_revision") or 0) <= 0
+		and (row.name not in previous_rows or _participation_state(row) != _participation_state(previous_rows[row.name]))]
+	for employee in sorted({row.employee for row in changed}):
+		frappe.db.sql("select name from " + chr(96) + "tabEmployee" + chr(96) + " where name=%s for update", employee)
+	for row in changed:
+		card = cards[row.qcmc_process_card]
+		start = get_datetime(row.from_time)
+		end = get_datetime(row.to_time or card.shift_end)
+		for other in (doc.get("time_logs") or []):
+			if other is row or other.get("employee") != row.employee or not other.get("qcmc_process_card") or other.qcmc_process_card == card.name or int(other.get("qcmc_output_revision") or 0) > 0:
+				continue
+			other_card = cards[other.qcmc_process_card]
+			if start < get_datetime(other.to_time or other_card.shift_end) and get_datetime(other.from_time) < end:
+				frappe.throw(_("Employee has overlapping participation on another Process Card."))
+		conflicts = frappe.db.sql(f"""
+			select t.name from {chr(96)}tabJob Card Time Log{chr(96)} t
+			join {chr(96)}tabProcess Card{chr(96)} p on p.name=t.qcmc_process_card
+			join {chr(96)}tabJob Card{chr(96)} j on j.name=t.parent
+			where t.parenttype='Job Card' and t.parentfield='time_logs'
+			and t.employee=%s and t.parent != %s and p.name != %s
+			and p.status != 'Cancelled' and j.docstatus != 2
+			and coalesce(t.qcmc_output_revision,0) <= 0
+			and t.from_time < %s and coalesce(t.to_time,p.shift_end) > %s
+			limit 1 for update
+		""", (row.employee, doc.name or "", card.name, end, start))
+		if conflicts:
+			frappe.throw(_("Employee has overlapping participation on another Process Card."))
 
 
 def _validate_participation_overlaps(doc, cards):
@@ -174,19 +208,16 @@ def validate_downtime_entry(doc, method=None):
 	_validate_employee(doc.operator, card.company)
 
 	frappe.db.sql("select name from `tabWorkstation` where name=%s for update", doc.workstation)
-	overlaps = frappe.get_list(
-		"Downtime Entry",
-		filters={
-			"qcmc_process_card": card.name,
-			"name": ["!=", doc.name or ""],
-			"from_time": ["<", end],
-			"to_time": [">", start],
-		},
-		fields=["name"],
-		limit_page_length=1,
-	)
+	# Scope and transaction authorization were checked above. Integrity checks
+	# must include records hidden by document-level permissions.
+	overlaps = frappe.db.sql("""
+		select name from `tabDowntime Entry`
+		where qcmc_process_card=%s and name != %s
+		and from_time < %s and to_time > %s
+		limit 1 for update
+	""", (card.name, doc.name or "", end, start), as_dict=True)
 	if overlaps:
-		frappe.throw(_("Downtime interval overlaps Downtime Entry {0}.").format(overlaps[0].name))
+		frappe.throw(_("Downtime interval overlaps an existing entry for this Process Card."))
 	doc.downtime = round(time_diff_in_seconds(end, start) / 60, 2)
 
 
@@ -231,31 +262,11 @@ def validate_quality_inspection(doc, method=None):
 	if doc.inspection_type != "In Process":
 		frappe.throw(_("Process Card Quality Inspections must use Inspection Type In Process."))
 
-	output = None
-	if doc.get("qcmc_output_time_log"):
-		output = next(
-			(
-				row for row in (job.get("time_logs") or [])
-				if row.name == doc.qcmc_output_time_log
-				and row.get("qcmc_process_card") == card.name
-				and int(row.get("qcmc_output_revision") or 0) > 0
-			),
-			None,
-		)
-		if not output:
-			frappe.throw(_("Production Output Interval must belong to this Job Card and Process Card."))
-		duplicates = frappe.get_list(
-			"Quality Inspection",
-			filters={
-				"qcmc_output_time_log": doc.qcmc_output_time_log,
-				"docstatus": ["!=", 2],
-				"name": ["!=", doc.name or ""],
-			},
-			fields=["name"],
-			limit_page_length=1,
-		)
-		if duplicates:
-			frappe.throw(_("Production Output Interval already has Quality Inspection {0}.").format(duplicates[0].name))
+	doc.qcmc_work_order = job.work_order
+	if not doc.get("qcmc_qa_start") or not doc.get("qcmc_qa_end"):
+		frappe.throw(_("Enter QA Start Time and QA End Time."))
+	if get_datetime(doc.qcmc_qa_end) <= get_datetime(doc.qcmc_qa_start):
+		frappe.throw(_("QA End Time must be after QA Start Time."))
 
 	qa_rejected_qty = 0.0
 	for reading in doc.get("readings") or []:
@@ -270,9 +281,3 @@ def validate_quality_inspection(doc, method=None):
 		if reading.status == "Rejected" and not rejected_qty:
 			frappe.throw(_("Row {0}: Record the quantity for this QA rejection.").format(reading.idx))
 		qa_rejected_qty += rejected_qty
-	if qa_rejected_qty:
-		if not output:
-			frappe.throw(_("QA rejection quantities must reference a production output interval."))
-		output_qty = float(output.get("qcmc_good_qty") or 0) + float(output.get("qcmc_rejected_qty") or 0)
-		if qa_rejected_qty > output_qty:
-			frappe.throw(_("QA rejected quantity cannot exceed the linked production output quantity."))

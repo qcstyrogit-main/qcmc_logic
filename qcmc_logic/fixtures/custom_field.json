@@ -47541,16 +47541,6 @@
  },
  {
   "doctype": "Custom Field",
-  "dt": "Quality Inspection",
-  "fieldname": "qcmc_output_time_log",
-  "fieldtype": "Link",
-  "label": "Production Output Interval",
-  "options": "Job Card Time Log",
-  "insert_after": "qcmc_process_card",
-  "name": "Quality Inspection-qcmc_output_time_log"
- },
- {
-  "doctype": "Custom Field",
   "dt": "Quality Inspection Reading",
   "fieldname": "qcmc_rejected_qty",
   "fieldtype": "Float",

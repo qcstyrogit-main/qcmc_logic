@@ -286,6 +286,7 @@ override_doctype_dashboards = {
 }
 
 doctype_js = {
+    "Quality Inspection": "public/js/quality_inspection.js",
     "Purchase Receipt": "public/js/purchase_receipt.js",
     "Purchase Invoice": "public/js/purchase_invoice_vat_details.js",
     "BOM": "public/js/bom.js",
