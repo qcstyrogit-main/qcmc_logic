@@ -69,9 +69,15 @@ class TestAPVVATValidation(TestCase):
     def test_negative_return_allowed(self):
         validate_purchase_invoice(self.make_invoice(amount=-12, is_return=True))
 
-    def test_expense_account_mismatch_rejected(self):
+    def test_different_valid_expense_account_allowed(self):
         invoice = self.make_invoice()
         invoice.custom_vat_details[0].account_name = "Other Expense - Q"
+        validate_purchase_invoice(invoice)
+        self.assertEqual(invoice.custom_vat_details[0].account_name, "Other Expense - Q")
+
+    def test_missing_expense_account_rejected(self):
+        invoice = self.make_invoice()
+        invoice.custom_vat_details[0].account_name = None
         with self.assertRaises(frappe.ValidationError):
             validate_purchase_invoice(invoice)
 

@@ -10,14 +10,13 @@ def validate_purchase_invoice(doc, method=None):
     """Validate only when submitting an invoice with VAT Detail rows."""
     if doc.company not in SUPPORTED_COMPANIES or not doc.get("custom_vat_details"):
         return
-    expense_accounts = {item.expense_account for item in doc.get("items", []) if item.expense_account}
     is_return = bool(doc.get("is_return"))
     for idx, row in enumerate(doc.get("custom_vat_details"), 1):
         account = row.get("account_name")
         center = row.get("cost_center")
         amount = flt(row.get("amount"))
-        if not account or account not in expense_accounts:
-            frappe.throw(_("VAT Details row {0}: Expense Account must match a Purchase Invoice Item Expense Account.").format(idx))
+        if not account:
+            frappe.throw(_("VAT Details row {0}: Expense Account is required.").format(idx))
         account_doc = frappe.db.get_value(
             "Account", account, ["company", "root_type", "is_group", "disabled"], as_dict=True
         )
