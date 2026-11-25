@@ -197,7 +197,7 @@ const qcmc_delivery_pick_list = {
             "Create Pick List": stage === "pick",
             "Submit for Stock Confirmation": stage === "confirm" && !frm.is_dirty(),
             // Activation is the final workflow step, never an initial draft action.
-            "Tag To Active": false,
+            "Tag To Active": frm.doc.workflow_state === "To Deliver and Bill" && !frm.is_dirty(),
         };
         $actions.find("li > a.dropdown-item").each(function() {
             const $link = $(this);
