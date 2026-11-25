@@ -24,10 +24,13 @@ def get_data(date_from=None, date_to=None):
         if employee.employee_name:
             employees.setdefault(employee.user_id, employee)
     rows = {}
+    excluded_users = _lms_only_users()
     permission_groups = {}
     for user in frappe.get_all(
         "User", fields=["name", "full_name", "enabled", "user_type"], order_by="full_name, name"
     ):
+        if user.name in excluded_users:
+            continue
         monitored = bool(user.enabled and user.user_type == "System User")
         can_create = []
         if monitored and doctypes:
@@ -62,6 +65,8 @@ def get_data(date_from=None, date_to=None):
             .groupby(table.owner)
         ).run(as_dict=True)
         for entry in activity:
+            if entry.owner in excluded_users:
+                continue
             row = rows.get(entry.owner)
             if row is None:
                 row = rows[entry.owner] = {
@@ -90,6 +95,19 @@ def get_data(date_from=None, date_to=None):
             "active_users": sum(bool(row["total"]) for row in ordered_rows),
             "active_doctypes": sum(bool(value) for value in totals.values()),
         },
+    }
+
+
+def _lms_only_users():
+    lms_roles = {"LMS Student", "LMS User", "LMS Manager", "Course Creator", "Moderator", "Batch Evaluator"}
+    automatic_roles = {"All", "Guest", "Desk User", "Administrator"}
+    assigned = {}
+    for entry in frappe.get_all("Has Role", filters={"parenttype": "User", "parentfield": "roles"}, fields=["parent", "role"]):
+        assigned.setdefault(entry.parent, set()).add(entry.role)
+    return {
+        user for user, roles in assigned.items()
+        if user != "Administrator" and roles & lms_roles
+        and not (roles - lms_roles - automatic_roles)
     }
 
 
@@ -152,11 +170,14 @@ def get_creation_trend(date_from=None, date_to=None, doctypes=None, users=None, 
         first = start.year * 12 + start.month - 1
         labels = [f"{(first + offset) // 12:04d}-{(first + offset) % 12 + 1:02d}" for offset in range(months)]
     values = dict.fromkeys(labels, 0)
+    excluded_users = sorted(_lms_only_users())
     for dt in selected:
         table = frappe.qb.DocType(dt)
         query = frappe.qb.from_(table).where(table.creation >= start).where(table.creation < stop)
         if owners:
             query = query.where(table.owner.isin(owners))
+        if excluded_users:
+            query = query.where(table.owner.notin(excluded_users))
         if interval == "day":
             bucket = Date(table.creation)
             query = query.select(bucket.as_("bucket"), Count(table.name).as_("count")).groupby(bucket)
