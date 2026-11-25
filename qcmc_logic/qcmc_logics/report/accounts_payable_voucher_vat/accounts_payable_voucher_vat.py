@@ -72,7 +72,6 @@ def execute(filters=None):
     """,{"names":invoice_names})) if invoice_names else {}
     allocated={}
     for v in vat_rows:
-        invoice_company=company_by_invoice.get(v.pv_no)
         cc=(v.cost_center or "").upper()
         if "-EPS " in cc:
             category="input_tax_eps"
