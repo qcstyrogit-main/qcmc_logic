@@ -3,6 +3,7 @@ from frappe.utils import nowdate
 import json
 from qcmc_logic.customs.purchase_request_evaluation import EVIDENCE, required_evaluation
 from qcmc_logic.customs.provincial_purchase_request import ROLE, provincial_destination
+from qcmc_logic.customs.mc_purchase_request import requires_mc_ppic
 
 @frappe.whitelist()
 def convert_pr_to_partner(source_pr, target_company,target_warehouse, selected_items=None):
@@ -31,6 +32,11 @@ def convert_pr_to_partner(source_pr, target_company,target_warehouse, selected_i
         source.check_permission('write')
     evaluation_required = source.get('custom_pr_evaluation_required')
     provincial = provincial_destination(source)
+    if requires_mc_ppic(source):
+        source.check_permission('read')
+        source.check_permission('write')
+        if source.docstatus != 1:
+            frappe.throw('Submit the MC PPIC-approved request before converting it.')
     if provincial:
         source.check_permission('read')
         source.check_permission('write')
@@ -91,7 +97,7 @@ def convert_pr_to_partner(source_pr, target_company,target_warehouse, selected_i
     
     # An evaluated request cannot lend its approvals to another company.
     # Such partner requests remain Draft and follow their own approval route.
-    if not evaluation_required and not provincial and not provincial_destination(new_pr):
+    if not evaluation_required and not provincial and not provincial_destination(new_pr) and not requires_mc_ppic(source) and not requires_mc_ppic(new_pr):
         new_pr.db_set("docstatus", 1)
         new_pr.db_set("workflow_state", source.workflow_state)
  

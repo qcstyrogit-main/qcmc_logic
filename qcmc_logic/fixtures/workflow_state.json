@@ -734,5 +734,11 @@
   "name": "Transferred",
   "style": "",
   "workflow_state_name": "Transferred"
+ },
+ {
+  "doctype": "Workflow State",
+  "name": "Pending MC PPIC Supervisor",
+  "workflow_state_name": "Pending MC PPIC Supervisor",
+  "style": "Warning"
  }
 ]

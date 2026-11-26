@@ -886,5 +886,13 @@
   "restrict_to_domain": null,
   "role_name": "Weekly QC SMB",
   "two_factor_auth": 0
+ },
+ {
+  "doctype": "Role",
+  "name": "MC PPIC Supervisor",
+  "role_name": "MC PPIC Supervisor",
+  "desk_access": 1,
+  "disabled": 0,
+  "is_custom": 1
  }
 ]
