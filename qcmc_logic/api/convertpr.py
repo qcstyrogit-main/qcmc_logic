@@ -27,6 +27,11 @@ def convert_pr_to_partner(source_pr, target_company,target_warehouse, selected_i
     frappe.logger().info(f"Parsed selected_items_list: {selected_items_list}")
 
     source = frappe.get_doc("Material Request", source_pr)
+    if source.get('custom_pr_mc_maintenance_required'):
+        source.check_permission('read')
+        source.check_permission('write')
+        if source.docstatus != 1:
+            frappe.throw('Submit the maintenance-approved request before converting it.')
     if ROLE in frappe.get_roles():
         source.check_permission('read')
         source.check_permission('write')
@@ -97,7 +102,7 @@ def convert_pr_to_partner(source_pr, target_company,target_warehouse, selected_i
     
     # An evaluated request cannot lend its approvals to another company.
     # Such partner requests remain Draft and follow their own approval route.
-    if not evaluation_required and not provincial and not provincial_destination(new_pr) and not requires_mc_ppic(source) and not requires_mc_ppic(new_pr):
+    if not evaluation_required and not provincial and not provincial_destination(new_pr) and not requires_mc_ppic(source) and not requires_mc_ppic(new_pr) and not source.get('custom_pr_mc_maintenance_required'):
         new_pr.db_set("docstatus", 1)
         new_pr.db_set("workflow_state", source.workflow_state)
  

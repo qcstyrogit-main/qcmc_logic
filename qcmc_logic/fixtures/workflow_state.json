@@ -740,5 +740,11 @@
   "name": "Pending MC PPIC Supervisor",
   "workflow_state_name": "Pending MC PPIC Supervisor",
   "style": "Warning"
+ },
+ {
+  "doctype": "Workflow State",
+  "name": "Pending MC Maintenance Head Approval",
+  "workflow_state_name": "Pending MC Maintenance Head Approval",
+  "style": "Warning"
  }
 ]

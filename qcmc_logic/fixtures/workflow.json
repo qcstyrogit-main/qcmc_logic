@@ -4455,15 +4455,29 @@
     "update_field": "workflow_state",
     "update_value": "Pending MC PPIC Supervisor",
     "workflow_builder_id": null
+   },
+   {
+    "allow_edit": "MC Maintenance Head",
+    "avoid_status_override": 0,
+    "doc_status": "0",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "message": null,
+    "next_action_email_template": null,
+    "send_email": 0,
+    "state": "Pending MC Maintenance Head Approval",
+    "update_field": "workflow_state",
+    "update_value": "Pending MC Maintenance Head Approval",
+    "workflow_builder_id": null
    }
   ],
   "transitions": [
    {
-    "action": "Submit for MC Approval",
+    "action": "Submit for MC Maintenance Approval",
     "allow_self_approval": 1,
     "allowed": "Stockroom_PR_MC_lv1",
     "condition": "(((doc.material_request_type == \"Purchase\") and doc.company != \"QC Styropackaging Corporation\") and not (doc.material_request_type == 'Purchase' and doc.custom_pr_provincial_creator == 1 and doc.custom_request_type in ('MIS', 'Office Supplies & Equipment', 'Motorpool'))) and not (doc.material_request_type == 'Purchase' and doc.custom_pr_mc_rmfs_creator == 1 and doc.company != 'QC Styropackaging Corporation' and not (doc.custom_pr_provincial_creator == 1 and doc.custom_request_type in ('MIS', 'Office Supplies & Equipment', 'Motorpool')))",
-    "next_state": "Pending MC PM Approval",
+    "next_state": "Pending MC Maintenance Head Approval",
     "send_email_to_creator": 0,
     "state": "Draft",
     "transition_tasks": null,
@@ -4972,6 +4986,28 @@
     "next_state": "Cancelled Before Submission",
     "send_email_to_creator": 0,
     "state": "Pending MC PPIC Supervisor",
+    "transition_tasks": null,
+    "workflow_builder_id": null
+   },
+   {
+    "action": "Approve",
+    "allow_self_approval": 1,
+    "allowed": "MC Maintenance Head",
+    "condition": "doc.material_request_type == 'Purchase' and doc.custom_pr_mc_maintenance_required == 1",
+    "next_state": "Pending MC PM Approval",
+    "send_email_to_creator": 0,
+    "state": "Pending MC Maintenance Head Approval",
+    "transition_tasks": null,
+    "workflow_builder_id": null
+   },
+   {
+    "action": "Cancel",
+    "allow_self_approval": 1,
+    "allowed": "MC Maintenance Head",
+    "condition": "doc.material_request_type == 'Purchase' and doc.custom_pr_mc_maintenance_required == 1",
+    "next_state": "Cancelled Before Submission",
+    "send_email_to_creator": 0,
+    "state": "Pending MC Maintenance Head Approval",
     "transition_tasks": null,
     "workflow_builder_id": null
    }

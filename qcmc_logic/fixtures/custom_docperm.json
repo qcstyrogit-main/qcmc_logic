@@ -11591,5 +11591,16 @@
   "print": 1,
   "if_owner": 0,
   "permlevel": 0
+ },
+ {
+  "doctype": "Custom DocPerm",
+  "parent": "Material Request",
+  "name": "qcmc-mc-maintenance-pr-head",
+  "role": "MC Maintenance Head",
+  "permlevel": 0,
+  "read": 1,
+  "write": 1,
+  "print": 1,
+  "if_owner": 0
  }
 ]

@@ -6,6 +6,7 @@ from qcmc_logic.customs.purchase_request_evaluation import EVALUATORS, validate_
 DECISIONS = {'Cancel': 'Cancelled Before Submission'}
 TERMINAL_STATES = {'Rejected', 'Cancelled Before Submission', 'Cancelled'}
 APPROVAL_STATES = {
+    'Pending MC Maintenance Head Approval',
     'Pending MC PPIC Supervisor',
     'Pending PPIC Supervisor', 'Pending QC PM Approval', 'Pending MC PM Approval',
     'Pending Logistics Manager Approval', 'Pending Approval',

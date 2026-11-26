@@ -441,5 +441,10 @@
   "doctype": "Workflow Action Master",
   "name": "Submit for MC PPIC Approval",
   "workflow_action_name": "Submit for MC PPIC Approval"
+ },
+ {
+  "doctype": "Workflow Action Master",
+  "name": "Submit for MC Maintenance Approval",
+  "workflow_action_name": "Submit for MC Maintenance Approval"
  }
 ]
