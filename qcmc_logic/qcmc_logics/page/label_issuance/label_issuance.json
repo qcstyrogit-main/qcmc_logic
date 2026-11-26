@@ -1,0 +1,24 @@
+{
+ "content": null,
+ "creation": "2026-11-25 00:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "fa fa-tags",
+ "idx": 0,
+ "modified": "2026-11-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "QCMC Logics",
+ "name": "label-issuance",
+ "owner": "Administrator",
+ "page_name": "label-issuance",
+ "roles": [
+  {"role": "Manufacturing User"},
+  {"role": "Manufacturing Manager"},
+  {"role": "System Manager"}
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Label Issuance"
+}
