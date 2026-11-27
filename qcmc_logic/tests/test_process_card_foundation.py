@@ -34,6 +34,31 @@ class TestProcessCardSchemas(TestCase):
 		self.assertEqual(fields, {"job_card", "work_order", "operation", "production_item"})
 
 
+class TestProcessCardShiftCloseout(TestCase):
+	def test_unconfirmed_output_prevents_closeout(self):
+		card = make_card()
+		with patch("qcmc_logic.qcmc_logics.doctype.process_card.process_card._", side_effect=lambda value: value), patch("qcmc_logic.qcmc_logics.doctype.process_card.process_card.frappe") as frappe:
+			frappe.db.exists.return_value = "TL-1"
+			frappe.throw.side_effect = ValueError("Confirm all declared production output")
+			with self.assertRaisesRegex(ValueError, "Confirm all declared production output"):
+				card._validate_shift_closeout()
+
+	def test_open_employee_interval_prevents_closeout(self):
+		card = make_card()
+		with patch("qcmc_logic.qcmc_logics.doctype.process_card.process_card._", side_effect=lambda value: value), patch("qcmc_logic.qcmc_logics.doctype.process_card.process_card.frappe") as frappe:
+			frappe.db.exists.side_effect = [None, "TL-2"]
+			frappe.throw.side_effect = ValueError("Close all employee participation intervals")
+			with self.assertRaisesRegex(ValueError, "Close all employee participation intervals"):
+				card._validate_shift_closeout()
+
+	def test_manufacturing_manager_and_system_manager_can_approve(self):
+		card = make_card(status="Approved", get_doc_before_save=lambda: _dict(status="For Approval"))
+		with patch("qcmc_logic.qcmc_logics.doctype.process_card.process_card.frappe") as frappe:
+			frappe.db.exists.return_value = None
+			card._apply_status_policy()
+			frappe.only_for.assert_called_once_with(("System Manager", "Manufacturing Manager"))
+
+
 class TestProcessCardShiftValidation(TestCase):
 	def test_overnight_shift_is_valid_when_end_is_next_day(self):
 		card = make_card(shift_start="2026-11-09 22:00:00", shift_end="2026-11-10 06:00:00")

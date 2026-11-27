@@ -8,6 +8,7 @@ app_license = "mit"
 # Apps
 # ------------------
 doc_events = {
+    "System Settings": {"on_update": "qcmc_logic.customs.cancellation_workflow.ensure_active_workflows"},
     "Reorder Policy": {"validate": "qcmc_logic.dynamic_reorder_policy.validate_policy"},
     "Reorder Schedule Settings": {"validate": "qcmc_logic.dynamic_reorder_schedule.validate"},
     "Reorder Execution History": {"before_validate": "qcmc_logic.dynamic_reorder_schedule.set_execution_key"},
@@ -23,6 +24,7 @@ doc_events = {
         "before_insert": "qcmc_logic.api.announcement_comments.link_mention_notification",
     },
     "*": {
+        "before_discard": "qcmc_logic.customs.transaction_cancellation.before_discard",
         "validate": [
             "qcmc_logic.customs.warehouse_access_permissions.validate_warehouse_access",
             "qcmc_logic.customs.warehouse_access_permissions.validate_warehouse_type_restriction",
@@ -51,11 +53,15 @@ doc_events = {
     },
     "Delivery Note": {
         "before_validate": [
+            "qcmc_logic.customs.delivery_note_posting.apply_actual_posting",
             "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
             "qcmc_logic.customs.sales_transaction_territory.populate_mapped_transaction_territory",
             "qcmc_logic.delivery_note_pick_list.repair_delivery_note_pick_references",
             "qcmc_logic.api.delivery_schedule_service.validate_delivery_note_item",
         ],
+        "validate": "qcmc_logic.customs.delivery_dr_number.validate_dr_number",
+        "before_update_after_submit": "qcmc_logic.customs.delivery_dr_number.validate_dr_number",
+        "before_submit": "qcmc_logic.customs.delivery_note_posting.verify_actual_posting",
         "on_submit": [
             "qcmc_logic.delivery_note_pick_list.sync_delivery_pick_list_progress",
             "qcmc_logic.api.delivery_schedule_service.on_delivery_note_submit",
@@ -91,6 +97,7 @@ doc_events = {
         "before_save": "qcmc_logic.overrides.wrr_override.validate"
     },
     "Sales Invoice": {
+        "before_insert": "qcmc_logic.customs.delivery_dr_number.validate_new_invoice",
         "before_validate": [
             "qcmc_logic.customs.customer_warehouse_defaults.apply_customer_company_default_warehouse",
             "qcmc_logic.customs.sales_transaction_territory.populate_mapped_transaction_territory",
@@ -133,6 +140,7 @@ doc_events = {
         "on_cancel": "qcmc_logic.picking_status.sync_pick_list",
     },
     "Stock Entry": {
+        "validate": "qcmc_logic.customs.stock_entry.allocate_confirmed_output",
         "on_update": "qcmc_logic.picking_status.sync_source",
         "before_validate": [
             "qcmc_logic.customs.stock_entry.set_manufacture_actual_weight_uom",
@@ -154,6 +162,10 @@ doc_events = {
         ],
     },
     "Job Card": {
+        "validate": "qcmc_logic.customs.job_card.protect_process_card_output_source",
+        "before_cancel": "qcmc_logic.customs.job_card.keep_confirmed_production_source",
+        "before_discard": "qcmc_logic.customs.job_card.keep_confirmed_production_source",
+        "on_trash": "qcmc_logic.customs.job_card.keep_confirmed_production_source",
         "before_validate": [
             "qcmc_logic.customs.job_card.prevent_untracked_output_checkpoint_changes",
             "qcmc_logic.customs.process_card_transactions.validate_job_card_participation",
@@ -349,7 +361,9 @@ override_whitelisted_methods = {
     "frappe.desk.doctype.notification_log.notification_log.get_notification_logs": "qcmc_logic.api.desk_notifications.get_notification_logs",
     "frappe.desk.doctype.notification_log.notification_log.mark_as_read": "qcmc_logic.api.desk_notifications.mark_as_read",
     "frappe.desk.doctype.notification_log.notification_log.mark_all_as_read": "qcmc_logic.api.desk_notifications.mark_all_as_read",
-    "frappe.model.workflow.apply_workflow": "qcmc_logic.customs.purchase_request_workflow.apply_workflow",
+    "frappe.model.workflow.apply_workflow": "qcmc_logic.customs.transaction_cancellation.apply_workflow",
+    "frappe.model.workflow.get_transitions": "qcmc_logic.customs.transaction_cancellation.get_transitions",
+    "frappe.desk.form.save.discard": "qcmc_logic.customs.transaction_cancellation.discard",
 	"erpnext.stock.doctype.pick_list.pick_list.create_stock_entry": "qcmc_logic.overrides.pick_list.create_stock_entry",
     "frappe_assistant_core.api.fac_endpoint.handle_mcp": "qcmc_logic.overrides.oauth_override.handle_mcp",
     "frappe.desk.printing.get_print_format": "qcmc_logic.overrides.POPrint_Override.get_po_print_format",
@@ -374,6 +388,7 @@ override_whitelisted_methods = {
 
 
 override_doctype_class = {
+    "Workflow": "qcmc_logic.customs.cancellation_workflow.CancellationWorkflow",
     # (Optional, only if overriding full controller)
     "Appraisal": "qcmc_logic.overrides.appraisal_override.CustomAppraisal",
     "Appraisal Cycle": "qcmc_logic.overrides.appraisalcycle_override.CustomAppraisalCycle",
@@ -538,6 +553,7 @@ before_migrate = [
 ]
 
 after_migrate = [
+    "qcmc_logic.patches.retire_delivery_note_scheduling_fields.execute",
     "qcmc_logic.dynamic_reorder_setup.install",
     "qcmc_logic.picking_status.ensure_fields",
     "qcmc_logic.warehouse_transfer_connections.ensure_connections_fields",
@@ -555,6 +571,7 @@ after_migrate = [
     "qcmc_logic.patches.format_gaisano_customer_on_charge_invoices.execute",
     "qcmc_logic.patches.remove_retired_location_inventory_dimensions.execute",
     "qcmc_logic.patches.hide_purchase_invoice_item_location.execute",
+    "qcmc_logic.customs.cancellation_workflow.ensure_active_workflows",
     # Apply last: any legacy Print Format fixture must not undo our QR template.
     "qcmc_logic.warehouse_transfer_print_format.ensure_warehouse_transfer_slip",
 ]
@@ -582,6 +599,7 @@ after_migrate = [
 # include js, css files in header of desk.html
 # app_include_css = "/assets/qcmc_logic/css/qcmc_logic.css"
 app_include_js = [
+    "/assets/qcmc_logic/js/transaction_cancellation.js?v=3",
     "/assets/qcmc_logic/js/process_card_workbench_cache.js?v=20261110-2",
     "/assets/qcmc_logic/js/dynamic_reorder.js?v=20261126-v11",
     "/assets/qcmc_logic/js/reorder_calculation_batch.js?v=20261126-v2",
@@ -820,6 +838,7 @@ scheduler_events = {
 
 # Apply navigation and login details after cached boot data is loaded.
 extend_bootinfo = [
+    "qcmc_logic.customs.transaction_cancellation.extend_bootinfo",
     "qcmc_logic.api.login_notices.extend_bootinfo",
     "qcmc_logic.api.delivery_sidebar.hide_retired_reports",
 ]

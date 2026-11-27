@@ -22,7 +22,22 @@ class ProcessCard(Document):
 		self._validate_company_and_workstation()
 		self._validate_shift_interval()
 		self._validate_jobs()
+		self._keep_confirmed_sources()
 		self._lock_and_check_shift_window()
+
+	def _keep_confirmed_sources(self):
+		previous = self.get_doc_before_save()
+		if not previous:
+			return
+		removed = {row.job_card for row in previous.jobs} - {row.job_card for row in self.jobs}
+		shift_fields = ("company", "site", "workstation", "shift_type", "shift_date", "shift_start", "shift_end")
+		if self.status == "Cancelled" or any(self.get(field) != previous.get(field) for field in shift_fields):
+			removed.update(row.job_card for row in previous.jobs)
+		for job in removed:
+			if frappe.db.exists("Job Card Time Log", {
+				"parent": job, "qcmc_process_card": self.name, "qcmc_output_confirmed_at": ["is", "set"],
+			}):
+				frappe.throw(_("A Process Card with confirmed output must retain its production source."))
 
 	def _apply_status_policy(self):
 		if self.is_new():
@@ -39,7 +54,21 @@ class ProcessCard(Document):
 		if self.status not in ALLOWED_TRANSITIONS.get(previous.status, set()):
 			frappe.throw(_("Invalid Process Card status transition from {0} to {1}.").format(previous.status, self.status))
 		if previous.status == "For Approval" and self.status == "Approved":
-			frappe.only_for("System Manager", "Manufacturing Manager")
+			frappe.only_for(("System Manager", "Manufacturing Manager"))
+		if previous.status != self.status and self.status in {"For Approval", "Approved"}:
+			self._validate_shift_closeout()
+
+	def _validate_shift_closeout(self):
+		# Once a shift is locked, production confirmation and participation edits
+		# are no longer available. Do not strand incomplete records.
+		filters = {"parenttype": "Job Card", "parentfield": "time_logs",
+			"qcmc_process_card": self.name, "docstatus": ["!=", 2]}
+		if frappe.db.exists("Job Card Time Log", {**filters,
+			"qcmc_output_revision": [">", 0], "qcmc_output_confirmed_at": ["is", "not set"]}):
+			frappe.throw(_("Confirm all declared production output before closing the Process Card."))
+		if frappe.db.exists("Job Card Time Log", {**filters,
+			"employee": ["is", "set"], "qcmc_output_revision": ["<=", 0], "to_time": ["is", "not set"]}):
+			frappe.throw(_("Close all employee participation intervals before closing the Process Card."))
 
 	def _business_values(self):
 		return self._document_values(self)

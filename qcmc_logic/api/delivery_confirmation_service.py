@@ -89,6 +89,7 @@ def execute(filters=None):
 
 @frappe.whitelist()
 def confirm_delivery_notes(delivery_notes, reason_code=None, remarks=None):
+	frappe.throw(_("Delivery Note scheduling is retired. Use SO Delivery Schedule and Delivery Schedule Workbench."))
 	names = list(dict.fromkeys(frappe.parse_json(delivery_notes)))
 	if not names:
 		frappe.throw(_("Select at least one Delivery Note."))
@@ -101,11 +102,13 @@ def confirm_delivery_notes(delivery_notes, reason_code=None, remarks=None):
 
 @frappe.whitelist()
 def get_delivery_note_items(delivery_note):
+	frappe.throw(_("Delivery Note scheduling is retired. Use SO Delivery Schedule and Delivery Schedule Workbench."))
 	return get_delivery_note_items_bulk([delivery_note])
 
 
 @frappe.whitelist()
 def get_delivery_note_items_bulk(delivery_notes):
+	frappe.throw(_("Delivery Note scheduling is retired. Use SO Delivery Schedule and Delivery Schedule Workbench."))
 	names = _parse_names(delivery_notes)
 	rows = []
 	for name in names:
@@ -118,6 +121,7 @@ def get_delivery_note_items_bulk(delivery_notes):
 
 @frappe.whitelist()
 def save_logistics_remarks(delivery_note, items):
+	frappe.throw(_("Delivery Note scheduling is retired. Use SO Delivery Schedule and Delivery Schedule Workbench."))
 	parsed_items = frappe.parse_json(items or "[]")
 	for row in parsed_items:
 		row["delivery_note"] = delivery_note
@@ -126,6 +130,7 @@ def save_logistics_remarks(delivery_note, items):
 
 @frappe.whitelist()
 def save_logistics_remarks_bulk(items):
+	frappe.throw(_("Delivery Note scheduling is retired. Use SO Delivery Schedule and Delivery Schedule Workbench."))
 	parsed_items = frappe.parse_json(items or "[]")
 	grouped = {}
 	for row in parsed_items:
@@ -167,11 +172,13 @@ def save_logistics_remarks_bulk(items):
 
 @frappe.whitelist()
 def get_dr_printing_review_items(delivery_note):
+	frappe.throw(_("Delivery Note scheduling is retired. Use SO Delivery Schedule and Delivery Schedule Workbench."))
 	return get_dr_printing_review_items_bulk([delivery_note])
 
 
 @frappe.whitelist()
 def get_dr_printing_review_items_bulk(delivery_notes):
+	frappe.throw(_("Delivery Note scheduling is retired. Use SO Delivery Schedule and Delivery Schedule Workbench."))
 	_validate_sales_approval_role()
 	names = _parse_names(delivery_notes)
 	rows = []
@@ -185,6 +192,7 @@ def get_dr_printing_review_items_bulk(delivery_notes):
 
 @frappe.whitelist()
 def proceed_to_dr_printing(delivery_note, items):
+	frappe.throw(_("Delivery Note scheduling is retired. Use SO Delivery Schedule and Delivery Schedule Workbench."))
 	parsed_items = frappe.parse_json(items or "[]")
 	for row in parsed_items:
 		row["delivery_note"] = delivery_note
@@ -193,6 +201,7 @@ def proceed_to_dr_printing(delivery_note, items):
 
 @frappe.whitelist()
 def proceed_to_dr_printing_bulk(items):
+	frappe.throw(_("Delivery Note scheduling is retired. Use SO Delivery Schedule and Delivery Schedule Workbench."))
 	_validate_sales_approval_role()
 	parsed_items = frappe.parse_json(items or "[]")
 	grouped = {}
@@ -320,6 +329,7 @@ def _validate_sales_decision_for_reason(item, decision):
 
 @frappe.whitelist()
 def adjust_item_quantity(dn_detail, qty, scheduling_date, remarks=None):
+	frappe.throw(_("Delivery Note scheduling is retired. Use SO Delivery Schedule and Delivery Schedule Workbench."))
 	parent = frappe.db.get_value("Delivery Note Item", dn_detail, "parent")
 	if not parent:
 		frappe.throw(_("Delivery Note Item {0} was not found.").format(dn_detail))
@@ -341,6 +351,7 @@ def adjust_item_quantity(dn_detail, qty, scheduling_date, remarks=None):
 
 @frappe.whitelist()
 def remove_items(dn_details, scheduling_date, reason_code="SA", remarks=None):
+	frappe.throw(_("Delivery Note scheduling is retired. Use SO Delivery Schedule and Delivery Schedule Workbench."))
 	details = list(dict.fromkeys(frappe.parse_json(dn_details)))
 	if not details:
 		frappe.throw(_("Select at least one Delivery Note item."))

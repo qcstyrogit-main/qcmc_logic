@@ -1,0 +1,129 @@
+<style>
+@page { size: A4 landscape; margin: 7mm; }
+.print-format .sl-print, .sl-print { width: 100%; color: #000; font: 7pt/1.2 Arial, Helvetica, sans-serif; }
+.sl-print .sl-company, .sl-print .sl-title { margin: 0; font-size: 10pt; font-weight: bold; }
+.sl-print .sl-title { margin-bottom: 10px; }
+.sl-print .sl-period { font-size: 8pt; margin-bottom: 7px; }
+.sl-print .sl-filters { font-size: 7pt; margin-bottom: 5px; }
+.sl-print table.sl-grid { width: 100%; table-layout: fixed; border-collapse: collapse; font: 6.8pt/1.17 Arial, Helvetica, sans-serif; }
+.print-format .sl-print table.sl-grid th, .print-format .sl-print table.sl-grid td,
+.sl-print table.sl-grid th, .sl-print table.sl-grid td { border: none; padding: 2px 2px !important; vertical-align: top !important; background: #fff !important; color: #000 !important; text-align: left; overflow-wrap: break-word; word-wrap: break-word; }
+.print-format .sl-print table.sl-grid th, .sl-print table.sl-grid th { border-top: 1px solid #000; border-bottom: 1px solid #000; font-weight: normal; vertical-align: middle !important; }
+.sl-print table.sl-grid th:first-child { border-left: 1px solid #000; }
+.sl-print table.sl-grid th:last-child { border-right: 1px solid #000; }
+.sl-print table.sl-grid .num { text-align: right !important; font-variant-numeric: tabular-nums; }
+.sl-print table.sl-grid .center { text-align: center !important; }
+.sl-print table.sl-grid .date { white-space: nowrap; }
+.sl-print table.sl-grid tr { page-break-inside: avoid; break-inside: avoid; }
+.sl-print table.sl-grid thead { display: table-header-group; }
+.sl-print .sl-summary { border-top: 1px solid #000; margin-top: 8px; padding-top: 4px; font-size: 7pt; page-break-inside: avoid; }
+.sl-print .sl-note { margin-top: 6px; font-size: 6.7pt; page-break-inside: avoid; }
+</style>
+{%
+var esc = function(value) {
+    if (value === null || value === undefined) return "";
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+};
+var plain = function(value) {
+    if (value === null || value === undefined) return "";
+    return String(value).replace(/<[^>]*>/g, "").trim();
+};
+var dateLabel = function(value) {
+    var raw = plain(value);
+    var parts = raw.match(/^([0-9]{4})-([0-9]{2})-([0-9]{2})(?:$|[ T])/);
+    return parts ? parts[2] + "/" + parts[3] + "/" + parts[1] : raw;
+};
+var qtyLabel = function(value) {
+    if (value === null || value === undefined || value === "") return "";
+    var raw = plain(value);
+    var n = Number(raw.replace(/,/g, ""));
+    if (!raw || !isFinite(n)) return raw;
+    return n.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 9});
+};
+var companyLabel = function(value) {
+    var v = plain(value);
+    if (v === "QC Styropackaging Corporation") return "QC";
+    if (v === "Multiplast Corporation") return "MC";
+    return v;
+};
+var rowList = (data || []).filter(function(row) { return row && row.sales_order && row.item_code && row.promise_date; });
+var due = 0, pass = 0, excluded = 0, pending = 0;
+%}
+<div class="sl-print">
+    <div class="sl-company">QCStyro/Multiplast Corp</div>
+    <div class="sl-title">List of Sales Order w/ Delivery Date</div>
+    <div class="sl-period">Delivery Date : {%= esc(dateLabel(filters.from_date)) %} to {%= esc(dateLabel(filters.to_date)) %}</div>
+    {% if (filters.company || filters.customer || filters.sales_order || filters.item_code) { %}
+    <div class="sl-filters">
+        {% if (filters.company) { %}Company: {%= esc(plain(filters.company)) %} &nbsp;{% } %}
+        {% if (filters.customer) { %}Customer: {%= esc(plain(filters.customer)) %} &nbsp;{% } %}
+        {% if (filters.sales_order) { %}SO: {%= esc(plain(filters.sales_order)) %} &nbsp;{% } %}
+        {% if (filters.item_code) { %}Item: {%= esc(plain(filters.item_code)) %}{% } %}
+    </div>
+    {% } %}
+    <table class="sl-grid">
+        <colgroup>
+            <col style="width:3%"><col style="width:6.5%"><col style="width:8%">
+            <col style="width:6.5%"><col style="width:6.5%"><col style="width:6.5%">
+            <col style="width:5%"><col style="width:9%"><col style="width:7%">
+            <col style="width:12%"><col style="width:6%"><col style="width:6%">
+            <col style="width:3.5%"><col style="width:3.5%"><col style="width:4.5%"><col style="width:7%">
+        </colgroup>
+        <thead><tr>
+            <th>Comp</th><th>Orig Sched Date</th><th>DR No.</th><th>SO Date</th><th>SO Del Date</th>
+            <th>SO No.</th><th>Cust Code</th><th>Customer Name</th><th>Prod Code</th><th>Product Description</th>
+            <th class="num">SO Qty</th><th class="num">DR Qty</th><th class="center">On Time</th>
+            <th class="center">In Full</th><th>Plate No.</th><th>OTIF</th>
+        </tr></thead>
+        <tbody>
+        {% for (var i = 0; i < rowList.length; i++) {
+            var row = rowList[i];
+            var status = plain(row.otif);
+            var unresolved = status === "Unreconciled";
+            var future = status === "Not Yet Due";
+            if (unresolved) excluded++;
+            else if (future) pending++;
+            else if (["Pass", "Delivered Late", "Overdue Partial", "Overdue Undelivered"].indexOf(status) !== -1) {
+                due++;
+                if (status === "Pass") pass++;
+            }
+        %}
+        <tr>
+            <td>{%= esc(companyLabel(row.company)) %}</td>
+            <td class="date">{%= esc(dateLabel(row.promise_date)) %}</td>
+            <td>{%= esc(plain(row.dr_numbers)) %}{% if (row.delivery_notes) { %}<br><span style="font-size: 6pt; overflow-wrap: anywhere; word-break: break-all;">{%= esc(plain(row.delivery_notes)) %}</span>{% } %}</td>
+            <td class="date">{%= esc(dateLabel(row.so_date)) %}</td>
+            <td class="date">{%= esc(dateLabel(row.so_delivery_date)) %}</td>
+            <td>{%= esc(plain(row.sales_order)) %}</td>
+            <td>{%= esc(plain(row.customer)) %}</td>
+            <td>{%= esc(plain(row.customer_name)) %}</td>
+            <td>{%= esc(plain(row.item_code)) %}</td>
+            <td>{%= esc(plain(row.item_name)) %}</td>
+            <td class="num">{%= esc(qtyLabel(row.original_qty)) %}{% if (row.uom) { %}<br>{%= esc(plain(row.uom)) %}{% } %}</td>
+            <td class="num">{%= esc(qtyLabel(row.delivered_qty)) %}</td>
+            <td class="center">{%= unresolved || future ? "-" : esc(plain(row.on_time).toUpperCase()) %}</td>
+            <td class="center">{%= unresolved || future ? "-" : esc(plain(row.in_full).toUpperCase()) %}</td>
+            <td>{%= esc(plain(row.vehicle_no)) %}</td>
+            <td>{%= esc(status) %}</td>
+        </tr>
+        {% if (unresolved && row.evidence) { %}
+        <tr><td></td><td colspan="15">Exception: {%= esc(plain(row.evidence)) %}</td></tr>
+        {% } %}
+        {% } %}
+        {% if (!rowList.length) { %}
+        <tr><td colspan="16">No records found for the selected filters.</td></tr>
+        {% } %}
+        </tbody>
+    </table>
+    <div class="sl-summary">
+        Due Commitments: {%= due %} &nbsp;&nbsp; Passed: {%= pass %} &nbsp;&nbsp;
+        Failed: {%= due - pass %} &nbsp;&nbsp; OTIF: {%= due ? (100 * pass / due).toFixed(2) + "%" : "N/A" %}
+        &nbsp;&nbsp; Not Yet Due: {%= pending %} &nbsp;&nbsp; Unreconciled: {%= excluded %}
+    </div>
+    <div class="sl-note">
+        SO Qty = original committed quantity (in displayed UOM); DR Qty = attributed submitted delivery quantity.
+        One row per original commitment; multiple valid DR numbers are combined, not duplicated.
+        On Time uses submitted DN posting dates, not confirmed customer receipt dates.
+        Not Yet Due and Unreconciled rows are excluded from OTIF. Unreconciled DR Qty is gross submitted evidence, not verified original-promise attribution. Quantity totals are not combined across UOMs.
+    </div>
+</div>

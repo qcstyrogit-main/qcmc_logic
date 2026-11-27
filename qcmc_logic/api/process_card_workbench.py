@@ -340,6 +340,9 @@ def _production_output_summary(card, job_docs):
 		all_operational_qty = sum(row["good_qty"] + row["rejected_qty"] for row in all_operational_entries)
 		target_qty = flt(job.for_quantity)
 		official_completed_qty = flt(job.total_completed_qty)
+		confirmed_operational_qty = sum(
+			flt(row.completed_qty) for row in job.time_logs if row.get("qcmc_output_confirmed_at")
+		)
 		job_summary = {
 			"job_card": job.name, "production_item": output_item, "uom": uom,
 			"product_description": item_descriptions.get(output_item, ""),
@@ -349,9 +352,9 @@ def _production_output_summary(card, job_docs):
 			"all_process_card_good_qty": sum(row["good_qty"] for row in all_operational_entries),
 			"all_process_card_rejected_qty": sum(row["rejected_qty"] for row in all_operational_entries),
 			"all_process_card_output_qty": all_operational_qty,
-			"remaining_qty": max(target_qty - official_completed_qty - all_operational_qty, 0),
+			"remaining_qty": max(target_qty - official_completed_qty - all_operational_qty + confirmed_operational_qty, 0),
 			# Kept temporarily for older clients; now uses the cross-Process-Card remainder.
-			"good_balance_qty": max(target_qty - official_completed_qty - all_operational_qty, 0),
+			"good_balance_qty": max(target_qty - official_completed_qty - all_operational_qty + confirmed_operational_qty, 0),
 			"soph": standards["soph"], "color_count": standards["color_count"],
 			"entries": entries,
 		}
@@ -651,7 +654,7 @@ def transition_status(process_card, status):
 	if status not in ALLOWED_TRANSITIONS.get(card.status, set()):
 		frappe.throw(_("Invalid Process Card status transition from {0} to {1}.").format(card.status, status))
 	if card.status == "For Approval" and status == "Approved":
-		frappe.only_for("System Manager", "Manufacturing Manager")
+		frappe.only_for(("System Manager", "Manufacturing Manager"))
 	card.status = status
 	card.save()
 	return get_process_card_context(card.name)

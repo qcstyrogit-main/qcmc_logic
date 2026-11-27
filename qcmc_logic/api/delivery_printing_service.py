@@ -143,32 +143,22 @@ def assign_dr_number(delivery_note, dr_number):
 	if not dr_number:
 		frappe.throw(_("DR Number is required."))
 
-	# Serializes assignment of the same DR number across concurrent clerk sessions.
-	with frappe.cache.lock("delivery-note-dr-number:{0}".format(dr_number), timeout=15):
-		doc = _get_locked_delivery_note(delivery_note)
-		_validate_delivery_note(doc, require_transact=True)
-		v2_draft = _is_v2_printing_draft(doc)
-		if not v2_draft:
-			doc.check_permission("write")
-		duplicate = frappe.db.get_value(
-			"Delivery Note",
-			{"custom_dr_number": dr_number, "name": ["!=", doc.name], "docstatus": ["!=", 2]},
-			"name",
-		)
-		if duplicate:
-			frappe.throw(_("DR Number {0} is already assigned to Delivery Note {1}.").format(
-				frappe.bold(dr_number), frappe.bold(duplicate)
-			))
-		doc.custom_dr_number = dr_number
-		if v2_draft:
-			# Invoicing Clerk owns only this printing metadata write for validated V2 Drafts.
-			doc.save(ignore_permissions=True)
-		else:
-			doc.save()
-		saved_dr_number = frappe.db.get_value("Delivery Note", doc.name, "custom_dr_number")
-		if saved_dr_number != dr_number:
-			frappe.throw(_("DR Number could not be verified after saving. Print preview was not started."))
-		doc.add_comment("Edit", _("Assigned DR Number {0} for printing.").format(frappe.bold(dr_number)))
+	doc = _get_locked_delivery_note(delivery_note)
+	_validate_delivery_note(doc, require_transact=True)
+	v2_draft = _is_v2_printing_draft(doc)
+	if not v2_draft:
+		doc.check_permission("write")
+	doc.custom_dr_number = dr_number
+	# The shared Delivery Note validate hook enforces company-wide uniqueness
+	# and holds the company mutex until the transaction commits.
+	if v2_draft:
+		doc.save(ignore_permissions=True)
+	else:
+		doc.save()
+	saved_dr_number = frappe.db.get_value("Delivery Note", doc.name, "custom_dr_number")
+	if saved_dr_number != dr_number:
+		frappe.throw(_("DR Number could not be verified after saving. Print preview was not started."))
+	doc.add_comment("Edit", _("Assigned DR Number {0} for printing.").format(frappe.bold(dr_number)))
 
 	return {
 		"delivery_note": doc.name,
@@ -192,17 +182,10 @@ def submit_for_delivery(delivery_notes):
 			doc.check_permission("write")
 		if not doc.custom_dr_number:
 			frappe.throw(_("Assign and print a DR Number for Delivery Note {0} first.").format(frappe.bold(name)))
-		if v2_draft:
-			from frappe.model.workflow import apply_workflow
-
-			doc = apply_workflow(doc.as_json(), "Submit for Delivery")
-			if doc.docstatus != 0 or doc.workflow_state != "To Deliver and Bill":
-				frappe.throw(_("Delivery Note {0} was not released through its valid workflow transition.").format(name))
-		else:
-			doc.workflow_state = "To Deliver and Bill"
-			doc.status = "To Deliver and Bill"
-			doc.save()
-			doc.add_comment("Workflow", _("Submit for Delivery"))
+		from frappe.model.workflow import apply_workflow
+		doc = apply_workflow(doc.as_json(), "Submit for Delivery")
+		if doc.docstatus != 0 or doc.workflow_state != "To Deliver and Bill":
+			frappe.throw(_("Delivery Note {0} was not released through its valid workflow transition.").format(name))
 
 	return _("Submitted Delivery Note(s) for delivery: {0}").format(", ".join(names))
 
@@ -369,42 +352,77 @@ def _is_v2_printing_draft(doc):
 		if not schedule_name or not item.get("so_detail") or not item.get("against_sales_order"):
 			return False
 		schedule = frappe.db.get_value("SO Delivery Schedule", schedule_name,
-			["sales_order", "sales_order_item", "item_code", "warehouse", "confirmation_status"], as_dict=True)
+			["sales_order", "sales_order_item", "item_code", "warehouse", "confirmation_status",
+			 "endorsement_status", "history_status", "sales_confirmed_by", "logistics_confirmed_by"], as_dict=True)
 		if (not schedule or schedule.sales_order != item.against_sales_order
 			or schedule.sales_order_item != item.so_detail or schedule.item_code != item.item_code
-			or schedule.warehouse != item.warehouse or schedule.confirmation_status != "Finalized"):
+			or schedule.warehouse != item.warehouse or schedule.confirmation_status != "Finalized"
+			or schedule.endorsement_status != "Endorsed" or schedule.history_status != "Verified"
+			or not schedule.sales_confirmed_by or not schedule.logistics_confirmed_by):
 			return False
 	return True
 
 
+def _is_head_office_note(doc):
+	return bool(doc.items) and all(
+		item.warehouse and frappe.db.get_value("Warehouse", item.warehouse, "company") == doc.company
+		and not frappe.db.get_value("Warehouse", item.warehouse, "custom_is_province")
+		for item in doc.items
+	)
+
+
+def _is_manual_printing_draft(doc):
+	# Standalone DNs and returns retain their native transaction validation.
+	# An SO-backed outbound note must never bypass finalized scheduling.
+	return (doc.docstatus == 0 and doc.workflow_state == "Draft"
+		and _is_head_office_note(doc)
+		and (doc.is_return or (not doc.get("custom_sales_order") and
+			all(not item.get("against_sales_order") and not item.get("so_detail")
+				and not item.get("custom_so_delivery_schedule") for item in doc.items))))
+
+
 def _is_printable_queue_document(doc):
-	return doc.workflow_state == "For DR Printing" or _is_v2_printing_draft(doc)
+	return _is_head_office_note(doc) and (
+		_is_v2_printing_draft(doc) or _is_manual_printing_draft(doc))
 
 
 def _validate_v2_release_transition(doc):
-	"""Revalidate the V2 Draft-to-delivery transition for workflow and direct saves."""
-	if "Invoicing Clerk" not in frappe.get_roles():
-		frappe.throw(_("Invoicing Clerk permission is required to release this Delivery Note."), frappe.PermissionError)
-	if not (doc.get("custom_dr_number") or "").strip():
-		frappe.throw(_("Assign a DR Number before releasing this Delivery Note."))
+	"""Shared Head Office release validation for native forms and Workbench."""
+	_validate_invoicing_role()
+	from qcmc_logic.customs.delivery_dr_number import require_dr_number
+	require_dr_number(doc)
+	if not _is_head_office_note(doc):
+		frappe.throw(_("Select warehouses belonging to this company and the Head Office delivery process."))
+	for item in doc.items:
+		_validate_warehouse_access(item.warehouse, require_transact=True)
 
 	next_state = doc.workflow_state
 	try:
-		# The shared V2 validator describes the immediately preceding Draft state.
 		doc.workflow_state = "Draft"
+		if _is_manual_printing_draft(doc):
+			return
 		if not _is_v2_printing_draft(doc):
-			frappe.throw(_("Only a fully confirmed V2 Draft Delivery Note can be released."))
+			frappe.throw(_("Link every Sales Order item to its endorsed, jointly finalized delivery schedule before release."))
 	finally:
 		doc.workflow_state = next_state
 
+	from frappe.utils import getdate
+	seen = set()
 	for item in doc.items:
-		schedule = frappe.db.get_value("SO Delivery Schedule", item.get("custom_so_delivery_schedule"),
-			["final_qty", "confirmation_status", "sales_confirmed_by", "logistics_confirmed_by"], as_dict=True)
+		name = item.get("custom_so_delivery_schedule")
+		if name in seen:
+			frappe.throw(_("Each finalized schedule may appear only once on a Delivery Note."))
+		seen.add(name)
+		schedule = frappe.db.get_value("SO Delivery Schedule", name,
+			["final_qty", "confirmation_status", "sales_confirmed_by", "logistics_confirmed_by",
+			 "endorsement_status", "history_status", "delivery_date"], as_dict=True)
 		if (not schedule or schedule.confirmation_status != "Finalized"
+			or schedule.endorsement_status != "Endorsed" or schedule.history_status != "Verified"
 			or not schedule.sales_confirmed_by or not schedule.logistics_confirmed_by
 			or flt(schedule.final_qty, item.precision("qty")) != flt(item.qty, item.precision("qty"))):
-			frappe.throw(_("Delivery Note quantity must match its jointly finalized schedule before release."))
-		_validate_warehouse_access(item.warehouse, require_transact=True)
+			frappe.throw(_("Delivery Note quantity must match its endorsed, jointly finalized schedule before release."))
+		if getdate(doc.posting_date) != getdate(schedule.delivery_date):
+			frappe.throw(_("The draft Delivery Note posting date must match its operational schedule date before release."))
 
 
 def _validate_invoicing_role():

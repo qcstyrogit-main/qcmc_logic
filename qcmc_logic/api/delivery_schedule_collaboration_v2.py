@@ -198,6 +198,7 @@ def _serialize(row):
         "logistics_confirmed_by": row.logistics_confirmed_by,
         "final_qty": row.final_qty,
         "confirmation_status": row.confirmation_status or "Pending",
+        "endorsement_status": row.get("endorsement_status"),
         "finalized_at": row.finalized_at,
     }
 
@@ -205,6 +206,8 @@ def _serialize(row):
 def _save_commitment(schedule, expected_modified, department, quantity, remarks,
         transfer_qty=None, destination_date=None, reason_code=None):
     row, so, item = _load_locked(schedule, expected_modified, department)
+    from qcmc_logic.api.delivery_sales_planning import require_endorsed
+    require_endorsed(row)
     logistics_correction = department == "Logistics"
     confirmed_correction = logistics_correction and bool(row.get("logistics_confirmed_by"))
     _assert_open(row, allow_logistics_correction=logistics_correction)
@@ -304,7 +307,27 @@ def save_logistics_commitment(schedule, expected_modified, quantity, remarks="",
         destination_date=None, reason_code=None):
     """Autosave and apply a Logistics edit as the confirmed commitment."""
     if schedule.startswith("unscheduled:"):
-        schedule, expected_modified = _initialize_unscheduled_item(schedule.split(":", 1)[1], expected_modified)
+        frappe.throw(_("Sales must plan and endorse the unscheduled item first."))
+    from qcmc_logic.api.delivery_sales_planning import require_endorsed, mark_returned
+    row, so, item = _load_locked(schedule, expected_modified, "Logistics")
+    require_endorsed(row)
+    if _has_dn_history(row.name):
+        frappe.throw(_("Delivery Note history is protected."))
+    reason_code = _clean_logistics_reason(reason_code)
+    if reason_code not in ("OK", "SA", "CR", "TO", "SE", "OR", "ND"):
+        frappe.throw(_("Choose a supported Logistics reason."))
+    zero = False
+    if quantity not in (None, "") and not isinstance(quantity, bool):
+        try:
+            zero = Decimal(str(quantity)) == Decimal(0)
+        except (InvalidOperation, TypeError, ValueError):
+            pass
+    if reason_code in ("SA", "CR", "TO", "SE") and zero:
+        if transfer_qty not in (None, "", 0, "0") or destination_date:
+            frappe.throw(_("Zero quantity cannot include a date transfer."))
+        remark = _clean_remarks(remarks) or reason_code
+        mark_returned(row, remark, reason_code, remark)
+        return {**_serialize(row), "changed": True, "returned": True}
     saved = _save_commitment(schedule, expected_modified, "Logistics", quantity, remarks,
         transfer_qty=transfer_qty, destination_date=destination_date, reason_code=reason_code)
     return _confirm(schedule, saved["modified"], "Logistics")
@@ -318,6 +341,8 @@ def update_commitment(schedule, modified, department, quantity, remarks=""):
 
 def _confirm(schedule, expected_modified, department):
     row, so, item = _load_locked(schedule, expected_modified, department)
+    from qcmc_logic.api.delivery_sales_planning import require_endorsed, mark_returned
+    require_endorsed(row)
     approved_field = "sales_confirmed_by" if department == "Sales" else "logistics_confirmed_by"
     if (department == "Sales" and row.get(approved_field) == frappe.session.user
             and row.confirmation_status == "Finalized" and not row.get("logistics_transfer_qty")):
@@ -338,16 +363,16 @@ def _confirm(schedule, expected_modified, department):
             str(row.modified), transfer_reason, allow_finalized_correction=logistics_correction)
         source_doc = frappe.get_doc("SO Delivery Schedule", row.name)
         destination_doc = frappe.get_doc("SO Delivery Schedule", result["destination"])
-        for target, confirmed_qty in ((source_doc, source_doc.current_total), (destination_doc, transfer_qty)):
-            target.logistics_committed_qty = confirmed_qty
-            target.logistics_confirmed_by = frappe.session.user
-            target.logistics_transfer_qty = 0
-            target.logistics_destination_date = None
-            target.sales_confirmed_by = None
-            target.final_qty = None
-            target.finalized_at = None
-            target.confirmation_status = "In Review"
-            _save(target)
+        mark_returned(destination_doc, transfer_reason, row.get("logistics_reason"), transfer_reason)
+        if flt(source_doc.current_total) <= 0:
+            mark_returned(source_doc, transfer_reason, row.get("logistics_reason"), transfer_reason)
+        else:
+            source_doc.logistics_committed_qty = source_doc.current_total
+            source_doc.logistics_confirmed_by = frappe.session.user
+            source_doc.logistics_transfer_qty = 0
+            source_doc.logistics_destination_date = None
+            source_doc.confirmation_status = "In Review"
+            _save(source_doc)
         return {**_serialize(source_doc), "changed": True,
             "transfer": {"source": row.name, "destination": destination_doc.name,
                 "quantity": flt(transfer_qty), "transaction_id": result["transaction_id"]}}
@@ -374,6 +399,16 @@ def _confirm(schedule, expected_modified, department):
         from qcmc_logic.api.delivery_schedule_service import _split_unfinalized_schedule_balance
         _split_unfinalized_schedule_balance(row, so, item, own_quantity, item.precision("qty"))
 
+    if department == "Logistics" and own_quantity < Decimal(str(row.current_total or 0)):
+        if _has_dn_history(row.name):
+            frappe.throw(_("Delivery Note history is protected."))
+        from qcmc_logic.api.delivery_schedule_service import _transfer_to_new_schedule
+        balance = Decimal(str(row.current_total)) - own_quantity
+        return_reason = _clean_remarks(row.logistics_remarks) or row.get("logistics_reason") or _("Unconfirmed balance")
+        destination, _tx = _transfer_to_new_schedule(row, so, item, balance, row.delivery_date,
+            return_reason, clear_source_confirmation=False)
+        mark_returned(destination, return_reason, row.get("logistics_reason"), return_reason)
+        row.reload()
     row.set(approved_field, frappe.session.user)
     if department == "Sales":
         row.final_qty = float(own_quantity)
@@ -474,6 +509,8 @@ def proceed_to_dr(schedules):
         if name in quantities:
             frappe.throw(_("Schedule {0} was selected more than once.").format(name))
         row, so, item = _load_locked(name, entry["modified"], "Sales")
+        from qcmc_logic.api.delivery_sales_planning import require_endorsed
+        require_endorsed(row)
         if not row.logistics_confirmed_by or row.logistics_committed_qty is None or flt(row.logistics_committed_qty) <= 0:
             frappe.throw(_("Schedule {0} needs a positive Logistics-confirmed quantity before Sales can create Delivery Note details.").format(name))
         from qcmc_logic.api.delivery_schedule_service import quantity_state
@@ -526,6 +563,8 @@ def get_proceed_to_dr_preview(schedules):
             frappe.throw(_("Schedule {0} was selected more than once.").format(name))
         identities.add(name)
         row, so, item = _load_locked(name, entry["modified"], "Sales")
+        from qcmc_logic.api.delivery_sales_planning import require_endorsed
+        require_endorsed(row)
         if not row.logistics_confirmed_by or row.logistics_committed_qty is None or flt(row.logistics_committed_qty) <= 0:
             frappe.throw(_("Schedule {0} needs a positive Logistics-confirmed quantity before Sales can create Delivery Note details.").format(name))
         quantity = row.final_qty if row.confirmation_status == "Finalized" and row.sales_confirmed_by and row.final_qty is not None else row.logistics_committed_qty
@@ -555,7 +594,7 @@ def get_proceed_to_dr_preview(schedules):
     selected_by_order_date = {(r["sales_order"], r["delivery_date"], r["schedule"]) for r in selected}
     for so_name, date in sorted(snapshots):
         candidates = frappe.get_all("SO Delivery Schedule", filters={
-            "sales_order": so_name, "delivery_date": date, "history_status": "Verified"},
+            "sales_order": so_name, "delivery_date": date, "history_status": "Verified", "endorsement_status": "Endorsed"},
             fields=["name", "sales_order_item", "modified", "final_qty", "sales_confirmed_by",
                 "confirmation_status", "logistics_confirmed_by", "logistics_committed_qty"])
         for candidate in candidates:
@@ -592,7 +631,9 @@ def get_proceed_to_dr_preview(schedules):
 
 @frappe.whitelist()
 def get_schedule_rows(company, delivery_date=None, warehouse=None, limit=500, include_overdue=0):
-    """Read V2 schedule commitments without exposing unauthorized SOs or warehouses."""
+    """Read endorsed schedule commitments without exposing unauthorized SOs or warehouses."""
+    from qcmc_logic.api.delivery_workbench_collaboration import revision
+    read_revision = revision()
     if frappe.session.user != "Administrator" and not set(frappe.get_roles()).intersection(_VIEW_ROLES):
         frappe.throw(_("You are not authorized to view delivery schedules."), frappe.PermissionError)
     if not company or not frappe.has_permission("Company", "read", company):
@@ -606,6 +647,7 @@ def get_schedule_rows(company, delivery_date=None, warehouse=None, limit=500, in
         "so.docstatus = 1",
         "so.status IN ('To Deliver and Bill', 'To Deliver', 'To Bill')",
         "so.custom_so_type = 'REGULAR'",
+        "s.endorsement_status = 'Endorsed'",
     ]
     values = [company]
     if warehouse:
@@ -613,9 +655,13 @@ def get_schedule_rows(company, delivery_date=None, warehouse=None, limit=500, in
             frappe.throw(_("Warehouse does not belong to the selected company."))
         conditions.append("s.warehouse = %s")
         values.append(warehouse)
-    if delivery_date:
-        conditions.append("s.delivery_date <= %s" if str(include_overdue) in ("1", "True", "true") else "s.delivery_date = %s")
-        values.append(delivery_date)
+    if not delivery_date:
+        frappe.throw(_("Select the operational delivery date."))
+    # Shared execution queue is scoped to the selected operational date, not the overdue backlog.
+    if frappe.utils.getdate(delivery_date) < frappe.utils.getdate(frappe.utils.today()):
+        return {"rows": [], "count": 0, "draft_dn_count": 0, "possibly_truncated": False, "revision": read_revision}
+    conditions.append("s.delivery_date = %s")
+    values.append(delivery_date)
     values.append(limit)
     logistics_reason_sql = "s.logistics_reason" if frappe.db.has_column("SO Delivery Schedule", "logistics_reason") else "''"
     records = frappe.db.sql("""
@@ -626,7 +672,7 @@ def get_schedule_rows(company, delivery_date=None, warehouse=None, limit=500, in
             s.sales_proposed_qty, s.sales_remarks, s.logistics_committed_qty,
             s.logistics_remarks, {logistics_reason_sql} AS logistics_reason,
             s.logistics_transfer_qty, s.logistics_destination_date,
-            s.final_qty, s.confirmation_status,
+            s.final_qty, s.confirmation_status, s.endorsement_status,
             s.sales_confirmed_by, s.logistics_confirmed_by, s.finalized_at, s.history_status, s.modified
         FROM `tabSO Delivery Schedule` s
         JOIN `tabSales Order` so ON so.name = s.sales_order
@@ -636,8 +682,13 @@ def get_schedule_rows(company, delivery_date=None, warehouse=None, limit=500, in
     """.format(conditions=" AND ".join(conditions), logistics_reason_sql=logistics_reason_sql),
         tuple(values), as_dict=True)
     result = []
+    # Warehouse normalization may have changed the SO directly in the database.
+    # Read fresh documents once per order rather than trusting a stale Redis document.
+    so_cache = {}
     for row in records:
-        so = frappe.get_cached_doc("Sales Order", row.sales_order)
+        if row.sales_order not in so_cache:
+            so_cache[row.sales_order] = frappe.get_doc("Sales Order", row.sales_order)
+        so = so_cache[row.sales_order]
         from qcmc_logic.api.sales_order_delivery_eligibility import is_open_sales_order_for_delivery
         if (so.company != company or not is_open_sales_order_for_delivery(so)
             or so.custom_so_type not in ("REGULAR",)
@@ -674,6 +725,7 @@ def get_schedule_rows(company, delivery_date=None, warehouse=None, limit=500, in
             **row,
             "customer": so.customer,
             "customer_name": so.customer_name,
+            "item_name": item.item_name,
             "ordered_qty": flt(item.qty),
             "delivered_qty": flt(item.delivered_qty),
             "qty_precision": item.precision("qty"),
@@ -741,10 +793,7 @@ def get_schedule_rows(company, delivery_date=None, warehouse=None, limit=500, in
         """, {"items": tuple(sorted({row["item_code"] for row in result})),
             "warehouses": tuple(sorted({row["warehouse"] for row in result}))}, as_dict=True)
         stock_by_pair = {(row.item_code, row.warehouse): flt(row.actual_qty) for row in bins}
-        so_cache = {}
         for row in result:
-            if row["sales_order"] not in so_cache:
-                so_cache[row["sales_order"]] = frappe.get_cached_doc("Sales Order", row["sales_order"])
             so = so_cache[row["sales_order"]]
             row["sales_order_modified"] = str(so.modified)
             row["item_planned_qty"] = planned_by_item.get(row["sales_order_item"], 0)
@@ -781,9 +830,9 @@ def get_schedule_rows(company, delivery_date=None, warehouse=None, limit=500, in
         for name in row.get("draft_dn_names", [])})
     pending = [row for row in result if not row.get("has_active_dn") and (
         row.get("history_status") != "Verified" or flt(row.get("current_total")) > 0)]
-    pending.extend(_unscheduled_item_rows(company, delivery_date, warehouse, include_overdue, limit))
+    # Unscheduled items belong exclusively to Sales Planning.
     return {"rows": pending, "count": len(pending), "draft_dn_count": len(draft_names),
-        "possibly_truncated": len(records) == limit}
+        "possibly_truncated": len(records) == limit, "revision": read_revision}
 
 
 def _apply_fulfillment_read_model(row, fulfillment):

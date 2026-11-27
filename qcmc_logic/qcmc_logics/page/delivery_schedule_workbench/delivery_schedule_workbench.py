@@ -7,6 +7,7 @@ from qcmc_logic.api import delivery_confirmation_service as confirmation
 
 @frappe.whitelist()
 def get_data(filters=None):
+	frappe.throw(_("Old Delivery Note workbench is retired. Open Delivery Schedule Workbench."))
 	collaboration._role_check()
 	revision = collaboration.revision()
 	filters = frappe._dict(frappe.parse_json(filters or "{}"))
@@ -38,6 +39,7 @@ def get_data(filters=None):
 
 @frappe.whitelist()
 def proceed_to_dr_printing(items):
+	frappe.throw(_("Release schedules through Delivery Schedule Workbench."))
 	"""Release saved DR quantities; old review fields are not quantity instructions."""
 	confirmation._validate_sales_approval_role()
 	rows = frappe.parse_json(items or "[]")
@@ -63,15 +65,14 @@ def get_logistics_reason_options():
 
 @frappe.whitelist()
 def preview_whole_dr_move(delivery_note):
+	from qcmc_logic.api.delivery_schedule_revision import _validate_v2_sales_edit_draft
 	confirmation._validate_sales_approval_role()
 	doc = frappe.get_doc("Delivery Note", delivery_note)
-	confirmation._validate_sales_review_delivery_note(doc, require_transact=True)
-	doc.check_permission("read")
+	_validate_v2_sales_edit_draft(doc)
 	return {"name": doc.name, "customer": doc.customer_name, "document_modified": str(doc.modified),
 		"items": [{"item_code": item.item_code, "item_name": item.item_name, "qty": item.qty,
-			"delivery_date": frappe.db.get_value("Sales Order Item", item.so_detail, "delivery_date")}
+			"delivery_date": frappe.db.get_value("SO Delivery Schedule", item.custom_so_delivery_schedule, "delivery_date")}
 			for item in doc.items]}
-
 
 @frappe.whitelist()
 def move_whole_dr(delivery_note, move_date, document_modified, edit_token=None, remarks=None):
@@ -89,6 +90,7 @@ def change_dr_quantity(delivery_note, dn_detail, qty, move_date, document_modifi
 
 @frappe.whitelist()
 def autosave_item(row):
+	frappe.throw(_("Sales and Logistics decisions are recorded on SO Delivery Schedule."))
 	row = frappe._dict(frappe.parse_json(row or "{}"))
 	if not row.get("delivery_note") or not row.get("dn_detail"):
 		frappe.throw(_("Delivery Note and item are required."))

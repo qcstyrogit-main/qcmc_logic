@@ -20,6 +20,10 @@ SALES_ORDER_PRICING_FIELDS = (
 
 @frappe.whitelist()
 def create_sales_invoice_from_draft_dn(dn_name):
+	from qcmc_logic.customs.delivery_dr_number import require_dr_number
+	dn = frappe.get_doc("Delivery Note", dn_name)
+	dn.check_permission("read")
+	require_dr_number(dn)
 	def set_missing_values(source, target):
 		# Match the initialization performed by ERPNext's Sales Order and
 		# submitted Delivery Note invoice mappers.

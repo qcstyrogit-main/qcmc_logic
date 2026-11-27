@@ -14,6 +14,5 @@ def hide_retired_reports(bootinfo):
     for sidebar in (bootinfo.get("workspace_sidebar_item") or {}).values():
         sidebar["items"] = [
             item for item in sidebar.get("items", [])
-            if (item.get("link_type"), item.get("link_to")) != ("Page", RETIRED_PAGE)
-            and (item.get("link_type") != "Report" or item.get("link_to") not in RETIRED_REPORTS)
+            if (item.get("link_type") != "Report" or item.get("link_to") not in RETIRED_REPORTS)
         ]

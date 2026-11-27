@@ -52,8 +52,8 @@ def execute():
 
 	page = frappe.get_doc("Page", "sales-order-delivery-scheduling-workbench")
 	page_roles = {row.role for row in page.roles}
-	if page_roles != {"System Manager"} or page.title != "Sales Order Delivery Scheduling Workbench":
-		page.set("roles", [{"role": "System Manager"}])
+	if page_roles != {"Sales Coordinator", "System Manager"} or page.title != "Sales Order Delivery Scheduling Workbench":
+		page.set("roles", [{"role": "Sales Coordinator"}, {"role": "System Manager"}])
 		page.title = "Sales Order Delivery Scheduling Workbench"
 		page.save(ignore_permissions=True)
 		frappe.clear_cache(doctype="Page")

@@ -307,3 +307,79 @@ def get_process_card_shift_summary(process_card):
 		"downtime_entries": downtime_entries,
 		"breakdowns": breakdowns,
 	}
+
+
+@frappe.whitelist(methods=["GET"])
+def get_work_order_manufacturing_history(work_order):
+	"""Return source events reachable from a user's Work Order."""
+	order = frappe.get_doc("Work Order", work_order)
+	order.check_permission("read")
+
+	def visible(doctype, filters, fields):
+		if not frappe.has_permission(doctype, "read"):
+			return []
+		return frappe.get_list(doctype, filters=filters, fields=fields, limit_page_length=0)
+
+	jobs = visible("Job Card", {"work_order": order.name}, [
+		"name", "operation", "total_completed_qty", "manufactured_qty", "docstatus",
+	])
+	job_names = {job.name for job in jobs}
+	card_names = set(frappe.get_all("Process Card Job", filters={"job_card": ["in", list(job_names)]},
+		pluck="parent")) if job_names else set()
+	shifts = []
+	for card in visible("Process Card", {"name": ["in", list(card_names)]}, ["name"]):
+		try:
+			summary = get_process_card_shift_summary(card.name)
+		except frappe.PermissionError:
+			continue
+		shifts.append({
+			"name": card.name,
+			"workstation": summary["workstation"],
+			"shift_type": summary["shift_type"],
+			"shift_start": summary["shift_start"],
+			"shift_end": summary["shift_end"],
+			"section_access": summary["section_access"],
+			"output": [row for row in summary["production_output"]["per_job"] if row["job_card"] in job_names],
+			"participation": [row for row in summary["manpower_participation"] if row["job_card"] in job_names],
+			"qa": [row for row in summary["quality_inspections"] if row["job_card"] in job_names],
+			"qa_rejections": [row for row in summary["qa_rejections"] if row["job_card"] in job_names],
+			"measurements": [row for row in summary["measurements"] if row["job_card"] in job_names],
+			"downtime": [row for row in summary["downtime_entries"] if row["process_card"] == card.name
+				and (not row["job_card"] or row["job_card"] in job_names)],
+			"repairs": [row for row in summary["breakdowns"] if not row["job_card"] or row["job_card"] in job_names],
+		})
+
+	stock = []
+	for row in visible("Stock Entry", {"work_order": order.name, "docstatus": 1}, ["name"]):
+		entry = frappe.get_doc("Stock Entry", row.name)
+		entry.check_permission("read")
+		request_names = {item.material_request for item in entry.items if item.get("material_request")}
+		readable_requests = {request.name for request in visible("Material Request",
+			{"name": ["in", sorted(request_names)]}, ["name"])} if request_names else set()
+		source_job = entry.get("custom_final_job_card") or entry.get("job_card")
+		stock.append({
+			"name": entry.name,
+			"purpose": entry.purpose,
+			"posting_date": entry.posting_date,
+			"job_card": source_job if source_job in job_names else None,
+			"allocations": frappe.parse_json(entry.get("qcmc_output_allocations") or "[]")
+				if entry.get("custom_final_job_card") in job_names else [],
+			"items": [{
+				"item_code": item.item_code,
+				"qty": item.transfer_qty,
+				"uom": item.stock_uom,
+				"from_warehouse": item.s_warehouse,
+				"to_warehouse": item.t_warehouse,
+				"finished": item.is_finished_item,
+				"material_request": item.get("material_request") if item.get("material_request") in readable_requests else None,
+			} for item in entry.items],
+		})
+
+	return {
+		"operations": [{
+			"operation": row.operation, "status": row.status, "completed_qty": row.completed_qty,
+		} for row in order.operations],
+		"job_cards": jobs,
+		"process_cards": shifts,
+		"stock_entries": stock,
+	}

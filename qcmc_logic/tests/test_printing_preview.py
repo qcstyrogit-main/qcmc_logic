@@ -114,7 +114,8 @@ class TestPrintingPreview(TestCase):
 				return frappe._dict(company="Company", customer="Customer", docstatus=1, status="To Deliver and Bill")
 			if doctype == "SO Delivery Schedule":
 				return frappe._dict(sales_order="SO-v2", sales_order_item="SOI-v2",
-					item_code="ITEM", warehouse="WH", confirmation_status="Finalized")
+					item_code="ITEM", warehouse="WH", confirmation_status="Finalized", endorsement_status="Endorsed",
+					history_status="Verified", sales_confirmed_by="sales", logistics_confirmed_by="logistics")
 			if doctype == "Sales Order" and fields == "custom_delivery_schedule_v2_enabled":
 				return 1
 			return None

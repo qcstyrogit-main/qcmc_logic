@@ -8,12 +8,12 @@ from qcmc_logic.customs.manufacturing_warehouse_access import user_can_transact_
 
 
 @frappe.whitelist()
-def create_next_job_card(work_order):
+def create_next_job_card(work_order, operation_id=None):
 	"""Create the next shift Job Card for the Work Order's remaining output."""
 	if not work_order or not frappe.db.exists("Work Order", work_order):
 		frappe.throw(_("Work Order is required and must exist."))
 
-	doc = frappe.get_doc("Work Order", work_order)
+	doc = frappe.get_doc("Work Order", work_order, for_update=True)
 	if doc.docstatus != 1:
 		frappe.throw(_("Work Order {0} must be submitted.").format(frappe.bold(doc.name)))
 	if doc.status in {"Completed", "Closed", "Stopped", "Cancelled"}:
@@ -27,7 +27,8 @@ def create_next_job_card(work_order):
 			frappe.bold(doc.name)
 		), frappe.PermissionError)
 
-	operation = _get_final_operation(doc)
+	final_operation = _get_final_operation(doc)
+	operation = next((row for row in doc.operations if row.name == operation_id), None) if operation_id else final_operation
 	if not operation:
 		frappe.throw(_("Work Order {0} has no operation for a Job Card.").format(
 			frappe.bold(doc.name)
@@ -37,7 +38,9 @@ def create_next_job_card(work_order):
 	# Work Order.produced_qty increases only after its Manufacture Stock Entry is
 	# submitted. Between those two steps, using produced_qty alone would reserve
 	# the same output twice and the next Job Card would fail quantity validation.
-	accounted_qty = max(flt(doc.produced_qty), flt(operation.completed_qty))
+	accounted_qty = flt(operation.completed_qty)
+	if operation == final_operation:
+		accounted_qty = max(flt(doc.produced_qty), accounted_qty)
 	remaining_qty = max(flt(doc.qty) - accounted_qty, 0)
 	if not remaining_qty:
 		frappe.throw(_("Work Order {0} has no remaining quantity to manufacture.").format(
@@ -54,6 +57,7 @@ def create_next_job_card(work_order):
 		},
 		"name",
 		order_by="creation desc",
+		for_update=True,
 	)
 	if existing:
 		return {

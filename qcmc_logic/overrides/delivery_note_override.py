@@ -9,6 +9,10 @@ from qcmc_logic.api.delivery_note import apply_sales_order_pricing_to_invoice
 
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None, args=None):
+    from qcmc_logic.customs.delivery_dr_number import require_dr_number
+    dn = frappe.get_doc("Delivery Note", source_name)
+    dn.check_permission("read")
+    require_dr_number(dn)
     sales_invoice = erpnext_make_sales_invoice(source_name, target_doc=target_doc, args=args)
     apply_sales_order_pricing_to_invoice(sales_invoice)
     return sales_invoice

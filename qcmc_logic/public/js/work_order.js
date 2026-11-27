@@ -14,6 +14,9 @@ frappe.ui.form.on("Work Order", {
 		schedule_roll_formulation_grid_config(frm);
 		schedule_roll_formulation_preview(frm);
 		add_next_job_card_button(frm);
+		if (!frm.is_new()) {
+			frm.add_custom_button(__("Manufacturing History"), () => show_manufacturing_history(frm), __("View"));
+		}
 		install_job_order_print_handler(frm);
 	},
 
@@ -113,20 +116,23 @@ function add_next_job_card_button(frm) {
 		return;
 	}
 
+	const options = frm.doc.operations
+		.filter((row) => flt(row.completed_qty) < flt(frm.doc.qty))
+		.map((row) => ({ value: row.name, label: `${row.idx}. ${row.operation}` }));
+	if (!options.length) return;
+
 	frm.add_custom_button(__("Create Next Job Card"), () => {
-		frappe.call({
-			method: "qcmc_logic.api.work_order_job_card.create_next_job_card",
-			args: { work_order: frm.doc.name },
-			freeze: true,
-			freeze_message: __("Creating Job Card..."),
-			callback(response) {
-				const result = response.message;
-				if (!result?.job_card) {
-					return;
-				}
-				frappe.set_route("Form", "Job Card", result.job_card);
-			},
-		});
+		frappe.prompt([{
+			fieldname: "operation_id", fieldtype: "Select", label: __("Operation"),
+			options, default: options.at(-1).value, reqd: 1,
+		}], async ({ operation_id }) => {
+			const { message } = await frappe.call({
+				method: "qcmc_logic.api.work_order_job_card.create_next_job_card",
+				args: { work_order: frm.doc.name, operation_id },
+				freeze: true,
+			});
+			if (message?.job_card) frappe.set_route("Form", "Job Card", message.job_card);
+		}, __("Create Next Job Card"), __("Continue"));
 	});
 }
 
@@ -809,4 +815,53 @@ function get_roll_formulation_fields() {
 		"required_qty",
 		"amount",
 	];
+}
+
+async function show_manufacturing_history(frm) {
+	const { message: history } = await frappe.call({
+		method: "qcmc_logic.api.process_card_services.get_work_order_manufacturing_history",
+		type: "GET",
+		args: { work_order: frm.doc.name },
+		freeze: true,
+	});
+	const escape = (value) => frappe.utils.escape_html(String(value ?? ""));
+	const link = (doctype, name) => `<a href="${escape(frappe.utils.get_form_link(doctype, name))}">${escape(name)}</a>`;
+	const list = (rows) => rows.length ? `<ul>${rows.map((row) => `<li>${row}</li>`).join("")}</ul>` : "";
+	const section = (title, rows) => rows.length ? `<h5>${escape(__(title))}</h5>${list(rows)}` : "";
+	const html = section("Operations", history.operations.map((row) =>
+		`${escape(row.operation)} · ${escape(row.completed_qty)} · ${escape(row.status)}`))
+		+ section("Job Cards", history.job_cards.map((row) =>
+			`${link("Job Card", row.name)} · ${escape(row.operation)} · ${escape(row.total_completed_qty)}`))
+		+ section("Process Cards", history.process_cards.map((shift) => link("Process Card", shift.name)
+			+ " · " + escape(shift.workstation) + " · " + escape(shift.shift_type) + " · " + escape(shift.shift_start) + " – " + escape(shift.shift_end)
+			+ (shift.section_access && Object.values(shift.section_access).includes(false) ? "<p class=\"text-muted\">" + escape(__("Some sections are restricted by your permissions.")) + "</p>" : "")
+			+ section("Output Intervals", shift.output.flatMap((job) => job.entries.map((row) =>
+				`${link("Job Card", job.job_card)} · ${escape(row.from_time)} – ${escape(row.to_time)} · ${escape(row.good_qty)} ${__("good")} / ${escape(row.rejected_qty)} ${__("rejected")} · ${row.confirmed ? __("Confirmed") : __("Declared")}`)))
+			+ section("Employee Participation", shift.participation.map((row) =>
+				`${link("Employee", row.employee) + " · " + escape(row.employee_name)} · ${link("Job Card", row.job_card)} · ${escape(row.pay_mode)} · ${escape(row.from_time)} – ${escape(row.to_time)}`))
+			+ section("Quality Inspections", shift.qa.map((row) =>
+				`${link("Quality Inspection", row.name)} · ${escape(row.status)} · ${escape(row.qa_start)} – ${escape(row.qa_end)} · ${escape(row.qa_rejected_qty)} ${__("rejected")}`))
+			+ section("Product Weight / Measurements", (shift.measurements || []).map((row) =>
+				link("Quality Inspection", row.quality_inspection) + " · " + escape(row.specification) + " · " + escape(row.reading_value || (row.readings || []).filter(value => value != null && value !== "").join(", ")) + " " + escape(row.uom) + " · " + escape(row.result)))
+			+ section("QA Rejections", shift.qa_rejections.map((row) =>
+				`${link("Quality Inspection", row.quality_inspection)} · ${escape(row.reject_reason)} · ${escape(row.rejected_qty)}`))
+			+ section("Downtime", shift.downtime.map((row) =>
+				`${link("Downtime Entry", row.name)} · ${escape(row.stop_reason)} · ${escape(row.from_time)} – ${escape(row.to_time)}`))
+			+ section("Asset Repairs", shift.repairs.map((row) =>
+				`${link("Asset Repair", row.name)} · ${escape(row.asset)} · ${escape(row.repair_status)}`))))
+		+ section("Submitted Stock Entries", history.stock_entries.map((entry) =>
+			`${link("Stock Entry", entry.name)} · ${escape(entry.purpose)} · ${escape(entry.posting_date)}`
+			+ (entry.job_card ? " · " + link("Job Card", entry.job_card) : "")
+			+ list([...new Set(entry.items.map(row => row.material_request).filter(Boolean))].map(name => link("Material Request", name)))
+			+ list(entry.items.map((row) =>
+				`${escape(row.item_code)} · ${escape(row.qty)} ${escape(row.uom)} · ${escape(row.from_warehouse)} → ${escape(row.to_warehouse)}`))
+			+ list(entry.allocations.map((row) =>
+				`${link("Process Card", row.process_card)} · ${escape(row.time_log)} · ${escape(row.qty)}`))));
+	const dialog = new frappe.ui.Dialog({
+		title: __("Manufacturing History"),
+		size: "extra-large",
+		fields: [{ fieldname: "history", fieldtype: "HTML" }],
+	});
+	dialog.fields_dict.history.$wrapper.html(html || escape(__("No manufacturing activity recorded.")));
+	dialog.show();
 }

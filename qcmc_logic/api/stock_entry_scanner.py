@@ -7,6 +7,7 @@ import uuid
 from decimal import Decimal, InvalidOperation
 
 import frappe
+from frappe import _
 from frappe.utils import flt, get_datetime, now_datetime
 
 from qcmc_logic.api.stock_reconciliation import _authenticate_request_user
@@ -600,6 +601,7 @@ def _manufacture_receive_context(doc, finished, include_putaway=True):
 			}
 			for row in finished
 		],
+		"production_output_allocations": frappe.parse_json(doc.get("qcmc_output_allocations") or "[]"),
 		"putaway_allocations": allocations,
 		"allocation_count": len(allocations),
 		"distribution_mode": distribution_mode,
@@ -741,7 +743,7 @@ def create_manufacture_receive_draft(
 				requested_qty = float(str(quantity).replace(",", ""))
 			except (TypeError, ValueError):
 				raise ScannerAPIError("INVALID_QUANTITY", "Manufacture quantity must be numeric.")
-			if requested_qty <= 0:
+			if not math.isfinite(requested_qty) or requested_qty <= 0:
 				raise ScannerAPIError("INVALID_QUANTITY", "Manufacture quantity must be greater than zero.")
 			if requested_qty > remaining_qty:
 				raise ScannerAPIError(
@@ -753,7 +755,6 @@ def create_manufacture_receive_draft(
 
 		frappe.db.savepoint("create_manufacture_receive_draft")
 		savepoint_started = True
-		frappe.db.sql("select name from `tabJob Card` where name=%s for update", job_card_id)
 
 		# Create new Draft Stock Entry
 		# NOTE: We NO LONGER reuse existing drafts based on job_card_id + reference.
@@ -931,9 +932,15 @@ def update_manufacture_receive_draft(
 			stock_row.qty = update["quantity"]
 			stock_row.transfer_qty = update["quantity"] * factor
 			stock_row.custom_actual_weight_per_item = update["custom_actual_weight_per_item"]
+		from qcmc_logic.customs.stock_entry import lock_manufacture_work_order
+
+		for work_order in sorted({doc.work_order for doc in documents.values() if doc.work_order}):
+			lock_manufacture_work_order(work_order)
 		for doc in documents.values():
 			if doc.docstatus != 0:
 				raise ScannerAPIError("STOCK_ENTRY_NOT_DRAFT", f"Stock Entry '{doc.name}' is not Draft.")
+			if doc.get("qcmc_output_allocations"):
+				_resize_manufacture_receipt(doc)
 			doc.save(ignore_permissions=True)
 		for update in updates:
 			source = sources[(update["stock_entry_id"], update["stock_entry_row"])]
@@ -956,6 +963,25 @@ def update_manufacture_receive_draft(
 		if savepoint_started:
 			frappe.db.rollback(save_point="update_manufacture_receive_draft")
 		return _error("ERP_VALIDATION_FAILED", str(exc))
+
+
+
+def _resize_manufacture_receipt(doc):
+	old_quantity = flt(doc.fg_completed_qty)
+	quantity = sum(flt(row.transfer_qty) for row in doc.items if row.is_finished_item)
+	if not old_quantity or quantity <= 0:
+		frappe.throw(_("A manufacturing receipt must have positive finished goods quantity."))
+
+	ratio = quantity / old_quantity
+	for row in doc.items:
+		if not row.is_finished_item:
+			row.qty = flt(row.qty * ratio, row.precision("qty"))
+			row.transfer_qty = flt(row.qty * row.conversion_factor, row.precision("transfer_qty"))
+	for cost in doc.additional_costs:
+		if cost.has_operating_cost:
+			cost.amount = flt(cost.amount * ratio, cost.precision("amount"))
+	doc.fg_completed_qty = quantity
+	doc.process_loss_qty = 0
 
 
 def _canonical(stock_entry_id, submission_id, entries, distribution_parent_id=None):
@@ -1261,7 +1287,10 @@ def _submit(stock_entry_id, submission_id, entries, user, distribution_parent_id
 		replay = _get_idempotent_replay(submission_id, request_hash)
 		if replay:
 			return replay
+		from qcmc_logic.customs.stock_entry import lock_manufacture_work_order
 		from qcmc_logic.warehouse_capacity import lock_warehouses
+
+		lock_manufacture_work_order(frappe.db.get_value("Stock Entry", stock_entry_id, "work_order"))
 		lock_warehouses(frappe.get_all("Stock Entry Detail", filters={"parent": stock_entry_id}, pluck="t_warehouse"))
 		frappe.db.sql("select name from `tabStock Entry` where name=%s for update", stock_entry_id)
 		# Recheck after waiting for the document lock so concurrent identical

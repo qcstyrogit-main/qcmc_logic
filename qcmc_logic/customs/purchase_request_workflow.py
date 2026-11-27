@@ -20,6 +20,9 @@ def apply_workflow(doc, action):
     from frappe.model.workflow import apply_workflow as standard_apply_workflow
 
     data = frappe.parse_json(doc) if isinstance(doc, str) else doc
+    if data.get('doctype') == 'Delivery Note' and action == 'Tag To Active':
+        from qcmc_logic.customs.delivery_note_posting import apply_final_workflow
+        return apply_final_workflow(data, action, standard_apply_workflow)
     if data.get('doctype') == 'Maintenance Job Order':
         from qcmc_logic.customs.maintenance_job_order import apply_workflow as maintenance_apply_workflow
         return maintenance_apply_workflow(data, action)

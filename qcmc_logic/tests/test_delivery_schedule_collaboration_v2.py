@@ -68,6 +68,7 @@ class TestScheduleConfirmations(TestCase):
 	def make_schedule(self, **overrides):
 		values = dict(
 			name="SCHED-1", modified="v1", delivery_date="2026-11-20", planned_qty=10000, original_qty=10000,
+			endorsement_status="Endorsed",
 			quantity_changes=0, current_total=10000, original_promise_date="2026-11-20",
 			source_schedule=None, source_date=None, movement_transaction_id=None,
 			sales_proposed_qty=4000, sales_remarks="Accepted amount",
@@ -169,8 +170,14 @@ class TestScheduleConfirmations(TestCase):
 				collaboration.validate_sales_final_quantity(5, 4, item, 10)
 
 	def test_logistics_autosave_also_confirms_commitment(self):
-		with patch.object(collaboration, "_save_commitment", return_value={"modified": "v2", "changed": True}) as save, \
-			patch.object(collaboration, "_confirm", return_value={"logistics_confirmed_by": "logistics@example.com"}) as confirm:
+		row = self.make_schedule()
+		with (
+			patch.object(collaboration, "_load_locked", return_value=(row, object(), object())),
+			patch.object(collaboration, "_has_dn_history", return_value=False),
+			patch.object(collaboration, "_clean_logistics_reason", return_value="OK"),
+			patch.object(collaboration, "_save_commitment", return_value={"modified": "v2", "changed": True}) as save,
+			patch.object(collaboration, "_confirm", return_value={"logistics_confirmed_by": "logistics@example.com"}) as confirm,
+		):
 			result = collaboration.save_logistics_commitment("SCHED-1", "v1", 5000,
 				"Ready", transfer_qty=None, destination_date=None, reason_code="OK")
 		self.assertEqual(result["logistics_confirmed_by"], "logistics@example.com")
@@ -180,7 +187,7 @@ class TestScheduleConfirmations(TestCase):
 
 	def test_logistics_confirmation_does_not_finalize_for_sales(self):
 		row = self.make_schedule(logistics_confirmed_by=None, sales_confirmed_by=None,
-			logistics_transfer_qty=0)
+			logistics_transfer_qty=0, logistics_committed_qty=10000)
 		item = SimpleNamespace(precision=lambda field: 0)
 		with patch.object(collaboration, "_load_locked", return_value=(row, object(), item)), \
 			patch.object(collaboration, "_assert_open"), patch.object(collaboration, "_save"), \

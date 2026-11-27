@@ -19,6 +19,20 @@ def make_job_card(qty):
 	return doc
 
 
+class TestJobCardEmployeeSummary(TestCase):
+	def test_output_only_row_does_not_create_blank_summary_employee(self):
+		doc = make_job_card(5000)
+		output = _dict(qcmc_output_revision=1, qcmc_good_qty=2000)
+		participation = _dict(employee="EMP-1", qcmc_output_revision=0)
+		blank = _dict(employee=None)
+		real = _dict(employee="EMP-1")
+		doc.__dict__.update(time_logs=[output, participation], employee=[blank, real])
+		doc.__dict__["remove"] = lambda row: doc.employee.remove(row)
+		doc._remove_blank_summary_employees()
+		self.assertEqual(doc.employee, [real])
+		self.assertEqual(doc.time_logs, [output, participation])
+
+
 class TestShiftJobCardQuantityValidation(TestCase):
 	@patch("qcmc_logic.overrides.job_card.frappe")
 	def test_partial_submitted_shifts_leave_actual_remainder_available(self, frappe):

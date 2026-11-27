@@ -84,6 +84,7 @@ frappe.ui.form.on("Process Card", {
 		frm.add_custom_button(__("Shift Summary"), () => {
 			frappe.call({
 				method: "qcmc_logic.api.process_card_services.get_process_card_shift_summary",
+				type: "GET",
 				args: { process_card: frm.doc.name },
 				freeze: true,
 				freeze_message: __("Loading shift summary..."),
@@ -91,10 +92,11 @@ frappe.ui.form.on("Process Card", {
 				const escape = value => frappe.utils.escape_html(String(value ?? ""));
 				const metric = value => value == null ? __("Unavailable") : Number(value).toFixed(2);
 				const table = (headers, rows) => `
-					<table class="table table-bordered table-sm">
+					<div class="table-responsive" style="margin-bottom: 18px;">
+					<table class="table table-bordered table-sm" style="min-width: 620px; margin-bottom: 0;">
 						<thead><tr>${headers.map(header => `<th>${escape(header)}</th>`).join("")}</tr></thead>
 						<tbody>${rows || `<tr><td colspan="${headers.length}">${escape(__("No records"))}</td></tr>`}</tbody>
-					</table>`;
+					</table></div>`;
 				const outputRows = summary.production_output.per_job.map(row =>
 					`<tr><td>${escape(row.job_card)}</td><td>${escape(row.production_item)}</td><td>${metric(row.good_qty)}</td><td>${metric(row.rejected_qty)}</td></tr>`
 				).join("");
@@ -120,6 +122,7 @@ frappe.ui.form.on("Process Card", {
 				if (summary.section_access && Object.values(summary.section_access).includes(false)) frappe.show_alert({message: __("Some shift summary sections are restricted by your permissions."), indicator: "orange"});
 				const dialog = new frappe.ui.Dialog({
 					title: __("Shift Summary"),
+					size: "extra-large",
 					fields: [{fieldtype: "HTML", fieldname: "summary"}],
 					primary_action_label: __("Close"),
 					primary_action: () => dialog.hide(),

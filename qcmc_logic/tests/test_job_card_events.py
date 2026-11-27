@@ -145,6 +145,53 @@ class TestDraftJobCardProgress(TestCase):
 		)
 
 
+class TestProtectedOutputWithManpower(TestCase):
+	def output(self):
+		from datetime import datetime
+		return _dict(name="TL-1", qcmc_process_card="PC-1",
+			from_time=datetime(2026, 11, 26, 3, 30),
+			to_time=datetime(2026, 11, 26, 11, 30),
+			completed_qty=0, qcmc_good_qty=2000, qcmc_rejected_qty=0,
+			qcmc_output_revision=1, qcmc_output_entered_at=datetime(2026, 11, 26, 11, 33, 56, 139171),
+			qcmc_output_entered_by="Administrator", qcmc_output_correction_history="[]")
+
+	def test_native_save_preserves_output_when_adding_manpower(self):
+		from qcmc_logic.customs.job_card import prevent_untracked_output_checkpoint_changes
+		previous = self.output()
+		current = _dict(previous.copy())
+		for field in ("from_time", "to_time", "qcmc_output_entered_at"):
+			current[field] = str(current[field])
+		current.qcmc_good_qty = "2000"
+		current.qcmc_output_revision = "1"
+		current.employee = ""
+		employee = _dict(name="TL-2", employee="EMP-1", qcmc_process_card="PC-1",
+			qcmc_pay_mode="DR", qcmc_output_revision=0, completed_qty=0)
+		doc = _dict(flags=_dict(), time_logs=[current, employee],
+			get_doc_before_save=lambda: _dict(time_logs=[previous]))
+		prevent_untracked_output_checkpoint_changes(doc)
+
+	def test_cannot_change_production_quantity_while_adding_manpower(self):
+		from qcmc_logic.customs.job_card import prevent_untracked_output_checkpoint_changes
+		previous = self.output()
+		current = _dict(previous.copy())
+		current.qcmc_good_qty = 2001
+		doc = _dict(flags=_dict(), time_logs=[current],
+			get_doc_before_save=lambda: _dict(time_logs=[previous]))
+		with patch("qcmc_logic.customs.job_card.frappe") as frappe:
+			frappe.throw.side_effect = ValueError("Protected output")
+			with self.assertRaisesRegex(ValueError, "Protected output"):
+				prevent_untracked_output_checkpoint_changes(doc)
+
+	def test_cannot_remove_protected_output(self):
+		from qcmc_logic.customs.job_card import prevent_untracked_output_checkpoint_changes
+		doc = _dict(flags=_dict(), time_logs=[],
+			get_doc_before_save=lambda: _dict(time_logs=[self.output()]))
+		with patch("qcmc_logic.customs.job_card.frappe") as frappe:
+			frappe.throw.side_effect = ValueError("Protected output removed")
+			with self.assertRaisesRegex(ValueError, "Protected output removed"):
+				prevent_untracked_output_checkpoint_changes(doc)
+
+
 class TestJobCardBatchSize(TestCase):
 	def test_batch_size_one_creates_one_iteration_per_unit(self):
 		work_order = _dict(qty=10, has_serial_no=0)

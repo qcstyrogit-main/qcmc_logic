@@ -5,6 +5,9 @@ frappe.ui.form.on("Job Card", {
 		if (frm.is_new() || frm.doc.docstatus === 2) return;
 		setTimeout(() => qcmc_logic.job_card.fix_final_product_stock_entry_action(frm), 0);
 		setTimeout(() => qcmc_logic.job_card.fix_final_product_stock_entry_action(frm), 350);
+		if (frm.doc.work_order && !frm.doc.finished_good && (frm.doc.time_logs || []).some((row) => flt(row.completed_qty) > 0)) {
+			qcmc_logic.job_card.add_production_receipt_action(frm);
+		}
 
 		if (frm.doc.work_order && !frm.doc.skip_material_transfer) {
 			frm.add_custom_button(__("Pick List"), () => {
@@ -13,6 +16,12 @@ frappe.ui.form.on("Job Card", {
 		}
 
 		if (!frm.doc.docstatus) {
+			frm.add_custom_button(__("Record Manpower Participation"), () => {
+				qcmc_logic.job_card.record_manpower_participation(frm);
+			}, __("Production"));
+			frm.add_custom_button(__("Confirm Production Output"), () => {
+				qcmc_logic.job_card.confirm_process_card_output(frm);
+			}, __("Production"));
 			frm.add_custom_button(__("Record Production Output"), () => {
 				qcmc_logic.job_card.record_process_card_output(frm);
 			}, __("Production"));
@@ -26,6 +35,48 @@ frappe.ui.form.on("Job Card", {
 		}, __("Create"));
 	},
 });
+
+qcmc_logic.job_card.record_manpower_participation = function(frm) {
+	if (frm.is_dirty()) {
+		frappe.msgprint(__("Reload the Job Card or save unrelated changes before recording manpower."));
+		return;
+	}
+	const cards = [...new Set((frm.doc.time_logs || []).map(row => row.qcmc_process_card).filter(Boolean))];
+	const dialog = new frappe.ui.Dialog({
+		title: __("Record Manpower Participation"),
+		fields: [
+			{fieldname: "process_card", fieldtype: "Link", label: __("Process Card"), options: "Process Card", reqd: 1,
+				default: cards.length === 1 ? cards[0] : undefined,
+				get_query: () => ({filters: {company: frm.doc.company, workstation: frm.doc.workstation, status: ["in", ["Draft", "In Progress"]]}})},
+			{fieldname: "employee", fieldtype: "Link", label: __("Employee"), options: "Employee", reqd: 1,
+				get_query: () => ({filters: {company: frm.doc.company, status: "Active"}})},
+			{fieldname: "pay_mode", fieldtype: "Select", label: __("Pay Mode"), options: ["", "DR", "PCR"].join(String.fromCharCode(10)), reqd: 1},
+			{fieldname: "from_time", fieldtype: "Datetime", label: __("From Time"), reqd: 1},
+			{fieldname: "to_time", fieldtype: "Datetime", label: __("To Time"), reqd: 1},
+			{fieldname: "mca_approval_reference", fieldtype: "Data", label: __("MCA Approval Reference")},
+		],
+		primary_action_label: __("Save Participation"),
+		async primary_action(values) {
+			if (dialog.saving_participation) return;
+			dialog.saving_participation = true;
+			try {
+				await frappe.call({
+					method: "qcmc_logic.api.process_card_services.save_process_card_participation",
+					type: "POST",
+					args: {...values, job_card: frm.doc.name},
+					freeze: true,
+					freeze_message: __("Saving employee participation..."),
+				});
+				dialog.hide();
+				await frm.reload_doc();
+				frappe.show_alert({message: __("Employee participation saved."), indicator: "green"});
+			} finally {
+				dialog.saving_participation = false;
+			}
+		},
+	});
+	dialog.show();
+};
 
 qcmc_logic.job_card.record_process_card_output = function(frm) {
 	const dialog = new frappe.ui.Dialog({
@@ -68,11 +119,12 @@ qcmc_logic.job_card.record_process_card_output = function(frm) {
 qcmc_logic.job_card.correct_process_card_output = async function(frm) {
 	const response = await frappe.call({
 		method: "qcmc_logic.api.job_card_time_log.get_process_card_output_entries",
+		type: "GET",
 		args: { job_card_id: frm.doc.name },
 		freeze: true,
 		freeze_message: __("Loading production output..."),
 	});
-	const entries = response.message || [];
+	const entries = (response.message || []).filter((entry) => !entry.confirmed);
 	if (!entries.length) {
 		frappe.msgprint(__("This Job Card has no operational output entries to correct."));
 		return;
@@ -529,4 +581,63 @@ qcmc_logic.job_card.show_qr_label = async function(frm, values, payload, item, l
 	});
 	qr_dialog.show();
 	qr_dialog.get_secondary_btn().addClass("hide");
+};
+
+
+qcmc_logic.job_card.confirm_process_card_output = async function(frm) {
+	if (frm.is_dirty()) {
+		frappe.msgprint(__("Save the Job Card before confirming production."));
+		return;
+	}
+	const { message } = await frappe.call({
+		method: "qcmc_logic.api.job_card_time_log.get_process_card_output_entries",
+		type: "GET",
+		args: { job_card_id: frm.doc.name },
+	});
+	const pending = (message || []).filter((entry) => !entry.confirmed);
+	if (!pending.length) {
+		frappe.msgprint(__("There are no declarations awaiting confirmation."));
+		return;
+	}
+	const options = pending.map((entry) => ({
+		value: entry.time_log_id,
+		label: `${entry.process_card} · ${entry.from_time} – ${entry.to_time} · ${entry.good_qty} ${__("good")} / ${entry.rejected_qty} ${__("rejected")}`,
+	}));
+	frappe.prompt([{
+		fieldname: "time_log_id", fieldtype: "Select", label: __("Production Interval"),
+		options, default: options[0].value, reqd: 1,
+	}], async ({ time_log_id }) => {
+		const entry = pending.find((row) => row.time_log_id === time_log_id);
+		await frappe.call({
+			method: "qcmc_logic.api.job_card_time_log.confirm_process_card_output",
+			args: { process_card: entry.process_card, job_card: frm.doc.name, time_log_id, expected_revision: entry.revision },
+			freeze: true,
+		});
+		await frm.reload_doc();
+	}, __("Confirm Production Output"), __("Confirm"));
+};
+
+
+qcmc_logic.job_card.add_production_receipt_action = async function(frm) {
+	const job_card = frm.doc.name;
+	const { message: available } = await frappe.call({
+		method: "qcmc_logic.api.stock_entry.get_manufacture_receipt_quantity",
+		type: "GET",
+		args: { job_card },
+	});
+	if (frm.doc.name !== job_card || !available) return;
+
+	frm.add_custom_button(__("Manufacture Receipt"), () => {
+		frappe.prompt([{
+			fieldname: "qty", fieldtype: "Float", label: __("Actual Receipt Quantity"),
+			default: available, reqd: 1,
+		}], async ({ qty }) => {
+			const { message } = await frappe.call({
+				method: "qcmc_logic.api.stock_entry.make_manufacture_stock_entry_from_job_card",
+				args: { job_card, qty },
+				freeze: true,
+			});
+			if (message?.name) frappe.set_route("Form", "Stock Entry", message.name);
+		}, __("Create Manufacture Receipt"), __("Create Draft"));
+	}, __("Create"));
 };

@@ -489,3 +489,157 @@ test('output save errors are shown and the Workbench refreshes authoritative tot
 	assert.equal(refreshed, true);
 	assert.equal(wb.output_pending, false);
 });
+
+test('Work Order history displays machine, employee name, QA readings and material request links', async () => {
+	const source = fs.readFileSync(path.join(__dirname, '../public/js/work_order.js'), 'utf8');
+	new vm.Script(source);
+	let html = '';
+	let shown = false;
+	const history = {
+		operations: [],
+		job_cards: [],
+		process_cards: [{
+			name: 'PC-1', workstation: 'Machine-A', shift_type: 'Day',
+			shift_start: '2026-11-25 06:00', shift_end: '2026-11-25 18:00',
+			section_access: {Employee: true, 'Quality Inspection': true},
+			output: [],
+			participation: [{employee: 'EMP-1', employee_name: 'Test Operator', job_card: 'JC-1', pay_mode: 'DR', from_time: '06:00', to_time: '07:00'}],
+			qa: [],
+			measurements: [{quality_inspection: 'QI-1', specification: 'Weight', readings: ['2.45', '2.50', '0'], uom: 'Gram', result: 'Accepted'}],
+			qa_rejections: [],
+			downtime: [],
+			repairs: [],
+		}],
+		stock_entries: [{name: 'SE-1', purpose: 'Material Transfer for Manufacture', posting_date: '2026-11-25', job_card: 'JC-1',
+			items: [{item_code: 'RM-1', qty: 5, uom: 'Kg', from_warehouse: 'RAW', to_warehouse: 'WIP', material_request: 'MR-1'}],
+			allocations: []}],
+	};
+	const context = vm.createContext({
+		__: value => value,
+		frappe: {
+			call: async args => {
+				assert.equal(args.args.work_order, 'WO-1');
+				return {message: history};
+			},
+			utils: {
+				escape_html: value => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;'),
+				get_form_link: (doctype, name) => '/app/' + doctype + '/' + name,
+			},
+			ui: {Dialog: class {
+				constructor() { this.fields_dict = {history: {[String.fromCharCode(36) + 'wrapper']: {html: value => {html = value;}}}}; }
+				show() { shown = true; }
+			}},
+		},
+	});
+	const offset = source.indexOf('async function show_manufacturing_history(frm)');
+	assert.ok(offset >= 0);
+	vm.runInContext(source.slice(offset), context);
+	await context.show_manufacturing_history({doc: {name: 'WO-1'}});
+	assert.equal(shown, true);
+	for (const expected of ['Machine-A', 'Test Operator', 'Product Weight / Measurements', '2.45, 2.50, 0', 'Gram', 'MR-1', 'JC-1', 'RAW', 'WIP']) {
+		assert.ok(html.includes(expected), expected + ' missing from history');
+	}
+	assert.ok(html.includes('/app/Material Request/MR-1'));
+});
+
+test('Work Order history remains readable when measurement and request fields are absent', async () => {
+	const source = fs.readFileSync(path.join(__dirname, '../public/js/work_order.js'), 'utf8');
+	let html = '';
+	const context = vm.createContext({
+		__: value => value,
+		frappe: {
+			call: async () => ({message: {
+				operations: [], job_cards: [],
+				process_cards: [{name: 'PC-1', section_access: {Employee: false}, output: [], participation: [], qa: [], qa_rejections: [], downtime: [], repairs: []}],
+				stock_entries: [{name: 'SE-1', items: [{item_code: 'RM-1'}], allocations: []}],
+			}}),
+			utils: {escape_html: value => String(value), get_form_link: (doctype, name) => '/app/' + doctype + '/' + name},
+			ui: {Dialog: class {
+				constructor() { this.fields_dict = {history: {[String.fromCharCode(36) + 'wrapper']: {html: value => {html = value;}}}}; }
+				show() {}
+			}},
+		},
+	});
+	vm.runInContext(source.slice(source.indexOf('async function show_manufacturing_history(frm)')), context);
+	await context.show_manufacturing_history({doc: {name: 'WO-1'}});
+	assert.ok(html.includes('Some sections are restricted by your permissions.'));
+	assert.ok(!html.includes('Material Request/undefined'));
+});
+
+test('Job Card manpower dialog saves through separate participation API without modifying output rows', async () => {
+	const source = fs.readFileSync(path.join(__dirname, '../public/js/job_card.js'), 'utf8');
+	new vm.Script(source);
+	let config;
+	let reloaded = false;
+	let hidden = false;
+	let calls = [];
+	const context = vm.createContext({
+		qcmc_logic: {job_card: {}},
+		__: value => value,
+		frappe: {
+			ui: {Dialog: class {
+				constructor(options) { config = options; }
+				show() {}
+				hide() { hidden = true; }
+			}},
+			call: async args => {calls.push(args); return {message: {time_log_id: 'TL-2'}};},
+			show_alert() {},
+			msgprint() {},
+		},
+	});
+	const start = source.indexOf('qcmc_logic.job_card.record_manpower_participation = function');
+	const end = source.indexOf('qcmc_logic.job_card.record_process_card_output = function');
+	assert.ok(start >= 0 && end > start);
+	vm.runInContext(source.slice(start, end), context);
+	const frm = {doc: {name: 'JC-1', company: 'Company A', workstation: 'WS-1',
+		time_logs: [{name: 'TL-1', qcmc_process_card: 'PC-1', qcmc_good_qty: 2000}]},
+		is_dirty: () => false, reload_doc: async () => {reloaded = true;}};
+	context.qcmc_logic.job_card.record_manpower_participation(frm);
+	assert.equal(config.fields.find(row => row.fieldname === 'process_card').default, 'PC-1');
+	await config.primary_action({process_card: 'PC-1', employee: 'EMP-1', pay_mode: 'DR', from_time: '2026-11-26 06:00:00', to_time: '2026-11-26 14:00:00'});
+	assert.equal(calls.length, 1);
+	assert.equal(calls[0].method, 'qcmc_logic.api.process_card_services.save_process_card_participation');
+	assert.equal(calls[0].args.job_card, 'JC-1');
+	assert.equal(calls[0].args.employee, 'EMP-1');
+	assert.equal(frm.doc.time_logs[0].qcmc_good_qty, 2000);
+	assert.equal(hidden, true);
+	assert.equal(reloaded, true);
+});
+
+test('Shift Summary uses extra-large dialog with responsive tables', async () => {
+	const source = fs.readFileSync(path.join(__dirname, '../public/js/process_card.js'), 'utf8');
+	let handlers, config, html = '', shown = false;
+	const buttons = {};
+	const context = vm.createContext({
+		__: value => value,
+		frappe: {
+			ui: {
+				form: {on: (doctype, events) => {handlers = events;}},
+				Dialog: class {
+					constructor(options) {
+						config = options;
+						this.fields_dict = {summary: {[String.fromCharCode(36) + 'wrapper']: {html: value => {html = value;}}}};
+					}
+					show() {shown = true;}
+				},
+			},
+			utils: {escape_html: value => String(value)},
+			call: async () => ({message: {
+				production_output: {per_job: [{job_card: 'JC-1', production_item: 'ITEM-1', good_qty: 2000, rejected_qty: 0}]},
+				manpower_participation: [{employee_name: 'Employee One', job_card: 'JC-1', from_time: '2026-11-26 03:30:00', to_time: '2026-11-26 11:30:00', pay_mode: 'PCR'}],
+				qa_rejections: [], quality_inspections: [], measurements: [], downtime_entries: [], breakdowns: [],
+				machine_metrics: {availability_percent: 100, available_hours: 12, shift_hours: 12, downtime_hours: 0, recorded_output_interval_hours: 8, definitions: {availability: 'Availability', actual_run_hours: 'Recorded hours'}},
+			}}),
+		},
+	});
+	vm.runInContext(source, context);
+	handlers.refresh({doc: {name: 'PC-1', status: 'In Progress'}, is_new: () => false, add_custom_button: (name, fn) => {buttons[name] = fn;}});
+	buttons['Shift Summary']();
+	await new Promise(resolve => setImmediate(resolve));
+	assert.equal(config.size, 'extra-large');
+	assert.ok(html.includes('table-responsive'));
+	assert.ok(html.includes('min-width: 620px'));
+	assert.ok(html.includes('2000.00'));
+	assert.ok(html.includes('Employee One'));
+	assert.equal(shown, true);
+});

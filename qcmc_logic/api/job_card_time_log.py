@@ -10,11 +10,11 @@ def _document_id(value):
 	return str(value or "").strip().rstrip("/").rsplit("/", 1)[-1]
 
 
-def _load_job_card(job_card_id, permission="read"):
+def _load_job_card(job_card_id, permission="read", for_update=False):
 	job_card_id = _document_id(job_card_id)
 	if not frappe.db.exists("Job Card", job_card_id):
 		raise ScannerAPIError("JOB_CARD_NOT_FOUND", f"Job Card '{job_card_id}' was not found.")
-	doc = frappe.get_doc("Job Card", job_card_id)
+	doc = frappe.get_doc("Job Card", job_card_id, for_update=for_update)
 	doc.check_permission(permission)
 	if doc.docstatus == 2 or doc.status == "Cancelled":
 		raise ScannerAPIError("JOB_CARD_CANCELLED", f"Job Card '{doc.name}' is cancelled.")
@@ -305,6 +305,9 @@ def _operational_output_row(row):
 		"entered_at": str(row.get("qcmc_output_entered_at") or ""),
 		"entered_by": row.get("qcmc_output_entered_by") or "",
 		"revision": int(row.get("qcmc_output_revision") or 0),
+		"confirmed": bool(row.get("qcmc_output_confirmed_at")),
+		"confirmed_at": str(row.get("qcmc_output_confirmed_at") or ""),
+		"confirmed_by": row.get("qcmc_output_confirmed_by") or "",
 		"correction_history": frappe.parse_json(row.get("qcmc_output_correction_history") or "[]"),
 	}
 
@@ -333,12 +336,12 @@ def _job_card_operation_output(job, include_rejected=True):
 		log for log in (job.time_logs or [])
 		if int(log.get("qcmc_output_revision") or 0) > 0
 	]
-	operational_good = sum(flt(log.get("qcmc_good_qty")) for log in output_rows)
-	operational_rejected = sum(flt(log.get("qcmc_rejected_qty")) for log in output_rows)
-	return (
-		flt(job.total_completed_qty) + operational_good,
-		flt(job.total_completed_qty) + operational_good + (operational_rejected if include_rejected else 0),
+	declared_good = sum(
+		flt(log.get("qcmc_good_qty")) - flt(log.completed_qty) for log in output_rows
 	)
+	rejected = sum(flt(log.get("qcmc_rejected_qty")) for log in output_rows)
+	confirmed_good = sum(flt(log.completed_qty) for log in job.time_logs)
+	return confirmed_good, confirmed_good + declared_good + (rejected if include_rejected else 0)
 
 
 def _validate_operation_output_limits(job):
@@ -349,9 +352,9 @@ def _validate_operation_output_limits(job):
 		frappe.throw("Operational production output cannot be recorded on a corrective Job Card.")
 
 	frappe.db.sql("select name from `tabWork Order` where name=%s for update", job.work_order)
-	work_order = frappe.get_doc("Work Order", job.work_order)
+	work_order = frappe.get_doc("Work Order", job.work_order, for_update=True)
 	work_order.check_permission("read")
-	if work_order.docstatus != 1 or work_order.status in {"Stopped", "Completed", "Cancelled"}:
+	if work_order.docstatus != 1 or work_order.status in {"Stopped", "Closed", "Completed", "Cancelled"}:
 		frappe.throw("Production output cannot be recorded on a closed Work Order.")
 	operations = sorted(
 		work_order.operations,
@@ -365,28 +368,18 @@ def _validate_operation_output_limits(job):
 		frappe.throw("Job Card operation is not part of its Work Order.")
 
 	def operation_totals(operation_id):
-		filters = {
-			"work_order": work_order.name,
-			"operation_id": operation_id,
-			"docstatus": ["<", 2],
-			"is_corrective_job_card": 0,
-		}
-		rows = frappe.get_list(
-			"Job Card",
-			filters=filters,
-			fields=["name"],
-			limit_page_length=0,
-		)
-		visible_names = {row.name for row in rows}
+		visible_names = set(frappe.db.sql(
+			"""select name from `tabJob Card` where work_order = %s and operation_id = %s
+			   and docstatus < 2 and coalesce(is_corrective_job_card, 0) = 0 for update""",
+			(work_order.name, operation_id), pluck=True,
+		))
 		if job.operation_id == operation_id:
 			visible_names.add(job.name)
-		if frappe.db.count("Job Card", filters) != len(visible_names):
-			frappe.throw("You must have read access to every Job Card on this Work Order operation.", frappe.PermissionError)
 
 		total_output = 0
 		good_output = 0
 		for name in visible_names:
-			operation_job = job if name == job.name else frappe.get_doc("Job Card", name)
+			operation_job = job if name == job.name else frappe.get_doc("Job Card", name, for_update=True)
 			if operation_job is not job:
 				operation_job.check_permission("read")
 			good, total = _job_card_operation_output(operation_job)
@@ -441,7 +434,8 @@ def _save_operational_output(
 		and existing.get("qcmc_process_card")
 		and int(existing.get("qcmc_output_revision") or 0) > 0
 	)
-	if flt(job.total_completed_qty + other_operational_qty + good + rejected, precision) > flt(job.for_quantity, precision):
+	native_only_qty = sum(flt(log.completed_qty) for log in job.time_logs if not log.get("qcmc_output_revision"))
+	if flt(native_only_qty + other_operational_qty + good + rejected, precision) > flt(job.for_quantity, precision):
 		frappe.throw("Output would exceed the Job Card quantity after including official and previously recorded operational output.")
 	if not row:
 		# ERPNext derives official totals from completed_qty. Refuse to save if existing rows are already inconsistent.
@@ -484,8 +478,7 @@ def save_process_card_output(process_card, job_card, from_time, to_time, good_qt
 	card = _process_card_and_job(process_card, job_card)
 	start, end = _validate_output_interval(card, from_time, to_time)
 	job_card = _document_id(job_card)
-	frappe.db.sql("select name from `tabJob Card` where name=%s for update", job_card)
-	job = _load_job_card(job_card, "write")
+	job = _lock_output_job(job_card)
 	if job.company != card.company or job.workstation != card.workstation:
 		frappe.throw("Job Card Company and Workstation must match the Process Card.")
 	row, duplicate = _save_operational_output(
@@ -539,11 +532,12 @@ def correct_process_card_output(process_card, job_card, time_log_id, expected_re
 	if not reason or not str(reason).strip():
 		frappe.throw("Enter a correction reason.")
 	_job_card(job_card, card.company, card.workstation)
-	frappe.db.sql("select name from `tabJob Card` where name=%s for update", job_card)
-	job = _load_job_card(job_card, "write")
+	job = _lock_output_job(job_card)
 	row = next((row for row in job.time_logs if row.name == time_log_id and row.get("qcmc_process_card") == card.name), None)
 	if not row or int(row.get("qcmc_output_revision") or 0) <= 0:
 		frappe.throw("Operational checkpoint entry not found for this Process Card.")
+	if row.get("qcmc_output_confirmed_at"):
+		frappe.throw("Confirmed production output is immutable.")
 	if int(row.get("qcmc_output_revision") or 0) != int(expected_revision):
 		frappe.throw("This checkpoint changed after you loaded it. Refresh before correcting it.", frappe.TimestampMismatchError)
 	precision = job.precision("for_quantity")
@@ -581,3 +575,38 @@ def get_process_card_output_entries(job_card_id):
 			frappe.throw("Operational output is linked to a Process Card that does not contain this Job Card.")
 		result.append({"process_card": card.name, **_operational_output_row(row)})
 	return result
+
+
+def _lock_output_job(job_card):
+	from qcmc_logic.customs.stock_entry import lock_manufacture_work_order
+
+	lock_manufacture_work_order(frappe.db.get_value("Job Card", job_card, "work_order"))
+	return _load_job_card(job_card, "write", for_update=True)
+
+
+@frappe.whitelist(methods=["POST"])
+def confirm_process_card_output(process_card, job_card, time_log_id, expected_revision):
+	"""Credit one validated declaration through its native completed quantity."""
+	frappe.only_for(("Manufacturing User", "Manufacturing Manager"))
+	card = _process_card_and_job(process_card, job_card)
+	job = _lock_output_job(job_card)
+	row = next((log for log in job.time_logs if log.name == time_log_id), None)
+	if not row or row.get("qcmc_process_card") != card.name or not row.get("qcmc_output_revision"):
+		frappe.throw("Production checkpoint was not found on this Process Card.")
+	if int(expected_revision) != int(row.qcmc_output_revision):
+		frappe.throw("This checkpoint changed. Reload before confirming.", frappe.TimestampMismatchError)
+	if row.get("qcmc_output_confirmed_at"):
+		return _operational_output_row(row)
+	_validate_output_interval(card, row.from_time, row.to_time)
+	if job.sub_operations:
+		frappe.throw("Production checkpoints require a Job Card without sub-operations.")
+	if flt(row.completed_qty) or flt(row.qcmc_good_qty) + flt(row.qcmc_rejected_qty) <= 0:
+		frappe.throw("The checkpoint must contain declared output awaiting confirmation.")
+	row.completed_qty = row.qcmc_good_qty
+	row.qcmc_output_confirmed_at = now_datetime()
+	row.qcmc_output_confirmed_by = frappe.session.user
+	_validate_operation_output_limits(job)
+	job.flags.qcmc_operational_checkpoint_update = True
+	job.flags.qcmc_confirming_output = True
+	job.save()
+	return _operational_output_row(row)

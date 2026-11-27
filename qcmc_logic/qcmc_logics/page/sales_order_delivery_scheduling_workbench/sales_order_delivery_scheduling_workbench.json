@@ -3,7 +3,14 @@
  "module": "QCMC Logics",
  "name": "sales-order-delivery-scheduling-workbench",
  "page_name": "sales-order-delivery-scheduling-workbench",
- "roles": [{"role": "System Manager"}],
+ "roles": [
+  {
+   "role": "Sales Coordinator"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "standard": "Yes",
  "system_page": 0,
  "title": "Sales Order Delivery Scheduling Workbench"

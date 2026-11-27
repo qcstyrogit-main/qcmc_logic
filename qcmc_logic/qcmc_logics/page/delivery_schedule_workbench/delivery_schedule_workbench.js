@@ -63,6 +63,7 @@ class DeliveryScheduleWorkbench {
 		});
 		document.addEventListener("visibilitychange", () => {
 			if (!document.hidden && this.collaboration_active) {
+				this.remote_pending = true;
 				this.poll_collaboration();
 				this.drain_remote_refresh();
 			}
@@ -71,7 +72,12 @@ class DeliveryScheduleWorkbench {
 	}
 
 	resume_collaboration() {
-		if (!this.collaboration_enabled || this.collaboration_active) return;
+		if (!this.collaboration_enabled) return;
+		if (this.collaboration_active) {
+			this.remote_pending = true;
+			this.drain_remote_refresh();
+			return;
+		}
 		this.collaboration_active = true;
 		frappe.realtime.on("qcmc_delivery_workbench_changed", this.realtime_handler);
 		this.collaboration_timer = setInterval(() => {
@@ -200,7 +206,7 @@ class DeliveryScheduleWorkbench {
 						this.set_save_status(index, __("Lock expired — copy edits and reload"));
 					}
 				}
-				if (this.data_revision != null && this.data_revision !== state.revision) this.remote_pending = true;
+				if (this.data_revision == null || this.data_revision !== state.revision) this.remote_pending = true;
 			}
 			this.collaboration_offline = false;
 		} catch (error) {
@@ -245,13 +251,17 @@ class DeliveryScheduleWorkbench {
 			company: frappe.defaults.get_user_default("Company"),
 			delivery_date: frappe.datetime.get_today(),
 			warehouse: "",
-			include_overdue: 1,
+			include_overdue: 0,
 		};
 	}
 
 	setup_actions() {
 		this.page.set_primary_action(__("Refresh"), () => this.refresh(), "refresh");
 		if (this.can_sales_approve()) {
+			this.page.add_inner_button(__("Sales Order Delivery Scheduling"), () => {
+				if (this.has_local_work()) return frappe.msgprint(__("Finish saving current edits first."));
+				frappe.set_route("sales-order-delivery-scheduling-workbench");
+			});
 			this.page.add_inner_button(__("Create Delivery Note Details"), () => this.proceed_selected());
 		}
 	}
@@ -288,7 +298,6 @@ class DeliveryScheduleWorkbench {
 				<div class="delivery-filter" data-fieldname="company"></div>
 				<div class="delivery-filter" data-fieldname="delivery_date"></div>
 				<div class="delivery-filter" data-fieldname="warehouse"></div>
-				<div class="delivery-filter delivery-filter-check" data-fieldname="include_overdue"></div>
 			</div>
 		`);
 		this.company = frappe.ui.form.make_control({
@@ -343,6 +352,8 @@ class DeliveryScheduleWorkbench {
 			},
 			render_input: true,
 		});
+		// Overdue demand is handled by Sales planning, not the shared execution queue.
+		return;
 		this.include_overdue = frappe.ui.form.make_control({
 			parent: this.$filters.find('[data-fieldname="include_overdue"]'),
 			df: {
@@ -501,7 +512,7 @@ class DeliveryScheduleWorkbench {
 			company: this.filter_values.company,
 			delivery_date: this.filter_values.delivery_date,
 			warehouse: this.filter_values.warehouse,
-			include_overdue: this.filter_values.include_overdue,
+			include_overdue: 0,
 		};
 	}
 
@@ -517,7 +528,6 @@ class DeliveryScheduleWorkbench {
 	}
 
 	async refresh({background = false} = {}) {
-		const sequence = ++this.load_sequence;
 		if (this.v2_dirty && !background) {
 			frappe.msgprint(__("Save your schedule edits before refreshing."));
 			return;
@@ -526,6 +536,7 @@ class DeliveryScheduleWorkbench {
 			this.remote_pending = true;
 			return;
 		}
+		const sequence = ++this.load_sequence;
 		const filters = this.get_filters();
 		if (!filters.company || !filters.delivery_date) {
 			this.rows = [];
@@ -540,12 +551,20 @@ class DeliveryScheduleWorkbench {
 				freeze_message: __("Loading SO Delivery Schedules..."),
 				callback: r => {
 					if (r.exc || sequence !== this.load_sequence) return;
-					if (this.has_local_work() || this.focused_v2_field()) {this.remote_pending = true; return;}
+					if (this.has_local_work() || (background && this.focused_v2_field())) {this.remote_pending = true; return;}
 					this.draft_dn_count = r.message?.draft_dn_count || 0;
 					this.possibly_truncated = !!r.message?.possibly_truncated;
-					this.rows = (r.message?.rows || []).filter(row => this.is_visible_schedule(row));
+					const incoming = r.message?.rows || [];
+					const missingEndorsement = incoming.filter(row => row.endorsement_status == null).length;
+					this.rows = incoming.filter(row => this.is_visible_schedule(row));
 					if (r.message?.revision != null) this.data_revision = r.message.revision;
 					this.message = __("{0} schedule(s)", [this.rows.length]);
+					if (missingEndorsement) {
+						this.message += " · " + __("{0} server rows lack endorsement status. Restart the web process to load the current scheduling API.", [missingEndorsement]);
+					} else if (incoming.length !== this.rows.length) {
+						this.message += " · " + __("{0} server rows excluded by endorsement or Delivery Note status.", [incoming.length - this.rows.length]);
+					}
+					if (r.message?.revision == null) this.message += " · " + __("Server revision unavailable; verify that the current Python module is loaded.");
 					this.remote_pending = false;
 					this.render();
 				},
@@ -563,14 +582,14 @@ class DeliveryScheduleWorkbench {
 	}
 
 	is_visible_schedule(row) {
-		return !row.has_active_dn && (row.history_status !== "Verified" ||
+		return row.endorsement_status === "Endorsed" && !row.has_active_dn && (row.history_status !== "Verified" ||
 			Number(row.current_total ?? row.planned_qty) !== 0);
 	}
 
 	render_schedule_summary(escape) {
 		if (!this.filter_values.company || !this.filter_values.delivery_date) return this.$kpis.empty();
 
-		const pending = this.rows.filter(row => row.history_status === "Verified" && !row.has_protected_dn);
+		const pending = this.rows.filter(row => this.is_visible_schedule(row) && row.history_status === "Verified" && !row.has_protected_dn);
 		const quantities = new Map();
 		const orders = new Set();
 		let items = 0;
@@ -635,11 +654,16 @@ class DeliveryScheduleWorkbench {
 			const soLink = `<a href="/app/sales-order/${encodeURIComponent(row.sales_order)}">${esc(row.sales_order)}</a>`;
 			const scheduleLink = row.name.startsWith("unscheduled:") ? esc(row.delivery_date) : `<a href="/app/so-delivery-schedule/${encodeURIComponent(row.name)}">${esc(row.delivery_date)}</a>`;
 			const logisticsInput = (field, type, label, disabled = false) => {
-				const value = row[field] ?? "";
+				const mode = this.get_schedule_reason_state(row.logistics_reason).mode;
+				const total = row.current_total ?? row.planned_qty;
+				let value = row[field] ?? "";
+				if (logistics && field === "logistics_committed_qty") value = mode === "full" ? total : mode === "date" ? "0" : value;
+				if (logistics && field === "logistics_transfer_qty") value = mode === "date" ? total : "";
+				if (logistics && field === "logistics_destination_date" && mode !== "date") value = "";
 				if (!logistics) return esc(value || "—");
-				return `<input type="${type}" ${type === "number" ? 'min="0" step="any"' : ""} data-v2field="${field}" ${disabled ? "disabled" : ""} value="${esc(type === "number" && !Number(value) ? "" : value)}" aria-label="${esc(label)}">`;
+				return `<input type="${type}" ${type === "number" ? 'min="0" step="any"' : ""} data-v2field="${field}" ${disabled ? "disabled" : ""} value="${esc(value)}" aria-label="${esc(label)}">`;
 			};
-			const reasonState = this.get_reason_field_state(row.logistics_reason);
+			const reasonState = this.get_schedule_reason_state(row.logistics_reason);
 			const reason = logistics
 				? `<select data-v2field="logistics_reason" aria-label="${__("Logistics reason")}"><option value="">${__("Select reason")}</option>${reasonOptions.map(({code, meaning}) => `<option value="${esc(code)}" ${row.logistics_reason === code ? "selected" : ""}>${esc(meaning || code)}</option>`).join("")}</select>`
 				: esc(this.reason_meanings?.[row.logistics_reason] || row.logistics_reason || "—");
@@ -661,16 +685,16 @@ class DeliveryScheduleWorkbench {
 				<td class="number-cell">${esc(format_number(row.current_total ?? row.planned_qty))} ${esc(row.uom)}</td>
 				<td class="number-cell">${row.actual_qty == null ? "—" : esc(format_number(row.actual_qty))}</td>
 				<td>${reason}</td>
-				<td>${logisticsInput("logistics_transfer_qty", "number", __("Transfer quantity"), reasonState.proposed_qty_disabled || reasonState.proposed_date_disabled)}</td>
-				<td>${logisticsInput("logistics_destination_date", "date", __("Transfer destination date"), reasonState.proposed_date_disabled)}</td>
-				<td>${logisticsInput("logistics_remarks", "text", __("Logistics remarks"))}</td>
-				<td>${logisticsInput("logistics_committed_qty", "number", __("Confirmed quantity"))}<small class="logistics-save-status text-muted" role="status"></small></td>
+				<td>${logisticsInput("logistics_transfer_qty", "number", __("Transfer quantity"), true)}</td>
+				<td>${logisticsInput("logistics_destination_date", "date", __("Transfer destination date"), reasonState.mode !== "date")}</td>
+				<td>${logisticsInput("logistics_remarks", "text", __("Logistics remarks"), reasonState.mode === "none")}</td>
+				<td>${logisticsInput("logistics_committed_qty", "number", __("Confirmed quantity"), reasonState.mode !== "quantity")}<small class="logistics-save-status text-muted" role="status"></small></td>
 			</tr>`;
 		}).join(""));
 		this.$thead.off("change.v2").on("change.v2", '[data-v2-action="select-all"]', event => this.$tbody.find('[data-v2field="selected"]:not(:disabled)').prop("checked", event.currentTarget.checked));
 		this.$tbody.off("input.v2 change.v2 focusout.v2 click.v2");
 		this.$tbody.on("input.v2 change.v2", "[data-v2field]", event => {
-			if (event.currentTarget.dataset.v2field === "selected") return;
+			if (["selected", "logistics_reason"].includes(event.currentTarget.dataset.v2field)) return;
 			const tr = $(event.currentTarget).closest("tr"), index = cint(tr.data("index"));
 			const row = this.rows[index], field = event.currentTarget.dataset.v2field;
 			if (!row) return;
@@ -684,6 +708,10 @@ class DeliveryScheduleWorkbench {
 			const tr = $(event.currentTarget).closest("tr");
 			const index = cint(tr.data("index"));
 			const row = this.rows[index];
+			if (!row || !row.can_edit_logistics || row.has_protected_dn || row.history_status !== "Verified") return;
+			this.apply_schedule_reason_state(index, row, tr, event.currentTarget.value);
+			this.schedule_logistics_autosave(index, row, tr);
+			return;
 			const state = this.get_reason_field_state(row.logistics_reason);
 			const updateTransferField = (field, disabled) => {
 				const input = tr.find(`[data-v2field="${field}"]`).prop("disabled", disabled);
@@ -700,6 +728,7 @@ class DeliveryScheduleWorkbench {
 		this.$tbody.on("focusout.v2", '[data-v2field^="logistics_"]', event => {
 			const tr = $(event.currentTarget).closest("tr"), index = cint(tr.data("index")), row = this.rows[index];
 			if (row && this.v2_dirty_fields.has(index)) this.schedule_logistics_autosave(index, row, tr);
+			else this.drain_remote_refresh();
 		});
 		this.$tbody.on("click.v2", "[data-v2-action]", event => {
 			const button = $(event.currentTarget), tr = button.closest("tr"), row = this.rows[cint(tr.data("index"))];
@@ -720,15 +749,17 @@ class DeliveryScheduleWorkbench {
 			return control.length ? control.val() : (row[field] ?? "");
 		};
 		const reason = value("logistics_reason");
-		const state = this.get_reason_field_state(reason);
-		const destinationDate = state.proposed_date_disabled ? "" : value("logistics_destination_date");
-		const dateOnly = this.date_reason_codes.includes(reason);
-		const transferQty = dateOnly && destinationDate ? (row.current_total ?? row.planned_qty)
-			: state.proposed_date_disabled ? "" : value("logistics_transfer_qty");
-		const quantity = dateOnly && destinationDate ? 0 : value("logistics_committed_qty");
-		if (dateOnly && !destinationDate) return false;
-		const hasTransfer = Number(transferQty) > 0;
-		if (hasTransfer !== Boolean(destinationDate) || (!hasTransfer && quantity === "")) return false;
+		const mode = this.get_schedule_reason_state(reason).mode;
+		const total = row.current_total ?? row.planned_qty;
+		const dateOnly = mode === "date";
+		const destinationDate = dateOnly ? value("logistics_destination_date") : "";
+		const transferQty = dateOnly && destinationDate ? total : "";
+		const quantity = mode === "full" ? total : dateOnly ? 0 : value("logistics_committed_qty");
+		const waiting = message => {tr.find(".logistics-save-status").text(message).removeClass("text-danger"); return false;};
+		if (mode === "none") return waiting(__("Choose a supported Logistics reason."));
+		if (dateOnly && !destinationDate) return waiting(__("Choose the transfer date."));
+		if (dateOnly && String(destinationDate) === String(row.delivery_date)) return waiting(__("Choose a different transfer date."));
+		if (mode === "quantity" && (quantity === "" || !Number.isFinite(Number(quantity)) || Number(quantity) < 0 || Number(quantity) > Number(total))) return waiting(__("Enter a confirmed quantity between zero and the scheduled quantity. Zero returns the schedule to Sales."));
 		const fields = ["logistics_committed_qty", "logistics_remarks", "logistics_reason", "logistics_transfer_qty", "logistics_destination_date"];
 		const submitted = Object.fromEntries(fields.map(field => [field, String(value(field) ?? "")]));
 		tr.find(".logistics-save-status").text(__("Saving…")).removeClass("text-danger");
@@ -757,12 +788,12 @@ class DeliveryScheduleWorkbench {
 			} else {
 				tr.find(".logistics-save-status").text(__("Saved")).removeClass("text-danger");
 				this.render_schedule_summary(value => frappe.utils.escape_html(String(value)));
-				if (result.message.transfer) {
-					this.remote_pending = true;
+				if (result.message.transfer || result.message.returned || row.endorsement_status === "Returned") {
 					tr.hide();
-					this.drain_remote_refresh();
-					frappe.show_alert({message: __("Moved to {0}", [destinationDate]), indicator: "green"});
+					frappe.show_alert({message: __("Returned to Sales Planning"), indicator: "green"});
 				}
+				this.remote_pending = true;
+				this.drain_remote_refresh();
 			}
 			return true;
 		} catch {
@@ -770,6 +801,7 @@ class DeliveryScheduleWorkbench {
 			return false;
 		} finally {
 			delete this.logistics_save_requests[index];
+			this.drain_remote_refresh();
 		}
 	}
 
@@ -991,6 +1023,29 @@ class DeliveryScheduleWorkbench {
 			}
 			this.queue_autosave(index);
 		});
+	}
+
+	get_schedule_reason_state(reason) {
+		return {mode: reason === "OK" ? "full" : this.qty_reason_codes.includes(reason) ? "quantity" : this.date_reason_codes.includes(reason) ? "date" : "none"};
+	}
+
+	apply_schedule_reason_state(index, row, tr, reason) {
+		const mode = this.get_schedule_reason_state(reason).mode;
+		const total = row.current_total ?? row.planned_qty;
+		const dirty = this.v2_dirty_fields.get(index) || new Set();
+		const setField = (field, value, disabled) => {
+			tr.find('[data-v2field="' + field + '"]').prop("disabled", disabled).val(value);
+			row[field] = String(value);
+			dirty.add(field);
+		};
+		row.logistics_reason = reason;
+		dirty.add("logistics_reason");
+		setField("logistics_transfer_qty", mode === "date" ? total : "", true);
+		setField("logistics_destination_date", "", mode !== "date");
+		setField("logistics_committed_qty", mode === "full" ? total : mode === "date" ? 0 : "", mode !== "quantity");
+		tr.find('[data-v2field="logistics_remarks"]').prop("disabled", mode === "none");
+		this.v2_dirty_fields.set(index, dirty);
+		this.v2_dirty = true;
 	}
 
 	get_reason_field_state(reason) {

@@ -132,7 +132,7 @@ class TestParticipationStatusLock(TestCase):
 class TestQualityInspectionRejections(TestCase):
 	def setUp(self):
 		self.card = _dict(name="PC-1", company="Company A")
-		self.job = _dict(name="JC-1", production_item="ITEM-1", time_logs=[
+		self.job = _dict(name="JC-1", production_item="ITEM-1", work_order="WO-1", time_logs=[
 			_dict(
 				name="TL-1",
 				qcmc_process_card="PC-1",
@@ -152,6 +152,8 @@ class TestQualityInspectionRejections(TestCase):
 			item_code="ITEM-1",
 			company="Company A",
 			inspection_type="In Process",
+			qcmc_qa_start="2026-11-10 08:15:00",
+			qcmc_qa_end="2026-11-10 09:45:00",
 			readings=[_dict(
 				idx=1,
 				status="Rejected",
@@ -172,11 +174,28 @@ class TestQualityInspectionRejections(TestCase):
 			frappe.throw.side_effect = lambda message, *args, **kwargs: (_ for _ in ()).throw(ValueError(message))
 			transactions.validate_quality_inspection(doc)
 
-	def test_qa_rejection_requires_a_linked_production_interval(self):
-		with self.assertRaisesRegex(ValueError, "must reference a production output interval"):
-			self.validate(self.inspection())
+	def test_qa_rejection_uses_independent_timeframe(self):
+		doc = self.inspection(rejected_qty=4)
+		self.validate(doc)
+		self.assertEqual(doc.qcmc_work_order, "WO-1")
 
-	def test_qa_rejection_cannot_exceed_linked_output_quantity(self):
-		with self.assertRaisesRegex(ValueError, "cannot exceed the linked production output quantity"):
-			self.validate(self.inspection("TL-1", rejected_qty=4))
+	def test_qa_rejection_requires_positive_timeframe(self):
+		doc = self.inspection()
+		doc.qcmc_qa_end = doc.qcmc_qa_start
+		with self.assertRaisesRegex(ValueError, "QA End Time must be after QA Start Time"):
+			self.validate(doc)
+
+	def test_qa_rejection_requires_quantity_and_reason(self):
+		with self.assertRaisesRegex(ValueError, "Record the quantity"):
+			self.validate(self.inspection(rejected_qty=0))
+		doc = self.inspection()
+		doc.readings[0].qcmc_reject_reason = None
+		with self.assertRaisesRegex(ValueError, "requires a rejected result and a reject reason"):
+			self.validate(doc)
+
+	def test_qa_weight_can_be_recorded_without_production_interval(self):
+		doc = self.inspection()
+		doc.readings = [_dict(idx=1, status="Accepted", qcmc_measurement_uom="Gram", reading_1="2.45")]
+		self.validate(doc)
+		self.assertEqual(doc.qcmc_work_order, "WO-1")
 

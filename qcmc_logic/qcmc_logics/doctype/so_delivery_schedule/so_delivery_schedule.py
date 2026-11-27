@@ -15,6 +15,12 @@ class SODeliverySchedule(Document):
 		self.original_promise_date = transfer.get("promise_date") or self.delivery_date
 		self.original_promise_qty = 0 if transfer else self.planned_qty
 		self.history_status = "Verified"
+		self.endorsement_status = "For Planning"
+		self.endorsed_by = None
+		self.endorsed_at = None
+		self.returned_by = None
+		self.returned_at = None
+		self.return_reason = None
 
 	def validate(self):
 		from qcmc_logic.api.delivery_schedule_service import validate_schedule_document

@@ -8,7 +8,8 @@ def sync_non_final_operation_progress(doc, method=None):
 	"""Credit actual shift output without treating unfinished quantity as loss."""
 	# Workbench checkpoints are operational-only metadata on native Time Log rows.
 	# Their completed_qty is zero; do not run the official progressive Work Order sync.
-	if getattr(getattr(doc, "flags", None), "qcmc_operational_checkpoint_update", False):
+	flags = getattr(doc, "flags", None)
+	if getattr(flags, "qcmc_operational_checkpoint_update", False) and not getattr(flags, "qcmc_confirming_output", False):
 		return
 	if not doc.work_order or not doc.operation_id or doc.is_corrective_job_card:
 		return
@@ -117,21 +118,36 @@ _OPERATIONAL_OUTPUT_FIELDS = (
 	"qcmc_output_entered_by",
 	"qcmc_output_revision",
 	"qcmc_output_correction_history",
+	"qcmc_output_confirmed_at",
+	"qcmc_output_confirmed_by",
 )
 
 
 def _operational_output_state(row):
-	output_state = tuple(row.get(field) for field in _OPERATIONAL_OUTPUT_FIELDS)
+	# Desk sends datetime strings and empty values; the saved document may
+	# contain datetime objects and None. Compare values, not serialization.
+	from frappe.utils import get_datetime
+
+	def normalized(field):
+		value = row.get(field)
+		if field in ("qcmc_good_qty", "qcmc_rejected_qty", "completed_qty"):
+			return flt(value)
+		if field == "qcmc_output_revision":
+			return int(value or 0)
+		if field in ("from_time", "to_time", "qcmc_output_entered_at", "qcmc_output_confirmed_at"):
+			return get_datetime(value) if value else None
+		if field == "qcmc_output_correction_history" and value in (None, "", "[]"):
+			return "[]"
+		return value if value not in (None, "") else None
+
+	output_state = tuple(normalized(field) for field in _OPERATIONAL_OUTPUT_FIELDS)
 	meaningful = (
 		int(row.get("qcmc_output_revision") or 0) > 0
 		or any(value not in (None, "", 0, 0.0, "0", "[]") for value in output_state[1:])
 	)
-	state = output_state + (
-		row.get("from_time"),
-		row.get("to_time"),
-		row.get("completed_qty"),
-		row.get("employee"),
-	)
+	state = output_state + tuple(normalized(field) for field in (
+		"from_time", "to_time", "completed_qty", "employee",
+	))
 	return state, meaningful
 
 
@@ -156,3 +172,25 @@ def prevent_untracked_output_checkpoint_changes(doc, method=None):
 		current_rows[row.name] = state
 	if any(name not in current_rows for name in previous_rows):
 		frappe.throw("Operational checkpoint rows cannot be removed. Use the audited correction action.")
+
+
+def protect_process_card_output_source(doc, method=None):
+	if not doc.work_order or not doc.get("time_logs"):
+		return
+	if not frappe.db.exists("Process Card Job", {"job_card": doc.name, "parenttype": "Process Card"}):
+		return
+
+	previous = doc.get_doc_before_save()
+	old = {
+		row.name: (flt(row.completed_qty), str(row.from_time), str(row.to_time))
+		for row in (previous.get("time_logs") or []) if flt(row.completed_qty)
+	} if previous else {}
+	for row in doc.time_logs:
+		if not row.get("qcmc_output_revision") and flt(row.completed_qty):
+			if old.get(row.name) != (flt(row.completed_qty), str(row.from_time), str(row.to_time)):
+				frappe.throw("Record and confirm Process Card output through the Job Card Production actions.")
+
+
+def keep_confirmed_production_source(doc, method=None):
+	if any(row.get("qcmc_output_confirmed_at") for row in doc.get("time_logs") or []):
+		frappe.throw("This Job Card contains confirmed production intervals and must be retained.")

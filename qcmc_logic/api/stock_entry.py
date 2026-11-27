@@ -1,3 +1,5 @@
+import math
+
 import frappe
 from frappe import _
 from frappe.utils import cint, flt
@@ -92,9 +94,13 @@ def _get_latest_actual_time_log(job_card):
     return max(time_logs, key=lambda row: cint(row.get("idx")))
 
 
-def _pending_qty(job_card, purpose):
+def _pending_qty(job_card, purpose, lock=False):
     if purpose == "Manufacture":
         if not job_card.finished_good:
+            from qcmc_logic.customs.stock_entry import _has_process_card, pending_confirmed_output
+
+            if _has_process_card(job_card.work_order):
+                return pending_confirmed_output(job_card, lock=lock)
             work_order = frappe.db.get_value(
                 "Work Order",
                 job_card.work_order,
@@ -408,6 +414,24 @@ def get_job_card_details_for_stock_entry(job_card, purpose, work_order=None):
     }
 
 
+@frappe.whitelist(methods=["GET"])
+def get_manufacture_receipt_quantity(job_card):
+    if not frappe.has_permission("Stock Entry", ptype="create"):
+        return 0
+    job = frappe.get_doc("Job Card", job_card)
+    job.check_permission("read")
+    if not user_can_transact_job_card(job) or job.finished_good or job.docstatus == 2:
+        return 0
+
+    from qcmc_logic.customs.stock_entry import _has_process_card
+
+    work_order = frappe.get_doc("Work Order", job.work_order)
+    work_order.check_permission("read")
+    if not _has_process_card(work_order.name) or not _is_final_operation_job_card(job, work_order):
+        return 0
+    return _pending_qty(job, "Manufacture")
+
+
 @frappe.whitelist()
 def make_manufacture_stock_entry_from_job_card(job_card, qty=None):
     """Create a draft Manufacture entry appropriate for the selected Job Card."""
@@ -441,10 +465,15 @@ def _make_manufacture_stock_entry_from_job_card(
             )
         )
 
-    wo = _get_work_order(jc.work_order)
-    _validate_final_operation_job_card(jc, wo)
+    from qcmc_logic.customs.stock_entry import _has_process_card, lock_manufacture_work_order
 
-    pending_qty = _pending_qty(jc, "Manufacture")
+    lock_manufacture_work_order(jc.work_order)
+    jc = frappe.get_doc("Job Card", job_card, for_update=True)
+    wo = _get_work_order(jc.work_order, ignore_permissions=ignore_permissions)
+    _validate_final_operation_job_card(jc, wo)
+    process_output = not jc.finished_good and _has_process_card(wo.name)
+
+    pending_qty = _pending_qty(jc, "Manufacture", lock=True)
     if pending_qty <= 0:
         frappe.throw(
             _("Job Card {0} has no remaining quantity to manufacture.").format(
@@ -453,7 +482,7 @@ def _make_manufacture_stock_entry_from_job_card(
         )
 
     qty = flt(qty)
-    if qty <= 0:
+    if not math.isfinite(qty) or qty <= 0:
         frappe.throw(_("Manufacture quantity must be greater than zero."))
     if qty > pending_qty:
         frappe.throw(
@@ -472,7 +501,7 @@ def _make_manufacture_stock_entry_from_job_card(
         draft_filters["work_order"] = jc.work_order
 
     existing_draft = frappe.db.get_value("Stock Entry", draft_filters, "name")
-    if existing_draft and not allow_existing_draft:
+    if existing_draft and not allow_existing_draft and not process_output:
         frappe.throw(
             _("Draft Manufacture Stock Entry {0} already exists for Job Card {1}.").format(
                 frappe.get_desk_link("Stock Entry", existing_draft),
@@ -491,8 +520,10 @@ def _make_manufacture_stock_entry_from_job_card(
 
     from erpnext.manufacturing.doctype.work_order.work_order import make_stock_entry
 
-    time_log = _get_latest_actual_time_log(jc)
-    _sync_operation_for_incremental_output(jc, wo, qty)
+    time_log = None
+    if not process_output:
+        time_log = _get_latest_actual_time_log(jc)
+        _sync_operation_for_incremental_output(jc, wo, qty)
     stock_entry = frappe.get_doc(
         make_stock_entry(
             work_order_id=wo.name,
@@ -508,7 +539,7 @@ def _make_manufacture_stock_entry_from_job_card(
     # are linked through custom_final_job_card and the Stock Entry override
     # synchronizes the final Work Order quantity after submit/cancel.
     stock_entry.custom_final_job_card = jc.name
-    stock_entry.custom_job_card_time_log = time_log.name
+    stock_entry.custom_job_card_time_log = time_log.name if time_log else None
     if before_insert:
         before_insert(stock_entry)
     stock_entry.insert(ignore_permissions=ignore_permissions)

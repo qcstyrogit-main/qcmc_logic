@@ -133,6 +133,140 @@ function continue_delivery_note_action(frm, action) {
 	frm.save(action);
 }
 
+
+function qcmc_refresh_dn_invoice_action(frm) {
+    const label = __("Create Sales Invoice");
+    frm.remove_custom_button(label);
+    const has_number = Boolean(String(frm.doc.custom_dr_number || "").trim());
+    if (!has_number || frm.is_dirty()) {
+        frm.remove_custom_button(__("Sales Invoice"), __("Create"));
+        frm.remove_custom_button(__("Sales Invoice"));
+        frm.remove_custom_button(label, __("Create"));
+        return;
+    }
+    if (frm.is_new() || frm.doc.docstatus !== 0 || !frappe.model.can_create("Sales Invoice")) return;
+    const roles = frappe.user_roles || [];
+    const eligible = frm.doc.workflow_state === "To Deliver and Bill"
+        || roles.includes("Provincial Stock User")
+        || (roles.includes("Invoicing Clerk") && (
+            frm.doc.workflow_state === "Draft" && (frm.doc.items || []).length
+                && (frm.doc.is_return || frm.doc.items.every(item => item.custom_so_delivery_schedule)
+                    || (!frm.doc.custom_sales_order && frm.doc.items.every(item => !item.against_sales_order && !item.so_detail)))));
+    if (!eligible) return;
+    frm.add_custom_button(label, () => {
+        if (frm.is_dirty() || !String(frm.doc.custom_dr_number || "").trim()) {
+            return frappe.msgprint(__("Save the Delivery Note with its DR Number before creating the invoice."));
+        }
+        frappe.call({
+            method: "qcmc_logic.api.delivery_note.create_sales_invoice_from_draft_dn",
+            args: {dn_name: frm.doc.name},
+            freeze: true,
+            callback(r) {
+                if (r.exc || !r.message) return;
+                const doc = frappe.model.sync(r.message)[0];
+                frappe.set_route("Form", doc.doctype, doc.name);
+            }
+        });
+    });
+}
+
+async function qcmc_check_dn_dr_number(frm) {
+    const number = String(frm.doc.custom_dr_number || "").trim();
+    const company = frm.doc.company;
+    const sequence = (frm._qcmc_dr_check_sequence || 0) + 1;
+    frm._qcmc_dr_check_sequence = sequence;
+    const field = frm.get_field("custom_dr_number");
+    if (!field) return;
+    field.set_description("");
+    if (!number || !company || frm.doc.docstatus === 2) return;
+    try {
+        const result = await frappe.xcall("qcmc_logic.customs.delivery_dr_number.check_dr_number", {
+            company, dr_number: number, delivery_note: frm.is_new() ? null : frm.doc.name
+        });
+        if (sequence !== frm._qcmc_dr_check_sequence || company !== frm.doc.company
+                || number !== String(frm.doc.custom_dr_number || "").trim()) return;
+        const esc = frappe.utils.escape_html;
+        if (result?.duplicate) {
+            field.set_description('<span class="text-danger">' + esc(__("DR Number already used by another active Delivery Note in this company."))
+                + (result.delivery_note ? ' <a href="/desk/delivery-note/' + encodeURIComponent(result.delivery_note) + '">' + esc(result.delivery_note) + '</a>' : '') + '</span>');
+        } else {
+            field.set_description('<span class="text-success">' + esc(__("DR Number available in this company. Final validation occurs on save.")) + '</span>');
+        }
+    } catch (error) {
+        if (sequence === frm._qcmc_dr_check_sequence) field.set_description(__("DR Number will be validated on save."));
+    }
+}
+
+function qcmc_configure_manual_schedule_links(frm) {
+    const grid = frm.fields_dict.items?.grid;
+    if (!grid) return;
+    const editable = frm.doc.docstatus === 0 && frm.doc.workflow_state === "Draft"
+        && !frm.doc.is_return && (frappe.user_roles || []).some(role => ["Head Office Sales User", "Sales Coordinator", "System Manager"].includes(role));
+    grid.update_docfield_property("custom_so_delivery_schedule", "read_only", editable ? 0 : 1);
+    frm.set_query("custom_so_delivery_schedule", "items", (doc, cdt, cdn) => {
+        const item = locals[cdt][cdn];
+        return {filters: {sales_order: item.against_sales_order || "__none__", sales_order_item: item.so_detail || "__none__",
+            item_code: item.item_code, warehouse: item.warehouse, history_status: "Verified",
+            endorsement_status: "Endorsed", confirmation_status: "Finalized"}};
+    });
+}
+
+frappe.ui.form.on("Delivery Note", {
+    refresh(frm) {
+        qcmc_configure_manual_schedule_links(frm);
+        qcmc_refresh_dn_invoice_action(frm);
+        qcmc_check_dn_dr_number(frm);
+    },
+    custom_dr_number(frm) {
+        qcmc_refresh_dn_invoice_action(frm);
+        qcmc_check_dn_dr_number(frm);
+    },
+    company(frm) {
+        qcmc_refresh_dn_invoice_action(frm);
+        qcmc_check_dn_dr_number(frm);
+    },
+    after_save(frm) {
+        qcmc_refresh_dn_invoice_action(frm);
+    }
+});
+
+// Capture the actual stock posting timestamp at final workflow submission.
+// The values are request-only; cancelling the dialog does not change the draft.
+function qcmc_confirm_actual_posting(frm) {
+    const now = frappe.datetime.now_datetime().split(' ');
+    return new Promise((resolve, reject) => {
+        let confirmed = false;
+        const dialog = new frappe.ui.Dialog({
+            title: __('Confirm Actual Delivery Posting'),
+            fields: [
+                {fieldtype: 'HTML', fieldname: 'instructions', options: '<p>' + __('Enter the actual delivery posting date and time. Confirming will submit the Delivery Note.') + '</p>'},
+                {fieldtype: 'Date', fieldname: 'posting_date', label: __('Posting Date'), reqd: 1, default: now[0]},
+                {fieldtype: 'Time', fieldname: 'posting_time', label: __('Posting Time'), reqd: 1, default: now[1]},
+            ],
+            primary_action_label: __('Confirm and Submit'),
+            primary_action(values) {
+                if (!values || !values.posting_date || !values.posting_time) return;
+                let time = String(values.posting_time);
+                if (time.length === 5) time += ':00';
+                frm.doc._qcmc_actual_posting = {posting_date: values.posting_date, posting_time: time};
+                confirmed = true;
+                dialog.hide();
+                frappe.dom.freeze();
+                resolve();
+            },
+            onhide() {
+                if (confirmed) return;
+                delete frm.doc._qcmc_actual_posting;
+                frm.selected_workflow_action = null;
+                reject(new Error('Delivery posting cancelled'));
+            },
+        });
+        // Native workflow freezes the screen before invoking this handler.
+        frappe.dom.unfreeze();
+        dialog.show();
+    });
+}
+
 // Customer returns keep commercial quantities bulk; storage is a separate plan.
 function configure_delivery_note_return_allocation(frm) {
     const is_return = !!frm.doc.is_return;
@@ -170,17 +304,12 @@ frappe.ui.form.on('Delivery Note', {
         qcmc_delivery_pick_list.refresh_stage(frm);
     },
     async before_workflow_action(frm) {
-        if (frm.selected_workflow_action !== "Submit for Stock Confirmation" || frm.doc.is_return) return;
-        if (frm.is_dirty() || frm.is_new()) {
-            frappe.throw(__("Save the Delivery Note before stock confirmation."));
+        if (frm.selected_workflow_action === "Tag To Active") {
+            delete frm.doc._qcmc_actual_posting;
+            await qcmc_confirm_actual_posting(frm);
+            return;
         }
-        const state = await frappe.xcall(
-            "qcmc_logic.delivery_note_pick_list.get_delivery_note_action_state",
-            {delivery_note: frm.doc.name}
-        );
-        if (state?.stage !== "confirm") {
-            frappe.throw(__("Submit the linked Delivery Pick List with sufficient picked quantities before stock confirmation."));
-        }
+        // Required picking is still enforced by the server before final submission.
     },
     is_return: configure_delivery_note_return_allocation,
     custom_apply_putaway_rule: configure_delivery_note_return_allocation,
@@ -195,9 +324,8 @@ const qcmc_delivery_pick_list = {
         if (!$actions?.length) return;
         const shown = {
             "Create Pick List": stage === "pick",
-            "Submit for Stock Confirmation": stage === "confirm" && !frm.is_dirty(),
             // Activation is the final workflow step, never an initial draft action.
-            "Tag To Active": frm.doc.workflow_state === "To Deliver and Bill" && !frm.is_dirty(),
+            "Tag To Active": (frm.doc.workflow_state === "To Deliver and Bill" || (frm.doc.workflow_state === "Draft" && (frappe.user_roles || []).includes("Provincial Stock User"))) && !frm.is_dirty(),
         };
         $actions.find("li > a.dropdown-item").each(function() {
             const $link = $(this);

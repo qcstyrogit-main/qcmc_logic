@@ -137,6 +137,53 @@
    "fieldtype": "Small Text",
    "label": "Reason / Remarks",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_break_endorsement",
+   "fieldtype": "Section Break",
+   "label": "Sales Endorsement"
+  },
+  {
+   "fieldname": "endorsement_status",
+   "fieldtype": "Select",
+   "label": "Endorsement Status",
+   "options": "For Planning\nEndorsed\nReturned",
+   "default": "For Planning",
+   "read_only": 1,
+   "search_index": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "endorsed_by",
+   "fieldtype": "Link",
+   "label": "Endorsed By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "endorsed_at",
+   "fieldtype": "Datetime",
+   "label": "Endorsed At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "returned_by",
+   "fieldtype": "Link",
+   "label": "Returned By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "returned_at",
+   "fieldtype": "Datetime",
+   "label": "Returned At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "return_reason",
+   "fieldtype": "Small Text",
+   "label": "Return Reason",
+   "read_only": 1
   }
  ],
  "permissions": [

@@ -188,6 +188,8 @@ def _clear_schedule_confirmation(schedule):
 
 
 def _assert_schedule_plan_editable(schedule):
+	if schedule.get("endorsement_status") == "Endorsed":
+		frappe.throw(_("Withdraw the Sales endorsement before changing this schedule."))
 	if schedule.get("confirmation_status") == "Finalized":
 		frappe.throw(_("Reopen the finalized schedule before changing its plan."))
 	if schedule.get("logistics_confirmed_by"):
@@ -196,9 +198,9 @@ def _assert_schedule_plan_editable(schedule):
 		frappe.throw(_("A schedule linked to a Delivery Note cannot be changed."))
 
 
-def quantity_state(so_item, lock=False, check_sales_access=True):
+def quantity_state(so_item, lock=False, check_sales_access=True, allow_draft=False):
 	"""Return demand, plan, draft allocations and derived unscheduled balance."""
-	so, item = _load_so_item(so_item, lock=lock, check_sales_access=check_sales_access)
+	so, item = _load_so_item(so_item, lock=lock, check_sales_access=check_sales_access, allow_draft=allow_draft)
 	if lock:
 		_lock_schedules(item.name)
 	precision = item.precision("qty")
@@ -284,6 +286,11 @@ def validate_schedule_document(doc):
 		initial_qty = Decimal(str(doc.planned_qty or 0))
 		valid_totals = (Decimal(str(doc.original_qty or 0)) + Decimal(str(doc.quantity_changes or 0))
 			== Decimal(str(doc.current_total or 0)) == initial_qty)
+		if not transfer:
+			baseline = frappe.db.sql("""SELECT COALESCE(SUM(original_qty), 0) FROM {0}tabSO Delivery Schedule{0}
+				WHERE sales_order_item = %s""".format(chr(96)), item.name)[0][0]
+			if Decimal(str(baseline or 0)) + initial_qty > Decimal(str(flt(item.qty, item.precision("qty")))):
+				frappe.throw(_("Original commitments already cover this quantity. Transfer the existing commitment instead of creating another initial schedule."))
 		valid_origin = (Decimal(str(doc.original_qty or 0)) == 0 and Decimal(str(doc.original_promise_qty or 0)) == 0
 			if transfer else Decimal(str(doc.original_qty or 0)) == initial_qty)
 		valid_provenance = (bool(doc.source_schedule and doc.source_date and doc.movement_transaction_id)
@@ -347,7 +354,7 @@ def create_schedule(so_item, delivery_date, qty, remarks, expected_so_modified, 
 
 def _form_schedule_snapshot(item_name):
 	rows = frappe.get_all("SO Delivery Schedule", filters={"sales_order_item": item_name},
-		fields=["name", "delivery_date", "planned_qty", "remarks", "modified", "history_status"], order_by="delivery_date asc, name asc")
+		fields=["name", "delivery_date", "planned_qty", "remarks", "modified", "history_status", "endorsement_status"], order_by="delivery_date asc, name asc")
 	allocations = frappe.db.sql("""
 		SELECT dni.custom_so_delivery_schedule AS schedule,
 			SUM(CASE WHEN dn.docstatus = 0 THEN dni.qty ELSE 0 END) AS draft_qty,
@@ -370,6 +377,13 @@ def _build_form_schedule_operations(clean, snapshot):
 	operations, new_entries, kept = [], [], set()
 	for row in snapshot["rows"]:
 		entry = clean_by_name.get(row.name)
+		if row.get("endorsement_status") == "Endorsed":
+			if not entry or (str(entry["delivery_date"]) != str(row.delivery_date)
+				or Decimal(str(entry["planned_qty"])) != Decimal(str(row.planned_qty))
+				or (entry.get("remarks") or "").strip() != (row.remarks or "").strip()):
+				frappe.throw(_("Withdraw the Sales endorsement in Sales Planning before editing this row."))
+			kept.add(row.name)
+			continue
 		if getdate(row.delivery_date) < getdate():
 			if not entry or (str(entry["delivery_date"]) != str(row.delivery_date)
 				or Decimal(str(entry["planned_qty"])) != Decimal(str(row.planned_qty))
@@ -429,6 +443,38 @@ def _build_form_schedule_operations(clean, snapshot):
 			new_entries.append({"date": str(entry["delivery_date"]), "qty": entry["planned_qty"],
 				"remarks": entry["remarks"]})
 	return operations, new_entries, kept
+
+
+def _pair_form_schedule_reductions(operations, new_entries):
+	"""A reduction plus a new date is a transfer, not a new customer promise.
+
+	Require an explicit source if multiple existing schedules are reduced; do
+	not invent attribution. Unscheduled original demand can still be added.
+	"""
+	reductions = [(row, date, qty, remarks) for action, row, date, qty, remarks in operations
+		if action == "adjust" and qty < Decimal(str(row.planned_qty or 0))]
+	if not reductions:
+		return operations, new_entries
+	if len(reductions) != 1:
+		frappe.throw(_("Move one source schedule at a time to preserve original commitment attribution."))
+	row, date, target, remarks = reductions[0]
+	if any(action == "transfer" and src.name == row.name for action, src, _, _, _ in operations):
+		frappe.throw(_("Use a separate quantity transfer instead of changing the date and quantity together."))
+	released = Decimal(str(row.planned_qty or 0)) - target
+	if sum((Decimal(str(e["qty"])) for e in new_entries if str(e["date"]) != str(date)), Decimal(0)) < released:
+		frappe.throw(_("Specify the destination schedule for the entire reduced quantity in the same save. Use the Delivery Schedule Workbench to move an existing commitment."))
+	paired = [op for op in operations if not (op[0] == "adjust" and op[1].name == row.name)]
+	remaining_entries = []
+	for entry in new_entries:
+		qty = Decimal(str(entry["qty"]))
+		if released > 0 and str(entry["date"]) != str(date):
+			amount = min(qty, released)
+			paired.append(("transfer", row, entry["date"], amount, entry["remarks"]))
+			qty -= amount
+			released -= amount
+		if qty > 0:
+			remaining_entries.append({**entry, "qty": qty})
+	return paired, remaining_entries
 
 
 @frappe.whitelist()
@@ -587,12 +633,8 @@ def save_form_schedule_plan(sales_order, sales_order_item, entries, expected_sta
 	if total > remaining:
 		frappe.throw(_("Planned schedule quantity cannot exceed the Sales Order Item's remaining quantity."))
 	snapshot = _form_schedule_snapshot(item.name)
-	if sum(Decimal(str(row.planned_qty)) for row in snapshot["rows"]) >= remaining:
-		old_names = {row.name for row in snapshot["rows"]}
-		new_names = {entry["name"] for entry in clean if entry.get("name")}
-		if old_names != new_names or any(not entry.get("name") for entry in clean):
-			frappe.throw(_("This item is fully scheduled. Adjust an eligible future row before adding or removing schedule rows."))
 	operations, new_by_date, kept = _build_form_schedule_operations(clean, snapshot)
+	operations, new_by_date = _pair_form_schedule_reductions(operations, new_by_date)
 
 	submitted_schedule_names = {entry["name"] for entry in clean if entry.get("name")}
 	final_total = total + sum((Decimal(str(snapshot["allocated"].get(row.name, 0)))
@@ -610,6 +652,7 @@ def save_form_schedule_plan(sales_order, sales_order_item, entries, expected_sta
 					idempotency_key=f"so-form-adjust:{row.name}:{current['state']}:{qty}")
 			elif action == "transfer":
 				doc = frappe.get_doc("SO Delivery Schedule", row.name, for_update=True)
+				_assert_schedule_plan_editable(doc)
 				_transfer_to_new_schedule(doc, so, item, qty, delivery_date, row_remarks,
 					idempotency_key=f"so-form-transfer:{row.name}:{current['state']}:{delivery_date}:{qty}")
 		for values in new_by_date:
@@ -914,7 +957,7 @@ def _transfer_to_new_schedule(source, so, item, qty, delivery_date, reason, *,
 	if source.history_status != "Verified":
 		frappe.throw(_("Reconcile the source schedule before transferring its commitment."))
 	amount = _decimal(qty, item.precision("qty"))
-	state = quantity_state(item.name, lock=True, check_sales_access=False)
+	state = quantity_state(item.name, lock=True, check_sales_access=False, allow_draft=(so.docstatus == 0))
 	available = state["available_scheduled_qty"].get(source.name, Decimal(0)) + Decimal(str(reservation_qty or 0))
 	if amount > available:
 		frappe.throw(_("Cannot move quantity already allocated to an active Delivery Note."))
@@ -1095,6 +1138,8 @@ def create_draft_delivery_notes(schedule_quantities, expected_schedule_state):
 				frappe.throw(_("Only eligible open FOB Sales Orders can proceed to Delivery Note."))
 			if not so_item.warehouse or frappe.db.get_value("Warehouse", so_item.warehouse, "custom_is_province"):
 				frappe.throw(_("Delivery Notes require an allowed non-provincial warehouse."))
+			from qcmc_logic.api.delivery_sales_planning import require_endorsed
+			require_endorsed(schedule)
 			if (schedule.get("confirmation_status") != "Finalized"
 				or not schedule.get("sales_confirmed_by")
 				or not schedule.get("logistics_confirmed_by")):
@@ -1140,6 +1185,8 @@ def create_draft_delivery_notes(schedule_quantities, expected_schedule_state):
 						frappe.throw(_("Delivery Note {0} contains another Sales Order and cannot be consolidated.").format(existing.name))
 					existing.check_permission("read")
 					matching[0].qty = float(qty)
+					existing.set_posting_time = 1
+					existing.posting_date = getdate(schedule.delivery_date)
 					existing.run_method("calculate_taxes_and_totals")
 					make_packing_list(existing)
 					# This exact child-row adjustment is authorized by the schedule service;
@@ -1172,10 +1219,15 @@ def create_draft_delivery_notes(schedule_quantities, expected_schedule_state):
 			for payload in payloads:
 				dn.append("items", payload)
 			dn.custom_sales_order = so_name
+			# The planned DR date comes from the endorsed operational schedule, not the mapper default.
+			dn.set_posting_time = 1
+			dn.posting_date = getdate(_delivery_date)
 			dn.run_method("calculate_taxes_and_totals")
 			make_packing_list(dn)
 			dn.workflow_state = "Draft"
 			dn.insert()
+			if getdate(dn.posting_date) != getdate(_delivery_date):
+				frappe.throw(_("Delivery Note posting date did not retain the confirmed schedule date."))
 			created.append(dn.name)
 			for schedule, _so, _so_item, _qty in entries:
 				_notify_schedule_change(schedule)
@@ -1388,8 +1440,6 @@ def _consolidate_schedule_draft(existing, schedule_name, so_item_name, qty):
 		frappe.throw(_("Delivery Note {0} does not have exactly one matching item for schedule {1}.").format(existing.name, schedule_name))
 	item = matches[0]
 	item.qty = float(Decimal(str(item.qty)) + qty)
-	_reset_logistics_confirmation(item)
-	_reset_sales_confirmation(item)
 	existing.run_method("calculate_taxes_and_totals")
 	from erpnext.stock.doctype.packed_item.packed_item import make_packing_list
 	make_packing_list(existing)
@@ -1445,23 +1495,6 @@ def _delivery_note_compatibility_key(so, schedule, so_item):
 	return so.name, str(schedule.delivery_date), so_item.warehouse
 
 
-def _reset_logistics_confirmation(item):
-	for fieldname in ("custom_logistics_reason", "custom_logistics_remarks", "custom_logistics_proposed_date"):
-		if item.meta.has_field(fieldname):
-			item.set(fieldname, None)
-	if item.meta.has_field("custom_logistics_proposed_qty"):
-		item.custom_logistics_proposed_qty = 0
-
-
-def _reset_sales_confirmation(item):
-	if item.meta.has_field("custom_sales_final_qty"):
-		item.custom_sales_final_qty = 0
-	if item.meta.has_field("custom_sales_move_date"):
-		item.custom_sales_move_date = None
-	if item.meta.has_field("custom_sales_remove"):
-		item.custom_sales_remove = 0
-
-
 def revise_draft_delivery_note_item(doc, item, new_qty, destination_date, remarks=None):
 	"""Persist a Sales reduction and defer released demand as a new, source-linked schedule."""
 	if not item.get(DN_SCHEDULE_FIELD) or doc.docstatus != 0 or doc.workflow_state != "Draft":
@@ -1492,8 +1525,11 @@ def revise_draft_delivery_note_item(doc, item, new_qty, destination_date, remark
 		frappe.throw(_("Sales cannot increase this DR line by selecting only a date. Obtain Logistics confirmation for the additional quantity first."))
 	if new_qty == 0 and len(doc.items) == 1:
 		frappe.throw(_("Moving the last item requires moving the whole Delivery Note."))
-	from qcmc_logic.api.delivery_confirmation_service import _get_logistics_committed_qty
-	committed = Decimal(str(flt(_get_logistics_committed_qty(item), precision)))
+	if (source.history_status != "Verified" or source.confirmation_status != "Finalized"
+		or not source.logistics_confirmed_by or not source.sales_confirmed_by):
+		frappe.throw(_("The linked schedule requires Logistics and Sales confirmation."))
+	committed = min(Decimal(str(flt(source.logistics_committed_qty, precision))),
+		Decimal(str(flt(source.final_qty, precision))))
 	if new_qty > committed:
 		frappe.throw(_("Sales quantity cannot exceed Logistics commitment."))
 	if not source.sales_order == so.name or source.sales_order_item != so_item.name:
@@ -1514,9 +1550,6 @@ def revise_draft_delivery_note_item(doc, item, new_qty, destination_date, remark
 		frappe.flags.delivery_schedule_service_write = True
 		if new_qty:
 			item.qty = float(new_qty)
-			item.custom_sales_final_qty = float(new_qty)
-			item.custom_sales_move_date = source.delivery_date
-			item.custom_sales_remove = 0
 		else:
 			doc.remove(item)
 		doc.run_method("calculate_taxes_and_totals")
@@ -1599,6 +1632,7 @@ def move_draft_delivery_note(doc, destination_date, remarks=None):
 	try:
 		frappe.flags.delivery_schedule_service_write = True
 		if doc.meta.has_field("posting_date"):
+			doc.set_posting_time = 1
 			doc.posting_date = date
 		for source_name in sorted(item_rows):
 			source = frappe.get_doc("SO Delivery Schedule", source_name)
@@ -1617,8 +1651,7 @@ def move_draft_delivery_note(doc, destination_date, remarks=None):
 				row.set(DN_SCHEDULE_FIELD, dest_doc.name)
 				if row.meta.has_field("delivery_date"):
 					row.delivery_date = date
-				_reset_logistics_confirmation(row)
-				_reset_sales_confirmation(row)
+				# The new schedule owns both departmental confirmations.
 		doc.run_method("calculate_taxes_and_totals")
 		doc.save(ignore_permissions=True)
 		doc.add_comment("Info", _("Whole Delivery Note moved to {0}; Logistics confirmation is required again. Reason: {1}").format(date, remarks.strip()))
@@ -1631,8 +1664,16 @@ def move_draft_delivery_note(doc, destination_date, remarks=None):
 
 
 def validate_delivery_note_item(doc, method=None):
-	"""Keep new v2 DN links consistent; legacy items remain untouched."""
+	"""Validate schedule allocations from both the standard form and workbench."""
 	previous_doc = getattr(doc, "_doc_before_save", None)
+	if not doc.is_return and doc.docstatus == 0 and doc.workflow_state == "Draft":
+		orders = {row.against_sales_order for row in doc.items if row.get("against_sales_order")}
+		if len(orders) == 1 and all(row.get(DN_SCHEDULE_FIELD) for row in doc.items):
+			doc.custom_sales_order = next(iter(orders))
+			dates = {str(frappe.db.get_value("SO Delivery Schedule", row.get(DN_SCHEDULE_FIELD), "delivery_date")) for row in doc.items}
+			if len(dates) == 1 and "None" not in dates:
+				doc.set_posting_time = 1
+				doc.posting_date = getdate(next(iter(dates)))
 	if (previous_doc and previous_doc.get("workflow_state") == "Draft"
 		and doc.get("workflow_state") == "To Deliver and Bill"):
 		from qcmc_logic.api.delivery_printing_service import _validate_v2_release_transition
@@ -1653,6 +1694,14 @@ def validate_delivery_note_item(doc, method=None):
 			frappe.throw(_("Delivery Note schedule must match its Sales Order and Sales Order Item references."))
 		if schedule.item_code != row.item_code or schedule.warehouse != row.warehouse:
 			frappe.throw(_("Delivery Note item and warehouse must match the linked schedule."))
+		if doc.docstatus == 0 and doc.workflow_state == "Draft":
+			old_row = next((i for i in previous_doc.items if i.name == row.name), None) if previous_doc else None
+			if not old_row or old_row.get(DN_SCHEDULE_FIELD) != schedule_name:
+				if (schedule.history_status != "Verified" or schedule.endorsement_status != "Endorsed"
+					or schedule.confirmation_status != "Finalized" or not schedule.sales_confirmed_by
+					or not schedule.logistics_confirmed_by
+					or flt(schedule.final_qty, row.precision("qty")) != flt(row.qty, row.precision("qty"))):
+					frappe.throw(_("Choose an endorsed, jointly finalized schedule matching the Delivery Note item quantity."))
 		if row.get("delivery_date") and str(row.delivery_date) != str(schedule.delivery_date):
 			frappe.throw(_("Delivery Note date must match the linked delivery schedule."))
 		current_by_schedule[schedule.name] = current_by_schedule.get(schedule.name, Decimal(0)) + Decimal(str(flt(row.qty, row.precision("qty"))))

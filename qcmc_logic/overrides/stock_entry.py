@@ -11,6 +11,12 @@ from qcmc_logic.overrides.putaway_rule_dimension import (
 
 
 class CustomStockEntry(StockEntry):
+	def _save(self, *args, **kwargs):
+		from qcmc_logic.customs.stock_entry import lock_manufacture_receipt
+
+		lock_manufacture_receipt(self)
+		return super()._save(*args, **kwargs)
+
 	def extend(self, key, value):
 		if key == 'custom_storage_allocation':
 			from frappe.model.base_document import BaseDocument
@@ -53,6 +59,18 @@ class CustomStockEntry(StockEntry):
 		from qcmc_logic.material_receipt_allocation import cancel_allocations
 		cancel_allocations(self)
 		super().on_cancel()
+
+	def on_discard(self):
+		# Stock Entry uses docstatus, not a persisted status field. ERPNext
+		# v16 StatusUpdater.on_discard unconditionally writes "status".
+		# Preserve the existing Manufacture allocation cleanup, but skip the
+		# incompatible inherited status write for ALL Stock Entry purposes.
+		if self.purpose == "Manufacture" and self.get("qcmc_output_allocations") and not self.meta.has_field("status"):
+			from qcmc_logic.material_receipt_allocation import delete_draft_allocations
+
+			delete_draft_allocations(self)
+		if self.meta.has_field("status") and frappe.db.has_column(self.doctype, "status"):
+			super().on_discard()
 
 	def on_trash(self):
 		from qcmc_logic.material_receipt_allocation import delete_draft_allocations

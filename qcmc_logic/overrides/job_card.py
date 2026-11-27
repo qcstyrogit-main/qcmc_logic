@@ -6,6 +6,19 @@ from erpnext.manufacturing.doctype.job_card.job_card import JobCard
 
 
 class CustomJobCard(JobCard):
+	def validate(self):
+		super().validate()
+		self._remove_blank_summary_employees()
+
+	def _remove_blank_summary_employees(self):
+		# Process Card output rows intentionally have no employee. Native Job
+		# Card validation may include that empty value in the employee summary.
+		# Keep the actual output and participation Time Logs untouched.
+		if self._has_process_output():
+			for row in list(self.get("employee") or []):
+				if not row.get("employee"):
+					self.remove(row)
+
 	def validate_job_card_qty(self):
 		"""Validate shift cards against actual output plus still-open commitments.
 
@@ -61,3 +74,32 @@ class CustomJobCard(JobCard):
 				),
 				title=_("Extra Job Card Quantity"),
 			)
+
+	def _has_process_output(self):
+		return any(row.get("qcmc_output_revision") for row in self.time_logs)
+
+	def set_process_loss(self):
+		if self._has_process_output():
+			self.process_loss_qty = 0
+		else:
+			super().set_process_loss()
+
+	def validate_job_card(self):
+		if not self._has_process_output():
+			return super().validate_job_card()
+
+		if any(row.get("qcmc_output_revision") and not row.get("qcmc_output_confirmed_at")
+			for row in self.time_logs):
+			frappe.throw(_("Confirm all production output before submitting the Job Card."))
+
+		planned_quantity = self.for_quantity
+		try:
+			self.for_quantity = self.total_completed_qty
+			super().validate_job_card()
+		finally:
+			self.for_quantity = planned_quantity
+
+	def validate_sequence_id(self):
+		# The checkpoint service validates accepted input across all shift cards.
+		if not self._has_process_output():
+			super().validate_sequence_id()
