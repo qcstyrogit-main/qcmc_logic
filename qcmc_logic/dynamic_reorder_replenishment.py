@@ -71,6 +71,9 @@ def approved_state(name, automatic=False, read_only=False):
     snap = frappe.parse_json(h.details or "{}")
     if snap.get("schema_version") != 2 or snap.get("production_mode") != "Make to Stock" or sorted(snap.get("warehouses") or []) != warehouses or mapping.replenishment_warehouse != h.warehouse:
         frappe.throw("Mapping scope changed; approve a fresh configuration")
+    baseline = snap.get("approval_source") == "Excel Baseline"
+    if baseline and automatic:
+        frappe.throw("Excel baseline approvals are manual draft only")
     # Conservative first release: overrides must be reviewed separately.
     if snap.get("override") or frappe.db.exists("Item Reorder Override", {"mapping":h.mapping,"item_code":h.item_code,"enabled":1}):
         frappe.throw("Item override requires replenishment review")
@@ -123,6 +126,10 @@ def approved_state(name, automatic=False, read_only=False):
         (h.company,item.name,tuple(warehouses)),as_dict=True)
     precision = 0 if frappe.db.get_value("UOM",item.stock_uom,"must_be_whole_number") else cint(frappe.db.get_default("float_precision") or 3)
     qty = candidate_quantity(row.warehouse_reorder_level,row.warehouse_reorder_qty,projected,precision)
+    if baseline:
+        from qcmc_logic.dynamic_reorder_excel_baseline import baseline_replenishment_terms
+        policy = frappe._dict(policy.as_dict())
+        policy.update(baseline_replenishment_terms(snap, h))
     maximum = number(policy.maximum_stock or 0)
     if qty and maximum and projected+qty>maximum:
         frappe.throw("Replenishment would exceed maximum stock; manual review required")
@@ -130,12 +137,12 @@ def approved_state(name, automatic=False, read_only=False):
 
 
 @frappe.whitelist(methods=["POST"])
-def create_draft(name):
+def create_draft(name, required_by=None):
     require_admin()
-    return _create_draft(name)
+    return _create_draft(name, required_by=required_by) if required_by else _create_draft(name)
 
 
-def _create_draft(name, automatic=False):
+def _create_draft(name, automatic=False, required_by=None):
     h,item,policy,request_type,projected,qty,requests = approved_state(name,automatic=automatic)
     if requests:
         return {"status":"Open Material Request","requests":requests}
@@ -151,7 +158,16 @@ def _create_draft(name, automatic=False):
         if readiness != "Ready":
             return {"status":readiness,"reason":reason,"item_code":item.name}
     today = business_date()
-    due = add_days(today,max(0,cint(policy.lead_time)))
+    if policy.get("excel_baseline") and policy.lead_time is None and not required_by:
+        return {"status":"Review Required","reason":"Excel has no lead time; supply an explicitly reviewed required-by date"}
+    if required_by:
+        if automatic or not policy.get("excel_baseline"):
+            frappe.throw("Explicit required-by date is only for manual Excel baseline requests")
+        due = getdate(required_by)
+        if due < today:
+            frappe.throw("Required-by date cannot be in the past")
+    else:
+        due = add_days(today,max(0,cint(policy.lead_time)))
     meta = frappe.get_meta("Material Request")
     if not all(meta.has_field(f) for f in ("custom_replenishment_mapping","custom_replenishment_history")):
         frappe.throw("Replenishment metadata is not installed")
