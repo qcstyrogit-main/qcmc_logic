@@ -13,7 +13,8 @@ def install_fields():
     create_custom_fields({"Item Reorder":[
         dict(fieldname="custom_reorder_mapping",label="Reorder Policy Mapping",fieldtype="Link",options="Reorder Policy Mapping",insert_after="warehouse",read_only=1),
         dict(fieldname="custom_managed_reorder",label="Managed by Reorder Management",fieldtype="Check",insert_after="custom_reorder_mapping",read_only=1,default="0"),
-        dict(fieldname="custom_reorder_history",label="Calculation History",fieldtype="Link",options="Reorder Calculation History",insert_after="custom_managed_reorder",read_only=1)
+        dict(fieldname="custom_reorder_history",label="Calculation History",fieldtype="Link",options="Reorder Calculation History",insert_after="custom_managed_reorder",read_only=1),
+        dict(fieldname="custom_reorder_excluded_mapping",label="Preserved under Reorder Mapping",fieldtype="Link",options="Reorder Policy Mapping",insert_after="custom_reorder_history",read_only=1,no_copy=1)
     ],"Material Request":[
         dict(fieldname="custom_replenishment_mapping",label="Replenishment Mapping",fieldtype="Link",options="Reorder Policy Mapping",insert_after="material_request_type",read_only=1,no_copy=1),
         dict(fieldname="custom_replenishment_history",label="Replenishment Calculation",fieldtype="Link",options="Reorder Calculation History",insert_after="custom_replenishment_mapping",read_only=1,no_copy=1)
@@ -41,11 +42,11 @@ def readiness():
     from qcmc_logic.dynamic_reorder_policy import is_v2_mapping, mapping_conflicts, validate_scope, mapping_warehouses
     required={
         "Reorder Policy":["demand_delivery","demand_manufacture","demand_intercompany","demand_provincial"],
-        "Reorder Policy Mapping":["warehouses","replenishment_warehouse","inventory_group","inventory_type","legacy_scope_reviewed","migration_review_required","migration_note"],
+        "Reorder Policy Mapping":["warehouses","replenishment_warehouse","inventory_group","inventory_type","legacy_scope_reviewed","migration_review_required","migration_note","transfer_source_warehouse"],
         "Reorder Mapping Warehouse":["warehouse"],
         "Item Reorder Override":["mapping","legacy_scope_reviewed"],
         "Reorder Calculation History":["mapping","calculation_key"],
-        "Item Reorder":["custom_reorder_mapping","custom_managed_reorder","custom_reorder_history"],
+        "Item Reorder":["custom_reorder_mapping","custom_managed_reorder","custom_reorder_history","custom_reorder_excluded_mapping"],
     }
     missing=[]
     for dt,fields in required.items():

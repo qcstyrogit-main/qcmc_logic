@@ -28,7 +28,8 @@ def classify(row):
     if row.get("new_reorder_row") or not row.get("reorder_row"):
         return "New Configuration"
     if number(row["previous_level"])==number(row["reorder_level"]) and number(row["previous_qty"])==number(row["reorder_qty"]):
-        return "Unchanged"
+        # Adopted rows need a first approval even when no quantity changes.
+        return "Pending Approval" if row.get("requires_initial_approval") else "Unchanged"
     return "Pending Approval"
 
 

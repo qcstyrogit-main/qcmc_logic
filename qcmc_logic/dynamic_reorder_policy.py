@@ -54,6 +54,46 @@ def mapping_warehouses(mapping):
     return [row.get("warehouse") for row in mapping.get("warehouses") or []]
 
 
+def reorder_scope(warehouses, warehouse_rows):
+    """Resolve leaf scope plus ancestors; reject an incomplete or cyclic tree."""
+    parents = {row.get("name"): row.get("parent_warehouse") for row in warehouse_rows}
+    scope = set(warehouses)
+    for warehouse in warehouses:
+        seen = set()
+        current = warehouse
+        while current:
+            if current in seen or current not in parents:
+                raise ValueError("Invalid warehouse hierarchy: " + str(current))
+            seen.add(current)
+            scope.add(current)
+            current = parents[current]
+    return scope, set(parents)
+
+
+def reorder_row_overlaps(row, warehouses, scope):
+    """An unrelated warehouse group is not a conflict; unknown groups fail closed."""
+    ancestors, known = scope
+    group = row.get("warehouse_group")
+    return (row.get("warehouse") in warehouses
+            or bool(group and (group in ancestors or group not in known)))
+
+
+def reviewed_preserved_row(row, owned, mapping, warehouses):
+    """Only a marked Guyong row with a valid managed Sta Clara counterpart is excluded."""
+    return bool(owned and owned.get("custom_managed_reorder")
+        and owned.get("custom_reorder_mapping") == mapping
+        and owned.get("warehouse") == "FG - Sta Clara"
+        and owned.get("material_request_type") == "Manufacture"
+        and set(warehouses) == {"FG - Sta Clara", "FG - Guyong"}
+        and row.get("warehouse") == "FG - Guyong"
+        and row.get("warehouse_group") == "FG - Guyong"
+        and row.get("material_request_type") == "Manufacture"
+        and not row.get("custom_managed_reorder")
+        and not row.get("custom_reorder_mapping")
+        and not row.get("custom_reorder_history")
+        and row.get("custom_reorder_excluded_mapping") == mapping)
+
+
 def is_v2_mapping(mapping):
     return bool(mapping_warehouses(mapping) and
                 (not any(mapping.get(k) for k in LEGACY_SCOPE_FIELDS)
@@ -66,7 +106,7 @@ def active_on(row, as_of):
                 (not row.get("effective_to") or date.fromisoformat(str(row["effective_to"])) >= as_of))
 
 
-def mapping_conflicts(left, right):
+def classification_period_conflicts(left, right):
     if not left.get("enabled") or not right.get("enabled") or left.get("name") == right.get("name"):
         return False
     if any(left.get(k) != right.get(k) for k in ("company", "inventory_group", "inventory_type")):
@@ -74,6 +114,20 @@ def mapping_conflicts(left, right):
     start = lambda r: date.fromisoformat(str(r["effective_from"])) if r.get("effective_from") else date.min
     end = lambda r: date.fromisoformat(str(r["effective_to"])) if r.get("effective_to") else date.max
     return max(start(left), start(right)) <= min(end(left), end(right))
+
+
+def mapping_conflicts(left, right):
+    """Same classification and dates may coexist only for disjoint reviewed leaf scopes."""
+    if not classification_period_conflicts(left, right):
+        return False
+    if not is_v2_mapping(left) or not is_v2_mapping(right):
+        return True
+    a, b = mapping_warehouses(left), mapping_warehouses(right)
+    if (not all(a) or not all(b) or len(a) != len(set(a)) or len(b) != len(set(b))
+            or left.get("replenishment_warehouse") not in a
+            or right.get("replenishment_warehouse") not in b):
+        return True
+    return bool(set(a).intersection(b))
 
 
 def validate_scope(mapping, warehouses):
@@ -114,6 +168,10 @@ def validate_mapping(doc, method=None):
         fields=["name","company","disabled","is_group"])}
     try:
         validate_scope(doc, warehouses)
+        if doc.get("transfer_source_warehouse"):
+            from qcmc_logic.dynamic_reorder_transfer import validate_transfer_source
+            validate_transfer_source(doc.company, doc.transfer_source_warehouse,
+                doc.replenishment_warehouse, mapping_warehouses(doc), read_only=False)
         # Locking/current reads remain correct under MariaDB REPEATABLE READ.
         others = frappe.db.sql("""
             SELECT m.*, p.inventory_category inventory_group, p.inventory_type
@@ -121,6 +179,13 @@ def validate_mapping(doc, method=None):
             WHERE m.company=%s AND m.enabled=1 FOR UPDATE
         """, (doc.company,), as_dict=True)
         for other in others:
+            if not classification_period_conflicts(doc, other):
+                continue
+            other["warehouses"] = frappe.db.sql("""
+                SELECT warehouse FROM `tabReorder Mapping Warehouse`
+                WHERE parent=%s AND parenttype='Reorder Policy Mapping'
+                  AND parentfield='warehouses' FOR UPDATE
+            """, (other.name,), as_dict=True)
             if mapping_conflicts(doc, other):
                 raise ValueError("Overlapping active Reorder Policy Mapping: " + other.name)
     except ValueError as exc:
@@ -163,5 +228,5 @@ def validate_override(doc, method=None):
     for other in frappe.db.sql("SELECT * FROM `tabItem Reorder Override` WHERE mapping=%s AND item_code=%s AND enabled=1 FOR UPDATE", (doc.mapping,doc.item_code),as_dict=True):
         a=dict(doc.as_dict(),inventory_group=doc.item_code,inventory_type=doc.mapping)
         b=dict(other,inventory_group=doc.item_code,inventory_type=doc.mapping)
-        if mapping_conflicts(a,b):
+        if classification_period_conflicts(a,b):
             frappe.throw("Overlapping active item overrides for this mapping")

@@ -7,6 +7,7 @@ from qcmc_logic.dynamic_reorder_calculation import calculate, historical_months,
 from qcmc_logic.dynamic_reorder_demand import monthly_demand, configured_sources
 from qcmc_logic.dynamic_reorder_policy import (
     active_on, is_v2_mapping, mapping_warehouses, validate_scope, mapping_conflicts, production_mode,
+    reorder_scope, reorder_row_overlaps, reviewed_preserved_row,
 )
 from qcmc_logic.utils import check_warehouse_access, check_item_inventory_group_access
 
@@ -41,6 +42,7 @@ def load_mapping(company, name, as_of):
     for other in frappe.get_all("Reorder Policy Mapping", filters={"company":company,"enabled":1}, fields=["*"]):
         if other.name == mapping.name:
             continue
+        other = frappe._dict(document_dict(frappe.get_doc("Reorder Policy Mapping", other.name)))
         other_policy = frappe.get_doc("Reorder Policy", other.policy)
         other.update(inventory_group=other_policy.inventory_category,inventory_type=other_policy.inventory_type)
         if mapping_conflicts(scope,other):
@@ -93,6 +95,7 @@ def preview_rows(company, warehouse=None, item_group=None, item_code=None, as_of
                 value[field] += number(row.get(field) or 0)
         for row in frappe.get_all("Item Reorder",filters={"parent":["in",chunk],"parenttype":"Item","parentfield":"reorder_levels"},fields=["*"]):
             existing.setdefault(row.parent,[]).append(row)
+    scope = reorder_scope(warehouses, frappe.get_all("Warehouse", fields=["name","parent_warehouse"]))
     profiles, demand_groups, prepared, result = {}, {}, [], []
     precision_cache = {}
     default_precision = cint(frappe.db.get_default("float_precision") or 3)
@@ -100,6 +103,7 @@ def preview_rows(company, warehouse=None, item_group=None, item_code=None, as_of
         common = dict(schema_version=2,preview_only=True,company=company,mapping=mapping,
             mapping_name=config.get("mapping_name") or mapping,warehouses=warehouses,
             warehouse=config.replenishment_warehouse,replenishment_warehouse=config.replenishment_warehouse,
+            transfer_source_warehouse=config.get("transfer_source_warehouse") or None,
             item_code=item.name,item_name=item.item_name,item_group=item.item_group,stock_uom=item.stock_uom,
             policy=base_policy.name,production_mode=production_mode(base_policy.inventory_category))
         try:
@@ -140,9 +144,11 @@ def preview_rows(company, warehouse=None, item_group=None, item_code=None, as_of
             if owned and (not row.get("custom_managed_reorder") or row.warehouse!=config.replenishment_warehouse or row.get("warehouse_group") not in (None,"",config.replenishment_warehouse)):
                 raise ValueError("Managed Item Reorder configuration requires review")
             common.update(policy=policy.name,reorder_row=row.name,new_reorder_row=not owned,
+                requires_initial_approval=bool(owned and not row.get("custom_reorder_history")),
                 previous_level=row.warehouse_reorder_level or 0,previous_qty=row.warehouse_reorder_qty or 0,
                 legacy_reorder_rows=[r.name for r in existing.get(item.name,[]) if r not in owned and
-                    (r.warehouse in warehouses or r.get("warehouse_group"))],
+                    reorder_row_overlaps(r, warehouses, scope)
+                    and not reviewed_preserved_row(r, row if owned else None, mapping, warehouses)],
                 actual_qty=stock.get(item.name,{}).get("actual_qty",Decimal(0)),
                 projected_qty=stock.get(item.name,{}).get("projected_qty",Decimal(0)),
                 stock_as_of=str(today),material_request_type=policy.material_request_type,

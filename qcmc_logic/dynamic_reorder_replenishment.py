@@ -6,7 +6,7 @@ from frappe.utils import add_days, cint, getdate
 from decimal import Decimal, ROUND_CEILING
 from qcmc_logic.dynamic_reorder_calculation import number
 from qcmc_logic.dynamic_reorder_clock import business_date
-from qcmc_logic.dynamic_reorder_policy import active_on, mapping_warehouses
+from qcmc_logic.dynamic_reorder_policy import active_on, mapping_warehouses, reorder_scope, reorder_row_overlaps, reviewed_preserved_row
 from qcmc_logic.dynamic_reorder_service import load_mapping, require_admin
 
 
@@ -21,7 +21,7 @@ def candidate_quantity(level, qty, projected, precision=0):
 
 def manufacturing_readiness(item_code, company, request_type):
     """Mirror native default BOM selection; reject inactive or wrong-company BOMs."""
-    if request_type == "Purchase":
+    if request_type in ("Purchase","Transfer"):
         return "Not Applicable", "", None
     if request_type != "Manufacture":
         return "Review Required", "Material Request Type requires review", None
@@ -94,13 +94,21 @@ def approved_state(name, automatic=False, read_only=False):
     row = rows[0]
     if not row.custom_managed_reorder or row.name!=h.reorder_row or row.custom_reorder_history!=h.name or row.warehouse!=h.warehouse or row.warehouse_group not in (None,"",h.warehouse):
         frappe.throw("Managed reorder ownership changed")
-    if any(r.name!=row.name and (r.warehouse in warehouses or r.warehouse_group) for r in item.reorder_levels):
+    scope = reorder_scope(warehouses, frappe.get_all("Warehouse", fields=["name","parent_warehouse"]))
+    if any(r.name!=row.name and reorder_row_overlaps(r, warehouses, scope)
+           and not reviewed_preserved_row(r, row, h.mapping, warehouses) for r in item.reorder_levels):
         frappe.throw("Conflicting reorder rows require review")
     if number(row.warehouse_reorder_level)!=number(h.recommended_level) or number(row.warehouse_reorder_qty)!=number(h.recommended_qty):
         frappe.throw("Approved reorder values changed")
     request_type = row.material_request_type
-    if request_type not in ("Manufacture","Purchase") or policy.material_request_type not in ("Preserve",request_type) or snap.get("applied_request_type",request_type)!=request_type:
+    if request_type not in ("Manufacture","Purchase","Transfer") or policy.material_request_type not in ("Preserve",request_type) or snap.get("applied_request_type",request_type)!=request_type:
         frappe.throw("Material Request Type requires review")
+    if request_type == "Transfer":
+        from qcmc_logic.dynamic_reorder_transfer import validate_transfer_source
+        if policy.material_request_type != "Preserve" or not snap.get("transfer_source_warehouse") or snap.get("transfer_source_warehouse") != mapping.get("transfer_source_warehouse"):
+            frappe.throw("Transfer source or policy changed; approve a fresh configuration")
+        validate_transfer_source(h.company, snap["transfer_source_warehouse"], h.warehouse,
+                                 warehouses, read_only=read_only)
     # Current locking reads, not stale prepared-report values.
     bins = frappe.db.sql("""SELECT projected_qty FROM `tabBin`
         WHERE item_code=%s AND warehouse IN %s""" + ("" if read_only else " FOR UPDATE"),
@@ -136,19 +144,30 @@ def _create_draft(name, automatic=False):
     readiness, reason, bom = manufacturing_readiness(item.name,h.company,request_type)
     if readiness not in ("Ready","Not Applicable"):
         return {"status":readiness,"reason":reason,"item_code":item.name}
+    source = None
+    if request_type == "Transfer":
+        from qcmc_logic.dynamic_reorder_transfer import transfer_readiness
+        readiness, reason, source = transfer_readiness(h, item.name, qty, read_only=False)
+        if readiness != "Ready":
+            return {"status":readiness,"reason":reason,"item_code":item.name}
     today = business_date()
     due = add_days(today,max(0,cint(policy.lead_time)))
     meta = frappe.get_meta("Material Request")
     if not all(meta.has_field(f) for f in ("custom_replenishment_mapping","custom_replenishment_history")):
         frappe.throw("Replenishment metadata is not installed")
     mr = frappe.new_doc("Material Request")
-    mr.update(dict(company=h.company, material_request_type=request_type,
+    header = dict(company=h.company, material_request_type="Material Transfer" if source else request_type,
                    transaction_date=today,schedule_date=due,set_warehouse=h.warehouse,auto_created_via_reorder=0,
-                   custom_replenishment_mapping=h.mapping,custom_replenishment_history=h.name))
-    mr.append("items",dict(item_code=item.name,item_name=item.item_name,
+                   custom_replenishment_mapping=h.mapping,custom_replenishment_history=h.name)
+    line = dict(item_code=item.name,item_name=item.item_name,
         description=item.description or item.item_name,warehouse=h.warehouse,
         schedule_date=due,qty=float(qty),uom=item.stock_uom,stock_uom=item.stock_uom,
-        conversion_factor=1))
+        conversion_factor=1)
+    if source:
+        header["set_from_warehouse"] = source
+        line["from_warehouse"] = source
+    mr.update(header)
+    mr.append("items",line)
     mr.insert()
     mr.add_comment("Comment","Consolidated replenishment from approved calculation " + h.name)
     h.add_comment("Comment","Draft Material Request " + mr.name + " created for " + str(qty) + " " + item.stock_uom)

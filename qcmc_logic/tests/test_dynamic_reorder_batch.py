@@ -17,6 +17,11 @@ class TestBatch(unittest.TestCase):
     def test_unchanged(self):
         self.assertEqual(b.classify(self.row()),"Unchanged")
 
+    def test_unchanged_adopted_row_requires_first_approval(self):
+        self.assertEqual(b.classify(self.row(requires_initial_approval=True)), "Pending Approval")
+        self.assertEqual(b.classify(self.row(requires_initial_approval=False)), "Unchanged")
+        self.assertEqual(b.classify(self.row(requires_initial_approval=True, status="Skipped")), "Skipped")
+
     def test_changed_qty_only(self):
         self.assertEqual(b.classify(self.row(reorder_qty=21)),"Pending Approval")
 

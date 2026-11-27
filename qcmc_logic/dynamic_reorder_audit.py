@@ -94,8 +94,8 @@ def validate_application(h, item):
         frappe.throw("Item is no longer eligible; generate a fresh preview")
     fresh = rows[0]
     for field in ("company","mapping","warehouse","item_code","policy","override","warehouses",
-                  "production_mode","material_request_type","reorder_row","legacy_reorder_rows",
-                  "period_segments","demand_sources","policy_snapshot","monthly_demand"):
+                  "production_mode","material_request_type","reorder_row","legacy_reorder_rows","transfer_source_warehouse",
+                  "period_segments","demand_sources","policy_snapshot","monthly_demand","requires_initial_approval"):
         if key(snap.get(field)) != key(fresh.get(field)):
             frappe.throw("Calculation scope or inputs changed (" + field + "); generate a fresh preview")
     for field, saved in (("reorder_level",h.recommended_level),("reorder_qty",h.recommended_qty),
@@ -119,8 +119,14 @@ def validate_application(h, item):
     request_type = fresh.get("material_request_type")
     if request_type == "Preserve":
         request_type = row.material_request_type if row else None
-    if request_type not in ("Manufacture","Purchase"):
+    if request_type not in ("Manufacture","Purchase","Transfer"):
         frappe.throw("Select an explicit supported Material Request Type")
+    if request_type == "Transfer":
+        if not row or fresh.get("material_request_type") != "Preserve":
+            frappe.throw("Transfer requires an existing managed Transfer configuration and Preserve policy")
+        from qcmc_logic.dynamic_reorder_transfer import validate_transfer_source
+        validate_transfer_source(h.company, fresh.get("transfer_source_warehouse"),
+            h.warehouse, fresh.get("warehouses") or [])
     if row and row.material_request_type != request_type:
         frappe.throw("Existing request type differs; review configuration before approval")
     return row, request_type

@@ -36,6 +36,10 @@ def approved_result(row, state, enabled):
         can_create_request=False, reason="")
     from qcmc_logic.dynamic_reorder_replenishment import manufacturing_readiness
     readiness, reason, bom = manufacturing_readiness(item.name,h.company,request_type)
+    if request_type == "Transfer" and qty and not requests:
+        from qcmc_logic.dynamic_reorder_transfer import transfer_readiness
+        readiness, reason, source = transfer_readiness(h,item.name,qty,read_only=True)
+        result["transfer_source_warehouse"] = source
     result.update(request_type=request_type,manufacturing_readiness=readiness,default_bom=bom)
     if requests:
         status, action = "Open Material Request", "Review existing requests before ordering more."
