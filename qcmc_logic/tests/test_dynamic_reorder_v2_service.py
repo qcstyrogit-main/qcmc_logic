@@ -71,6 +71,25 @@ class TestMappingPreview(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"Legacy"):
             self.preview()
 
+    def test_disjoint_mapping_is_allowed_but_shared_warehouse_blocks_preview(self):
+        other = frappe._dict(name="Other", company="Co", enabled=1, policy="P",
+                            replenishment_warehouse="C", warehouses=[{"warehouse":"C"}])
+        get_all, get_doc = self.get_all, self.get_doc
+        def all_docs(dt, **kwargs):
+            if dt == "Reorder Policy Mapping":
+                return [self.mapping, frappe._dict(name="Other", policy="P")]
+            return get_all(dt, **kwargs)
+        def get_document(dt, name=None):
+            if dt == "Reorder Policy Mapping" and name == "Other":
+                return other
+            return get_doc(dt, name)
+        with patch.object(frappe,"get_all",side_effect=all_docs), \
+                patch.object(frappe,"get_doc",side_effect=get_document):
+            self.assertEqual(len(self.preview()), 1)
+            other.warehouses.append({"warehouse":"B"})
+            with self.assertRaisesRegex(ValueError, "Overlapping"):
+                self.preview()
+
     def test_optional_exclusion_override_and_conflicts(self):
         self.overrides=[frappe._dict(enabled=1,mapping="M",item_code="I",exclude_item=1)]
         self.assertEqual(self.preview()[0]["status"],"Skipped")

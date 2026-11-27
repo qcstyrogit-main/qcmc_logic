@@ -110,6 +110,40 @@ class TestReplenishment(unittest.TestCase):
             mr.submit.assert_not_called()
             state[0].add_comment.assert_called_once()
 
+    def test_transfer_creates_draft_with_source_and_destination(self):
+        h,item,policy,_,projected,qty,requests = self.state()
+        state=(h,item,policy,"Transfer",projected,qty,requests)
+        with patch.object(r,"approved_state",return_value=state), patch("qcmc_logic.dynamic_reorder_transfer.transfer_readiness",return_value=("Ready","","Source")), patch.object(r,"business_date",return_value=date(2026,11,25)), patch.object(frappe,"get_meta") as meta, patch.object(frappe,"new_doc") as new:
+            meta.return_value.has_field.return_value=True
+            mr=new.return_value
+            mr.name="MR1"
+            self.assertEqual(r._create_draft("H")["status"],"Draft Created")
+            self.assertEqual(mr.update.call_args.args[0]["material_request_type"],"Material Transfer")
+            self.assertEqual(mr.update.call_args.args[0]["set_from_warehouse"],"Source")
+            self.assertEqual(mr.update.call_args.args[0]["set_warehouse"],"MC1")
+            self.assertEqual(mr.append.call_args.args[1]["from_warehouse"],"Source")
+            self.assertEqual(mr.append.call_args.args[1]["warehouse"],"MC1")
+            mr.insert.assert_called_once()
+            mr.submit.assert_not_called()
+
+    def test_transfer_shortage_blocks_draft(self):
+        h,item,policy,_,projected,qty,requests=self.state()
+        with patch.object(r,"approved_state",return_value=(h,item,policy,"Transfer",projected,qty,requests)), patch("qcmc_logic.dynamic_reorder_transfer.transfer_readiness",return_value=("Insufficient Source Stock","Short","A")), patch.object(frappe,"new_doc") as new:
+            self.assertEqual(r._create_draft("H")["status"],"Insufficient Source Stock")
+            new.assert_not_called()
+
+    def test_transfer_duplicate_blocks_source_check_and_draft(self):
+        h,item,policy,_,projected,qty,requests=self.state(requests=["MR1"])
+        with patch.object(r,"approved_state",return_value=(h,item,policy,"Transfer",projected,qty,requests)), patch("qcmc_logic.dynamic_reorder_transfer.transfer_readiness") as ready, patch.object(frappe,"new_doc") as new:
+            self.assertEqual(r._create_draft("H")["status"],"Open Material Request")
+            ready.assert_not_called()
+            new.assert_not_called()
+
+    def test_transfer_does_not_query_bom(self):
+        with patch.object(frappe,"db",MagicMock()) as db:
+            self.assertEqual(r.manufacturing_readiness("I","Co","Transfer"),("Not Applicable","",None))
+            db.get_value.assert_not_called()
+
     def test_missing_bom_blocks_manual_and_scheduled_creation(self):
         for automatic in (False,True):
             with patch.object(r,"approved_state",return_value=self.state()),patch.object(r,"manufacturing_readiness",return_value=("BOM Required","Missing BOM",None)),patch.object(frappe,"new_doc") as new:

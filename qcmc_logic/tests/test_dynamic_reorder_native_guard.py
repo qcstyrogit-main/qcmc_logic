@@ -61,6 +61,14 @@ class TestNativeGuard(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"Managed / A"):
                 guard.validate_native_request(doc)
 
+    def test_native_guard_includes_preserved_guyong_marker(self):
+        doc = request()
+        with patch.object(frappe,"db",MagicMock()) as db, patch.object(frappe,"get_meta") as meta:
+            meta.return_value.has_field.return_value=True
+            db.sql.side_effect=[[],[frappe._dict(parent="Managed",warehouse="FG - Guyong")]]
+            self.assertEqual(guard.protected_pairs(doc),{("Managed","FG - Guyong")})
+            self.assertIn("custom_reorder_excluded_mapping", db.sql.call_args.args[0])
+
     def test_database_lookup_locks_items(self):
         doc = request()
         with patch.object(frappe,"db",MagicMock()) as db, patch.object(frappe,"get_meta") as meta:

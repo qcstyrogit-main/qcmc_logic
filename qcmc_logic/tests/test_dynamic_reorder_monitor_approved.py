@@ -50,6 +50,15 @@ class TestApprovedMonitoring(unittest.TestCase):
         self.assertFalse(result["can_create_request"])
         self.assertEqual(result["candidate_qty"],0)
 
+    def test_transfer_monitor_blocks_insufficient_source_stock(self):
+        h,item,policy,_,projected,qty,requests=self.state()
+        with patch("qcmc_logic.dynamic_reorder_transfer.transfer_readiness",return_value=("Insufficient Source Stock","Short","A")) as ready:
+            result=approved_result({},(h,item,policy,"Transfer",projected,qty,requests),True)
+            self.assertEqual(result["monitor_status"],"Insufficient Source Stock")
+            self.assertFalse(result["can_create_request"])
+            self.assertEqual(result["transfer_source_warehouse"],"A")
+            ready.assert_called_once_with(h,item.name,qty,read_only=True)
+
     def test_healthy_stock(self):
         result=approved_result({},self.state(projected=5000,qty=0),True)
         self.assertEqual(result["monitor_status"],"Above Reorder Level")

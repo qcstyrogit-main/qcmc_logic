@@ -59,7 +59,7 @@ SCHEMAS = {
         field("mapping_name"),link("inventory_group","Inventory Group"),link("inventory_type","Inventory Type"),
         check("legacy_scope_reviewed"),check("migration_review_required"),field("migration_note","Small Text"),
         field("warehouses","Table","Reorder Mapping Warehouse"),link("replenishment_warehouse","Warehouse"),
-        check("automatic_draft_replenishment"),
+        link("transfer_source_warehouse","Warehouse"), check("automatic_draft_replenishment"),
         check("enabled"), link("policy","Reorder Policy",1), link("company","Company",1),
         link("item_code","Item"), link("item_group","Item Group"), check("include_item_descendants"),
         link("warehouse","Warehouse"), check("include_warehouse_descendants"),

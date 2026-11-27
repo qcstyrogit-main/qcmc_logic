@@ -20,11 +20,14 @@ def protected_pairs(doc):
         "SELECT name FROM tabItem WHERE name IN (" + placeholders + ") ORDER BY name FOR UPDATE",
         tuple(items),
     )
+    protection = "custom_managed_reorder=1"
+    if frappe.get_meta("Item Reorder").has_field("custom_reorder_excluded_mapping"):
+        protection += " OR (warehouse='FG - Guyong' AND COALESCE(custom_reorder_excluded_mapping,'')!='')"
     managed = frappe.db.sql(
         """SELECT parent, warehouse FROM `tabItem Reorder`
            WHERE parent IN (""" + placeholders + """)
              AND parenttype='Item' AND parentfield='reorder_levels'
-             AND custom_managed_reorder=1 FOR UPDATE""",
+             AND (""" + protection + """) FOR UPDATE""",
         tuple(items), as_dict=True,
     )
     return {(row.parent, row.warehouse) for row in managed}
