@@ -11,10 +11,11 @@ def run():
     assert actual.enabled and actual.preview_only and not actual.automatic_update_enabled
     assert not frappe.db.count(s.EXECUTION),"Use a clean local execution history; do not delete existing records"
     settings=frappe._dict(enabled=1,preview_only=0,automatic_update_enabled=1,first_scheduled_date=date(2026,12,1))
+    schedule=frappe._dict(enabled=1,frequency="Monthly",execution_weekday="Monday",day_of_month=1,execution_time="02:00:00",maximum_retry_attempts=3,recover_missed_executions=1,effective_from=date(2026,12,1))
     zone=ZoneInfo("Asia/Manila")
     output=[]
     try:
-        with patch.object(frappe,"get_single",return_value=settings),patch.object(frappe.db,"commit"),patch.object(s,"notify_run"),patch.object(s,"safe_notify") as notify,patch.object(s,"process_month",return_value={"status":"Completed","failed":0}) as process,patch.object(s,"business_now") as clock:
+        with patch.object(s,"get_schedule",return_value=schedule),patch.object(frappe,"get_single",return_value=settings),patch.object(frappe.db,"commit"),patch.object(s,"notify_run"),patch.object(s,"safe_notify") as notify,patch.object(s,"process_month",return_value={"status":"Completed","failed":0}) as process,patch.object(s,"business_now") as clock:
             clock.return_value=datetime(2026,12,1,1,59,tzinfo=zone)
             assert s.monthly()["status"]=="Awaiting First Schedule"
             process.assert_not_called()

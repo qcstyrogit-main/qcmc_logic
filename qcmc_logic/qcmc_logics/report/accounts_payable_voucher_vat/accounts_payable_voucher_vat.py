@@ -31,8 +31,7 @@ def execute(filters=None):
                 "pi.docstatus=1"]
     if f.get("supplier"):conditions.append("pi.supplier=%(supplier)s")
     if f.get("expense_account"):conditions.append("v.account_name=%(expense_account)s")
-    # VAT Details supplies report expense accounts. PV Amt comes separately
-    # from the invoice Items amounts, not from VAT Details.
+    # VAT Details is the sole source of report amounts and expense accounts.
     rows=frappe.db.sql("""
         SELECT pi.name pv_no,pi.posting_date pv_date,pi.supplier,pi.supplier_name,
                v.account_name expense_account,pi.company
@@ -63,14 +62,8 @@ def execute(filters=None):
           AND v.parentfield='custom_vat_details'
     """,{"names":invoice_names},as_dict=True) if invoice_names else []
     from frappe.utils import flt
-    # Fetch item amounts once per invoice to avoid multiplying PV Amt by
-    # the number of VAT Detail lines. Show it once per invoice in the report.
-    pv_amounts=dict(frappe.db.sql("""
-        SELECT parent,SUM(amount) FROM `tabPurchase Invoice Item`
-        WHERE parent IN %(names)s AND parenttype='Purchase Invoice'
-        GROUP BY parent
-    """,{"names":invoice_names})) if invoice_names else {}
     allocated={}
+    pv_amounts={}
     for v in vat_rows:
         cc=(v.cost_center or "").upper()
         if "-EPS " in cc:
@@ -82,14 +75,14 @@ def execute(filters=None):
             # Verify the authoritative company mapping before changing this rule.
             category="input_tax_gen"
         key=(v.pv_no,v.expense_account,category)
-        allocated[key]=allocated.get(key,0)+flt(v.amount)
-    # One row per invoice and VAT Details account. Item PV Amt is displayed
-    # on only one row per invoice so print subtotals cannot double-count it.
-    rows.sort(key=lambda r:(r.expense_account or "",r.supplier_name or "",str(r.pv_date),r.pv_no))
-    seen_pv=set()
+        from qcmc_logic.customs.apv_vat_validation import calculate_vat_detail
+        vat_component, pv_component = calculate_vat_detail(v.amount)
+        allocated[key]=allocated.get(key,0)+vat_component
+        pv_key=(v.pv_no,v.expense_account)
+        pv_amounts[pv_key]=pv_amounts.get(pv_key,0)+pv_component
+    # One row per invoice and VAT Details expense account.
     for row in rows:
-        row.pv_amount=pv_amounts.get(row.pv_no) if row.pv_no not in seen_pv else None
-        seen_pv.add(row.pv_no)
+        row.pv_amount=pv_amounts.get((row.pv_no,row.expense_account))
         row.tin_number=tins.get(row.supplier) or ""
         for category in ("input_tax_eps","input_tax_psp","input_tax_gen"):
             row[category]=allocated.get((row.pv_no,row.expense_account,category))

@@ -3,6 +3,13 @@ from erpnext.stock.doctype.material_request.material_request import MaterialRequ
 
 class CustomMaterialRequest(MaterialRequest):
 
+    def before_insert(self):
+        parent = getattr(super(), "before_insert", None)
+        if parent:
+            parent()
+        from qcmc_logic.dynamic_reorder_native_guard import filter_new_native_request
+        filter_new_native_request(self)
+
     def before_update_after_submit(self):
         from qcmc_logic.customs.purchase_request_evaluation import validate_evaluation
         from qcmc_logic.customs.purchase_request_history import validate_history
@@ -32,6 +39,8 @@ class CustomMaterialRequest(MaterialRequest):
         if self.title == '{material_request_type}':
             self.title = None
         super().validate()
+        from qcmc_logic.dynamic_reorder_native_guard import validate_native_request
+        validate_native_request(self)
 
     def validate_warehouse(self):
         from erpnext.stock.utils import (

@@ -22,7 +22,7 @@ def run(demand_heavy=False):
     sample=original_get_all("Item",filters={"disabled":0,"is_stock_item":1,"has_variants":0,"custom_inventory_group":"FG","creation":["<",as_of-timedelta(days=90)]},fields=fields,order_by="name",limit_page_length=0)
     sample=[i for i in sample if i.custom_inventory_type_ and (not i.end_of_life or str(i.end_of_life)=="0000-00-00" or getdate(i.end_of_life)>as_of)]
     assert sample,"No eligible sample items"
-    policy_template=original_get_all("Reorder Policy",filters={"enabled":1,"inventory_category":"Finished Goods"},fields=["*"],limit_page_length=1)[0]
+    policy_template=original_get_all("Reorder Policy",filters={"enabled":1,"inventory_category":"FG"},fields=["*"],limit_page_length=1)[0]
     before={d:frappe.db.count(d) for d in ("Item Reorder","Reorder Policy","Reorder Policy Mapping","Item Reorder Override",HISTORY)}
     output=[]
     from decimal import Decimal

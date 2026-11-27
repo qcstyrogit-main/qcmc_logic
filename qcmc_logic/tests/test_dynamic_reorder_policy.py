@@ -26,5 +26,5 @@ class TestDynamicReorderPolicy(unittest.TestCase):
         self.assertIsNotNone(self.resolve([dict(row, include_item_descendants=1, include_warehouse_descendants=1)]))
 
     def test_only_finished_goods(self):
-        self.assertTrue(eligible_category(dict(enabled=1, inventory_category="Finished Goods")))
+        self.assertTrue(eligible_category(dict(enabled=1, inventory_category="FG")))
         self.assertFalse(eligible_category(dict(enabled=1, inventory_category="Raw Materials")))

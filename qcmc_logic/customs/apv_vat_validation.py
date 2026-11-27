@@ -2,6 +2,21 @@
 import frappe
 from frappe import _
 from frappe.utils import flt
+from decimal import Decimal, ROUND_HALF_UP
+
+
+def calculate_vat_detail(amount):
+    value = Decimal(str(amount or 0))
+    vat = (value * Decimal("12") / Decimal("112")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return float(vat), float(value - vat)
+
+
+def update_vat_detail_amounts(doc, method=None):
+    """Reference-only fields; never changes invoice totals, taxes, or GL."""
+    for row in doc.get("custom_vat_details") or []:
+        vat, pv = calculate_vat_detail(row.get("amount"))
+        row.custom_vat_inclusive = vat
+        row.custom_pv_amount = pv
 
 SUPPORTED_COMPANIES = {"QC Styropackaging Corporation", "Multiplast Corporation"}
 
