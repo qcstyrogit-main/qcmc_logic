@@ -396,7 +396,7 @@ def _validate_operation_output_limits(job):
 
 	precision = job.precision("for_quantity")
 	work_order_quantity = flt(work_order.qty, precision)
-	_current_good, current_total = operation_totals(job.operation_id)
+	current_good, current_total = operation_totals(job.operation_id)
 	if current_total > work_order_quantity:
 		frappe.throw("Recorded output exceeds the Work Order quantity.")
 
@@ -407,6 +407,11 @@ def _validate_operation_output_limits(job):
 				"Operation output exceeds the accepted quantity from the previous Work Order operation."
 			)
 
+	if operation_index + 1 < len(operations):
+		_next_good, next_total = operation_totals(operations[operation_index + 1].name)
+		if flt(next_total, precision) > flt(current_good, precision):
+			frappe.throw("Output correction would leave the next Work Order operation above the accepted quantity.")
+
 
 def _save_operational_output(
 	card, job, start, end, good_qty, rejected_qty, remarks=None, row=None,
@@ -415,15 +420,6 @@ def _save_operational_output(
 	precision = job.precision("for_quantity")
 	good = _decimal_checkpoint_qty(good_qty, "Good quantity", precision)
 	rejected = _decimal_checkpoint_qty(rejected_qty, "Rejected quantity", precision)
-	other_operational_qty = sum(
-		flt(existing.get("qcmc_good_qty")) + flt(existing.get("qcmc_rejected_qty"))
-		for existing in job.time_logs
-		if existing is not row
-		and existing.get("qcmc_process_card")
-		and int(existing.get("qcmc_output_revision") or 0) > 0
-	)
-	if flt(job.total_completed_qty + other_operational_qty + good + rejected, precision) > flt(job.for_quantity, precision):
-		frappe.throw("Output would exceed the Job Card quantity after including official and previously recorded operational output.")
 	if not row:
 		for existing in job.time_logs:
 			is_output_row = int(existing.get("qcmc_output_revision") or 0) > 0
@@ -438,6 +434,16 @@ def _save_operational_output(
 				frappe.throw("This checkpoint already has an entry. Use Correct Entry to revise it.")
 			if not existing.to_time or (start < frappe.utils.get_datetime(existing.to_time) and frappe.utils.get_datetime(existing.from_time) < end):
 				frappe.throw("Checkpoint interval overlaps an existing Job Card Time Log.")
+	other_operational_qty = sum(
+		flt(existing.get("qcmc_good_qty")) + flt(existing.get("qcmc_rejected_qty"))
+		for existing in job.time_logs
+		if existing is not row
+		and existing.get("qcmc_process_card")
+		and int(existing.get("qcmc_output_revision") or 0) > 0
+	)
+	if flt(job.total_completed_qty + other_operational_qty + good + rejected, precision) > flt(job.for_quantity, precision):
+		frappe.throw("Output would exceed the Job Card quantity after including official and previously recorded operational output.")
+	if not row:
 		# ERPNext derives official totals from completed_qty. Refuse to save if existing rows are already inconsistent.
 		if job.sub_operations:
 			frappe.throw("Operational checkpoints cannot be added to a Job Card with sub-operations.")
@@ -536,7 +542,7 @@ def correct_process_card_output(process_card, job_card, time_log_id, expected_re
 	frappe.db.sql("select name from `tabJob Card` where name=%s for update", job_card)
 	job = _load_job_card(job_card, "write")
 	row = next((row for row in job.time_logs if row.name == time_log_id and row.get("qcmc_process_card") == card.name), None)
-	if not row:
+	if not row or int(row.get("qcmc_output_revision") or 0) <= 0:
 		frappe.throw("Operational checkpoint entry not found for this Process Card.")
 	if int(row.get("qcmc_output_revision") or 0) != int(expected_revision):
 		frappe.throw("This checkpoint changed after you loaded it. Refresh before correcting it.", frappe.TimestampMismatchError)

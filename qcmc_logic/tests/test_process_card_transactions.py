@@ -64,7 +64,7 @@ class TestProcessCardParticipationTransfers(TestCase):
 				_dict(qcmc_process_card="PC-1", employee="EMP-1", from_time="2026-11-10 10:00:00", to_time="2026-11-10 18:00:00"),
 			],
 		)
-		with patch("qcmc_logic.customs.process_card_transactions.frappe") as frappe:
+		with patch.object(transactions, "_", side_effect=lambda value: value), patch("qcmc_logic.customs.process_card_transactions.frappe") as frappe:
 			frappe.throw.side_effect = ValueError("overlap")
 			with self.assertRaisesRegex(ValueError, "overlap"):
 				_validate_participation_overlaps(doc, {"PC-1": self.card})
@@ -168,6 +168,7 @@ class TestQualityInspectionRejections(TestCase):
 			patch.object(transactions, "frappe") as frappe,
 		):
 			frappe.get_list.return_value = []
+			frappe.db.sql.return_value = []
 			frappe.throw.side_effect = lambda message, *args, **kwargs: (_ for _ in ()).throw(ValueError(message))
 			transactions.validate_quality_inspection(doc)
 

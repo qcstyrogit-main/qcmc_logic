@@ -48,15 +48,7 @@ def execute():
             ],
         }).insert(ignore_permissions=True)
 
-    create_custom_fields({
-        CHILD_DOCTYPE: [{
-            "fieldname": "cost_center",
-            "fieldtype": "Link",
-            "label": "Cost Center",
-            "options": "Cost Center",
-            "insert_after": "account_name",
-            "in_list_view": 1,
-        }],
+    custom_fields = {
         "Purchase Invoice": [
             {
                 "fieldname": "custom_show_vat_details",
@@ -76,7 +68,15 @@ def execute():
                 "print_hide": 1,
             },
         ],
-    }, ignore_validate=True)
+    }
+    # New child tables already contain this native field. Retain compatibility
+    # with older tables, without creating a conflicting Custom Field.
+    if not frappe.db.exists('DocField', {'parent': CHILD_DOCTYPE, 'fieldname': 'cost_center'}):
+        custom_fields[CHILD_DOCTYPE] = [{
+            'fieldname': 'cost_center', 'fieldtype': 'Link', 'label': 'Cost Center',
+            'options': 'Cost Center', 'insert_after': 'account_name', 'in_list_view': 1,
+        }]
+    create_custom_fields(custom_fields, ignore_validate=True)
 
     frappe.clear_cache(doctype=CHILD_DOCTYPE)
     frappe.clear_cache(doctype="Purchase Invoice")

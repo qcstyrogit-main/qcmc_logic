@@ -39,7 +39,7 @@ def get_packing_label_defaults(job_card):
 
 
 @frappe.whitelist()
-def generate_packing_label_pdf(job_card, pack_type, orientation="Portrait", label_data=None, master_sheet=0):
+def generate_packing_label_pdf(job_card, pack_type, orientation="Portrait", label_data=None, master_sheet=0, label_count=None):
 	"""Return a complete packing-label PDF without creating a File document."""
 	if not job_card or not frappe.db.exists("Job Card", job_card):
 		frappe.throw(_("Job Card is required and must exist."))
@@ -58,14 +58,25 @@ def generate_packing_label_pdf(job_card, pack_type, orientation="Portrait", labe
 	job_quantity = flt(doc.for_quantity)
 	if pack_quantity <= 0 or job_quantity <= 0:
 		frappe.throw(_("Job Card and pack quantities must be greater than zero."))
-	label_count = job_quantity / pack_quantity
-	if abs(label_count - round(label_count)) > 0.000001:
-		frappe.throw(
-			_("Job Card quantity {0} cannot be divided evenly by pack quantity {1}.").format(
-				job_quantity, pack_quantity
+	maximum_label_count = int(job_quantity // pack_quantity)
+	if label_count is None or str(label_count).strip() == "":
+		calculated_count = job_quantity / pack_quantity
+		if abs(calculated_count - round(calculated_count)) > 0.000001:
+			frappe.throw(
+				_("Job Card quantity {0} cannot be divided evenly by pack quantity {1}.").format(
+					job_quantity, pack_quantity
+				)
 			)
-		)
-	label_count = int(round(label_count))
+		label_count = int(round(calculated_count))
+	else:
+		try:
+			label_count = int(label_count)
+		except (TypeError, ValueError):
+			frappe.throw(_("Label count must be a whole number."))
+		if label_count < 1 or label_count > maximum_label_count:
+			frappe.throw(
+				_("Label count must be between 1 and {0} for this Job Card and pack type.").format(maximum_label_count)
+			)
 
 	data = frappe.parse_json(label_data) if isinstance(label_data, str) else (label_data or {})
 	customer = (data.get("customer") or "").strip()

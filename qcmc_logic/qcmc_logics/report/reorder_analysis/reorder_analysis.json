@@ -2,7 +2,7 @@
   "doctype": "Report",
   "name": "Reorder Analysis",
   "report_name": "Reorder Analysis",
-  "ref_doctype": "Reorder Calculation History",
+  "ref_doctype": "Reorder Policy Mapping",
   "module": "QCMC Logics",
   "report_type": "Script Report",
   "is_standard": "Yes",

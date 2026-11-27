@@ -245,7 +245,7 @@ class DeliveryScheduleWorkbench {
 			company: frappe.defaults.get_user_default("Company"),
 			delivery_date: frappe.datetime.get_today(),
 			warehouse: "",
-			include_overdue: 0,
+			include_overdue: 1,
 		};
 	}
 

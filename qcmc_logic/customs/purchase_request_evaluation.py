@@ -44,6 +44,13 @@ def validate_evaluation(doc):
     from qcmc_logic.customs.provincial_purchase_request import validate_provincial_origin, validate_provincial_route
 
     validate_provincial_origin(doc)
+    from qcmc_logic.customs.mc_purchase_request import validate_mc_origin, validate_mc_route
+
+    validate_mc_origin(doc)
+    validate_mc_route(doc)
+    from qcmc_logic.customs.mc_maintenance_purchase_request import validate_maintenance
+
+    validate_maintenance(doc)
     validate_provincial_route(doc)
     old = doc.get_doc_before_save()
     if not old:

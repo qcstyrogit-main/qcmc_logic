@@ -12,9 +12,9 @@ def notify_execution(name, event, result=None, superseded=0):
         return False
     result=result or {}
     labels={
-        "completed":"Monthly calculation completed",
+        "completed":"Scheduled calculation completed",
         "catch_up":"Missed schedule recovered (preview only)",
-        "superseded":"Older monthly schedules superseded",
+        "superseded":"Older schedules superseded",
         "approval":"Calculations require approval",
         "retry":"Calculation retry pending",
         "failed":"Critical: retry limit exhausted",
@@ -25,11 +25,11 @@ def notify_execution(name, event, result=None, superseded=0):
     if frappe.db.exists("Notification Log",filters):
         return False
     summary=f"Scheduled date: {run.scheduled_date}; status: {run.status}; attempt: {run.attempts}."
-    for k in ("recorded","duplicates","applied","review","failed"):
+    for k in ("recorded","duplicates","applied","review","failed","item_failed"):
         if k in result:
             summary+=f" {k.title()}: {int(result[k] or 0)}."
     if superseded:
-        summary+=f" Superseded months: {int(superseded)}."
+        summary+=f" Superseded schedules: {int(superseded)}."
     if event in ("retry","failed","unexpected"):
         summary+=" Review execution history and Error Log."
     frappe.get_doc(dict(doctype="Notification Log",**filters,from_user="Administrator",type="Alert",email_content=escape_html(summary))).insert(ignore_permissions=True)

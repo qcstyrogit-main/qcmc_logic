@@ -124,8 +124,8 @@ def get_process_card_shift_summary(process_card):
 	)
 
 	card = _process_card(process_card)
-	for doctype in ("Downtime Entry", "Quality Inspection", "Asset Repair"):
-		frappe.has_permission(doctype, "read", throw=True)
+	section_access = {doctype: bool(frappe.has_permission(doctype, "read"))
+		for doctype in ("Downtime Entry", "Quality Inspection", "Asset Repair", "Employee")}
 
 	start, end = get_datetime(card.shift_start), get_datetime(card.shift_end)
 	shift_seconds = time_diff_in_seconds(end, start)
@@ -136,7 +136,7 @@ def get_process_card_shift_summary(process_card):
 	production = _production_output_summary(card, job_docs)
 	manpower_participation = []
 	employees = {}
-	for job in job_docs:
+	for job in (job_docs if section_access["Employee"] else []):
 		for row in job.get("time_logs") or []:
 			if (
 				row.get("qcmc_process_card") != card.name
@@ -180,7 +180,7 @@ def get_process_card_shift_summary(process_card):
 		},
 		fields=["name", "qcmc_process_card", "qcmc_job_card", "from_time", "to_time", "stop_reason", "remarks"],
 		limit_page_length=0,
-	)
+	) if section_access["Downtime Entry"] else []
 	downtime_intervals = []
 	downtime_entries = []
 	for row in downtime_rows:
@@ -202,7 +202,7 @@ def get_process_card_shift_summary(process_card):
 		filters={"qcmc_process_card": card.name, "docstatus": ["!=", 2]},
 		fields=["name", "reference_name", "qcmc_output_time_log", "status", "inspected_by"],
 		limit_page_length=0,
-	)
+	) if section_access["Quality Inspection"] else []
 	quality_inspections = []
 	qa_rejections = []
 	measurements = []
@@ -236,6 +236,9 @@ def get_process_card_shift_summary(process_card):
 			"name": inspection.name,
 			"job_card": inspection.reference_name,
 			"output_time_log": inspection.get("qcmc_output_time_log"),
+			"qa_start": str(inspection.get("qcmc_qa_start") or ""),
+			"qa_end": str(inspection.get("qcmc_qa_end") or ""),
+			"work_order": inspection.get("qcmc_work_order"),
 			"status": inspection.status,
 			"inspected_by": inspection.inspected_by,
 			"qa_rejected_qty": inspection_rejected_qty,
@@ -250,7 +253,7 @@ def get_process_card_shift_summary(process_card):
 			"custom_nature_of_breakdown", "custom_action_taken",
 		],
 		limit_page_length=0,
-	)
+	) if section_access["Asset Repair"] else []
 	breakdowns = []
 	for row in repair_rows:
 		repair = frappe.get_doc("Asset Repair", row.name)
@@ -282,15 +285,17 @@ def get_process_card_shift_summary(process_card):
 		"shift_end": str(card.shift_end),
 		"production_output": production,
 		"manpower_participation": manpower_participation,
+		"section_access": section_access,
 		"machine_metrics": {
 			"shift_hours": round(shift_seconds / 3600, 4),
-			"downtime_hours": round(downtime_seconds / 3600, 4),
-			"available_hours": round(available_seconds / 3600, 4),
-			"availability_percent": round(available_seconds / shift_seconds * 100, 2) if shift_seconds > 0 else 0,
-			"actual_run_hours": round(run_seconds / 3600, 4),
+			"downtime_hours": round(downtime_seconds / 3600, 4) if section_access["Downtime Entry"] else None,
+			"available_hours": round(available_seconds / 3600, 4) if section_access["Downtime Entry"] else None,
+			"availability_percent": (round(available_seconds / shift_seconds * 100, 2) if shift_seconds > 0 else 0) if section_access["Downtime Entry"] else None,
+			"actual_run_hours": None,
+			"recorded_output_interval_hours": round(run_seconds / 3600, 4) if section_access["Downtime Entry"] else None,
 			"definitions": {
 				"availability": "Process Card shift duration minus the union of linked Downtime Entry intervals clipped to the shift.",
-				"actual_run_hours": "Union of positive-output Job Card Time Log intervals clipped to the shift, less downtime overlap.",
+				"actual_run_hours": "Recorded production interval hours: union of positive-output intervals clipped to the shift, less downtime overlap. This is not measured machine runtime.",
 				"breakdown_duration": "Asset Repair failure-to-completion duration is not counted as machine downtime.",
 			},
 			"availability_source_events": [row["name"] for row in downtime_entries],

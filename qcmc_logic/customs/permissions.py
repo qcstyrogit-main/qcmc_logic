@@ -396,6 +396,10 @@ def material_request_permission_query(user=None):
 
     if ROLE in frappe.get_roles(user) and not has_other_permission(None, 'read', user):
         purchase_condition = f"({purchase_condition}) AND {table}.material_request_type = 'Purchase'"
+    from qcmc_logic.customs.mc_purchase_request import has_independent_permission
+
+    if not has_independent_permission(None, 'read', user):
+        purchase_condition = f"({purchase_condition}) AND {table}.material_request_type = 'Purchase'"
     return purchase_condition
 
 
@@ -403,7 +407,10 @@ def material_request_has_permission(doc, ptype=None, user=None):
     user = user or frappe.session.user
     if doc:
         from qcmc_logic.customs.provincial_purchase_request import restrict_provincial_permission
+        from qcmc_logic.customs.mc_purchase_request import restrict_mc_permission
 
+        if restrict_mc_permission(doc, ptype, user) is False:
+            return False
         if restrict_provincial_permission(doc, ptype, user) is False:
             return False
     if doc and doc.get("material_request_type") == "Purchase" and ptype in {

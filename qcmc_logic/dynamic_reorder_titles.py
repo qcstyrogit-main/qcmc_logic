@@ -4,9 +4,13 @@ import frappe
 TITLED = ("Reorder Policy Mapping", "Item Reorder Override", "Reorder Calculation History")
 
 def make_title(doc):
-    scope = doc.get("item_code") or doc.get("item_group") or "All Items"
-    warehouse = doc.get("warehouse") or "All Warehouses"
-    parts = [scope, warehouse]
+    scope = doc.get("mapping_name") or doc.get("item_code") or doc.get("item_group") or "Legacy scope"
+    mapping = doc.get("mapping")
+    # Prefer the human-readable mapping name, never expose its internal hash.
+    mapping_title = frappe.db.get_value("Reorder Policy Mapping", mapping, "mapping_name") if mapping else None
+    warehouse = mapping_title or doc.get("replenishment_warehouse") or doc.get("warehouse") or "Scope review required"
+    # A mapping's own title already includes its descriptive name.
+    parts = [scope] if doc.doctype == "Reorder Policy Mapping" and doc.get("mapping_name") else [scope, warehouse]
     if doc.doctype == "Reorder Calculation History":
         parts.append(doc.get("calculation_date"))
     return " | ".join(str(p) for p in parts if p)[:140]
@@ -22,14 +26,16 @@ def install_titles():
                 fieldtype="Data", read_only=1, hidden=1, no_copy=1))
         meta.title_field = "display_title"
         meta.show_title_field_in_link = 1
-        meta.search_fields = "display_title,item_code,warehouse"
+        meta.search_fields = "display_title,mapping_name,company" if name=="Reorder Policy Mapping" else "display_title,item_code,mapping"
         meta.save()
         frappe.clear_cache(doctype=name)
         fields = ["name", "item_code", "warehouse", "display_title"]
         if name == "Reorder Policy Mapping":
-            fields.append("item_group")
+            fields.extend(["item_group","mapping_name","replenishment_warehouse"])
+        if name == "Item Reorder Override":
+            fields.append("mapping")
         if name == "Reorder Calculation History":
-            fields.append("calculation_date")
+            fields.extend(["calculation_date","mapping"])
         for row in frappe.get_all(name, fields=fields):
             row.doctype = name
             title = make_title(row)

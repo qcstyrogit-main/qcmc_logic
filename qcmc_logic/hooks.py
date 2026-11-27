@@ -8,8 +8,11 @@ app_license = "mit"
 # Apps
 # ------------------
 doc_events = {
-    "Reorder Policy Mapping": {"before_validate": "qcmc_logic.dynamic_reorder_titles.set_title"},
-    "Item Reorder Override": {"before_validate": "qcmc_logic.dynamic_reorder_titles.set_title"},
+    "Reorder Policy": {"validate": "qcmc_logic.dynamic_reorder_policy.validate_policy"},
+    "Reorder Schedule Settings": {"validate": "qcmc_logic.dynamic_reorder_schedule.validate"},
+    "Reorder Execution History": {"before_validate": "qcmc_logic.dynamic_reorder_schedule.set_execution_key"},
+    "Reorder Policy Mapping": {"before_validate": "qcmc_logic.dynamic_reorder_titles.set_title", "validate": "qcmc_logic.dynamic_reorder_policy.validate_mapping"},
+    "Item Reorder Override": {"before_validate": "qcmc_logic.dynamic_reorder_titles.set_title", "validate": "qcmc_logic.dynamic_reorder_policy.validate_override"},
     "Reorder Calculation History": {"before_validate": "qcmc_logic.dynamic_reorder_titles.set_title"},
     "Comment": {
         "before_save": "qcmc_logic.api.announcement_comments.stamp_comment_mentions",
@@ -81,6 +84,7 @@ doc_events = {
         "validate": "qcmc_logic.doctype.inventory_group_access.inventory_group_access.validate_role_profile_default_inventory_group",
     },
     "Purchase Invoice": {
+        "validate": "qcmc_logic.customs.apv_vat_validation.update_vat_detail_amounts",
         "before_submit": "qcmc_logic.customs.apv_vat_validation.validate_purchase_invoice",
     },
     "Purchase Receipt": {
@@ -286,6 +290,7 @@ override_doctype_dashboards = {
 }
 
 doctype_js = {
+    "Quality Inspection": "public/js/quality_inspection.js",
     "Purchase Receipt": "public/js/purchase_receipt.js",
     "Purchase Invoice": "public/js/purchase_invoice_vat_details.js",
     "BOM": "public/js/bom.js",
@@ -578,7 +583,8 @@ after_migrate = [
 # app_include_css = "/assets/qcmc_logic/css/qcmc_logic.css"
 app_include_js = [
     "/assets/qcmc_logic/js/process_card_workbench_cache.js?v=20261110-2",
-    "/assets/qcmc_logic/js/dynamic_reorder.js?v=20261124-6",
+    "/assets/qcmc_logic/js/dynamic_reorder.js?v=20261126-v11",
+    "/assets/qcmc_logic/js/reorder_calculation_batch.js?v=20261126-v2",
     "/assets/qcmc_logic/js/purchase_request_status.js",
     "/assets/qcmc_logic/js/hide_print_selection.js",
     "/assets/qcmc_logic/js/warehouse_access.js",
@@ -731,7 +737,8 @@ scheduler_events = {
         "*/30 * * * *": [
             "qcmc_logic.api.zkteco.fetch_and_insert_attendance_logs"
         ],
-        "*/15 * * * *": ["qcmc_logic.dynamic_reorder_scheduler.monthly"]
+        "*/15 * * * *": ["qcmc_logic.dynamic_reorder_scheduler.monthly",
+            "qcmc_logic.dynamic_reorder_replenishment.scheduled_drafts"]
     }
 }
 
@@ -818,9 +825,9 @@ extend_bootinfo = [
 ]
 # Dynamic Reorder starts Administrator-only until scoped permission tests pass.
 for _reorder_doctype in (
-    "Reorder Execution History", "Reorder Settings", "Reorder Policy",
+    "Replenishment Execution History", "Reorder Execution History", "Reorder Settings", "Reorder Schedule Settings", "Reorder Policy",
     "Reorder Policy Mapping", "Seasonal Demand Profile",
-    "Item Reorder Override", "Reorder Calculation History",
+    "Item Reorder Override", "Reorder Calculation History","Reorder Calculation Batch","Reorder Calculation Item",
 ):
     permission_query_conditions[_reorder_doctype] = "qcmc_logic.dynamic_reorder_permissions.query"
     has_permission[_reorder_doctype] = "qcmc_logic.dynamic_reorder_permissions.has_permission"
